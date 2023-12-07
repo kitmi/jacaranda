@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Home - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="ConfigLoader.html">ConfigLoader</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ConfigLoader.html#load_">load_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ConfigLoader.html#postProcess">postProcess</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ConfigLoader.html#reload_">reload_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ConfigLoader.html#.createEnvAwareJsonLoader">createEnvAwareJsonLoader</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ConfigLoader.html#.createEnvAwareYamlLoader">createEnvAwareYamlLoader</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="EnvAwareConfigProvider.html">EnvAwareConfigProvider</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EnvAwareConfigProvider.html#.getItem">getItem</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EnvAwareConfigProvider.html#.load_">load_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EnvAwareConfigProvider.html#.save_">save_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EnvAwareConfigProvider.html#.setItem">setItem</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="JsonConfigProvider.html">JsonConfigProvider</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JsonConfigProvider.html#getItem">getItem</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JsonConfigProvider.html#load_">load_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JsonConfigProvider.html#save_">save_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JsonConfigProvider.html#setItem">setItem</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#EnvAwareConfigProviderF">EnvAwareConfigProviderF</a></span></li>
+</nav>
+
+<div id="main">
+    
+
+    
+
+
+
+    
+
+
+
+
+
+
+
+
+
+    
+
+
+    <section class="readme">
+        <article><h1>@kit/config</h1>
+<h2>JavaScript Env-aware Config</h2>
+<p><code>@kit/config</code> provides a simple and flexible way to manage configuration settings for applications across different environments. It supports both JSON and YAML file formats and automatically selects the appropriate configuration based on the current environment.</p>
+<h2>Features</h2>
+<ul>
+<li>Environment-aware: Automatically loads configuration files based on the environment setting.</li>
+<li>Supports JSON and YAML: Seamlessly works with both JSON and YAML configuration files.</li>
+<li>Easy to use: Provides a straight forward API to access configuration values.</li>
+<li>Customizable: Allows custom environment variable names and custom configuration file paths.</li>
+<li>Fallbacks: Supports default configuration for unspecified environments.</li>
+</ul>
+<h2>Installation</h2>
+<p>To install <code>@kit/config</code>, run the following command:</p>
+<pre class="prettyprint source lang-bash"><code>bun install @kit/config
+</code></pre>
+<p>Or if you're using npm:</p>
+<pre class="prettyprint source lang-bash"><code>npm install @kit/config
+</code></pre>
+<h2>Usage</h2>
+<ol>
+<li>
+<p>Create configuration files for your environments, e.g., <code>config.development.json</code>, <code>config.production.json</code>, <code>config.default.yaml</code>.</p>
+</li>
+<li>
+<p>Import the library and use it to access your configuration settings:</p>
+</li>
+</ol>
+<pre class="prettyprint source lang-javascript"><code>import ConfigLoader from '@kit/config';
+
+const configLoader = ConfigLoader.createEnvAwareJsonLoader(&lt;config path>, 'config', &lt;development|production>);
+await configLoader.load_();
+</code></pre>
+<h2>License</h2>
+<ul>
+<li>MIT</li>
+<li>Copyright (c) 2023 KITMI PTY LTD</li>
+</ul></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Thu Dec 07 2023 22:11:00 GMT+0800 (Central Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

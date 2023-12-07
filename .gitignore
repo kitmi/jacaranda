@@ -1,0 +1,27 @@
+# IDE generated files #
+######################
+.idea
+.vscode
+
+# node_modules files #
+######################
+node_modules
+npm-debug.log
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# test files #
+######################
+.nyc_output
+coverage
+allure-report
+allure-results
+async-dump.log

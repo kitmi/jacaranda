@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/index.js"],"sourcesContent":["export { default as transform } from './transformers';\nexport { default } from './Jxs';\n"],"names":["default","transform"],"mappings":";;;;;;;;;;;IACSA,OAAO;eAAPA,YAAO;;IADIC,SAAS;eAATA,qBAAS;;;qEAAQ;4DACb"}

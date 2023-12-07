@@ -1,0 +1,67 @@
+{
+    "name": "@kit/utils",
+    "version": "1.0.0",
+    "description": "A JavaScript utility library for both server and browser",
+    "main": "cjs/index",
+    "module": "src/index.js",
+    "react-native": "src/index.js",
+    "exports": {
+        ".": {
+            "import": "./src/index.js",
+            "require": "./cjs/index.js"
+        },
+        "./*": {
+            "import": "./src/*.js",
+            "require": "./cjs/*.js"
+        }
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "repository": "https://github.com/kitmi/jacaranda",        
+    "license": "MIT",
+    "nyc": {
+        "exclude": [
+            ".*",
+            "cjs",
+            "__test__",
+            "test"
+        ]
+    },
+    "scripts": {
+        "test": "mocha --recursive ./__test__/*.spec.js",
+        "doc": "jsdoc --configure .jsdoc.json --verbose",
+        "cover": "nyc --reporter=html --reporter=text mocha --recursive ./__test__/*.spec.js && open ./coverage/index.html",
+        "prettier": "prettier --write .",
+        "lint": "eslint \"./src/**/*.js\"",
+        "lint-fix": "eslint \"./src/**/*.js\" --fix",
+        "clean": "shx rm -rf cjs coverage .nyc_output",
+        "build": "bun run clean && swc ./src/*.js -d ./cjs"
+    },
+    "keywords": [
+        "kit",
+        "kitmi",
+        "jacaranda",
+        "javascript",
+        "utility",
+        "lodash"
+    ],
+    
+    "devDependencies": {
+        "benchmark": "^2.1.4",
+        "csv-parse": "^5.0.4",
+        "mobx": "^6.9.0"
+    },
+    "dependencies": {
+        "lodash": "^4.17.21"
+    },
+    "prettier": {
+        "quoteProps": "consistent",
+        "printWidth": 120,
+        "singleQuote": true,
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "useTabs": false
+    }
+}

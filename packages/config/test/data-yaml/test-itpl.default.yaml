@@ -1,0 +1,13 @@
+'key': '#!es6:Hello ${name}, welcome to ${place}!'
+'key2':
+    'array':
+        - '#!es6:value1: ${value1}'
+        - '#!es6:value2: ${value2}'
+        - '#!es6:sum: ${value1 + value2}'
+    'object':
+        'non': 'nothing'
+        'itpl': '#!es6:${(new Date()).toString()}'
+    'jsv1': '#!jsv:100+200*0.5'
+    'jsv2': "#!jsv:[name, place].join(' ')"
+    'jsv3': '#!swig: {{ name }} - {{ place }} '
+    'fn': "#!fn: const a = [name, place].join(' '); return a + '!'; "

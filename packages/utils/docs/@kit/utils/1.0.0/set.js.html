@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>set.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-naming.html">naming</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-naming.html#.camelCase">camelCase</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-naming.html#.kebabCase">kebabCase</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-naming.html#.pascalCase">pascalCase</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-naming.html#.snakeCase">snakeCase</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-text.html">text</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-url.html">url</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-url.html#.appendQuery">appendQuery</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-url.html#.join">join</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-url.html#.objectToQueryString">objectToQueryString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-url.html#.queryStringToObject">queryStringToObject</a></span></li><li class="nav-heading">Namespaces</li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="array.html">array</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="array.html#.arrayToCsv">arrayToCsv</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="array.html#.arrayToObject">arrayToObject</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="array.html#.copyArrayLike">copyArrayLike</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="array.html#.insert">insert</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="array.html#.insertBetween">insertBetween</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="array.html#.move">move</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="array.html#.swap">swap</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="array.html#.uniqPush">uniqPush</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="array.html#.zipAndFlat">zipAndFlat</a></span></li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="collection.html">collection</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="collection.html#.batchAsync_">batchAsync_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="collection.html#.eachAsync_">eachAsync_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="collection.html#.filterAsync_">filterAsync_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="collection.html#.findAsync_">findAsync_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="collection.html#.findKey">findKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="collection.html#.findKeyAsync_">findKeyAsync_</a></span></li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="lang.html">lang</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="lang.html#.hookInvoke">hookInvoke</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="lang.html#.ifThen">ifThen</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="lang.html#.sleep_">sleep_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="lang.html#.waitUntil_">waitUntil_</a></span></li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="object.html">object</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="object.html#.difference">difference</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="object.html#.get">get</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="object.html#.isPlainObject">isPlainObject</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="object.html#.objectToArray">objectToArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="object.html#.pushIntoBucket">pushIntoBucket</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="object.html#.remap">remap</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="object.html#.set">set</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="object.html#.take">take</a></span></li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="string.html">string</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.bin2Hex">bin2Hex</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.camelCase">camelCase</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.compile">compile</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.dropIfEndsWith">dropIfEndsWith</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.ensureEndsWith">ensureEndsWith</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.ensureStartsWith">ensureStartsWith</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.isQuoted">isQuoted</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.isWrappedWith">isWrappedWith</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.kebabCase">kebabCase</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.pascalCase">pascalCase</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.quote">quote</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.replaceAll">replaceAll</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.snakeCase">snakeCase</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.template">template</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.unquote">unquote</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.unwrap">unwrap</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.urlAppendQuery">urlAppendQuery</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.urlJoin">urlJoin</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.urlObjectToQueryString">urlObjectToQueryString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="string.html#.urlQueryStringToObject">urlQueryStringToObject</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#_">_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#dbgGetCallerFile">dbgGetCallerFile</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#defaultDeep">defaultDeep</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#flattenObject">flattenObject</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#isInteger">isInteger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#simpleCsvParser">simpleCsvParser</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">set.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import isPlainObject from './isPlainObject';
+import _each from 'lodash/each';
+import isInteger, { RANGE_INDEX } from './isInteger';
+
+// attention: since mobx will wrap the object in a Proxy, the source value will be different from the wrapped one
+// Here must return the obj[index] of obj[key], otherwise the child node will not be mounted to the root object
+
+export const addEntry = (obj, key, value, numberAsArrayIndex) => {
+    if (numberAsArrayIndex &amp;&amp; isInteger(key, { range: RANGE_INDEX })) {
+        if (Array.isArray(obj)) {
+            const index = parseInt(key, 10);
+
+            if (obj.length &lt;= index) {
+                const numToFill = index - obj.length;
+                if (numToFill > 0) {
+                    for (let i = 0; i &lt; numToFill; i++) {
+                        obj.push(undefined);
+                    }
+                }
+
+                obj.push(value);
+            } else {
+                obj[index] = value;
+            }
+
+            return obj[index];
+        }
+    }
+
+    obj[key] = value;
+    return obj[key];
+};
+
+/**
+ * Set a value by dot-separated path or key array into a collection
+ * Does not support '[i]', e.g. 'a[0].b.c' style accessor, use [ 'a',  0, 'b', 'c' ] instead, different from lodash/set
+ * @alias  object.set
+ * @param {Object} collection - The collection
+ * @param {string} keyPath - A dot-separated path (dsp) or a key array, e.g. settings.xxx.yyy, or ['setting', 'xxx', 'yyy']
+ * @param {Object} value - The default value if the path does not exist
+ * @returns {*}
+ */
+const _set = (collection, keyPath, value, options) => {
+    options = { numberAsArrayIndex: true, keyPathSeparator: '.', ...options };
+
+    if (collection == null || typeof collection !== 'object') {
+        return collection;
+    }
+
+    if (keyPath == null) {
+        return collection;
+    }
+
+    if (isPlainObject(keyPath) &amp;&amp; typeof value === 'undefined') {
+        // extract all key value pair and set
+        _each(keyPath, (v, k) => _set(collection, k, v, options));
+        return collection;
+    }
+
+    // break the path into nodes array
+    let nodes = Array.isArray(keyPath) ? keyPath.concat() : keyPath.split(options.keyPathSeparator);
+    const length = nodes.length;
+
+    if (length > 0) {
+        const lastIndex = length - 1;
+
+        let index = 0;
+        let nested = collection;
+
+        while (nested != null &amp;&amp; index &lt; lastIndex) {
+            const key = nodes[index++];
+
+            let next = nested[key];
+            if (next == null || typeof next !== 'object') {
+                // peek next node, see if it is integer
+                const nextKey = nodes[index];
+
+                if (options.numberAsArrayIndex &amp;&amp; isInteger(nextKey, { range: RANGE_INDEX })) {
+                    next = addEntry(nested, key, [], options.numberAsArrayIndex);
+                } else {
+                    next = addEntry(nested, key, {}, options.numberAsArrayIndex);
+                }
+            }
+
+            nested = next;
+        }
+
+        const lastKey = nodes[lastIndex];
+        addEntry(nested, lastKey, value, options.numberAsArrayIndex);
+    }
+
+    return collection;
+};
+
+export default _set;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Thu Dec 07 2023 22:11:01 GMT+0800 (Central Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

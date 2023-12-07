@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/locale/zh.js"],"sourcesContent":["export { default } from '@galaxar/jsonv/lib/locale/zh';\n"],"names":["default"],"mappings":";;;;+BAASA;;;eAAAA,WAAO;;;2DAAQ"}
