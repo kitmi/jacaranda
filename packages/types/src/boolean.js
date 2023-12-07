@@ -1,5 +1,5 @@
 import { ValidationError } from './errors';
-import toBoolean from '@kit/utils/toBoolean';
+import toBoolean from '@kitmi/utils/toBoolean';
 import { identity } from './functions';
 
 class T_BOOLEAN {

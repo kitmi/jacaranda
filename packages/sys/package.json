@@ -1,5 +1,5 @@
 {
-    "name": "@kit/sys",
+    "name": "@kitmi/sys",
     "version": "1.0.0",
     "description": "JavaScript local system utilities",
     "main": "cjs/index.js",
@@ -18,7 +18,7 @@
     "publishConfig": {
         "access": "public"
     },
-    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "author": "Rockie Guo <rockie@kitmimi.com.au>",
     "repository": "https://github.com/kitmi/jacaranda",
     "license": "MIT",
     "scripts": {
@@ -59,6 +59,6 @@
         "useTabs": false
     },
     "devDependencies": {
-        "@kit/utils": "workspace:*"
+        "@kitmi/utils": "workspace:*"
     }
 }

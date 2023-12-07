@@ -1,8 +1,8 @@
-# @kit/sys
+# @kitmi/sys
 
 ## JavaScript Local System Utilities
 
-`@kit/sys` is a small collection of utility functions designed to interact with the local system using JavaScript. It is designed to work with `node.js`/`bun.sh`.
+`@kitmi/sys` is a small collection of utility functions designed to interact with the local system using JavaScript. It is designed to work with `node.js`/`bun.sh`.
 
 ## Features
 
@@ -14,16 +14,16 @@
 
 ## Installation
 
-To install `@kit/sys`, run the following command:
+To install `@kitmi/sys`, run the following command:
 
 ```bash
-bun install @kit/sys
+bun install @kitmi/sys
 ```
 
 Or if you're using npm:
 
 ```bash
-npm install @kit/sys
+npm install @kitmi/sys
 ```
 
 ## License

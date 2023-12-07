@@ -8,7 +8,7 @@ Object.defineProperty(exports, "default", {
         return _index.default;
     }
 });
-require("@kit/jsonv/bundle");
+require("@kitmi/jsonv/bundle");
 const _index = /*#__PURE__*/ _interop_require_default(_export_star(require("./index"), exports));
 function _export_star(from, to) {
     Object.keys(from).forEach(function(k) {

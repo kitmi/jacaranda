@@ -2,10 +2,10 @@ import _each from 'lodash/each';
 import _every from 'lodash/every';
 import _mapValues from 'lodash/mapValues';
 import { ValidationError } from './errors';
-import { makePath } from '@kit/utils/objectPathUtils';
-import isPlainObject from '@kit/utils/isPlainObject';
-import batchAsync_ from '@kit/utils/batchAsync_';
-import findAsync_ from '@kit/utils/findAsync_';
+import { makePath } from '@kitmi/utils/objectPathUtils';
+import isPlainObject from '@kitmi/utils/isPlainObject';
+import batchAsync_ from '@kitmi/utils/batchAsync_';
+import findAsync_ from '@kitmi/utils/findAsync_';
 
 const jsonStarter = new Set(['"', '[', '{']);
 const jsonEnding = {

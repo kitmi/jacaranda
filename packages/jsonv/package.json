@@ -1,5 +1,5 @@
 {
-    "name": "@kit/jsonv",
+    "name": "@kitmi/jsonv",
     "version": "1.0.0",
     "description": "JSON Validation Syntax",
     "main": "cjs/index.js",
@@ -22,7 +22,7 @@
     "publishConfig": {
         "access": "public"
     },
-    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "author": "Rockie Guo <rockie@kitmimi.com.au>",
     "repository": "https://github.com/kitmi/jacaranda",
     "license": "MIT",
     "scripts": {
@@ -52,8 +52,8 @@
         ]
     },
     "dependencies": {
-        "@kit/types": "workspace:*",
-        "@kit/utils": "workspace:*",
+        "@kitmi/types": "workspace:*",
+        "@kitmi/utils": "workspace:*",
         "lodash": "^4.17.21"
     },
     "prettier": {

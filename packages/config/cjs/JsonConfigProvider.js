@@ -8,7 +8,7 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _utils = require("@kit/utils");
+const _utils = require("@kitmi/utils");
 const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 const _promises = require("node:fs/promises");
 function _interop_require_default(obj) {

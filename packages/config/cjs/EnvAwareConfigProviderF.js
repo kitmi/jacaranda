@@ -9,7 +9,7 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
-const _utils = require("@kit/utils");
+const _utils = require("@kitmi/utils");
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj

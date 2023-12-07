@@ -1,5 +1,5 @@
 {
-    "name": "@kit/utils",
+    "name": "@kitmi/utils",
     "version": "1.0.0",
     "description": "A JavaScript utility library for both server and browser",
     "main": "cjs/index",
@@ -18,7 +18,7 @@
     "publishConfig": {
         "access": "public"
     },
-    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "author": "Rockie Guo <rockie@kitmimi.com.au>",
     "repository": "https://github.com/kitmi/jacaranda",        
     "license": "MIT",
     "nyc": {

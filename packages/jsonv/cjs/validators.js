@@ -9,8 +9,8 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _types = require("@kit/types");
-const _utils = require("@kit/utils");
+const _types = require("@kitmi/types");
+const _utils = require("@kitmi/utils");
 const _isEqual = /*#__PURE__*/ _interop_require_default(require("lodash/isEqual"));
 const _has = /*#__PURE__*/ _interop_require_default(require("lodash/has"));
 const _size = /*#__PURE__*/ _interop_require_default(require("lodash/size"));

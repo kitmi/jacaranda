@@ -1,5 +1,5 @@
 import vm from 'node:vm';
-import { quote } from '@kit/utils';
+import { quote } from '@kitmi/utils';
 
 /**
  * Interpolate a string with variables.

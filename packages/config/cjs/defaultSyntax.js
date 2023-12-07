@@ -8,7 +8,7 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _utils = require("@kit/utils");
+const _utils = require("@kitmi/utils");
 const PROCESSOR_PREFIX = '#!';
 // syntax: <PROCESSOR_PREFIX><TOKEN>:
 const JS_VALUE_TOKEN = 'jsv';

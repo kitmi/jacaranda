@@ -1,1 +1,1 @@
-{"version":3,"sources":["../../src/locale/zh-HK.js"],"sourcesContent":["export { default } from '@kit/jsonv/lib/locale/zh-HK';\n"],"names":["default"],"mappings":";;;;+BAASA;;;eAAAA,aAAO;;;6DAAQ"}
+{"version":3,"sources":["../../src/locale/zh-HK.js"],"sourcesContent":["export { default } from '@kitmi/jsonv/lib/locale/zh-HK';\n"],"names":["default"],"mappings":";;;;+BAASA;;;eAAAA,aAAO;;;6DAAQ"}

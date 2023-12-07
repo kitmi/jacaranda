@@ -19,7 +19,7 @@ _export(exports, {
         return _default;
     }
 });
-const _utils = require("@kit/utils");
+const _utils = require("@kitmi/utils");
 const _JsonConfigProvider = /*#__PURE__*/ _interop_require_default(require("./JsonConfigProvider.js"));
 const _YamlConfigProvider = /*#__PURE__*/ _interop_require_default(require("./YamlConfigProvider.js"));
 const _EnvAwareConfigProviderF = /*#__PURE__*/ _interop_require_default(require("./EnvAwareConfigProviderF.js"));

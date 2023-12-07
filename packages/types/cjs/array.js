@@ -9,10 +9,10 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _errors = require("./errors");
-const _csvLineParse = /*#__PURE__*/ _interop_require_default(require("@kit/utils/csvLineParse"));
-const _arrayToCsv = /*#__PURE__*/ _interop_require_default(require("@kit/utils/arrayToCsv"));
-const _padding = require("@kit/utils/padding");
-const _batchAsync_ = /*#__PURE__*/ _interop_require_default(require("@kit/utils/batchAsync_"));
+const _csvLineParse = /*#__PURE__*/ _interop_require_default(require("@kitmi/utils/csvLineParse"));
+const _arrayToCsv = /*#__PURE__*/ _interop_require_default(require("@kitmi/utils/arrayToCsv"));
+const _padding = require("@kitmi/utils/padding");
+const _batchAsync_ = /*#__PURE__*/ _interop_require_default(require("@kitmi/utils/batchAsync_"));
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {

@@ -1,5 +1,5 @@
 import { ValidationError } from './errors';
-import toFloat from '@kit/utils/toFloat';
+import toFloat from '@kitmi/utils/toFloat';
 import { identity } from './functions';
 
 class T_NUMBER {

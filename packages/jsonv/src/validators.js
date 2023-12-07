@@ -1,6 +1,6 @@
 // JSON Validation Syntax
-import { Types } from '@kit/types';
-import { isPlainObject, get as _get } from '@kit/utils';
+import { Types } from '@kitmi/types';
+import { isPlainObject, get as _get } from '@kitmi/utils';
 
 import _isEqual from 'lodash/isEqual';
 import _has from 'lodash/has';

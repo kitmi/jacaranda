@@ -1,8 +1,8 @@
-# @kit/config
+# @kitmi/config
 
 ## JavaScript Env-aware Config
 
-`@kit/config` provides a simple and flexible way to manage configuration settings for applications across different environments. It supports both JSON and YAML file formats and automatically selects the appropriate configuration based on the current environment.
+`@kitmi/config` provides a simple and flexible way to manage configuration settings for applications across different environments. It supports both JSON and YAML file formats and automatically selects the appropriate configuration based on the current environment.
 
 ## Features
 
@@ -14,16 +14,16 @@
 
 ## Installation
 
-To install `@kit/config`, run the following command:
+To install `@kitmi/config`, run the following command:
 
 ```bash
-bun install @kit/config
+bun install @kitmi/config
 ```
 
 Or if you're using npm:
 
 ```bash
-npm install @kit/config
+npm install @kitmi/config
 ```
 
 ## Usage
@@ -33,7 +33,7 @@ npm install @kit/config
 2. Import the library and use it to access your configuration settings:
 
 ```javascript
-import ConfigLoader from '@kit/config';
+import ConfigLoader from '@kitmi/config';
 
 const configLoader = ConfigLoader.createEnvAwareJsonLoader(<config path>, 'config', <development|production>);
 await configLoader.load_();

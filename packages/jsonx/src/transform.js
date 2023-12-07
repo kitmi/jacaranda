@@ -1,5 +1,5 @@
 // JSON Expression Syntax (JES)
-import { get as _get, set as _set } from '@kit/utils';
+import { get as _get, set as _set } from '@kitmi/utils';
 
 import _isEmpty from 'lodash/isEmpty';
 import _reduce from 'lodash/reduce';

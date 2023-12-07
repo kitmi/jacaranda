@@ -1,4 +1,4 @@
-import testShouldThrow_ from '@kit/utils/testShouldThrow_';
+import testShouldThrow_ from '@kitmi/utils/testShouldThrow_';
 import { Types } from '../src';
 
 const { object } = Types;

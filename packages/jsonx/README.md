@@ -1,19 +1,19 @@
-# @kit/jsonx
+# @kitmi/jsonx
 
 JSON Expression Syntax
 
 ## Installation
 
-To install `@kit/jsonx`, run the following command:
+To install `@kitmi/jsonx`, run the following command:
 
 ```bash
-bun install @kit/jsonx
+bun install @kitmi/jsonx
 ```
 
 Or if you're using npm:
 
 ```bash
-npm install @kit/jsonx
+npm install @kitmi/jsonx
 ```
 
 ## Rules

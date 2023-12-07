@@ -1,5 +1,5 @@
 import { ValidationError } from './errors';
-import toInteger from '@kit/utils/toInteger';
+import toInteger from '@kitmi/utils/toInteger';
 import { identity } from './functions';
 
 class T_INTEGER {

@@ -9,7 +9,7 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _errors = require("./errors");
-const _toFloat = /*#__PURE__*/ _interop_require_default(require("@kit/utils/toFloat"));
+const _toFloat = /*#__PURE__*/ _interop_require_default(require("@kitmi/utils/toFloat"));
 const _functions = require("./functions");
 function _define_property(obj, key, value) {
     if (key in obj) {

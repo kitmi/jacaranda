@@ -8,7 +8,7 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _utils = require("@kit/utils");
+const _utils = require("@kitmi/utils");
 const _yaml = /*#__PURE__*/ _interop_require_default(require("yaml"));
 const _JsonConfigProvider = /*#__PURE__*/ _interop_require_default(require("./JsonConfigProvider"));
 function _interop_require_default(obj) {

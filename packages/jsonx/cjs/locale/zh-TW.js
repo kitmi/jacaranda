@@ -8,7 +8,7 @@ Object.defineProperty(exports, "default", {
         return _zhTW.default;
     }
 });
-const _zhTW = /*#__PURE__*/ _interop_require_default(require("@kit/jsonv/lib/locale/zh-TW"));
+const _zhTW = /*#__PURE__*/ _interop_require_default(require("@kitmi/jsonv/lib/locale/zh-TW"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj

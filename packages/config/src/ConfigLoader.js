@@ -1,4 +1,4 @@
-import { _ } from '@kit/utils';
+import { _ } from '@kitmi/utils';
 
 import JsonConfigProvider from './JsonConfigProvider.js';
 import YamlConfigProvider from './YamlConfigProvider.js';

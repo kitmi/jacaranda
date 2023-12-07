@@ -1,1 +1,1 @@
-export { default } from '@kit/jsonv/lib/locale/zh-HK';
+export { default } from '@kitmi/jsonv/lib/locale/zh-HK';

@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { _ } from '@kit/utils';
+import { _ } from '@kitmi/utils';
 
 function defaultOverrider(defConfig, envConfig) {
     return { ...defConfig, ...envConfig };

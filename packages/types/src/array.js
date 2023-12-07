@@ -1,9 +1,9 @@
 import { ValidationError } from './errors';
 
-import csvLineParse from '@kit/utils/csvLineParse';
-import arrayToCsv from '@kit/utils/arrayToCsv';
-import { padLeft } from '@kit/utils/padding';
-import batchAsync_ from '@kit/utils/batchAsync_';
+import csvLineParse from '@kitmi/utils/csvLineParse';
+import arrayToCsv from '@kitmi/utils/arrayToCsv';
+import { padLeft } from '@kitmi/utils/padding';
+import batchAsync_ from '@kitmi/utils/batchAsync_';
 
 class T_ARRAY {
     name = 'array';

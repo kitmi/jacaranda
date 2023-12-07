@@ -9,7 +9,7 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _utils = require("@kit/utils");
+const _utils = require("@kitmi/utils");
 const _isEmpty = /*#__PURE__*/ _interop_require_default(require("lodash/isEmpty"));
 const _reduce = /*#__PURE__*/ _interop_require_default(require("lodash/reduce"));
 const _map = /*#__PURE__*/ _interop_require_default(require("lodash/map"));

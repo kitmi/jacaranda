@@ -9,9 +9,9 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _utils = require("@kit/utils");
-const _types = require("@kit/types");
-const _jsonv = require("@kit/jsonv");
+const _utils = require("@kitmi/utils");
+const _types = require("@kitmi/types");
+const _jsonv = require("@kitmi/jsonv");
 const _size = /*#__PURE__*/ _interop_require_default(require("lodash/size"));
 const _reduce = /*#__PURE__*/ _interop_require_default(require("lodash/reduce"));
 const _reverse = /*#__PURE__*/ _interop_require_default(require("lodash/reverse"));

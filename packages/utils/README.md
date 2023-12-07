@@ -1,8 +1,8 @@
-# @kit/utils
+# @kitmi/utils
 
 ## JavaScript Utility Library
 
-`@kit/utils` is a JavaScript utility library delivering consistency, customization, performance, and extra features. It's built on top of lodash, providing a suppliment of functions for manipulating text, URLs, arrays, objects, and names.
+`@kitmi/utils` is a JavaScript utility library delivering consistency, customization, performance, and extra features. It's built on top of lodash, providing a suppliment of functions for manipulating text, URLs, arrays, objects, and names.
 
 ## Features
 
@@ -18,16 +18,16 @@
 
 ## Installation
 
-To install `@kit/utils`, run the following command:
+To install `@kitmi/utils`, run the following command:
 
 ```bash
-bun install @kit/utils
+bun install @kitmi/utils
 ```
 
 Or if you're using npm:
 
 ```bash
-npm install @kit/utils
+npm install @kitmi/utils
 ```
 
 ## License
@@ -43,7 +43,7 @@ Add below lines in `.mocharc.js` after `@babel/register` or `@swc-node/register`
 E.g.
 ```
 require('@swc-node/register');
-require('@kit/utils/testRegister');
+require('@kitmi/utils/testRegister');
 ```
 
 ### some difference between should and chai

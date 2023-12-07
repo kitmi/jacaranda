@@ -1,5 +1,5 @@
-import Jvs, { config } from '@kit/jsonv';
-import enUS from '@kit/jsonv/locale/en-US';
+import Jvs, { config } from '@kitmi/jsonv';
+import enUS from '@kitmi/jsonv/locale/en-US';
 import Jxs from '../src';
 
 config.loadMessages('en-US', enUS).setLocale('en-US');

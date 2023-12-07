@@ -1,4 +1,4 @@
-import { _ } from '@kit/utils';
+import { _ } from '@kitmi/utils';
 
 const PROCESSOR_PREFIX = '#!';
 

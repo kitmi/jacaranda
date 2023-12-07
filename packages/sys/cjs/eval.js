@@ -17,7 +17,7 @@ _export(exports, {
     }
 });
 const _nodevm = /*#__PURE__*/ _interop_require_default(require("node:vm"));
-const _utils = require("@kit/utils");
+const _utils = require("@kitmi/utils");
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj

@@ -1,5 +1,5 @@
 // JSON Validation Syntax
-import { get as _get, esmCheck } from '@kit/utils';
+import { get as _get, esmCheck } from '@kitmi/utils';
 import JsvError from './JvsError';
 import config, { getChildContext } from './config';
 import ops from './validateOperators';

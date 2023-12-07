@@ -1,4 +1,4 @@
-import { _ } from '@kit/utils';
+import { _ } from '@kitmi/utils';
 import path from 'node:path';
 import { readFile, writeFile } from 'node:fs/promises';
 

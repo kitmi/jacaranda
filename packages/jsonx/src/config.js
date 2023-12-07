@@ -1,6 +1,6 @@
-import { config as _config } from '@kit/jsonv';
+import { config as _config } from '@kitmi/jsonv';
 
-export { getChildContext } from '@kit/jsonv';
+export { getChildContext } from '@kitmi/jsonv';
 
 const transformerHandlers = {};
 const mapOfTransformers = {};

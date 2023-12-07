@@ -8,7 +8,7 @@ Object.defineProperty(exports, "default", {
         return _enUS.default;
     }
 });
-const _enUS = /*#__PURE__*/ _interop_require_default(require("@kit/jsonv/lib/locale/en-US"));
+const _enUS = /*#__PURE__*/ _interop_require_default(require("@kitmi/jsonv/lib/locale/en-US"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj

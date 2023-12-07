@@ -1,21 +1,21 @@
-# @kit/types
+# @kitmi/types
 
 ## JavaScript Semantic Data Types
 
-`@kit/types` defines semantic data types with validation and sanitization.
+`@kitmi/types` defines semantic data types with validation and sanitization.
 
 ## Installation
 
-To install `@kit/types`, run the following command:
+To install `@kitmi/types`, run the following command:
 
 ```bash
-bun install @kit/types
+bun install @kitmi/types
 ```
 
 Or if you're using npm:
 
 ```bash
-npm install @kit/types
+npm install @kitmi/types
 ```
 
 ## Conventions

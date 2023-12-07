@@ -1,19 +1,19 @@
-# @kit/jsonv
+# @kitmi/jsonv
 
 JSON Validation Syntax
 
 ## Installation
 
-To install `@kit/jsonv`, run the following command:
+To install `@kitmi/jsonv`, run the following command:
 
 ```bash
-bun install @kit/jsonv
+bun install @kitmi/jsonv
 ```
 
 Or if you're using npm:
 
 ```bash
-npm install @kit/jsonv
+npm install @kitmi/jsonv
 ```
 
 ## Usage that requires special attention

@@ -1,5 +1,5 @@
 import Jxs from '../src';
-const { Types } = require('@kit/types');
+const { Types } = require('@kitmi/types');
 
 describe.skip('Jxs:extension', function () {  
     it('sanitize', function () {

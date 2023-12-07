@@ -17,7 +17,7 @@ _export(exports, {
         return test;
     }
 });
-const _utils = require("@kit/utils");
+const _utils = require("@kitmi/utils");
 const _JvsError = /*#__PURE__*/ _interop_require_default(require("./JvsError"));
 const _config = /*#__PURE__*/ _interop_require_wildcard(require("./config"));
 const _validateOperators = /*#__PURE__*/ _interop_require_default(require("./validateOperators"));
