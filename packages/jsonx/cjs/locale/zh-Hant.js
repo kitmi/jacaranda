@@ -8,7 +8,7 @@ Object.defineProperty(exports, "default", {
         return _zhHant.default;
     }
 });
-const _zhHant = /*#__PURE__*/ _interop_require_default(require("@galaxar/jsonv/lib/locale/zh-Hant"));
+const _zhHant = /*#__PURE__*/ _interop_require_default(require("@kit/jsonv/lib/locale/zh-Hant"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj

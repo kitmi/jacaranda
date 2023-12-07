@@ -16,7 +16,7 @@ _export(exports, {
         return _jsonv.getChildContext;
     }
 });
-const _jsonv = require("@galaxar/jsonv");
+const _jsonv = require("@kit/jsonv");
 const transformerHandlers = {};
 const mapOfTransformers = {};
 //JSON Expression Syntax Runtime Configuration

@@ -1,5 +1,5 @@
 import { ValidationError } from './errors';
-import toBoolean from '@galaxar/utils/toBoolean';
+import toBoolean from '@kit/utils/toBoolean';
 import { identity } from './functions';
 
 class T_BOOLEAN {

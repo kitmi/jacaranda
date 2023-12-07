@@ -12,10 +12,10 @@ const _each = /*#__PURE__*/ _interop_require_default(require("lodash/each"));
 const _every = /*#__PURE__*/ _interop_require_default(require("lodash/every"));
 const _mapValues = /*#__PURE__*/ _interop_require_default(require("lodash/mapValues"));
 const _errors = require("./errors");
-const _objectPathUtils = require("@galaxar/utils/objectPathUtils");
-const _isPlainObject = /*#__PURE__*/ _interop_require_default(require("@galaxar/utils/isPlainObject"));
-const _batchAsync_ = /*#__PURE__*/ _interop_require_default(require("@galaxar/utils/batchAsync_"));
-const _findAsync_ = /*#__PURE__*/ _interop_require_default(require("@galaxar/utils/findAsync_"));
+const _objectPathUtils = require("@kit/utils/objectPathUtils");
+const _isPlainObject = /*#__PURE__*/ _interop_require_default(require("@kit/utils/isPlainObject"));
+const _batchAsync_ = /*#__PURE__*/ _interop_require_default(require("@kit/utils/batchAsync_"));
+const _findAsync_ = /*#__PURE__*/ _interop_require_default(require("@kit/utils/findAsync_"));
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {

@@ -1,5 +1,5 @@
 require('@swc-node/register');
-require('@galaxar/utils/testRegister');
+require('@kit/utils/testRegister');
 
 module.exports = {
     timeout: 60000,

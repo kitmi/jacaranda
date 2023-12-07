@@ -1,1 +1,1 @@
-{"version":3,"sources":["../../src/locale/en.js"],"sourcesContent":["export { default } from '@galaxar/jsonv/lib/locale/en';\n"],"names":["default"],"mappings":";;;;+BAASA;;;eAAAA,WAAO;;;2DAAQ"}
+{"version":3,"sources":["../../src/locale/en.js"],"sourcesContent":["export { default } from '@kit/jsonv/lib/locale/en';\n"],"names":["default"],"mappings":";;;;+BAASA;;;eAAAA,WAAO;;;2DAAQ"}

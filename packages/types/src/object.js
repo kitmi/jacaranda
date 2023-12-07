@@ -2,10 +2,10 @@ import _each from 'lodash/each';
 import _every from 'lodash/every';
 import _mapValues from 'lodash/mapValues';
 import { ValidationError } from './errors';
-import { makePath } from '@galaxar/utils/objectPathUtils';
-import isPlainObject from '@galaxar/utils/isPlainObject';
-import batchAsync_ from '@galaxar/utils/batchAsync_';
-import findAsync_ from '@galaxar/utils/findAsync_';
+import { makePath } from '@kit/utils/objectPathUtils';
+import isPlainObject from '@kit/utils/isPlainObject';
+import batchAsync_ from '@kit/utils/batchAsync_';
+import findAsync_ from '@kit/utils/findAsync_';
 
 const jsonStarter = new Set(['"', '[', '{']);
 const jsonEnding = {

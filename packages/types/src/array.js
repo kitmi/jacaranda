@@ -1,9 +1,9 @@
 import { ValidationError } from './errors';
 
-import csvLineParse from '@galaxar/utils/csvLineParse';
-import arrayToCsv from '@galaxar/utils/arrayToCsv';
-import { padLeft } from '@galaxar/utils/padding';
-import batchAsync_ from '@galaxar/utils/batchAsync_';
+import csvLineParse from '@kit/utils/csvLineParse';
+import arrayToCsv from '@kit/utils/arrayToCsv';
+import { padLeft } from '@kit/utils/padding';
+import batchAsync_ from '@kit/utils/batchAsync_';
 
 class T_ARRAY {
     name = 'array';

@@ -1,1 +1,1 @@
-export { default } from '@galaxar/jsonv/lib/locale/en-US';
+export { default } from '@kit/jsonv/lib/locale/en-US';

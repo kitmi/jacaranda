@@ -1,1 +1,1 @@
-{"version":3,"sources":["../src/bundle.js"],"sourcesContent":["import '@galaxar/jsonv/bundle';\n\nexport * from './index';\nexport { default } from './index';\n"],"names":["default"],"mappings":";;;;+BAGSA;;;eAAAA,cAAO;;;QAHT;2EAEO"}
+{"version":3,"sources":["../src/bundle.js"],"sourcesContent":["import '@kit/jsonv/bundle';\n\nexport * from './index';\nexport { default } from './index';\n"],"names":["default"],"mappings":";;;;+BAGSA;;;eAAAA,cAAO;;;QAHT;2EAEO"}

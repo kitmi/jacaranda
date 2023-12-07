@@ -1,1 +1,1 @@
-export { default } from '@galaxar/jsonv/lib/locale/zh-CN';
+export { default } from '@kit/jsonv/lib/locale/zh-CN';

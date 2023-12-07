@@ -1,7 +1,7 @@
 // JSON Expression Syntax (JES)
-import { remap, isPlainObject, get as _get, template, filterNull, objectToArray } from '@galaxar/utils';
-import { Types } from '@galaxar/types';
-import { validate, test, OP as v_ops } from '@galaxar/jsonv';
+import { remap, isPlainObject, get as _get, template, filterNull, objectToArray } from '@kit/utils';
+import { Types } from '@kit/types';
+import { validate, test, OP as v_ops } from '@kit/jsonv';
 
 import _size from 'lodash/size';
 import _reduce from 'lodash/reduce';

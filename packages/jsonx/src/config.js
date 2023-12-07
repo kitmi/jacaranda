@@ -1,6 +1,6 @@
-import { config as _config } from '@galaxar/jsonv';
+import { config as _config } from '@kit/jsonv';
 
-export { getChildContext } from '@galaxar/jsonv';
+export { getChildContext } from '@kit/jsonv';
 
 const transformerHandlers = {};
 const mapOfTransformers = {};

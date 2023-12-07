@@ -1,5 +1,5 @@
 import { ValidationError } from './errors';
-import toFloat from '@galaxar/utils/toFloat';
+import toFloat from '@kit/utils/toFloat';
 import { identity } from './functions';
 
 class T_NUMBER {
