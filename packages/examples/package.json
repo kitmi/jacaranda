@@ -1,68 +1,68 @@
 {
-  "name": "@kitmi/examples",
-  "version": "1.0.0",
-  "description": "Jacaranda example apps",
-  "main": "cjs/index.js",
-  "module": "src/index.js",
-  "react-native": "src/index.js",
-  "exports": {
-    ".": {
-      "import": "./src/index.js",
-      "require": "./cjs/index.js"
+    "name": "@kitmi/examples",
+    "version": "1.0.0",
+    "description": "Jacaranda example apps",
+    "main": "cjs/index.js",
+    "module": "src/index.js",
+    "react-native": "src/index.js",
+    "exports": {
+        ".": {
+            "import": "./src/index.js",
+            "require": "./cjs/index.js"
+        },
+        "./*": {
+            "import": "./src/*.js",
+            "require": "./cjs/*.js"
+        },
+        "./**/*": {
+            "import": "./src/**/*.js",
+            "require": "./cjs/**/*.js"
+        }
     },
-    "./*": {
-      "import": "./src/*.js",
-      "require": "./cjs/*.js"
+    "publishConfig": {
+        "access": "public"
     },
-    "./**/*": {
-      "import": "./src/**/*.js",
-      "require": "./cjs/**/*.js"
+    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kitmi/jacaranda.git"
+    },
+    "license": "MIT",
+    "scripts": {
+        "test-server": "bun test --preload ./test/test-server.js --coverage",
+        "doc": "jsdoc --configure .jsdoc.json --verbose",
+        "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
+        "prettier": "prettier --write .",
+        "lint": "eslint \"**/*.js\"",
+        "lint-fix": "eslint \"**/*.js\" --fix",
+        "clean": "shx rm -rf cjs coverage .nyc_output",
+        "build": "bun run clean && swc src/**/*.js -d ./cjs"
+    },
+    "keywords": [
+        "kitmi",
+        "jacaranda",
+        "app",
+        "example"
+    ],
+    "nyc": {
+        "exclude": [
+            ".*",
+            "cjs",
+            "test",
+            "**/*.spec.js"
+        ]
+    },
+    "dependencies": {
+        "@kitmi/jacaranda": "workspace:*",
+        "@kitmi/utils": "^1.0.0",
+        "openai": "^4.20.1"
+    },
+    "prettier": {
+        "quoteProps": "consistent",
+        "printWidth": 120,
+        "singleQuote": true,
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "useTabs": false
     }
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "author": "Rockie Guo <rockie@kitmi.com.au>",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kitmi/jacaranda.git"
-  },
-  "license": "MIT",
-  "scripts": {
-    "test": "mocha --recursive test/**/*.spec.js",
-    "doc": "jsdoc --configure .jsdoc.json --verbose",
-    "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
-    "prettier": "prettier --write .",
-    "lint": "eslint \"**/*.js\"",
-    "lint-fix": "eslint \"**/*.js\" --fix",
-    "clean": "shx rm -rf cjs coverage .nyc_output",
-    "build": "bun run clean && swc src/**/*.js -d ./cjs"
-  },
-  "keywords": [
-    "kitmi",
-    "jacaranda",
-    "app",
-    "example"
-  ],
-  "nyc": {
-    "exclude": [
-      ".*",
-      "cjs",
-      "test",
-      "**/*.spec.js"
-    ]
-  },
-  "dependencies": {
-    "@kitmi/jacaranda": "workspace:*",
-    "@kitmi/utils": "^1.0.0",
-    "openai": "^4.20.1"
-  },
-  "prettier": {
-    "quoteProps": "consistent",
-    "printWidth": 120,
-    "singleQuote": true,
-    "trailingComma": "es5",
-    "tabWidth": 4,
-    "useTabs": false
-  }
 }

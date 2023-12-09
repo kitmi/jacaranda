@@ -176,6 +176,9 @@ function _interop_require_default(obj) {
                 throw new _types.InvalidConfiguration('Missing server engine feature, e.g. koa or hono.', this);
             }
         });
+        process.on('SIGINT', ()=>{
+            this.stop_().catch((error)=>console.error(error.message || error));
+        });
     }
 }
 const _default = WebServer;

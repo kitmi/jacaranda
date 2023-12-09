@@ -32,7 +32,6 @@ class KoaEngine {
 
         //create a router instance
         this.createRouter = (baseRoute) => {
-            console.log('createRouter', baseRoute);
             return (!baseRoute || baseRoute === '/') ? new Router() : new Router({ prefix: text.dropIfEndsWith(baseRoute, '/') });
         };
 

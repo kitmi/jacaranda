@@ -67,6 +67,11 @@ class WebServer extends Routable(Runnable(ServiceContainer)) {
                 throw new InvalidConfiguration('Missing server engine feature, e.g. koa or hono.', this);
             }
         });
+
+        process.on('SIGINT', () => {
+            this.stop_()
+                .catch((error) => console.error(error.message || error));
+        });
     }
 
     async stop_() {
