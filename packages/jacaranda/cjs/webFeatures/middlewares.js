@@ -29,7 +29,7 @@ const _default = {
      * @returns {Promise.<*>}
      */ load_: async function(app, middlewares) {
         //delay to load middlewares after all plug-ins are ready
-        await app.useMiddlewares_(app.router, middlewares);
+        await app.useMiddlewares_(app.engine, middlewares);
     }
 };
 

@@ -9,9 +9,10 @@ const defaultOpts = {
     allowedFeatures: undefined, // whitelist
 };
 
-export const defaultAppOpts = {
+export const defaultRunnableOpts = {
     logger: undefined,
     logLevel: 'info',
+    logFeatures: false,
     packageManager: 'bun',
     ignoreUncaught: false,
     exitOnUncaught: true,

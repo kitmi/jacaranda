@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { _, url as urlUtil, text, esmCheck, batchAsync_ } from '@kitmi/utils';
+import { _, url as urlUtil, text, esmCheck, eachAsync_, batchAsync_ } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
 import { supportedMethods } from '../helpers';
 
@@ -12,12 +12,13 @@ import { supportedMethods } from '../helpers';
  * Create a module-based router.
  * @param {Routable} app
  * @param {string} baseRoute
- * @param {*} moduleItem
+ * @param {*} options
  * @example
  *   '<base path>': {
  *       module: {
- *           middlewares:
- *           controller:
+ *           $controllerPath:
+ *           $middlewares:
+ *           '/': [ 'controller', ... ]
  *       }
  *   }
  *
@@ -25,102 +26,88 @@ import { supportedMethods } from '../helpers';
  *       module: "controller"
  *   }
  */
-async function moduleRouter(app, baseRoute, moduleItem) {
-    let controllerPath = app.controllersPath;
+async function moduleRouter(app, baseRoute, options) {
+    let controllerPath = options.$controllerPath;
 
-    if (typeof moduleItem === 'string') {
+    if (typeof options === 'string') {
         // [ 'controllerName' ]
-        moduleItem = {
-            controller: moduleItem,
+        options = {
+            '/': [options],
         };
     }
 
-    let currentPrefix = urlUtil.join(baseRoute, moduleItem.route || '/');
-    let router = app.engine.createRouter(currentPrefix);
+    let router = app.engine.createRouter(baseRoute);
 
-    if (moduleItem.middlewares) {
+    if (options.$middlewares) {
         //module-wide middlewares
-        await app.useMiddlewares_(router, moduleItem.middlewares);
+        await app.useMiddlewares_(router, options.$middlewares);
     }
 
-    let controllers;
+    await eachAsync_(options, async (controllers, subBaseRoute) => {
+        if (subBaseRoute[0] === '$') {
+            return;
+        }
 
-    if (moduleItem.controllers) {
-        controllers = moduleItem.controllers;
         if (!Array.isArray(controllers)) {
-            throw new InvalidConfiguration(
-                'Invalid module router configuration: controllers must be an array.',
-                app,
-                `routing.${baseRoute}.module.controllers`
-            );
-        }
-    } else {
-        if (typeof moduleItem.controller !== 'string') {
-            throw new InvalidConfiguration(
-                'Invalid module router configuration: controller must be a string.',
-                app,
-                `routing.${baseRoute}.module.controller`
-            );
+            controllers = [controllers];
         }
 
-        controllers = [moduleItem.controller];
-    }
+        await batchAsync_(controllers, async (moduleController) => {
+            let controllerFile = path.join(controllerPath, moduleController);
+            let controller;
 
-    await batchAsync_(controllers, async (moduleController) => {
-        let controllerFile = path.join(controllerPath, moduleController);
-        let controller;
+            try {
+                controller = esmCheck(require(controllerFile));
+            } catch (e) {
+                if (e.code === 'MODULE_NOT_FOUND') {
+                    throw new InvalidConfiguration(
+                        `Failed to load controller '${moduleController}'. ${e.message}`,
+                        app,
+                        `routing.${baseRoute}.module`
+                    );
+                }
 
-        try {
-            controller = esmCheck(require(controllerFile));
-        } catch (e) {
-            if (e.code === 'MODULE_NOT_FOUND') {
-                throw new InvalidConfiguration(
-                    `Failed to load controller '${moduleController}'. ${e.message}`,
-                    app,
-                    `routing.${baseRoute}.module`
+                throw e;
+            }
+
+            let isController = false;
+
+            if (typeof controller === 'function') {
+                controller = new controller(app);
+                isController = true;
+            }
+
+            for (let actionName in controller) {
+                let action = controller[actionName];
+                if (typeof action !== 'function' || !action.__metaHttpMethod) continue; // only marked httpMethod should be mounted
+
+                const method = action.__metaHttpMethod;
+                const subRoute = urlUtil.join(subBaseRoute, text.dropIfStartsWith(action.__metaRoute || _.kebabCase(actionName), '/'));
+
+                let bindAction;
+
+                if (isController) {
+                    bindAction = action.bind(controller);
+                } else {
+                    bindAction = action;
+                }
+
+                if (!supportedMethods.has(method)) {
+                    throw new InvalidConfiguration(
+                        'Unsupported http method: ' + method,
+                        app,
+                        `routing.${baseRoute}.module.subBaseRoute[${moduleController}.${actionName}]`
+                    );
+                }
+
+                await app.addRoute_(
+                    router,
+                    method,
+                    subRoute,
+                    action.__metaMiddlewares ? action.__metaMiddlewares.concat([bindAction]) : bindAction
                 );
             }
-
-            throw e;
-        }
-
-        let isController = false;
-
-        if (typeof controller === 'function') {
-            controller = new controller(app);
-            isController = true;
-        }
-
-        for (let actionName in controller) {
-            let action = controller[actionName];
-            if (typeof action !== 'function' || !action.__metaHttpMethod) continue; // only marked httpMethod should be mounted
-
-            const method = action.__metaHttpMethod;
-            let subRoute = text.ensureStartsWith(action.__metaRoute || _.kebabCase(actionName), '/');
-
-            let bindAction;
-
-            if (isController) {
-                bindAction = action.bind(controller);
-            } else {
-                bindAction = action;
-            }
-
-            if (!supportedMethods.has(method)) {
-                throw new InvalidConfiguration(
-                    'Unsupported http method: ' + method,
-                    app,
-                    `routing.${baseRoute}.module ${moduleItem.controller}.${actionName}`
-                );
-            }
-
-            await app.addRoute_(
-                router,
-                method,
-                subRoute,
-                action.__metaMiddlewares ? action.__metaMiddlewares.concat([bindAction]) : bindAction
-            );
-        }
+        });
     });
 
     app.addRouter(router);

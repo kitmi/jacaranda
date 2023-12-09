@@ -15,42 +15,44 @@ import { supportedMethods } from '../helpers';
  * @example
  * '<base path>': {
  *     rule: {
- *         middlewares:
- *         rules: {
- *             // type 1, default is "get", methods mapped to one action
- *             '<sub route>': '<controller with relative path>.<action>',
- *
- *             // type 2, different methods mapped to different method
- *             '<sub route>': {
- *                '<method>': '<controller with relative path>.<action>'
- *             },
- *
- *             // type 3, with middleware
- *             '<sub route>': {
- *                 '<method>': {
- *                    '<middleware name>': { //middleware options }
- *                 }
- *             },
- *
- *             // type 4, all methods mapped to one action
- *             '<method>:/<sub route>': '<controller with relative path>.<action>'
- *
- *             // type 5, all methods mapped to one action
- *             '<method>:/<sub route>': {
- *                 '<middleware name>': { //middleware options }
- *             }
- *         }
+ *         $middlewares: {} | [],
+*          // type 1, default is "get", methods mapped to one action
+*          '<sub route>': '<controller with relative path>.<action>',
+*
+*          // type 2, different methods mapped to different method
+*          '<sub route>': {
+*             '<method>': '<controller with relative path>.<action>'
+*          },
+*
+*          // type 3, with middleware
+*          '<sub route>': {
+*              '<method>': {
+*                 '<middleware name>': { //middleware options }
+*              }
+*          },
+*
+*          // type 4, all methods mapped to one action
+*          '<method>:/<sub route>': '<controller with relative path>.<action>'
+*
+*          // type 5, all methods mapped to one action
+*          '<method>:/<sub route>': {
+*              '<middleware name>': { //middleware options }
+*          }
  *     }
  * }
  */
 async function load_(app, baseRoute, options) {
     let router = app.engine.createRouter(baseRoute);
 
-    if (options.middlewares) {
-        await app.useMiddlewares_(router, options.middlewares);
+    if (options.$middlewares) {
+        await app.useMiddlewares_(router, options.$middlewares);
     }
 
-    await eachAsync_(options.rules || {}, async (methods, subRoute) => {
+    await eachAsync_(options, async (methods, subRoute) => {
+        if (subRoute[0] === '$') {
+            return;
+        }
+
         let pos = subRoute.indexOf(':/');
 
         if (pos !== -1) {

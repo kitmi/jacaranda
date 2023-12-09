@@ -37,6 +37,7 @@ class KoaEngine {
         };
         //create a router instance
         this.createRouter = (baseRoute)=>{
+            console.log('createRouter', baseRoute);
             return !baseRoute || baseRoute === '/' ? new Router() : new Router({
                 prefix: _utils.text.dropIfEndsWith(baseRoute, '/')
             });
@@ -78,7 +79,7 @@ class KoaEngine {
             }
         });
         server.httpServer = _nodehttp.default.createServer(koa.callback());
-        let port = options.httpPort || 2331;
+        let port = options.port;
         server.on('ready', ()=>{
             server.httpServer.listen(port, function(err) {
                 if (err) throw err;

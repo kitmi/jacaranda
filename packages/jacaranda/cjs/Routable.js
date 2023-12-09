@@ -25,21 +25,31 @@ const Routable = (T)=>{
             /**
              * Middleware factory registry.
              * @member {object}
-             */ this.middlewareFactoryRegistry = {};
-            return super.start_();
+             */ this._middlewareFactories = {};
+            await super.start_();
+            if (this.options.logMiddlewareRegistry && (this.options.logLevel === 'verbose' || this.options.logLevel === 'debug')) {
+                this.log('verbose', 'Registered middlewares:', this._middlewareRegistry);
+            }
+            return this;
         }
         async stop_() {
-            delete this.middlewareFactoryRegistry;
+            delete this._middlewareFactories;
             return super.stop_();
         }
         /**
          * Load and regsiter middleware files from a specified path.
          * @param dir
-         */ loadMiddlewaresFrom(dir) {
+         */ addMiddlewaresRegistryFrom(dir) {
             let files = (0, _glob.globSync)(_nodepath.default.join(dir, '**/*.{js,ts,mjs,cjs}'), {
                 nodir: true
             });
-            files.forEach((file)=>this.registerMiddlewareFactory(_utils.text.baseName(file), (0, _utils.esmCheck)(require(file))));
+            files.forEach((file)=>this._middlewareRegistry[_utils.text.baseName(file)] = file);
+        }
+        /**
+         * Register middleware files from a registry.
+         * @param {object} registry 
+         */ addMiddlewaresRegistry(registry) {
+            Object.assign(this._middlewareRegistry, registry);
         }
         /**
          * Register the factory method of a named middleware.
@@ -53,10 +63,10 @@ const Routable = (T)=>{
                     throw new _types.InvalidArgument('Invalid middleware factory: ' + name);
                 }
             }
-            if (name in this.middlewareFactoryRegistry) {
+            if (name in this._middlewareFactories) {
                 throw new _types.ApplicationError('Middleware "' + name + '" already registered!');
             }
-            this.middlewareFactoryRegistry[name] = factoryMethod;
+            this._middlewareFactories[name] = factoryMethod;
             this.log('verbose', `Registered named middleware [${name}].`);
         }
         /**
@@ -64,18 +74,29 @@ const Routable = (T)=>{
          * @param name
          * @returns {function}
          */ getMiddlewareFactory(name) {
-            const factory = this.middlewareFactoryRegistry[name];
+            const factory = this._middlewareFactories[name];
             if (factory != null) {
                 return factory;
+            }
+            const registryEntry = this._middlewareRegistry[name];
+            if (registryEntry != null) {
+                let file = registryEntry;
+                let exportName;
+                if (Array.isArray(registryEntry)) {
+                    file = registryEntry[0];
+                    exportName = registryEntry[1];
+                }
+                let middlewareFactory = this.tryRequire(file);
+                if (exportName) {
+                    middlewareFactory = _utils._.get(middlewareFactory, exportName);
+                }
+                this._middlewareFactories[name] = middlewareFactory;
+                return middlewareFactory;
             }
             if (this.server && !this.isServer) {
                 return this.server.getMiddlewareFactory(name);
             }
-            let npmMiddleware = this.tryRequire(name);
-            if (npmMiddleware) {
-                return npmMiddleware;
-            }
-            throw new _types.ApplicationError(`Don't know where to load middleware "${name}".`);
+            throw new _types.ApplicationError(`Middleware "${name}" not found in middleware registry.`);
         }
         /**
          * Use middlewares by creating middleware instances (asynchronously) from factory methods and attach them to a router.
@@ -220,7 +241,7 @@ const Routable = (T)=>{
          * Attach a router to this app module, skipped while the server running in deaf mode
          * @param {Router} nestedRouter
          */ addRouter(nestedRouter, baseRoute) {
-            this.router.attach(nestedRouter, baseRoute);
+            this.engine.attach(nestedRouter, baseRoute);
             return this;
         }
         /**
@@ -275,13 +296,6 @@ const Routable = (T)=>{
             }
             return middleware;
         }
-        _createEngine() {
-            let Engine = this.server.engineType;
-            if (Engine == null) {
-                throw new _types.ApplicationError('At least one http server engine feature (e.g. koa or hono) should be enabled!');
-            }
-            return new Engine();
-        }
         _getFeatureFallbackPath() {
             let pathArray = super._getFeatureFallbackPath();
             pathArray.splice(1, 0, _nodepath.default.resolve(__dirname, 'webFeatures'));
@@ -305,10 +319,11 @@ const Routable = (T)=>{
             this.controllersPath = _nodepath.default.resolve(this.sourcePath, this.options.controllersPath);
             this.middlewaresPath = _nodepath.default.resolve(this.sourcePath, this.options.middlewaresPath);
             this.routable = true;
+            this._middlewareRegistry = {};
             this.on('configLoaded', ()=>{
                 //load middlewares if exists in server or app path
                 if (_sys.fs.pathExistsSync(this.middlewaresPath) && (0, _sys.isDir)(this.middlewaresPath)) {
-                    this.loadMiddlewaresFrom(this.middlewaresPath);
+                    this.addMiddlewaresRegistryFrom(this.middlewaresPath);
                 }
             });
         }

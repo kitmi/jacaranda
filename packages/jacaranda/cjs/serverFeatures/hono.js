@@ -15,7 +15,7 @@ function _interop_require_default(obj) {
     };
 }
 const _default = {
-    stage: _Feature.default.SERVICE,
+    stage: _Feature.default.INIT,
     packages: [
         'hono',
         '@hono/node-server'

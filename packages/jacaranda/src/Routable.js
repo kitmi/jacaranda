@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { fs, isDir } from '@kitmi/sys';
 import { globSync } from 'glob';
-import { _, url as urlUtil, text, esmCheck, isPlainObject, eachAsync_ } from '@kitmi/utils';
+import { _, url as urlUtil, text, isPlainObject, eachAsync_ } from '@kitmi/utils';
 import { ApplicationError, InvalidConfiguration, InvalidArgument } from '@kitmi/types';
 import { defaultRoutableOpts } from './defaultServerOpts';
 
@@ -29,12 +29,14 @@ const Routable = (T) =>
 
             this.routable = true;
 
+            this._middlewareRegistry = {};
+
             this.on('configLoaded', () => {
                 //load middlewares if exists in server or app path
                 if (fs.pathExistsSync(this.middlewaresPath) && isDir(this.middlewaresPath)) {
-                    this.loadMiddlewaresFrom(this.middlewaresPath);
+                    this.addMiddlewaresRegistryFrom(this.middlewaresPath);
                 }
-            });
+            });            
         }
 
         async start_() {
@@ -42,13 +44,22 @@ const Routable = (T) =>
              * Middleware factory registry.
              * @member {object}
              */
-            this.middlewareFactoryRegistry = {};
+            this._middlewareFactories = {};
 
-            return super.start_();
+            await super.start_();
+
+            if (
+                this.options.logMiddlewareRegistry &&
+                (this.options.logLevel === 'verbose' || this.options.logLevel === 'debug')
+            ) {
+                this.log('verbose', 'Registered middlewares:', this._middlewareRegistry);
+            }
+
+            return this;
         }
 
         async stop_() {
-            delete this.middlewareFactoryRegistry;
+            delete this._middlewareFactories;
 
             return super.stop_();
         }
@@ -57,9 +68,17 @@ const Routable = (T) =>
          * Load and regsiter middleware files from a specified path.
          * @param dir
          */
-        loadMiddlewaresFrom(dir) {
+        addMiddlewaresRegistryFrom(dir) {
             let files = globSync(path.join(dir, '**/*.{js,ts,mjs,cjs}'), { nodir: true });
-            files.forEach((file) => this.registerMiddlewareFactory(text.baseName(file), esmCheck(require(file))));
+            files.forEach((file) => this._middlewareRegistry[text.baseName(file)] = file);
+        }
+
+        /**
+         * Register middleware files from a registry.
+         * @param {object} registry 
+         */
+        addMiddlewaresRegistry(registry) {
+            Object.assign(this._middlewareRegistry, registry);
         }
 
         /**
@@ -76,11 +95,11 @@ const Routable = (T) =>
                 }
             }
 
-            if (name in this.middlewareFactoryRegistry) {
+            if (name in this._middlewareFactories) {
                 throw new ApplicationError('Middleware "' + name + '" already registered!');
             }
 
-            this.middlewareFactoryRegistry[name] = factoryMethod;
+            this._middlewareFactories[name] = factoryMethod;
             this.log('verbose', `Registered named middleware [${name}].`);
         }
 
@@ -90,21 +109,35 @@ const Routable = (T) =>
          * @returns {function}
          */
         getMiddlewareFactory(name) {
-            const factory = this.middlewareFactoryRegistry[name];
+            const factory = this._middlewareFactories[name];
             if (factory != null) {
                 return factory;
+            }
+
+            const registryEntry = this._middlewareRegistry[name];
+            if (registryEntry != null) {
+                let file = registryEntry;
+                let exportName;
+
+                if (Array.isArray(registryEntry)) {
+                    file = registryEntry[0];
+                    exportName = registryEntry[1];
+                }
+
+                let middlewareFactory = this.tryRequire(file);
+                if (exportName) {
+                    middlewareFactory = _.get(middlewareFactory, exportName);
+                }
+
+                this._middlewareFactories[name] = middlewareFactory;
+                return middlewareFactory;
             }
 
             if (this.server && !this.isServer) {
                 return this.server.getMiddlewareFactory(name);
             }
 
-            let npmMiddleware = this.tryRequire(name);
-            if (npmMiddleware) {
-                return npmMiddleware;
-            }
-
-            throw new ApplicationError(`Don't know where to load middleware "${name}".`);
+            throw new ApplicationError(`Middleware "${name}" not found in middleware registry.`);
         }
 
         /**
@@ -298,7 +331,7 @@ const Routable = (T) =>
          * @param {Router} nestedRouter
          */
         addRouter(nestedRouter, baseRoute) {
-            this.router.attach(nestedRouter, baseRoute);
+            this.engine.attach(nestedRouter, baseRoute);
             return this;
         }
 
@@ -361,16 +394,6 @@ const Routable = (T) =>
             }
 
             return middleware;
-        }
-
-        _createEngine() {
-            let Engine = this.server.engineType;
-            if (Engine == null) {
-                throw new ApplicationError(
-                    'At least one http server engine feature (e.g. koa or hono) should be enabled!'
-                );
-            }
-            return new Engine();
         }
 
         _getFeatureFallbackPath() {

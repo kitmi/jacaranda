@@ -19,8 +19,11 @@ const appendId = (baseEndpoint, idName) => (idName ? `${baseEndpoint}/:${idName}
  * @example
  *  '<base path>': {
  *      jaREST: {
- *          resourcesPath:
- *          middlewares:
+ *          $controllerPath:
+ *          $middlewares:
+ *          $errorOptions
+ *          'controller To remap': '/special/:abc/url'
+ *          ...
  *      }
  *  }
  *
@@ -31,19 +34,19 @@ const appendId = (baseEndpoint, idName) => (idName ? `${baseEndpoint}/:${idName}
  *  /:resource/:id                 patch          updateOne
  *  /:resource/:id                 put            replaceOne
  *  /:resource/:id                 del            deleteOne 
- *  /:resource                     post           replaceMany
+ *  /:resource                     put            replaceMany
  *  /:resource                     patch          updateMany
  *  /:resource                     del            deleteMany
  */
 const jaRestRouter = async (app, baseRoute, options) => {
     let router = app.engine.createRouter(baseRoute);
 
-    let resourcePath = path.resolve(app.sourcePath, options.resourcesPath || 'resources');
+    let resourcePath = path.resolve(app.sourcePath, options.$controllerPath || 'resources');
 
-    app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.errorOptions, app), 'jsonError');
+    app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.$errorOptions, app), 'jsonError');
 
-    if (options.middlewares) {
-        await app.useMiddlewares_(router, options.middlewares);
+    if (options.$middlewares) {
+        await app.useMiddlewares_(router, options.$middlewares);
     }
 
     let resourcesPath = path.join(resourcePath, '**/*.js');
@@ -62,8 +65,8 @@ const jaRestRouter = async (app, baseRoute, options) => {
         const entithNameWithPath = path.join(dirPath, entityName);
 
         let baseEndpoint;
-        if (options.remaps && entithNameWithPath in options.remaps) {
-            baseEndpoint = text.ensureStartsWith(text.dropIfEndsWith(options.remaps[entithNameWithPath], '/'), '/');
+        if (entithNameWithPath in options) {
+            baseEndpoint = text.ensureStartsWith(text.dropIfEndsWith(options[entithNameWithPath], '/'), '/');
         } else {
             const urlPath = entithNameWithPath
                 .split('/')
@@ -75,35 +78,32 @@ const jaRestRouter = async (app, baseRoute, options) => {
         let idName = naming.camelCase(entityName) + 'Id';
         let endpointWithId = appendId(baseEndpoint, idName);
 
-        if (hasMethod(controller, 'find')) {
-            const _action = controller.find.bind(controller);
-            const _middlewares = controller.find.__metaMiddlewares;
-            await app.addRoute_(router, 'get', baseEndpoint, _middlewares ? [..._middlewares, _action] : _action);
+        async function addRoute_(methodName, httpMethod) {
+            if (hasMethod(controller, methodName)) {
+                const _action = controller[methodName].bind(controller);
+                const _middlewares = controller[methodName].__metaMiddlewares;
+                await app.addRoute_(router, httpMethod, baseEndpoint, _middlewares ? [..._middlewares, _action] : _action);
+            }
         }
 
-        if (hasMethod(controller, 'post')) {
-            const _action = controller.post.bind(controller);
-            const _middlewares = controller.post.__metaMiddlewares;
-            await app.addRoute_(router, 'post', baseEndpoint, _middlewares ? [..._middlewares, _action] : _action);
+        async function addRouteWithId_(methodName, httpMethod) {
+            if (hasMethod(controller, methodName)) {
+                const _action = (ctx) => controller[methodName](ctx, ctx.params[idName]);
+                const _middlewares = controller[methodName].__metaMiddlewares;
+                await app.addRoute_(router, httpMethod, endpointWithId, _middlewares ? [..._middlewares, _action] : _action);
+            }
         }
 
-        if (hasMethod(controller, 'findById')) {
-            const _action = (ctx) => controller.findById(ctx, ctx.params[idName]);
-            const _middlewares = controller.findById.__metaMiddlewares;
-            await app.addRoute_(router, 'get', endpointWithId, _middlewares ? [..._middlewares, _action] : _action);
-        }
+        await addRoute_('find', 'get');
+        await addRoute_('create', 'post');
+        await addRoute_('replaceMany', 'put');
+        await addRoute_('updateMany', 'patch');
+        await addRoute_('deleteMany', 'del');
 
-        if (hasMethod(controller, 'updateById')) {
-            const _action = (ctx) => controller.updateById(ctx, ctx.params[idName]);
-            const _middlewares = controller.updateById.__metaMiddlewares;
-            await app.addRoute_(router, 'put', endpointWithId, _middlewares ? [..._middlewares, _action] : _action);
-        }
-
-        if (hasMethod(controller, 'deleteById')) {
-            const _action = (ctx) => controller.deleteById(ctx, ctx.params[idName]);
-            const _middlewares = controller.deleteById.__metaMiddlewares;
-            await app.addRoute_(router, 'del', endpointWithId, _middlewares ? [..._middlewares, _action] : _action);
-        }
+        await addRouteWithId_('findOne', 'get');
+        await addRouteWithId_('replaceOne', 'put');
+        await addRouteWithId_('updateOne', 'patch');
+        await addRouteWithId_('deleteOne', 'del');        
     });
 
     app.addRouter(router);

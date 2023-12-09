@@ -1,9 +1,10 @@
 import path from 'node:path';
 import { _, batchAsync_, isPlainObject } from '@kitmi/utils';
+import { InvalidConfiguration } from '@kitmi/types';
 import Runnable from './Runnable';
 import Routable from './Routable';
 import ServiceContainer from './ServiceContainer';
-import defaultOpts from './defaultServerOpts';
+import defaultServerOpts from './defaultServerOpts';
 
 /**
  * Web server class.
@@ -30,7 +31,7 @@ class WebServer extends Routable(Runnable(ServiceContainer)) {
         }
 
         super(name || 'server', {
-            ...defaultOpts,
+            ...defaultServerOpts,
             ...options,
         });
 
@@ -58,9 +59,13 @@ class WebServer extends Routable(Runnable(ServiceContainer)) {
          */
         this.route = '/';
 
-        this.on('configLoaded', () => {
-            // load builtin middlewares
-            this.loadMiddlewaresFrom(path.resolve(__dirname, 'middlewares'));
+        // register built-in middlewares
+        this.addMiddlewaresRegistryFrom(path.resolve(__dirname, 'middlewares'));
+
+        this.once('after:Initial', () => {
+            if (this.engine == null) {
+                throw new InvalidConfiguration('Missing server engine feature, e.g. koa or hono.', this);
+            }
         });
     }
 

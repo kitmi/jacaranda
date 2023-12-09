@@ -23,14 +23,16 @@ function _interop_require_default(obj) {
  * Create a RESTful router.
  * @param {*} app
  * @param {string} baseRoute
- * @param {objects} options
- * @property {string} [options.resourcesPath]
- * @property {object|array} [options.middlewares]
+ * @param {object} options
+ * @property {string} [options.$controllerPath]
+ * @property {object} [options.$errorOptions]
+ * @property {object|array} [options.$middlewares]
  * @example
  *  '<base path>': {
  *      REST: {
- *          resourcesPath:
- *          middlewares:
+ *          $controllerPath:
+ *          $errorOptions:
+ *          $middlewares:
  *      }
  *  }
  *
@@ -42,10 +44,10 @@ function _interop_require_default(obj) {
  *  /:resource/:id                 delete         remove
  */ const restRouter = async (app, baseRoute, options)=>{
     let router = app.engine.createRouter(baseRoute);
-    let resourcePath = _nodepath.default.resolve(app.sourcePath, options.resourcesPath ?? 'resources');
-    app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.errorOptions, app), 'jsonError');
-    if (options.middlewares) {
-        await app.useMiddlewares_(router, options.middlewares);
+    let resourcePath = _nodepath.default.resolve(app.sourcePath, options.$controllerPath ?? 'resources');
+    app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.$errorOptions, app), 'jsonError');
+    if (options.$middlewares) {
+        await app.useMiddlewares_(router, options.$middlewares);
     }
     let resourcesPath = _nodepath.default.join(resourcePath, '**', '*.js');
     let files = (0, _glob.globSync)(resourcesPath, {
