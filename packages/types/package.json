@@ -18,8 +18,11 @@
     "publishConfig": {
         "access": "public"
     },
-    "author": "Rockie Guo <rockie@kitmimi.com.au>",
-    "repository": "https://github.com/kitmi/jacaranda",
+    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kitmi/jacaranda.git"
+    },
     "license": "MIT",
     "scripts": {
         "test": "mocha --recursive ./test/*.spec.js",

@@ -1,9 +1,10 @@
 import fileURLToPath from './fileURLToPath';
 
-function esmIsMain() {
-    if (import.meta.url.startsWith('file:')) {
+function esmIsMain(entryMetaUrl) {
+    if (entryMetaUrl.startsWith('file:')) {
         // (A)
-        const modulePath = fileURLToPath(import.meta.url);
+        const modulePath = fileURLToPath(entryMetaUrl);
+        
         if (process.argv[1] === modulePath) {
             // (B)
             return true;

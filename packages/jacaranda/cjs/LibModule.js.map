@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/LibModule.js"],"sourcesContent":["import { ServiceContainer } from './ServiceContainer';\nimport ModuleBase from './ModuleBase';\n\nexport default ModuleBase(ServiceContainer);\n"],"names":["ModuleBase","ServiceContainer"],"mappings":";;;;+BAGA;;;eAAA;;;kCAHiC;mEACV;;;;;;MAEvB,WAAeA,IAAAA,mBAAU,EAACC,kCAAgB"}

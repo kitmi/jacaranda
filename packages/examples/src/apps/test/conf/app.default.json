@@ -1,0 +1,47 @@
+{
+    "middlewares": {
+        "serveStatic": {},
+        "koa-body": {}
+    },
+    "appFeature": {
+        "param": "test"
+    },
+    "apiWrapper": {},
+    "routing": {
+        "/": {
+            "rule": {
+                "middlewares": {
+                    "views": {
+                        "extension": "swig",
+                        "options": {
+                            "cache": false
+                        }
+                    }
+                },
+                "rules": {                    
+                    "get:/": "home.index"
+                }
+            }
+        },
+        "/module": {            
+            "module": {
+                "middlewares": [ "dummy" ],
+                "controller": "test"
+            }
+        },
+        "/module2": {
+            "module": "test2"
+        },
+        "/api": {
+            "rest": {}
+        },
+        "/api/v2": {
+            "gaml": {
+                "resourcesPath": "actions2",
+                "remaps": {
+                    "pet": "/store/:storeId/pet" 
+                }
+            }
+        }
+    }
+}

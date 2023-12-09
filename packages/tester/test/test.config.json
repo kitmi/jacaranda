@@ -1,0 +1,34 @@
+{
+    "skip": {
+        "suites": {
+            "test-benchmark": "all"
+        }
+    },
+    "enableAsyncDump": false,
+    "enableAllure": true,
+    "servers": {
+        "server1": {
+            "entry": "./test/server.js",
+            "options": {
+                "configPath": "test/conf",
+                "controllersPath": "test/actions",
+                "logLevel": "info"
+            }
+        }
+    },
+    "workerOptions": {
+        "configName": "test",
+        "configPath": "test/conf"
+    },
+    "httpAgent": {
+        "normal": ["superagent", { "endpoint": "http://localhost:2331" }],
+        "coverage": "supertest"
+    },
+    "authentication": {
+        "client1": {
+            "endpoint": "/login",
+            "username": "user",
+            "password": "pass"
+        }
+    }
+}

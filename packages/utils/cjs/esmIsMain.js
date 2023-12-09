@@ -14,10 +14,10 @@ function _interop_require_default(obj) {
         default: obj
     };
 }
-function esmIsMain() {
-    if (require("url").pathToFileURL(__filename).toString().startsWith('file:')) {
+function esmIsMain(entryMetaUrl) {
+    if (entryMetaUrl.startsWith('file:')) {
         // (A)
-        const modulePath = (0, _fileURLToPath.default)(require("url").pathToFileURL(__filename).toString());
+        const modulePath = (0, _fileURLToPath.default)(entryMetaUrl);
         if (process.argv[1] === modulePath) {
             // (B)
             return true;

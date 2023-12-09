@@ -1,0 +1,71 @@
+{
+    "name": "@kitmi/validators",
+    "version": "1.0.0",
+    "description": "Dynamic validators to be used with @kitmi/types based on @kitmi/jsonv and @kitmi/jsonx",
+    "main": "cjs/index",
+    "module": "src/index.js",
+    "react-native": "src/index.js",
+    "exports": {
+        ".": {
+            "import": "./src/index.js",
+            "require": "./cjs/index.js"
+        },
+        "./*": {
+            "import": "./src/*.js",
+            "require": "./cjs/*.js"
+        },
+        "./**/*": {
+            "import": "./src/**/*.js",
+            "require": "./cjs/**/*.js"
+        }
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kitmi/jacaranda.git"
+    },
+    "license": "MIT",
+    "nyc": {
+        "exclude": [
+            ".*",
+            "cjs",
+            "__test__"
+        ]
+    },
+    "scripts": {
+        "test": "mocha --recursive ./test/*.spec.js",
+        "doc": "jsdoc --configure .jsdoc.json --verbose",
+        "cover": "nyc --reporter=html --reporter=text mocha --recursive ./test/*.spec.js && open ./coverage/index.html",
+        "prettier": "prettier --write .",
+        "lint": "eslint \"./src/**/*.js\"",
+        "lint-fix": "eslint \"./src/**/*.js\" --fix",
+        "clean": "shx rm -rf cjs coverage .nyc_output",
+        "build": "bun run clean && swc ./src/**/*.js -d ./cjs"
+    },
+    "keywords": [
+        "javascript",
+        "library",
+        "validator",
+        "pipeline",
+        "validation",
+        "processing"
+    ],
+    "dependencies": {
+        "@kitmi/jsonv": "workspace:*",
+        "@kitmi/jsonx": "workspace:*",
+        "@kitmi/types": "workspace:*",
+        "@kitmi/utils": "workspace:*",
+        "validator": "^13.11.0"
+    },
+    "prettier": {
+        "quoteProps": "consistent",
+        "printWidth": 120,
+        "singleQuote": true,
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "useTabs": false
+    }
+}

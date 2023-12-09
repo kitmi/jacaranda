@@ -1,0 +1,11 @@
+.*
+node_modules
+__test__
+__tests__
+/coverage
+/cjs
+/test
+/patches
+/docs
+/allure-results
+/public

@@ -16,8 +16,8 @@ describe('unit:cmd', function () {
     });
 
     it('should accept options to pass to child_process.exec', async () => {
-        const result = await run_('echo $MY_VAR', { env: { MY_VAR: 'galaxar' } });
-        result.stdout.trim().should.equal('galaxar');
+        const result = await run_('echo $MY_VAR', { env: { MY_VAR: 'jacaranda' } });
+        result.stdout.trim().should.equal('jacaranda');
     });
 
     it('cmd live', async function () {

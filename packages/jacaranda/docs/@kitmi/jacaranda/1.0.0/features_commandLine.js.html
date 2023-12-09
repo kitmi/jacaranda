@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>features/commandLine.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="App.html">App</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#addFeatureRegistry">addFeatureRegistry</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#enabled">enabled</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#hasService">hasService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#loadConfig_">loadConfig_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#logException">logException</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#registerService">registerService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#start_">start_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#stop_">stop_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#toAbsolutePath">toAbsolutePath</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#tryRequire_">tryRequire_</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Installer.html">Installer</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Runnable.html">Runnable</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.getLib">getLib</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.registerLib">registerLib</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.requireFromLib">requireFromLib</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.start_">start_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.stop_">stop_</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Runnable_.html">Runnable</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="ServiceContainer.html">ServiceContainer</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#addFeatureRegistry">addFeatureRegistry</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#enabled">enabled</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#hasService">hasService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#loadConfig_">loadConfig_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#logException">logException</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#registerService">registerService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#start_">start_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#stop_">stop_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#toAbsolutePath">toAbsolutePath</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#tryRequire_">tryRequire_</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="ServiceInstaller.html">ServiceInstaller</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="WebModule.html">WebModule</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebModule.html#requireFromApp">requireFromApp</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="WebServer.html">WebServer</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#getAppByAlias">getAppByAlias</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#getAppByRoute">getAppByRoute</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#mountApp">mountApp</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#require">require</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#requireFromApp">requireFromApp</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-Feature_CommandLine-CommandLine.html">CommandLine</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_CommandLine-CommandLine.html#validate_">validate_</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-Feature_CommandLine-CommandLineArgumentError.html">CommandLineArgumentError</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-Feature_HttpClient-HttpClient.html">HttpClient</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_HttpClient-HttpClient.html#do">do</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="Feature_Settings%250A%250A_settings__%2520%257B%250A%2520%2520%2520%2520_key__%25201,%250A%2520%2520%2520%2520_env_development__%2520%257B%250A%2520%2520%2520%2520%2520%2520%2520%2520_key__%25202%250A%2520%2520%2520%2520%257D,%250A%2520%2520%2520%2520_stage_ppe__%2520%257B%250A%2520%2520%2520%2520%2520%2520%2520%2520_key__%25203%250A%2520%2520%2520%2520%257D%250A%257Dmodule_.html">Feature_Settings
+
+"settings": {
+    "key": 1,
+    "env:development": {
+        "key": 2
+    },
+    "stage:ppe": {
+        "key": 3
+    }
+}</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Feature_Settings%25250A%25250A_settings__%252520%25257B%25250A%252520%252520%252520%252520_key__%2525201,%25250A%252520%252520%252520%252520_env_development__%252520%25257B%25250A%252520%252520%252520%252520%252520%252520%252520%252520_key__%2525202%25250A%252520%252520%252520%252520%25257D,%25250A%252520%252520%252520%252520_stage_ppe__%252520%25257B%25250A%252520%252520%252520%252520%252520%252520%252520%252520_key__%2525203%25250A%252520%252520%252520%252520%25257D%25250A%25257Dmodule_.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_AppRouting.html">Feature_AppRouting</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_AppRouting.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_CommandLine.html">Feature_CommandLine</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_CommandLine.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_ConfigByGitUser.html">Feature_ConfigByGitUser</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_ConfigByGitUser.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_ConfigByHostname.html">Feature_ConfigByHostname</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_ConfigByHostname.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_CustomConfig.html">Feature_CustomConfig</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_CustomConfig.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Env.html">Feature_Env</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Env.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_FeatureRegistry.html">Feature_FeatureRegistry</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_FeatureRegistry.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Hasher.html">Feature_Hasher</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Hasher.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_HttpClient.html">Feature_HttpClient</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_ImageProcessor.html">Feature_ImageProcessor</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_ImageProcessor.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_LibModules.html">Feature_LibModules</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_LibModules.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Logger.html">Feature_Logger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Logger.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_MiddlewareFactory.html">Feature_MiddlewareFactory</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_MiddlewareFactory.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Middlewares.html">Feature_Middlewares</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Middlewares.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Passport.html">Feature_Passport</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Passport.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Routing.html">Feature_Routing</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Routing.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_ServiceGroup.html">Feature_ServiceGroup</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_ServiceGroup.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_ThreadPool.html">Feature_ThreadPool</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_ThreadPool.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_TtlMemCache.html">Feature_TtlMemCache</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_TtlMemCache.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Version.html">Feature_Version</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Version.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_AccessLog.html">Middleware_AccessLog</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_Action.html">Middleware_Action</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Middleware_Action.html#~action">action</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_Csrf.html">Middleware_Csrf</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_Favicon.html">Middleware_Favicon</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_JsonError.html">Middleware_JsonError</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_PassportAuth.html">Middleware_PassportAuth</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Middleware_PassportAuth.html#~passportAuth">passportAuth</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_PassportCheck.html">Middleware_PassportCheck</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Middleware_PassportCheck.html#~passportCheck">passportCheck</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_ServeStatic.html">Middleware_ServeStatic</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_ServerPassport.html">Middleware_ServerPassport</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Middleware_ServerPassport.html#~usePassport">usePassport</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Router_JaREST.html">Router_JaREST</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Router_JaREST.html#~jaRestRouter">jaRestRouter</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Router_Module.html">Router_Module</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Router_Module.html#~moduleRouter">moduleRouter</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Router_REST.html">Router_REST</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Router_REST.html#~restRouter">restRouter</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Router_Rule.html">Router_Rule</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Router_Rule.html#~load_">load_</a></span></li><li class="nav-heading">Events</li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="App.html#event:configLoaded">configLoaded</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="App.html#event:ready">ready</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="App.html#event:stopping">stopping</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="ServiceContainer.html#event:configLoaded">configLoaded</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="ServiceContainer.html#event:ready">ready</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="ServiceContainer.html#event:stopping">stopping</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#Feature">Feature</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#addRoute_">addRoute_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#addRouter">addRouter</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#enabled">enabled</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getMiddlewareFactory">getMiddlewareFactory</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#hasService">hasService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#httpMethod">httpMethod</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#loadMiddlewaresFrom">loadMiddlewaresFrom</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#middleware">middleware</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#registerMiddlewareFactory">registerMiddlewareFactory</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#require">require</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#requireFromLib">requireFromLib</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#startLoopWorker">startLoopWorker</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#startQueueWorker">startQueueWorker</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#startWorker">startWorker</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#toWebPath">toWebPath</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#useMiddleware">useMiddleware</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#useMiddlewares_">useMiddlewares_</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">features/commandLine.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Parse command line arguments using minimist and store the parsed object into app.argv, and add app.showUsage() helper function
+ * @module Feature_CommandLine
+ */
+
+import path from 'node:path';
+import { _, pushIntoBucket, eachAsync_ } from '@kitmi/utils';
+import { ApplicationError, InvalidConfiguration } from '@kitmi/types';
+import Feature from '../Feature';
+
+function translateMinimistOptions(opts) {
+    let m = {};
+
+    _.forOwn(opts, (detail, name) => {
+        if (detail.bool) {
+            pushIntoBucket(m, 'boolean', name);
+        } else {
+            pushIntoBucket(m, 'string', name);
+        }
+
+        if ('default' in detail) {
+            _.set(m, `default.${name}`, detail.default);
+        }
+
+        if (detail.alias) {
+            _.set(m, `alias.${name}`, detail.alias);
+        }
+    });
+
+    return m;
+}
+
+function optionDecorator(name) {
+    return name.length == 1 ? '-' + name : '--' + name;
+}
+
+let gArgv = process.argv.slice(2);
+
+/**
+ * Error caused by command line arguments.
+ * @class
+ * @extends ApplicationError
+ */
+class CommandLineArgumentError extends ApplicationError {
+    /**
+     * @param {string} message - Error message
+     * @param {string} name - The related config item
+     * @param {boolean} nonOption - Whether it is an option
+     */
+    constructor(message, name, nonOption) {
+        super(message, 'E_CLI_INVALID_ARG', { name, nonOption });
+    }
+}
+
+/**
+ * Command line helper object.
+ */
+class CommandLine {
+    constructor(app, usage) {
+        this.app = app;
+        this.usage = usage;        
+
+        this.parse(usage.options);
+    }
+
+    injectUsage(injects) {
+        this.injects = injects;
+    }
+
+    parse(options) {
+        const minimist = this.app.tryRequire('minimist');
+        const minimistOpts = translateMinimistOptions(options);
+        this.argv = minimist(gArgv, minimistOpts);
+    }
+
+    option(name) {
+        return this.argv[name];
+    }
+
+    arg(name) {
+        if (this.args[name]) return this.args[name];
+
+        let index = _.findIndex(this.usage.arguments, (arg) => arg.name === name);
+
+        if (index === -1 || this.argv._.length &lt;= index) {
+            return undefined;
+        }
+
+        this.args || (this.args = {});
+        return (this.args[name] = this.argv._[index]);
+    }
+
+    updateOption(name, value) {
+        this.argv[name] = value;
+        let opts = this.usage.options[name];
+        if (opts.alias) {
+            _.each(opts.alias, (a) => {
+                this.argv[a] = value;
+            });
+        }
+    }
+
+    async valueOrFunctionCall_(functor) {
+        if (typeof functor === 'function') {
+            return await functor(this);
+        }
+
+        return functor;
+    }
+
+    async doFilter_(name, opt, argIndex) {
+        if (opt.filter) {
+            if (typeof argIndex === 'undefined') {
+                if (!(typeof opt.filter !== 'function')) {
+                    throw new InvalidConfiguration(
+                        `The "filter" in the inquirer option for argument option "${name}" should be a function!`,
+                        this.app,
+                        `commandLine.options[${name}].filter`
+                    );
+                }
+
+                this.updateOption(name, await opt.filter(this.argv[name], this));
+            } else {
+                if (!(typeof opt.filter !== 'function')) {
+                    throw new InvalidConfiguration(
+                        `The "filter" in the inquirer option for argument value "${name}" at position ${argIndex} should be a function!`,
+                        this.app,
+                        `commandLine.arguments[${argIndex}].filter`
+                    );
+                }
+
+                this.argv._[argIndex] = await opt.filter(this.argv._[argIndex], this);
+            }
+        }
+    }
+
+    argExist(name, argIndex) {
+        return typeof argIndex === 'undefined' ? name in this.argv : this.argv._.length > argIndex;
+    }
+
+    async inquire_() {
+        const inquirer = await this.app.tryRequire_('inquirer');
+
+        const doInquire_ = (item, argIndex) =>
+            inquirer.prompt([item]).then((answers) => {
+                console.log();
+
+                _.forOwn(answers, (ans, name) => {
+                    if (typeof argIndex === 'undefined') {
+                        this.updateOption(name, ans);
+                    } else {
+                        assert: this.argv._.length === argIndex;
+
+                        this.argv._ = this.argv._.concat([ans]);
+                    }
+                });
+            });
+
+        const prepareInquire_ = async (opts, name, argIndex) => {
+            let argExists = this.argExist(name, argIndex);
+
+            if ('inquire' in opts &amp;&amp; !argExists) {
+                //need inquire and the value not given through command line
+                let inquire = await this.valueOrFunctionCall_(opts.inquire);
+
+                if (inquire) {
+                    let type;
+                    let q = { name: name, message: opts.promptMessage || opts.desc };
+
+                    if (opts.promptType) {
+                        type = opts.promptType;
+                        if (type === 'list' || type === 'rawList' || type === 'checkbox' || type === 'expand') {
+                            if (!opts.choicesProvider) {
+                                throw new InvalidConfiguration(
+                                    typeof argIndex === 'undefined'
+                                        ? `Missing "choicesProvider" in the inquirer option for argument option "${name}"!`
+                                        : `Missing "choicesProvider" in the inquirer option for argument value "${name}" at postion ${argIndex}!`,
+                                    this.app,
+                                    typeof argIndex === 'undefined'
+                                        ? `commandLine.options[${name}].choicesProvider`
+                                        : `commandLine.arguments[${argIndex}].choicesProvider`
+                                );
+                            }
+
+                            q.choices = await this.valueOrFunctionCall_(opts.choicesProvider);
+                        }
+                    } else if (opts.bool) {
+                        type = 'confirm';
+                    } else {
+                        type = 'input';
+                    }
+
+                    q.type = type;
+
+                    if ('promptDefault' in opts) {
+                        q.default = await this.valueOrFunctionCall_(opts.promptDefault);
+                    }
+
+                    await doInquire_(q, argIndex);
+                    await this.doFilter_(name, opts, argIndex);
+
+                    if (opts.afterInquire) {
+                        await opts.afterInquire(this);
+                    }
+                }
+            } else if (argExists) {
+                await this.doFilter_(name, opts, argIndex);
+                if (opts.onArgumentExists) {
+                    await opts.onArgumentExists(this);
+                }
+            }
+
+            if ((await this.valueOrFunctionCall_(this.usage.showArguments)) &amp;&amp; this.argExist(name, argIndex)) {
+                if (typeof argIndex === 'undefined') {
+                    console.log('option', name, `(${opts.desc})`, ':', this.argv[name]);
+                } else {
+                    console.log(`&lt;${name}>`, ':', this.argv._[argIndex]);
+                }
+            }
+        };
+
+        if (!_.isEmpty(this.usage.arguments)) {
+            await eachAsync_(this.usage.arguments, async (argOpt, index) => {
+                let { name, ...opts } = argOpt;
+
+                return prepareInquire_(opts, name, index);
+            });
+        }
+
+        return (
+            _.isEmpty(this.usage.options) || eachAsync_(this.usage.options, (opts, name) => prepareInquire_(opts, name))
+        );
+    }
+
+    /**
+     * validate parsed and filled argument options.
+     */
+    async validate_() {
+        const checkRequire_ = (opts) => this.valueOrFunctionCall_(opts.required);
+
+        let errors = [];
+
+        if (!_.isEmpty(this.usage.arguments)) {
+            let argNum = this.argv._.length;
+
+            if (argNum &lt; this.usage.arguments.length) {
+                let args = [];
+
+                let i = 0;
+
+                await eachAsync_(this.usage.arguments, async (arg) => {
+                    let required = await checkRequire_(arg);
+
+                    if (required) {
+                        if (i >= argNum) {
+                            let msg = `Missing required argument "${arg.name}"!`;
+
+                            if (this.usage.showUsageOnError) {
+                                errors.push(msg);
+                            } else {
+                                throw new CommandLineArgumentError(msg, arg.name, true);
+                            }
+                        } else {
+                            args.push(this.argv._[i++]);
+                        }
+                    }
+                });
+
+                this.argv._ = args;
+            }
+        }
+
+        this.usage.options &amp;&amp;
+            (await eachAsync_(this.usage.options, async (opts, name) => {
+                let required = await checkRequire_(opts);
+
+                if (required &amp;&amp; !(name in this.argv)) {
+                    let msg = `Missing required argument option of "${name}"!`;
+
+                    if (this.usage.showUsageOnError) {
+                        errors.push(msg);
+                    } else {
+                        throw new CommandLineArgumentError(msg, name);
+                    }
+                }
+            }));
+
+        if (errors.length > 0) {
+            this.showUsage({
+                afterBanner: () => 'Error(s):\n' + errors.map((msg) => ' - ' + msg).join('\n') + '\n\n',
+            });
+
+            process.exit(1);
+        }
+    }
+
+    async processSilentModeArguments_() {
+        await eachAsync_(this.usage.arguments, async (arg, index) => {
+            if (this.argv._.length &lt;= index) {
+                if (arg.hasOwnProperty('silentModeDefault')) {
+                    for (let i = this.argv._.length; i &lt; index; i++) {
+                        this.argv._.push(undefined);
+                    }
+
+                    this.argv._.push(await this.valueOrFunctionCall_(arg.silentModeDefault));
+                }
+            } else {
+                const { name, ...opts } = arg;
+                await this.doFilter_(name, opts, index);
+                if (opts.onArgumentExists) {
+                    await opts.onArgumentExists(this);
+                }
+            }
+        });
+
+        await eachAsync_(this.usage.options, async (opts, name) => {
+            if (this.argExist(name)) {
+                await this.doFilter_(name, opts);
+                if (opts.onArgumentExists) {
+                    await opts.onArgumentExists(this);
+                }
+            } else if (opts.hasOwnProperty('silentModeDefault')) {
+                this.updateOption(name, await this.valueOrFunctionCall_(opts.silentModeDefault));
+            }
+        });
+    }
+
+    getBanner() {
+        if (this.usage.banner) {
+            let banner = '';
+
+            if (typeof this.usage.banner === 'function') {
+                banner += this.usage.banner(this);
+            } else if (typeof this.usage.banner === 'string') {
+                banner += this.usage.banner;
+            } else {
+                throw new InvalidConfiguration(
+                    'Invalid banner value of commandLine feature.',
+                    this.app,
+                    `commandLine.banner`
+                );
+            }
+
+            banner += '\n';
+
+            return banner;
+        }
+
+        return undefined;
+    }
+
+    getUsage(injects) {
+        injects = { ...this.injects, ...injects };
+
+        let usage = '';
+
+        let banner = !this.bannerShown &amp;&amp; this.getBanner();
+        if (banner) {
+            usage += banner + '\n';
+        }
+
+        if (injects &amp;&amp; injects.afterBanner) {
+            usage += injects.afterBanner();
+        }
+
+        let fmtArgs = '';
+        if (!_.isEmpty(this.usage.arguments)) {
+            fmtArgs =
+                ' ' + this.usage.arguments.map((arg) => (arg.required ? `&lt;${arg.name}>` : `[${arg.name}]`)).join(' ');
+        }
+
+        usage += `Usage: ${this.usage.program || path.basename(process.argv[1])}${fmtArgs} [options]\n\n`;
+
+        if (injects &amp;&amp; injects.afterCommandLine) {
+            usage += injects.afterCommandLine();
+        }
+
+        if (!_.isEmpty(this.usage.options)) {
+            usage += `Options:\n`;
+            _.forOwn(this.usage.options, (opts, name) => {
+                let line = '  ' + optionDecorator(name);
+                if (opts.alias) {
+                    line += _.reduce(opts.alias, (sum, a) => sum + ', ' + optionDecorator(a), '');
+                }
+
+                line += '\n';
+                line += '    ' + opts.desc + '\n';
+
+                if ('default' in opts) {
+                    line += '    default: ' + opts.default.toString() + '\n';
+                }
+
+                if (opts.required) {
+                    if (typeof opts.required === 'function') {
+                        line += '    conditional\n';
+                    } else {
+                        line += '    required\n';
+                    }
+                }
+
+                if (opts.choicesProvider &amp;&amp; Array.isArray(opts.choicesProvider)) {
+                    line += '    available values:\n';
+                    opts.choicesProvider.forEach((choice) => {
+                        line += `        "${choice.value}": ${choice.name}\n`;
+                    });
+                }
+
+                line += '\n';
+
+                usage += line;
+            });
+        }
+
+        if (injects &amp;&amp; injects.afterOptions) {
+            usage += injects.afterOptions();
+        }
+
+        return usage;
+    }
+
+    showBannar() {
+        let banner = this.getBanner();
+        if (banner) {
+            console.log(banner);
+            this.bannerShown = true;
+        }
+    }
+
+    showUsage(injects) {
+        console.log(this.getUsage(injects));
+    }
+}
+
+export default {
+    /**
+     * This feature is loaded at initialization stage
+     * @member {string}
+     */
+    stage: Feature.INIT,
+
+    packages: ['minimist', 'inquirer'],
+
+    /**
+     * Load the feature
+     * @param {App} app - The cli app module object
+     * @param {object} usageOptions - Options for the feature
+     * @property {string} [usageOptions.banner] - Banner message or banner generator function
+     * @property {string} [usageOptions.program] - Executable name
+     * @property {array} [usageOptions.arguments] - Command line arguments, identified by the position of appearance
+     * @property {object} [usageOptions.options] - Command line options
+     * @property {boolean|function} [usageOptions.silentMode] - Whether to run in silient mode, default false
+     * @property {boolean|function} [usageOptions.nonValidationMode] - Whether to run validation
+     * @property {boolean} [usageOptions.showUsageOnError]
+     *
+     * @example
+     *   options: { [argumentKey]: {
+     *      desc, // {string} - description
+     *      alias, // {array.&lt;string>} - alias array
+     *      bool, // {boolean} - whether it is a boolean value
+     *      default, // {*} - default value
+     *      inquire, // {boolean | function(cli).&lt;boolean>} - whether to enable interactive query
+     *      promptMessage, // {string} - prompt message for query, will use desc if not set
+     *      promptType, // {string} - prompt type, can be one of [ input, number, confirm, list, rawlist, expand, checkbox, password, editor ]
+     *      promptDefault, // {* | function(cli).&lt;*>} - default value appeared on query or a async function to return the default value
+     *      choicesProvider, // {array | function(cli).&lt;array> | function.&lt;function(string).&lt;array>>} - required for prompt type list, rawlist, expand, checkbox
+     *      filter, // {function(argv, cli).&lt;argv>} - filter to process the argument value
+     *      afterInquire, // {function} - after inquire hook,
+     *      onArgumentExists, // {function} - when argument exists,
+     *      silentModeDefault // {*} - default value when run in silient mode,
+     *   } }
+     *
+     * @returns {Promise.&lt;*>}
+     */
+    load_: async (app, options, name) => {
+        const { testArgs, ...usageOptions } = app.featureConfig(options, {
+            schema: {
+                testArgs: { type: 'array', optional: true },
+            },
+            keepUnsanitized: true,
+        }, name);
+
+        if (testArgs) {
+            gArgv = testArgs;
+        }
+
+        app.commandLine = new CommandLine(app, usageOptions);
+
+        let silentMode = usageOptions.silentMode;
+
+        if (silentMode &amp;&amp; typeof silentMode === 'function') {
+            silentMode = silentMode(app.commandLine);
+        }
+
+        app.commandLine.silentMode = silentMode;
+
+        if (silentMode) {
+            await app.commandLine.processSilentModeArguments_();
+        } else {            
+            app.commandLine.showBannar();
+            await app.commandLine.inquire_();
+        }
+
+        let nonValidationMode = usageOptions.nonValidationMode;
+
+        if (nonValidationMode &amp;&amp; typeof nonValidationMode === 'function') {
+            nonValidationMode = nonValidationMode(app.commandLine);
+        }
+
+        app.commandLine.nonValidationMode = nonValidationMode;
+
+        if (!nonValidationMode) {
+            await app.commandLine.validate_();
+        }
+    },
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Sat Dec 09 2023 11:42:03 GMT+0800 (Central Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

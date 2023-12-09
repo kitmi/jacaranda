@@ -1,0 +1,6 @@
+{
+    "version": "@@package",
+    "env": {
+        "MY_VAR": "Hello"
+    }
+}

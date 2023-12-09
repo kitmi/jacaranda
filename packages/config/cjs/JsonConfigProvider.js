@@ -28,9 +28,15 @@ class JsonConfigProvider {
      * @returns {Promise.<object>}
      */ async load_(logger, noThrow) {
         try {
+            await (0, _promises.access)(this.filePath, _promises.constants.R_OK);
+        } catch  {
+            return this.config = null;
+        }
+        try {
             this.config = this.parse(await (0, _promises.readFile)(this.filePath, 'utf-8'));
         } catch (error) {
             if (noThrow) {
+                logger?.log('warn', error.message || error);
                 return undefined;
             }
             throw error;

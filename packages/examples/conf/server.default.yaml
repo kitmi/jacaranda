@@ -1,0 +1,22 @@
+logger: {}
+
+koa:
+  port: 3000
+
+middlewares:
+  - - favicon
+    - public/favicon.ico
+  - ip
+  - accessLog
+  - koa-compress
+  - koa-etag
+  - serveStatic
+  - - koa-body
+    - multipart: false
+      jsonLimit: 15mb
+
+routing:
+    /:
+        rule:
+            'get:/': home.index
+            'get:/shutdown': home.shutdown

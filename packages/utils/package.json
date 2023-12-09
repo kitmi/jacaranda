@@ -18,8 +18,11 @@
     "publishConfig": {
         "access": "public"
     },
-    "author": "Rockie Guo <rockie@kitmimi.com.au>",
-    "repository": "https://github.com/kitmi/jacaranda",        
+    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kitmi/jacaranda.git"
+    },
     "license": "MIT",
     "nyc": {
         "exclude": [
@@ -47,7 +50,6 @@
         "utility",
         "lodash"
     ],
-    
     "devDependencies": {
         "benchmark": "^2.1.4",
         "csv-parse": "^5.0.4",

@@ -1,6 +1,6 @@
 import { _ } from '@kitmi/utils';
 import path from 'node:path';
-import { readFile, writeFile } from 'node:fs/promises';
+import { access, readFile, writeFile, constants } from 'node:fs/promises';
 
 class JsonConfigProvider {
     /**
@@ -33,9 +33,16 @@ class JsonConfigProvider {
      */
     async load_(logger, noThrow) {
         try {
+            await access(this.filePath, constants.R_OK);
+        } catch {
+            return (this.config = null);
+        }
+
+        try {
             this.config = this.parse(await readFile(this.filePath, 'utf-8'));
         } catch (error) {
             if (noThrow) {
+                logger?.log('warn', error.message || error);
                 return undefined;
             }
 

@@ -4,9 +4,13 @@ A JavaScript Application Framework & Libraries
 
 ## Packages
 
--   @kit/utils
--   @kit/types
--   @kit/sys
--   @kit/config
--   @kit/jsonv
--   @kit/jsonx
+-   @kitmi/utils
+-   @kitmi/types
+-   @kitmi/sys
+-   @kitmi/config
+-   @kitmi/jsonv
+-   @kitmi/jsonx
+-   @kitmi/algo
+-   @kitmi/validators
+-   @kitmi/adapters
+-   @kitmi/jacaranda
