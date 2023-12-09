@@ -23,18 +23,18 @@ const defaultServerOpts = {
     configName: 'server',
     appModulesPath: 'apps',
     packageManager: 'bun',
-    sourcePath: 'src'
+    // for nodemon to use the source files
+    sourcePath: process.env.GX_SOURCE_PATH ?? 'server'
 };
 const defaultRoutableOpts = {
     engine: 'koa',
     traceMiddlewares: false,
-    logMiddlewareRegistry: false,
     publicPath: 'public',
     controllersPath: 'actions',
     middlewaresPath: 'middlewares'
 };
 const defaultWebModuleOpts = {
-    sourcePath: 'src'
+    sourcePath: process.env.GX_SOURCE_PATH ?? 'server'
 };
 const _default = defaultServerOpts;
 

@@ -12,8 +12,8 @@ _export(exports, {
     default: function() {
         return _default;
     },
-    defaultRunnableOpts: function() {
-        return defaultRunnableOpts;
+    defaultAppOpts: function() {
+        return defaultAppOpts;
     }
 });
 const defaultOpts = {
@@ -26,10 +26,9 @@ const defaultOpts = {
     disableEnvAwareConfig: false,
     allowedFeatures: undefined
 };
-const defaultRunnableOpts = {
+const defaultAppOpts = {
     logger: undefined,
     logLevel: 'info',
-    logFeatures: false,
     packageManager: 'bun',
     ignoreUncaught: false,
     exitOnUncaught: true,

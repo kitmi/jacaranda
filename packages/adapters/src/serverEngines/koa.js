@@ -41,7 +41,7 @@ class KoaEngine {
         }
 
         this.koa = createEngine(this);
-        this._initialize(config); 
+        this._initialize(config);        
     }    
 
     _initialize(options) {
@@ -79,7 +79,7 @@ class KoaEngine {
 
         server.httpServer = http.createServer(koa.callback());
 
-        let port = options.port;
+        let port = options.httpPort || 2331;
 
         server.on('ready', () => {
             server.httpServer.listen(port, function (err) {

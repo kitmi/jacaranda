@@ -56,8 +56,6 @@ const _default = {
                 configType: server.options.configType,
                 logLevel: server.options.logLevel,
                 traceMiddlewares: server.options.traceMiddlewares,
-                logMiddlewareRegistry: server.options.logMiddlewareRegistry,
-                sourcePath: server.options.sourcePath,
                 ...config.options
             };
             let appPath;

@@ -10,7 +10,6 @@ Object.defineProperty(exports, "default", {
 });
 const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 const _utils = require("@kitmi/utils");
-const _types = require("@kitmi/types");
 const _Runnable = /*#__PURE__*/ _interop_require_default(require("./Runnable"));
 const _Routable = /*#__PURE__*/ _interop_require_default(require("./Routable"));
 const _ServiceContainer = /*#__PURE__*/ _interop_require_default(require("./ServiceContainer"));
@@ -169,15 +168,9 @@ function _interop_require_default(obj) {
          * Base route.
          * @member {string}
          */ this.route = '/';
-        // register built-in middlewares
-        this.addMiddlewaresRegistryFrom(_nodepath.default.resolve(__dirname, 'middlewares'));
-        this.once('after:Initial', ()=>{
-            if (this.engine == null) {
-                throw new _types.InvalidConfiguration('Missing server engine feature, e.g. koa or hono.', this);
-            }
-        });
-        process.on('SIGINT', ()=>{
-            this.stop_().catch((error)=>console.error(error.message || error));
+        this.on('configLoaded', ()=>{
+            // load builtin middlewares
+            this.loadMiddlewaresFrom(_nodepath.default.resolve(__dirname, 'middlewares'));
         });
     }
 }

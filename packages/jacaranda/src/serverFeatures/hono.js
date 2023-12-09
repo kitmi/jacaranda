@@ -1,7 +1,7 @@
 import Feature from '../Feature';
 
 export default {
-    stage: Feature.INIT,
+    stage: Feature.SERVICE,
 
     packages: ['hono', '@hono/node-server'],
 

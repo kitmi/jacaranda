@@ -1,1 +1,1 @@
-{"version":3,"sources":["../src/index.js"],"sourcesContent":["export * from './httpClient';\nexport * from './serverEngines';\nexport { default as packageManagers } from './packageManager';\n"],"names":["packageManagers"],"mappings":";;;;+BAEoBA;;;eAAAA,uBAAe;;;qBAFrB;qBACA;uEAC6B"}
+{"version":3,"sources":["../src/index.js"],"sourcesContent":["export * from './httpClient';\nexport { default as packageManagers } from './packageManager';\n"],"names":["packageManagers"],"mappings":";;;;+BACoBA;;;eAAAA,uBAAe;;;qBADrB;uEAC6B"}

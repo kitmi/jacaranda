@@ -19,19 +19,11 @@ const _default = {
     packages: [
         'koa',
         'koa-mount',
-        '@koa/router',
-        'koa-body',
-        'koa-compress',
-        'koa-etag',
-        'koa-static'
+        '@koa/router'
     ],
     load_: async function(server, options, name) {
         options = server.featureConfig(options ?? {}, {
             schema: {
-                trustProxy: {
-                    type: 'boolean',
-                    optional: true
-                },
                 subdomainOffset: {
                     type: 'integer',
                     optional: true,
@@ -42,7 +34,7 @@ const _default = {
                         ]
                     ]
                 },
-                port: {
+                httpPort: {
                     type: 'integer',
                     optional: true,
                     default: 2331
@@ -67,12 +59,7 @@ const _default = {
                 ]
             }
         }, name);
-        const { koa: KoaEngine } = server.tryRequire('@kitmi/adapters');
-        server.addMiddlewaresRegistry({
-            'koa-body': 'koa-body',
-            'koa-compress': 'koa-compress',
-            'koa-etag': 'koa-etag'
-        });
+        const { koa: KoaEngine } = app.tryRequire('@kitmi/adapters');
         server.engine = new KoaEngine(server);
         await server.engine.init_(options);
     }

@@ -24,9 +24,6 @@ _export(exports, {
     middleware: function() {
         return _middleware.default;
     },
-    serve: function() {
-        return _serve.default;
-    },
     supportedMethods: function() {
         return _supportedMethods.default;
     }
@@ -35,7 +32,6 @@ const _AsyncEmitter = /*#__PURE__*/ _interop_require_default(require("./AsyncEmi
 const _HttpClient = /*#__PURE__*/ _interop_require_default(require("./HttpClient"));
 const _Controller = /*#__PURE__*/ _interop_require_default(require("./Controller"));
 const _httpMethod = /*#__PURE__*/ _interop_require_default(_export_star(require("./httpMethod"), exports));
-const _serve = /*#__PURE__*/ _interop_require_default(require("./serve"));
 const _middleware = /*#__PURE__*/ _interop_require_default(require("./middleware"));
 const _supportedMethods = /*#__PURE__*/ _interop_require_default(require("./supportedMethods"));
 function _export_star(from, to) {

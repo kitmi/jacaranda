@@ -11,16 +11,14 @@ import { globSync } from 'glob';
  * Create a RESTful router.
  * @param {*} app
  * @param {string} baseRoute
- * @param {object} options
- * @property {string} [options.$controllerPath]
- * @property {object} [options.$errorOptions]
- * @property {object|array} [options.$middlewares]
+ * @param {objects} options
+ * @property {string} [options.resourcesPath]
+ * @property {object|array} [options.middlewares]
  * @example
  *  '<base path>': {
  *      REST: {
- *          $controllerPath:
- *          $errorOptions:
- *          $middlewares:
+ *          resourcesPath:
+ *          middlewares:
  *      }
  *  }
  *
@@ -34,12 +32,12 @@ import { globSync } from 'glob';
 const restRouter = async (app, baseRoute, options) => {
     let router = app.engine.createRouter(baseRoute);
 
-    let resourcePath = path.resolve(app.sourcePath, options.$controllerPath ?? 'resources');
+    let resourcePath = path.resolve(app.sourcePath, options.resourcesPath ?? 'resources');
 
-    app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.$errorOptions, app), 'jsonError');
+    app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.errorOptions, app), 'jsonError');
 
-    if (options.$middlewares) {
-        await app.useMiddlewares_(router, options.$middlewares);
+    if (options.middlewares) {
+        await app.useMiddlewares_(router, options.middlewares);
     }
 
     let resourcesPath = path.join(resourcePath, '**', '*.js');

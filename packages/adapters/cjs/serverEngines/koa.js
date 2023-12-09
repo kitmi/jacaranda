@@ -78,7 +78,7 @@ class KoaEngine {
             }
         });
         server.httpServer = _nodehttp.default.createServer(koa.callback());
-        let port = options.port;
+        let port = options.httpPort || 2331;
         server.on('ready', ()=>{
             server.httpServer.listen(port, function(err) {
                 if (err) throw err;

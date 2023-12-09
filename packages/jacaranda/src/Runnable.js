@@ -1,6 +1,6 @@
 import { _, sleep_, batchAsync_ } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
-import { defaultRunnableOpts } from './defaultOpts';
+import { defaultAppOpts } from './defaultOpts';
 
 /**
  * Runnable app mixin.
@@ -44,7 +44,7 @@ const Runnable = (T) =>
          */
         constructor(name, options) {
             super(name, {
-                ...defaultRunnableOpts,
+                ...defaultAppOpts,
                 ...options,
             });
 

@@ -185,7 +185,7 @@ function _define_property(obj, key, value) {
          * @constructs Runnable
          */ constructor(name, options){
             super(name, {
-                ..._defaultOpts.defaultRunnableOpts,
+                ..._defaultOpts.defaultAppOpts,
                 ...options
             });
             _define_property(this, "_getOnUncaughtException", (exitOnError)=>(err)=>{
