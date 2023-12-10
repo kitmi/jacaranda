@@ -18,9 +18,13 @@
 
 ## Interface
 
-gobal object `gxt`
+gobal object `jacat`, or can also be imported by
+```js
+import { jacat } from '@kitmi/tester';
+```
+-   `startServer_(serverName)`: start a server with options specified by serverName in the test config
 
--   `startWorker_(app => {/* test to run */}, options)`: // start a worker
+-   `startWorker_(app => {/* test to run */}, options)`: start a worker
 
 -   `withHttpClient_(serverName?, [authenticator], app => {/* test to run */}, [options])`: // start a worker and create a http client
 

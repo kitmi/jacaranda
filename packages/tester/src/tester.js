@@ -1,5 +1,5 @@
-import { _, esmCheck, toBoolean, batchAsync_ } from '@kitmi/utils';
-import { startWorker, HttpClient } from '@kitmi/jacaranda';
+import { _, esmCheck, toBoolean, batchAsync_, Box, keyAt } from '@kitmi/utils';
+import WebServer, { startWorker, HttpClient } from '@kitmi/jacaranda';
 import Benchmark from 'benchmark';
 import path from "node:path";
 import loadFixtures from './loadFixtures';
@@ -19,7 +19,21 @@ function serialize(obj, replacer, space) {
     return { content, type };
 }
 
-class GxTester {
+const [ jacatProxy, _setJacat ] = Box();
+
+export const jacat = jacatProxy;
+export const setJacat = _setJacat;
+
+/**
+ * Jacaranda tester.
+ * @class
+ */
+class JacaTester {
+    /**
+     * Load fixtures and declare test case with `it`.
+     * @function module:tester.loadFixtures
+     * @param {Function} [testCase] - Test case to run after loading fixtures. (data) => {}
+     */
     loadFixtures = loadFixtures;
 
     constructor(config) {
@@ -56,33 +70,38 @@ class GxTester {
     // server
     // ------------------------------
 
-    // specially for server code coverage test with supertest agent
-    async startServer_(name) {        
+    // for server code coverage
+    async startServer_(name) {   
+        if (name == null) {
+            name = keyAt(this.config.servers);
+            if (!name) {
+                throw new Error('No server defined in config');
+            }
+        }
+        
         if (this.startedServers[name]) {
-            return this.startedServers[name];
+            return;
         }
 
-        const { servers } = this.config;
-        const serverEntry = servers?.[name];
+        const serverOptions = this.config.servers?.[name];
 
-        if (!serverEntry) {
-            throw new Error(`Server entry for "${name}" not found`);
+        if (!serverOptions) {
+            throw new Error(`Server options for "${name}" not found`);
         }
 
-        const _serverInfo = typeof serverEntry === 'string' ? { entry: serverEntry } : serverEntry;
-
-        const createServer = esmCheck(require(path.resolve(process.cwd(), _serverInfo.entry)));
-
-        const server = await createServer(name, _serverInfo.options);
+        const server = new WebServer(name, serverOptions);
         await server.start_();
 
         this.startedServers[name] = server;
-        return server;
     }
 
     async stopServer_(server) {
         if (typeof server === 'string') {
             server = this.startedServers[server];
+        }
+
+        if (server == null) {
+            return;
         }
 
         await server.stop_();
@@ -103,11 +122,20 @@ class GxTester {
 
     /**
      * Start a worker app for testing
+     * @param {String} [name] - Name of the worker to start.
      * @param {function} testToRun - Test (async) function to run.
-     * @param {*} options - Options passed to the test worker, see startWorker of @kitmi/jacaranda.
      * @async
      */
-    async startWorker_(testToRun, options) {
+    async startWorker_(name, testToRun) {
+        
+
+        if (name == null) {
+            name = keyAt(this.config.servers);
+            if (!name) {
+                throw new Error('No server defined in config');
+            }
+        }
+
         let err;
 
         const result = await startWorker(
@@ -143,9 +171,9 @@ class GxTester {
 
     /**
      *
-     * @param {*} server
-     * @param {*} [authenticator]
-     * @param {*} testToRun
+     * @param {String|WebServer} server
+     * @param {String|Function} [authenticator]
+     * @param {Function} testToRun
      * @param {*} options
      * @returns
      */
@@ -253,4 +281,4 @@ class GxTester {
     }
 }
 
-export default GxTester;
+export default JacaTester;
