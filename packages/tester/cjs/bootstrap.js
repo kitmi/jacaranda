@@ -22,11 +22,52 @@ _export(exports, {
 const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 const _nodefs = /*#__PURE__*/ _interop_require_default(require("node:fs"));
 const _utils = require("@kitmi/utils");
-const _testerCore = /*#__PURE__*/ _interop_require_default(require("./testerCore"));
+const _tester = /*#__PURE__*/ _interop_require_wildcard(require("./tester"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
     };
+}
+function _getRequireWildcardCache(nodeInterop) {
+    if (typeof WeakMap !== "function") return null;
+    var cacheBabelInterop = new WeakMap();
+    var cacheNodeInterop = new WeakMap();
+    return (_getRequireWildcardCache = function(nodeInterop) {
+        return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
+    })(nodeInterop);
+}
+function _interop_require_wildcard(obj, nodeInterop) {
+    if (!nodeInterop && obj && obj.__esModule) {
+        return obj;
+    }
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+        return {
+            default: obj
+        };
+    }
+    var cache = _getRequireWildcardCache(nodeInterop);
+    if (cache && cache.has(obj)) {
+        return cache.get(obj);
+    }
+    var newObj = {
+        __proto__: null
+    };
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+    for(var key in obj){
+        if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
+            var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+            if (desc && (desc.get || desc.set)) {
+                Object.defineProperty(newObj, key, desc);
+            } else {
+                newObj[key] = obj[key];
+            }
+        }
+    }
+    newObj.default = obj;
+    if (cache) {
+        cache.set(obj, newObj);
+    }
+    return newObj;
 }
 let _initialized = false;
 let _config = null;
@@ -45,7 +86,9 @@ const bootstrap = ()=>{
     if (_config.enableAsyncDump) {
         _asyncDump = (0, _utils.esmCheck)(require('./asyncDump'));
     }
-    global.gxt = new _testerCore.default(_config);
+    const _jacat = new _tester.default(_config);
+    (0, _tester.setJacat)(_jacat);
+    global.jacat = _jacat;
 };
 const processConfigSection = (section)=>{
     if (section) {
@@ -132,15 +175,9 @@ const mochaGlobalSetup = async function() {
     if (_config.enableAllure) {
         global.allure = (0, _utils.esmCheck)(require('allure-mocha/runtime')).allure;
     }
-    if (process.env.COVER) {
-        const { servers } = _config;
-        servers && await (0, _utils.batchAsync_)(Object.keys(servers), async (serverName)=>{
-            await gxt.startServer_(serverName);
-        });
-    }
 };
 const mochaGlobalTeardown = async function() {
-    await gxt.closeAllServers_();
+    await _tester.jacat.closeAllServers_();
     if (_config.enableAsyncDump) {
         _asyncDump();
     }

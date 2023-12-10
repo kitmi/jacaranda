@@ -58,7 +58,7 @@
         "openai": "^4.20.1"
     },
     "devDependencies": {
-        "@kimit/tester": "workspace:*"
+        "@kitmi/tester": "workspace:*"
     },
     "prettier": {
         "quoteProps": "consistent",

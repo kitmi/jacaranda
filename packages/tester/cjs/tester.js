@@ -2,14 +2,25 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-Object.defineProperty(exports, "default", {
-    enumerable: true,
-    get: function() {
+function _export(target, all) {
+    for(var name in all)Object.defineProperty(target, name, {
+        enumerable: true,
+        get: all[name]
+    });
+}
+_export(exports, {
+    default: function() {
         return _default;
+    },
+    jacat: function() {
+        return jacat;
+    },
+    setJacat: function() {
+        return setJacat;
     }
 });
 const _utils = require("@kitmi/utils");
-const _jacaranda = require("@kitmi/jacaranda");
+const _jacaranda = /*#__PURE__*/ _interop_require_wildcard(require("@kitmi/jacaranda"));
 const _benchmark = /*#__PURE__*/ _interop_require_default(require("benchmark"));
 const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 const _loadFixtures = /*#__PURE__*/ _interop_require_default(require("./loadFixtures"));
@@ -31,6 +42,47 @@ function _interop_require_default(obj) {
         default: obj
     };
 }
+function _getRequireWildcardCache(nodeInterop) {
+    if (typeof WeakMap !== "function") return null;
+    var cacheBabelInterop = new WeakMap();
+    var cacheNodeInterop = new WeakMap();
+    return (_getRequireWildcardCache = function(nodeInterop) {
+        return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
+    })(nodeInterop);
+}
+function _interop_require_wildcard(obj, nodeInterop) {
+    if (!nodeInterop && obj && obj.__esModule) {
+        return obj;
+    }
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+        return {
+            default: obj
+        };
+    }
+    var cache = _getRequireWildcardCache(nodeInterop);
+    if (cache && cache.has(obj)) {
+        return cache.get(obj);
+    }
+    var newObj = {
+        __proto__: null
+    };
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+    for(var key in obj){
+        if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
+            var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+            if (desc && (desc.get || desc.set)) {
+                Object.defineProperty(newObj, key, desc);
+            } else {
+                newObj[key] = obj[key];
+            }
+        }
+    }
+    newObj.default = obj;
+    if (cache) {
+        cache.set(obj, newObj);
+    }
+    return newObj;
+}
 function serialize(obj, replacer, space) {
     let content;
     let type;
@@ -46,7 +98,13 @@ function serialize(obj, replacer, space) {
         type
     };
 }
-class GxTester {
+const [jacatProxy, _setJacat] = (0, _utils.Box)();
+const jacat = jacatProxy;
+const setJacat = _setJacat;
+/**
+ * Jacaranda tester.
+ * @class
+ */ class JacaTester {
     // ------------------------------
     // allure
     // ------------------------------
@@ -70,28 +128,31 @@ class GxTester {
     // ------------------------------
     // server
     // ------------------------------
-    // specially for server code coverage test with supertest agent
+    // for server code coverage
     async startServer_(name) {
+        if (name == null) {
+            name = (0, _utils.keyAt)(this.config.servers);
+            if (!name) {
+                throw new Error('No server defined in config');
+            }
+        }
         if (this.startedServers[name]) {
-            return this.startedServers[name];
+            return;
         }
-        const { servers } = this.config;
-        const serverEntry = servers?.[name];
-        if (!serverEntry) {
-            throw new Error(`Server entry for "${name}" not found`);
+        const serverOptions = this.config.servers?.[name];
+        if (!serverOptions) {
+            throw new Error(`Server options for "${name}" not found`);
         }
-        const _serverInfo = typeof serverEntry === 'string' ? {
-            entry: serverEntry
-        } : serverEntry;
-        const createServer = (0, _utils.esmCheck)(require(_nodepath.default.resolve(process.cwd(), _serverInfo.entry)));
-        const server = await createServer(name, _serverInfo.options);
+        const server = new _jacaranda.default(name, serverOptions);
         await server.start_();
         this.startedServers[name] = server;
-        return server;
     }
     async stopServer_(server) {
         if (typeof server === 'string') {
             server = this.startedServers[server];
+        }
+        if (server == null) {
+            return;
         }
         await server.stop_();
         delete this.startedServers[server.name];
@@ -107,10 +168,16 @@ class GxTester {
     // ------------------------------
     /**
      * Start a worker app for testing
+     * @param {String} [name] - Name of the worker to start.
      * @param {function} testToRun - Test (async) function to run.
-     * @param {*} options - Options passed to the test worker, see startWorker of @kitmi/jacaranda.
      * @async
-     */ async startWorker_(testToRun, options) {
+     */ async startWorker_(name, testToRun) {
+        if (name == null) {
+            name = (0, _utils.keyAt)(this.config.servers);
+            if (!name) {
+                throw new Error('No server defined in config');
+            }
+        }
         let err;
         const result = await (0, _jacaranda.startWorker)(async (app)=>{
             try {
@@ -138,23 +205,23 @@ class GxTester {
     // ------------------------------
     /**
      *
-     * @param {*} server
-     * @param {*} [authenticator]
-     * @param {*} testToRun
+     * @param {String|WebServer} server
+     * @param {String|Function} [authenticator]
+     * @param {Function} testToRun
      * @param {*} options
      * @returns
-     */ async withHttpClient_(server, authenticator, testToRun, options) {
-        if (typeof options === 'undefined') {
+     */ async withHttpClient_(server, authenticator, testToRun, options1) {
+        if (typeof options1 === 'undefined') {
             if (typeof testToRun === 'undefined') {
                 testToRun = authenticator;
                 authenticator = null;
             } else if (typeof testToRun === 'object') {
-                options = testToRun;
+                options1 = testToRun;
                 testToRun = authenticator;
                 authenticator = null;
             }
         }
-        const { worker: workerOptions, client: clientOptions } = options || {};
+        const { worker: workerOptions, client: clientOptions } = options1 || {};
         if (typeof server === 'string') {
             server = await this.startServer_(server);
         }
@@ -234,12 +301,16 @@ class GxTester {
         });
     }
     constructor(config){
-        _define_property(this, "loadFixtures", _loadFixtures.default);
+        /**
+     * Load fixtures and declare test case with `it`.
+     * @function module:tester.loadFixtures
+     * @param {Function} [testCase] - Test case to run after loading fixtures. (data) => {}
+     */ _define_property(this, "loadFixtures", _loadFixtures.default);
         this.config = config;
         this.startedServers = {};
         this.isCoverMode = process.env.COVER && (0, _utils.toBoolean)(process.env.COVER);
     }
 }
-const _default = GxTester;
+const _default = JacaTester;
 
-//# sourceMappingURL=testerCore.js.map
+//# sourceMappingURL=tester.js.map

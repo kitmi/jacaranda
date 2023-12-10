@@ -14,3 +14,4 @@ export { default as esmCheck } from './esmCheck';
 export { default as esmIsMain } from './esmIsMain';
 export { default as unexistDelegate } from './unexistDelegate';
 export { default as Box } from './box';
+export { default as fxargs } from './fxargs';

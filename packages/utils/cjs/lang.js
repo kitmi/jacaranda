@@ -9,11 +9,17 @@ function _export(target, all) {
     });
 }
 _export(exports, {
+    Box: function() {
+        return _box.default;
+    },
     esmCheck: function() {
         return _esmCheck.default;
     },
     esmIsMain: function() {
         return _esmIsMain.default;
+    },
+    fxargs: function() {
+        return _fxargs.default;
     },
     hookInvoke: function() {
         return _hookInvoke.default;
@@ -66,6 +72,8 @@ const _toFloat = /*#__PURE__*/ _interop_require_default(require("./toFloat"));
 const _esmCheck = /*#__PURE__*/ _interop_require_default(require("./esmCheck"));
 const _esmIsMain = /*#__PURE__*/ _interop_require_default(require("./esmIsMain"));
 const _unexistDelegate = /*#__PURE__*/ _interop_require_default(require("./unexistDelegate"));
+const _box = /*#__PURE__*/ _interop_require_default(require("./box"));
+const _fxargs = /*#__PURE__*/ _interop_require_default(require("./fxargs"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj

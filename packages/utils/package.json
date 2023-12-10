@@ -51,6 +51,7 @@
         "lodash"
     ],
     "devDependencies": {
+        "@kitmi/types": "workspace:*",
         "benchmark": "^2.1.4",
         "csv-parse": "^5.0.4",
         "mobx": "^6.9.0"
