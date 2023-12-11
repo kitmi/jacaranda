@@ -46,17 +46,27 @@ jobs:
           mdbook build
       - name: Copy project docs
         run: |
-          cd ..
+          mkdir -p ./docs/book/@kitmi/adapters
           cp -R ./packages/adapters/docs/manual/* ./docs/book/@kitmi/adapters
+          mkdir -p ./docs/book/@kitmi/algo
           cp -R ./packages/algorithm/docs/manual/* ./docs/book/@kitmi/algo
+          mkdir -p ./docs/book/@kitmi/config
           cp -R ./packages/config/docs/manual/* ./docs/book/@kitmi/config
+          mkdir -p ./docs/book/@kitmi/jacaranda
           cp -R ./packages/jacaranda/docs/manual/* ./docs/book/@kitmi/jacaranda
+          mkdir -p ./docs/book/@kitmi/jsonv
           cp -R ./packages/jsonv/docs/manual/* ./docs/book/@kitmi/jsonv
+          mkdir -p ./docs/book/@kitmi/jsonx
           cp -R ./packages/jsonx/docs/manual/* ./docs/book/@kitmi/jsonx
+          mkdir -p ./docs/book/@kitmi/sys
           cp -R ./packages/sys/docs/manual/* ./docs/book/@kitmi/sys
+          mkdir -p ./docs/book/@kitmi/tester
           cp -R ./packages/tester/docs/manual/* ./docs/book/@kitmi/tester
+          mkdir -p ./docs/book/@kitmi/types
           cp -R ./packages/types/docs/manual/* ./docs/book/@kitmi/types
+          mkdir -p ./docs/book/@kitmi/utils
           cp -R ./packages/utils/docs/manual/* ./docs/book/@kitmi/utils
+          mkdir -p ./docs/book/@kitmi/validators
           cp -R ./packages/validators/docs/manual/* ./docs/book/@kitmi/validators
 
       - name: Upload artifact
