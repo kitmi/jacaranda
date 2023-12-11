@@ -11,6 +11,7 @@ const tokenCache = {};
  * @param {Object} authConfig - The user authentication settings.
  * @returns {Function} A middleware function that adds user authentication to a client.
  * @throws {Error} If the user authentication settings are missing required fields.
+ * @private
  */
 function createAuth(authKey, authConfig) {
     const { loginType = 'password', accessType = 'jwt' } = authConfig;

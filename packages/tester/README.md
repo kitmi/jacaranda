@@ -12,7 +12,7 @@
 * [x] Support @kitmi/jacaranda worker 
 * [x] Support JSON Validation Syntax
 * [x] Support configurable test case on/off switches
-* Support profiling 
+* [x] Support profiling 
 * [x] Support benchmark 
 * [x] Support test step and progress record
 * Support job pipeline for long-run test
@@ -30,6 +30,8 @@ import { jacat } from '@kitmi/tester';
 -   `withClient_(serverName?, authentication, async (client, server) => {/* test to run */}, options?)`: // start a worker and create a http client
 
 -   `benchmark_(mapOfMethods, verifier, payload)`: // run benchmark againest several different implementions of the same purposes
+
+-   `profile_(name, async () => { //test })`: // run profiling againest a test function
 
 -   `step_(name, fn)`: // test step
 
@@ -128,7 +130,8 @@ allure generate allure-results --clean -o allure-report && serve ./allure-report
 
 ### 7. run code coverage test and report
 
-```
+```bash
+nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html
 ```
 
 ## License

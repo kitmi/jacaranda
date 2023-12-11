@@ -12,7 +12,7 @@
             "README.md"
         ],
         "includePattern": ".js$",
-        "excludePattern": "(node_modules/|docs|__test__|test)"
+        "excludePattern": "(node_modules/|__test__/)"
     },
     "sourceType": "module",
     "plugins": [

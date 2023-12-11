@@ -11,6 +11,7 @@ import { get } from '@kitmi/utils';
  * @property {String} [loginOptions.tokenKey] - The token key path, default "token".
  * @property {Object} [loginOptions.query] - The query parameters.
  * @property {Object} [loginOptions.headers] - Extra headers.
+ * @private
  */
 const passwordAuth = async (client, loginOptions) => {
     const usernameField = loginOptions.usernameField || 'username';
