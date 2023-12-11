@@ -9,7 +9,11 @@
         "accessLog": { },
         "koa-compress": {},
         "koa-etag": {},        
-        "serveStatic": {}
+        "serveStatic": {},
+        "koa-body": {
+            "multipart": false,
+            "jsonLimit": "15mb"
+        }
     },
     "routing": {
         "/test": {

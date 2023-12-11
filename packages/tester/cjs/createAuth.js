@@ -9,39 +9,51 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _utils = require("@kitmi/utils");
+const _login = /*#__PURE__*/ _interop_require_wildcard(require("./login"));
+const _access = /*#__PURE__*/ _interop_require_wildcard(require("./access"));
+function _getRequireWildcardCache(nodeInterop) {
+    if (typeof WeakMap !== "function") return null;
+    var cacheBabelInterop = new WeakMap();
+    var cacheNodeInterop = new WeakMap();
+    return (_getRequireWildcardCache = function(nodeInterop) {
+        return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
+    })(nodeInterop);
+}
+function _interop_require_wildcard(obj, nodeInterop) {
+    if (!nodeInterop && obj && obj.__esModule) {
+        return obj;
+    }
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+        return {
+            default: obj
+        };
+    }
+    var cache = _getRequireWildcardCache(nodeInterop);
+    if (cache && cache.has(obj)) {
+        return cache.get(obj);
+    }
+    var newObj = {
+        __proto__: null
+    };
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+    for(var key in obj){
+        if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
+            var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+            if (desc && (desc.get || desc.set)) {
+                Object.defineProperty(newObj, key, desc);
+            } else {
+                newObj[key] = obj[key];
+            }
+        }
+    }
+    newObj.default = obj;
+    if (cache) {
+        cache.set(obj, newObj);
+    }
+    return newObj;
+}
 // Cache for storing user tokens
 const tokenCache = {};
-const jwtAuth = async (client, accessToken1)=>{
-    if (accessToken1 == null) {
-        throw new Error(`"accessToken" is required.`);
-    }
-    // Add the token to the Authorization header of each request
-    client.onSending = (req)=>{
-        req.set('Authorization', `Bearer ${accessToken1}`);
-    };
-};
-const passwordAuth = async (client, loginOptions)=>{
-    if (!loginOptions.endpoint || !loginOptions.username || !loginOptions.password) {
-        throw new Error(`"endpoint", "username", "password" is required.`);
-    }
-    let body = await client.post(loginOptions.endpoint, {
-        username: loginOptions.username,
-        password: loginOptions.password
-    }, loginOptions.query, loginOptions.headers ? {
-        headers: loginOptions.headers
-    } : null);
-    if (loginOptions.tokenKey) {
-        accessToken = (0, _utils.get)(body, loginOptions.tokenKey);
-    } else {
-        accessToken = body.token;
-    }
-};
-const loginMethods = {
-    password: passwordAuth
-};
-const accessMethods = {
-    jwt: jwtAuth
-};
 /**
  * Returns a middleware function that adds user authentication to a client.
  * @param {string} authKey - The user tag or user authentication object.
@@ -50,21 +62,21 @@ const accessMethods = {
  * @throws {Error} If the user authentication settings are missing required fields.
  */ function createAuth(authKey, authConfig) {
     const { loginType = 'password', accessType = 'jwt' } = authConfig;
-    const accessMethod = accessMethods[accessType];
+    const accessMethod = _access[accessType];
     if (!accessMethod) {
-        throw new Error(`Unsuppported accessType "${accessType}". Should be one of ${_utils._.keys(accessMethods)}.`);
+        throw new Error(`Unsuppported accessType "${accessType}". Should be one of ${_utils._.keys(_access)}.`);
     }
     return async (client)=>{
-        let accessToken1 = tokenCache[authKey];
+        let accessToken = tokenCache[authKey];
         // If the token is not cached, authenticate the user and cache the token
-        if (!accessToken1) {
-            const loginMethod = loginMethods[loginType];
+        if (!accessToken) {
+            const loginMethod = _login[loginType];
             if (!loginMethod) {
-                throw new Error(`Unsuppported loginType "${loginType}". Should be one of ${_utils._.keys(loginMethods)}.`);
+                throw new Error(`Unsuppported loginType "${loginType}". Should be one of ${_utils._.keys(_login)}.`);
             }
-            tokenCache[authKey] = accessToken1 = await loginMethod(client, authConfig.loginOptions);
+            accessToken = tokenCache[authKey] = await loginMethod(client, authConfig.loginOptions);
         }
-        await accessMethod(client, accessToken1);
+        await accessMethod(client, accessToken);
     };
 }
 const _default = createAuth;

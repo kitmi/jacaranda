@@ -1,11 +1,15 @@
-import { _, testShouldThrow_, batchAsync_, Box, fxargs } from '@kitmi/utils';
+import { _, batchAsync_, Box, fxargs } from '@kitmi/utils';
+import { fs } from '@kitmi/sys';
+import path from 'node:path';
+import testShouldThrow_ from '@kitmi/utils/testShouldThrow_';
+import dbgGetCallerFile from '@kitmi/utils/dbgGetCallerFile';
 import WebServer, { startWorker, HttpClient } from '@kitmi/jacaranda';
 import Benchmark from 'benchmark';
 import _superagent from 'superagent';
 import { superagent } from '@kitmi/adapters';
 
-import loadFixtures from './loadFixtures';
 import createAuth from './createAuth';
+import readTestData from './readTestData'
 
 function serialize(obj, replacer, space) {
     let content;
@@ -40,16 +44,41 @@ class JacaTester {
      */
     throw_ = testShouldThrow_;
 
-    /**
-     * Load fixtures and declare test case with `it`.
-     * @function Tester.loadFixtures
-     * @param {Function} [testCase] - Test case to run after loading fixtures. (data) => {}
-     */
-    loadFixtures = loadFixtures;
-
     constructor(config) {
         this.config = config;
         this.startedServers = {};
+    }
+
+    /**
+     * Load fixtures and declare test case with `it`.
+     * @function Tester.loadFixtures
+     * @param {Function} [testCase] - Test case to run after loading fixtures. async (data) => {}
+     */
+    loadFixtures(testCase) {
+        let fixturePath = this.config.fixturePath || './test/fixtures';
+        const fixtureType = this.config.fixtureType || 'json';
+
+        const callerFileName = dbgGetCallerFile();        
+        const baseName = path.basename(callerFileName, '.spec.js');
+        const testCaseDir = path.resolve(fixturePath, baseName);
+
+        if (!fs.existsSync(testCaseDir)) {
+            throw new Error('Fixture path not exist: ' + testCaseDir);
+        }
+
+        const files = fs.readdirSync(testCaseDir);
+        files.forEach((fixtureFile) => {            
+            const fixtureFilePath = path.join(testCaseDir, fixtureFile);
+            const testCaseName = path.basename(fixtureFilePath, '.' + fixtureType);
+            const testCaseData = readTestData(fixtureFilePath, fixtureType);
+            
+            it(testCaseName, async () => {
+                jacat.param('fixturePath', fixtureFilePath);
+                jacat.param('data', testCaseData);
+
+                await testCase(testCaseData);
+            });
+        });
     }
 
     // ------------------------------

@@ -3,6 +3,8 @@
         "suites": {            
         }
     },
+    "fixturePath": "test/fixtures",
+    "fixtureType": "yaml",
     "enableAsyncDump": false,
     "enableAllure": true,
     "servers": {
@@ -15,8 +17,10 @@
     },
     "workers": {
         "tester": { 
-            "configName": "test",
-            "configPath": "test/conf"
+            "configName": "worker",
+            "configType": "yaml",
+            "configPath": "test/conf",
+            "featuresPath": "test/features"
         }
     },
     "authentications": {
@@ -25,8 +29,8 @@
             "accessType": "jwt",
             "loginOptions": {
                 "endpoint": "/login",
-                "username": "user",
-                "password": "pass"
+                "username": "admin",
+                "password": "admin"
             }
         }
     }

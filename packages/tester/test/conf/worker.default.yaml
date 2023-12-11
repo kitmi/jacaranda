@@ -1,0 +1,4 @@
+logger: {}
+
+basic:
+    input: 100

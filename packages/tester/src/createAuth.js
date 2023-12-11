@@ -1,46 +1,9 @@
-import { _, get } from '@kitmi/utils';
+import { _ } from '@kitmi/utils';
+import * as loginMethods from './login';
+import * as accessMethods from './access';
 
 // Cache for storing user tokens
 const tokenCache = {};
-
-const jwtAuth = async (client, accessToken) => {
-    if (accessToken == null) {
-        throw new Error(`"accessToken" is required.`);
-    }
-
-    // Add the token to the Authorization header of each request
-    client.onSending = (req) => {
-        req.set('Authorization', `Bearer ${accessToken}`);
-    };
-};
-
-const passwordAuth = async (client, loginOptions) => {
-    if (!loginOptions.endpoint || !loginOptions.username || !loginOptions.password) {
-        throw new Error(`"endpoint", "username", "password" is required.`);
-    }
-
-    let body = await client.post(
-        loginOptions.endpoint,
-        {
-            username: loginOptions.username,
-            password: loginOptions.password,
-        },
-        loginOptions.query,
-        loginOptions.headers ? { headers: loginOptions.headers } : null
-    );
-    if (loginOptions.tokenKey) {
-        accessToken = get(body, loginOptions.tokenKey);
-    } else {
-        accessToken = body.token;
-    }
-};
-
-const loginMethods = {
-    password: passwordAuth,
-};
-const accessMethods = {
-    jwt: jwtAuth,
-};
 
 /**
  * Returns a middleware function that adds user authentication to a client.
@@ -67,7 +30,7 @@ function createAuth(authKey, authConfig) {
                 throw new Error(`Unsuppported loginType "${loginType}". Should be one of ${_.keys(loginMethods)}.`);
             }
 
-            tokenCache[authKey] = accessToken = await loginMethod(client, authConfig.loginOptions);
+            accessToken = tokenCache[authKey] = await loginMethod(client, authConfig.loginOptions);
         }
 
         await accessMethod(client, accessToken);

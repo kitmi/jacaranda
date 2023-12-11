@@ -20,6 +20,7 @@ _export(exports, {
     }
 });
 const _utils = require("@kitmi/utils");
+const _testShouldThrow_ = /*#__PURE__*/ _interop_require_default(require("@kitmi/utils/testShouldThrow_"));
 const _jacaranda = /*#__PURE__*/ _interop_require_wildcard(require("@kitmi/jacaranda"));
 const _benchmark = /*#__PURE__*/ _interop_require_default(require("benchmark"));
 const _superagent = /*#__PURE__*/ _interop_require_default(require("superagent"));
@@ -298,7 +299,7 @@ const setJacat = _setJacat;
      * @function Tester.throw_
      * @param {Function} fn - Function (async) that should throw an error
      * @param {*} error
-     */ _define_property(this, "throw_", _utils.testShouldThrow_);
+     */ _define_property(this, "throw_", _testShouldThrow_.default);
         /**
      * Load fixtures and declare test case with `it`.
      * @function Tester.loadFixtures

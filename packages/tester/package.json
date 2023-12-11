@@ -33,7 +33,7 @@
         "lint": "eslint \"**/*.js\"",
         "lint-fix": "eslint \"**/*.js\" --fix",
         "clean": "shx rm -rf cjs coverage .nyc_output",
-        "build": "bun run clean && swc src/**/*.js -d ./cjs",        
+        "build": "bun run clean && swc src/**/*.js -d ./cjs",
         "doc": "jsdoc --configure .jsdoc.json --verbose && bun x prepack",
         "test": "mocha --recursive test/**/*.spec.js",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
@@ -65,10 +65,11 @@
         "allure-js-commons": "^2.3.0",
         "allure-mocha": "^2.3.0",
         "benchmark": "^2.1.4",
-        "lodash": "^4.17.21",
         "microtime": "^3.1.1",
         "mocha": "^10.0.0",
-        "mocha-multi": "^1.1.7"
+        "mocha-multi": "^1.1.7",
+        "serve": "^14.2.0",
+        "yaml": "^2.3.4"
     },
     "devDependencies": {
         "@koa/router": "^12.0.0",

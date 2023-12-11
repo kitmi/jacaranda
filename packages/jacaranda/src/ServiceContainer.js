@@ -656,13 +656,18 @@ class ServiceContainer extends AsyncEmitter {
             }
 
             featureObject = this.tryRequire(featurePath);
-        }
+        }        
+
+        featureObject = typeof featureObject === 'function' ? featureObject(this) : featureObject;
 
         if (!Feature.validate(featureObject)) {
             throw new Error(`Invalid feature object loaded from "${featurePath}".`);
         }
 
-        featureObject = typeof featureObject === 'function' ? featureObject(this) : featureObject;
+        if (!featureObject.stage) {
+            featureObject.stage = Feature.SERVICE;
+        }
+
         featureObject.name = feature;
         this.features[feature] = featureObject;
         return featureObject;

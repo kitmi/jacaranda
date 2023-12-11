@@ -1,5 +1,7 @@
 import { Unauthorized, Forbidden } from '@kitmi/types';
 
+const fakeToken = 'fjieojfioajfeojf';
+
 export default {
     index: async function (ctx) {
         ctx.body = 'Hello World!';
@@ -12,7 +14,7 @@ export default {
         }
 
         ctx.body = {
-            token: 'fjieojfioajfeojf'
+            token: fakeToken
         };
     },
 
@@ -23,7 +25,15 @@ export default {
             throw new Forbidden('Unauthenticated');
         }
 
-        console.log(authHeader);
+        const [ type, token ] = authHeader.split(' ');
+
+        if (type !== 'Bearer') {
+            throw new Forbidden('Invalid authorization type');
+        }   
+
+        if (token !== fakeToken) {
+            throw new Forbidden('Invalid access token');
+        }
 
         ctx.body = {
             status: 'ok'

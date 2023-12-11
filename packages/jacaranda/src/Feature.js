@@ -31,8 +31,14 @@ const Feature = {
      * @returns {bool}
      */
     validate(featureObject) {
-        return featureObject && featureObject.hasOwnProperty('stage') && typeof featureObject.load_ === 'function';
+        return (
+            featureObject &&
+            (!featureObject.stage || Stages.includes(featureObject.stage)) &&
+            typeof featureObject.load_ === 'function'
+        );
     },
 };
+
+const Stages = [Feature.CONF, Feature.INIT, Feature.SERVICE, Feature.PLUGIN, Feature.FINAL];
 
 export default Feature;

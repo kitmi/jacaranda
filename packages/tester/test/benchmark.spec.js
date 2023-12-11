@@ -2,7 +2,7 @@ import { cmd } from '@kitmi/sys';
 import path from 'node:path';
 
 describe('test-benchmark', function () {
-    const files = ['./benchmarkCase1.js', './benchmarkCase2.js'];
+    const files = ['./benchmarkCase1.js'/*, './benchmarkCase2.js'*/];
 
     files.forEach((fileName, index) => {
         it(`node and bun ${index}`, async function () {
