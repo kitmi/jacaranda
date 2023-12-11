@@ -2,7 +2,7 @@
 
 ## Unit Test Utility
 
-`@kitmi/tester` is JavaScript unit test utility with api code coverage, async dump for tracking async leak.
+`@kitmi/tester` is a JavaScript unit test utility with api code coverage, async dump for tracking async leak.
 
 ## Features
 

@@ -49,7 +49,3 @@
 - `@kitmi/adapters`
     - This library provides a unified interface for interacting with various components that share similar functionalities but may have different underlying implementations or interfaces. By using this library, developers can switch between different components such as HTTP clients or JavaScript package managers without changing the consuming codebase, making the code more modular and easier to maintain. 
     - See [Manual](@kitmi/adapters/index.html)
-
-## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD

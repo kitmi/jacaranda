@@ -27,3 +27,4 @@ allure-results
 async-dump.log
 
 chatgpt.development.yaml
+/docs/book
