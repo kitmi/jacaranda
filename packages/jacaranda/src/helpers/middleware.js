@@ -3,7 +3,7 @@ import { ApplicationError } from '@kitmi/types';
 /**
  * Decorator for adding middlewares to a function.
  * @param  {...any} middlewares
- * @returns
+ * @returns {Function}
  */
 function middleware(...middlewares) {
     return function (target, name, descriptor) {

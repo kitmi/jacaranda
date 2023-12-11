@@ -20,13 +20,17 @@ _export(exports, {
     }
 });
 const _utils = require("@kitmi/utils");
+const _sys = require("@kitmi/sys");
+const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 const _testShouldThrow_ = /*#__PURE__*/ _interop_require_default(require("@kitmi/utils/testShouldThrow_"));
+const _dbgGetCallerFile = /*#__PURE__*/ _interop_require_default(require("@kitmi/utils/dbgGetCallerFile"));
 const _jacaranda = /*#__PURE__*/ _interop_require_wildcard(require("@kitmi/jacaranda"));
 const _benchmark = /*#__PURE__*/ _interop_require_default(require("benchmark"));
 const _superagent = /*#__PURE__*/ _interop_require_default(require("superagent"));
 const _adapters = require("@kitmi/adapters");
-const _loadFixtures = /*#__PURE__*/ _interop_require_default(require("./loadFixtures"));
+const _microtime = /*#__PURE__*/ _interop_require_default(require("microtime"));
 const _createAuth = /*#__PURE__*/ _interop_require_default(require("./createAuth"));
+const _readTestData = /*#__PURE__*/ _interop_require_default(require("./readTestData"));
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -106,8 +110,42 @@ const jacat = jacatProxy;
 const setJacat = _setJacat;
 /**
  * Jacaranda tester.
- * @class Tester
+ * @class 
  */ class JacaTester {
+    /**
+     * Load fixtures and declare test case with `it`.     
+     * @param {Function} [testCase] - Test case to run after loading fixtures. async (data) => {}
+     */ loadFixtures(testCase) {
+        let fixturePath = this.config.fixturePath || './test/fixtures';
+        const fixtureType = this.config.fixtureType || 'json';
+        const callerFileName = (0, _dbgGetCallerFile.default)();
+        const baseName = _nodepath.default.basename(callerFileName, '.spec.js');
+        const testCaseDir = _nodepath.default.resolve(fixturePath, baseName);
+        if (!_sys.fs.existsSync(testCaseDir)) {
+            throw new Error('Fixture path not exist: ' + testCaseDir);
+        }
+        const files = _sys.fs.readdirSync(testCaseDir);
+        files.forEach((fixtureFile)=>{
+            const fixtureFilePath = _nodepath.default.join(testCaseDir, fixtureFile);
+            const testCaseName = _nodepath.default.basename(fixtureFilePath, '.' + fixtureType);
+            const testCaseData = (0, _readTestData.default)(fixtureFilePath, fixtureType);
+            it(testCaseName, async ()=>{
+                jacat.param('fixturePath', fixtureFilePath);
+                jacat.param('data', testCaseData);
+                await testCase(testCaseData);
+            });
+        });
+    }
+    async profile_(name, fn) {
+        const t1 = _microtime.default.now();
+        await fn();
+        const t2 = _microtime.default.now();
+        const elapsed = t2 - t1;
+        console.log(name, 'elapsed:', elapsed, 'ms');
+        this.attach(`Profiling result - ${name}`, {
+            elapsed
+        });
+    }
     // ------------------------------
     // allure
     // ------------------------------
@@ -231,12 +269,12 @@ const setJacat = _setJacat;
     // httpClient
     // ------------------------------
     /**
-     *
+     * Create a http client for testing.
      * @param {String|WebServer} server
      * @param {String|Function} [authenticator]
      * @param {Function} testToRun
      * @param {*} options
-     * @returns
+     * @async
      */ async withClient_(...args) {
         let [server, authenticator, testToRun, options] = (0, _utils.fxargs)(args, [
             'string|object?',
@@ -295,16 +333,10 @@ const setJacat = _setJacat;
     }
     constructor(config){
         /**
-     * Test if an async function throws an error
-     * @function Tester.throw_
+     * Test if an async function throws an error     
      * @param {Function} fn - Function (async) that should throw an error
      * @param {*} error
      */ _define_property(this, "throw_", _testShouldThrow_.default);
-        /**
-     * Load fixtures and declare test case with `it`.
-     * @function Tester.loadFixtures
-     * @param {Function} [testCase] - Test case to run after loading fixtures. (data) => {}
-     */ _define_property(this, "loadFixtures", _loadFixtures.default);
         this.config = config;
         this.startedServers = {};
     }
