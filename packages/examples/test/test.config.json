@@ -1,0 +1,29 @@
+{
+    "skip": {
+        "suites": {
+            "test-benchmark": "all"
+        }
+    },
+    "enableAsyncDump": false,
+    "enableAllure": true,
+    "servers": {
+        "server1": {
+            "configPath": "./conf",
+            "controllersPath": "test/actions",
+            "logLevel": "info"
+        }
+    },
+    "workers": {
+        "worker1": {
+            "configName": "test",
+            "configPath": "test/conf"
+        }
+    },
+    "authentications": {
+        "client1": {
+            "endpoint": "/login",
+            "username": "user",
+            "password": "pass"
+        }
+    }
+}

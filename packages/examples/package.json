@@ -29,9 +29,9 @@
     },
     "license": "MIT",
     "scripts": {
-        "test-server": "bun test --preload ./test/test-server.js --coverage",
-        "doc": "jsdoc --configure .jsdoc.json --verbose",
-        "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
+        "test": "mocha --recursive test/**/*.spec.js",
+        "cover": "COVER=1 nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && bun x prepack",        
         "prettier": "prettier --write .",
         "lint": "eslint \"**/*.js\"",
         "lint-fix": "eslint \"**/*.js\" --fix",
@@ -54,8 +54,11 @@
     },
     "dependencies": {
         "@kitmi/jacaranda": "workspace:*",
-        "@kitmi/utils": "^1.0.0",
+        "@kitmi/utils": "workspace:*",
         "openai": "^4.20.1"
+    },
+    "devDependencies": {
+        "@kitmi/tester": "workspace:*"
     },
     "prettier": {
         "quoteProps": "consistent",

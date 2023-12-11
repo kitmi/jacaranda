@@ -1,8 +1,8 @@
 import path from 'node:path';
 import fs from 'node:fs';
-import { _, esmCheck, batchAsync_ } from '@kitmi/utils';
+import { _, esmCheck } from '@kitmi/utils';
 
-import GxTester from './testerCore';
+import JacaTester, { jacat, setJacat } from './tester';
 
 let _initialized = false;
 let _config = null;
@@ -26,7 +26,10 @@ const bootstrap = () => {
         _asyncDump = esmCheck(require('./asyncDump'));
     }    
 
-    global.gxt = new GxTester(_config);
+    const _jacat = new JacaTester(_config);
+    setJacat(_jacat);
+
+    global.jacat = _jacat;
 };
 
 const processConfigSection = (section) => {
@@ -130,17 +133,10 @@ export const mochaGlobalSetup = async function () {
     if (_config.enableAllure) {
         global.allure = esmCheck(require('allure-mocha/runtime')).allure;
     }
-
-    if (process.env.COVER) {
-        const { servers } = _config;
-        servers && await batchAsync_(Object.keys(servers), async (serverName) => {
-            await gxt.startServer_(serverName);
-        });
-    }
 };
 
 export const mochaGlobalTeardown = async function () {
-    await gxt.closeAllServers_();
+    await jacat.closeAllServers_();
 
     if (_config.enableAsyncDump) {
         _asyncDump();

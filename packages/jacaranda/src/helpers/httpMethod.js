@@ -5,7 +5,7 @@ import { ApplicationError } from '@kitmi/types';
  * Decorator for http method
  * @param {*} method
  * @param {*} middlewares
- * @returns
+ * @returns {Function}
  */
 function httpMethod(method, middlewares) {
     if (arguments.length === 3) {

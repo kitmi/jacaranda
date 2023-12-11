@@ -20,6 +20,19 @@ npm install @kitmi/types
 
 ## Conventions
 
+### Types
+
+- any
+- array
+- bigint
+- binary
+- boolean
+- datetime
+- integer
+- number
+- object
+- text
+
 ### Type Interface
 
 ```

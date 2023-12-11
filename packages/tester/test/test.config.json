@@ -1,34 +1,37 @@
 {
     "skip": {
-        "suites": {
-            "test-benchmark": "all"
+        "suites": {            
         }
     },
+    "fixturePath": "test/fixtures",
+    "fixtureType": "yaml",
     "enableAsyncDump": false,
     "enableAllure": true,
     "servers": {
         "server1": {
-            "entry": "./test/server.js",
-            "options": {
-                "configPath": "test/conf",
-                "controllersPath": "test/actions",
-                "logLevel": "info"
-            }
+            "configPath": "test/conf",
+            "controllersPath": "test/actions",
+            "sourcePath": "./",
+            "logLevel": "info"
         }
     },
-    "workerOptions": {
-        "configName": "test",
-        "configPath": "test/conf"
+    "workers": {
+        "tester": { 
+            "configName": "worker",
+            "configType": "yaml",
+            "configPath": "test/conf",
+            "featuresPath": "test/features"
+        }
     },
-    "httpAgent": {
-        "normal": ["superagent", { "endpoint": "http://localhost:2331" }],
-        "coverage": "supertest"
-    },
-    "authentication": {
+    "authentications": {
         "client1": {
-            "endpoint": "/login",
-            "username": "user",
-            "password": "pass"
+            "loginType": "password",
+            "accessType": "jwt",
+            "loginOptions": {
+                "endpoint": "/login",
+                "username": "admin",
+                "password": "admin"
+            }
         }
     }
 }

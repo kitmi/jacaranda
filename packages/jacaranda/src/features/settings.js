@@ -1,7 +1,7 @@
 /**
  * Enable customized settings
  * @module Feature_Settings
- *
+ * @example
  * "settings": {
  *     "key": 1,
  *     "env:development": {

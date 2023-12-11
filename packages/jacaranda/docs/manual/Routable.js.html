@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Routable.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="App.html">App</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#addFeatureRegistry">addFeatureRegistry</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#enabled">enabled</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#hasService">hasService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#loadConfig_">loadConfig_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#logException">logException</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#registerService">registerService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#start_">start_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#stop_">stop_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#toAbsolutePath">toAbsolutePath</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="App.html#tryRequire_">tryRequire_</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Installer.html">Installer</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Runnable.html">Runnable</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.getLib">getLib</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.registerLib">registerLib</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.requireFromLib">requireFromLib</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.start_">start_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Runnable.html#.stop_">stop_</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Runnable_.html">Runnable</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="ServiceContainer.html">ServiceContainer</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#addFeatureRegistry">addFeatureRegistry</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#enabled">enabled</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#hasService">hasService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#loadConfig_">loadConfig_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#logException">logException</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#registerService">registerService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#start_">start_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#stop_">stop_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#toAbsolutePath">toAbsolutePath</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceContainer.html#tryRequire_">tryRequire_</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="ServiceInstaller.html">ServiceInstaller</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="WebModule.html">WebModule</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebModule.html#requireFromApp">requireFromApp</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="WebServer.html">WebServer</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#getAppByAlias">getAppByAlias</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#getAppByRoute">getAppByRoute</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#mountApp">mountApp</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#require">require</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="WebServer.html#requireFromApp">requireFromApp</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-Feature_CommandLine-CommandLine.html">CommandLine</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_CommandLine-CommandLine.html#validate_">validate_</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-Feature_CommandLine-CommandLineArgumentError.html">CommandLineArgumentError</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-Feature_HttpClient-HttpClient.html">HttpClient</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_HttpClient-HttpClient.html#do">do</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_AppRouting.html">Feature_AppRouting</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_AppRouting.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_CommandLine.html">Feature_CommandLine</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_CommandLine.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_ConfigByGitUser.html">Feature_ConfigByGitUser</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_ConfigByGitUser.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_ConfigByHostname.html">Feature_ConfigByHostname</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_ConfigByHostname.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_CustomConfig.html">Feature_CustomConfig</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_CustomConfig.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Env.html">Feature_Env</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Env.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_FeatureRegistry.html">Feature_FeatureRegistry</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_FeatureRegistry.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Hasher.html">Feature_Hasher</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Hasher.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_HttpClient.html">Feature_HttpClient</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_ImageProcessor.html">Feature_ImageProcessor</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_ImageProcessor.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_LibModules.html">Feature_LibModules</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_LibModules.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Logger.html">Feature_Logger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Logger.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_MiddlewareFactory.html">Feature_MiddlewareFactory</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_MiddlewareFactory.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_MiddlewareRegistry.html">Feature_MiddlewareRegistry</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_MiddlewareRegistry.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Middlewares.html">Feature_Middlewares</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Middlewares.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Passport.html">Feature_Passport</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Passport.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Routing.html">Feature_Routing</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Routing.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_ServiceGroup.html">Feature_ServiceGroup</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_ServiceGroup.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Settings.html">Feature_Settings</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Settings.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_ThreadPool.html">Feature_ThreadPool</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_ThreadPool.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_TtlMemCache.html">Feature_TtlMemCache</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_TtlMemCache.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Version.html">Feature_Version</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_Version.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_AccessLog.html">Middleware_AccessLog</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_Action.html">Middleware_Action</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Middleware_Action.html#~action">action</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_Csrf.html">Middleware_Csrf</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_Favicon.html">Middleware_Favicon</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_JsonError.html">Middleware_JsonError</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_PassportAuth.html">Middleware_PassportAuth</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Middleware_PassportAuth.html#~passportAuth">passportAuth</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_PassportCheck.html">Middleware_PassportCheck</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Middleware_PassportCheck.html#~passportCheck">passportCheck</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_ServeStatic.html">Middleware_ServeStatic</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Middleware_ServerPassport.html">Middleware_ServerPassport</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Middleware_ServerPassport.html#~usePassport">usePassport</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Router_JaREST.html">Router_JaREST</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Router_JaREST.html#~jaRestRouter">jaRestRouter</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Router_Module.html">Router_Module</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Router_Module.html#~moduleRouter">moduleRouter</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Router_REST.html">Router_REST</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Router_REST.html#~restRouter">restRouter</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Router_Rule.html">Router_Rule</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Router_Rule.html#~load_">load_</a></span></li><li class="nav-heading">Events</li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="App.html#event:configLoaded">configLoaded</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="App.html#event:ready">ready</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="App.html#event:stopping">stopping</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="ServiceContainer.html#event:configLoaded">configLoaded</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="ServiceContainer.html#event:ready">ready</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="ServiceContainer.html#event:stopping">stopping</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#Feature">Feature</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#addMiddlewaresRegistry">addMiddlewaresRegistry</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#addMiddlewaresRegistryFrom">addMiddlewaresRegistryFrom</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#addRoute_">addRoute_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#addRouter">addRouter</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#enabled">enabled</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getMiddlewareFactory">getMiddlewareFactory</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#hasService">hasService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#httpMethod">httpMethod</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#middleware">middleware</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#registerMiddlewareFactory">registerMiddlewareFactory</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#require">require</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#requireFromLib">requireFromLib</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#startLoopWorker">startLoopWorker</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#startQueueWorker">startQueueWorker</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#startWorker">startWorker</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#toWebPath">toWebPath</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#useMiddleware">useMiddleware</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#useMiddlewares_">useMiddlewares_</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">Routable.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import path from 'node:path';
+import { fs, isDir } from '@kitmi/sys';
+import { globSync } from 'glob';
+import { _, url as urlUtil, text, isPlainObject, eachAsync_ } from '@kitmi/utils';
+import { ApplicationError, InvalidConfiguration, InvalidArgument } from '@kitmi/types';
+import { defaultRoutableOpts } from './defaultServerOpts';
+
+const Routable = (T) =>
+    class extends T {
+        /**
+         * @param {string} name - The name of the routable instance.
+         * @param {object} [options] - Routable options
+         * @property {string} [options.backendPath='server'] - Relative path of back-end server source files
+         * @property {string} [options.clientPath='client'] - Relative path of front-end client source files
+         * @property {string} [options.publicPath='public'] - Relative path of front-end static files
+         */
+        constructor(name, options) {
+            super(name, { ...defaultRoutableOpts, ...options });
+
+            /**
+             * Frontend static files path.
+             * @member {string}
+             **/
+            this.publicPath = this.toAbsolutePath(this.options.publicPath);
+
+            this.controllersPath = path.resolve(this.sourcePath, this.options.controllersPath);
+
+            this.middlewaresPath = path.resolve(this.sourcePath, this.options.middlewaresPath);
+
+            this.routable = true;
+
+            this._middlewareRegistry = {};
+
+            this.on('configLoaded', () => {
+                //load middlewares if exists in server or app path
+                if (fs.pathExistsSync(this.middlewaresPath) &amp;&amp; isDir(this.middlewaresPath)) {
+                    this.addMiddlewaresRegistryFrom(this.middlewaresPath);
+                }
+            });            
+        }
+
+        async start_() {
+            /**
+             * Middleware factory registry.
+             * @member {object}
+             */
+            this._middlewareFactories = {};
+
+            await super.start_();
+
+            if (
+                this.options.logMiddlewareRegistry &amp;&amp;
+                (this.options.logLevel === 'verbose' || this.options.logLevel === 'debug')
+            ) {
+                this.log('verbose', 'Registered middlewares:', this._middlewareRegistry);
+            }
+
+            return this;
+        }
+
+        async stop_() {
+            delete this._middlewareFactories;
+
+            return super.stop_();
+        }
+
+        /**
+         * Load and regsiter middleware files from a specified path.
+         * @param dir
+         */
+        addMiddlewaresRegistryFrom(dir) {
+            let files = globSync(path.join(dir, '**/*.{js,ts,mjs,cjs}'), { nodir: true });
+            files.forEach((file) => this._middlewareRegistry[text.baseName(file)] = file);
+        }
+
+        /**
+         * Register middleware files from a registry.
+         * @param {object} registry 
+         */
+        addMiddlewaresRegistry(registry) {
+            Object.assign(this._middlewareRegistry, registry);
+        }
+
+        /**
+         * Register the factory method of a named middleware.
+         * @param {string} name - The name of the middleware
+         * @param {function} factoryMethod - The factory method of a middleware
+         */
+        registerMiddlewareFactory(name, factoryMethod) {
+            if (typeof factoryMethod !== 'function') {
+                if (factoryMethod.__esModule &amp;&amp; typeof factoryMethod.default === 'function') {
+                    factoryMethod = factoryMethod.default;
+                } else {
+                    throw new InvalidArgument('Invalid middleware factory: ' + name);
+                }
+            }
+
+            if (name in this._middlewareFactories) {
+                throw new ApplicationError('Middleware "' + name + '" already registered!');
+            }
+
+            this._middlewareFactories[name] = factoryMethod;
+            this.log('verbose', `Registered named middleware [${name}].`);
+        }
+
+        /**
+         * Get the factory method of a middleware from module hierarchy.
+         * @param name
+         * @returns {function}
+         */
+        getMiddlewareFactory(name) {
+            const factory = this._middlewareFactories[name];
+            if (factory != null) {
+                return factory;
+            }
+
+            const registryEntry = this._middlewareRegistry[name];
+            if (registryEntry != null) {
+                let file = registryEntry;
+                let exportName;
+
+                if (Array.isArray(registryEntry)) {
+                    file = registryEntry[0];
+                    exportName = registryEntry[1];
+                }
+
+                let middlewareFactory = this.tryRequire(file);
+                if (exportName) {
+                    middlewareFactory = _.get(middlewareFactory, exportName);
+                }
+
+                this._middlewareFactories[name] = middlewareFactory;
+                return middlewareFactory;
+            }
+
+            if (this.server &amp;&amp; !this.isServer) {
+                return this.server.getMiddlewareFactory(name);
+            }
+
+            throw new ApplicationError(`Middleware "${name}" not found in middleware registry.`);
+        }
+
+        /**
+         * Use middlewares by creating middleware instances (asynchronously) from factory methods and attach them to a router.
+         * @param {Router} router
+         * @param {*} middlewares - Can be an array of middleware entries or a key-value list of registerred middlewares
+         * @returns {Routable}
+         */
+        async useMiddlewares_(router, middlewares) {
+            let middlewareFactory, middleware;
+            let middlewareFunctions = [];
+
+            if (isPlainObject(middlewares)) {
+                await eachAsync_(middlewares, async (options, name) => {
+                    middlewareFactory = this.getMiddlewareFactory(name);
+                    middleware = await middlewareFactory(options, this);
+                    middlewareFunctions.push({ name, middleware });
+                });
+            } else {
+                middlewares = _.castArray(middlewares);
+
+                await eachAsync_(middlewares, async (middlewareEntry) => {
+                    let type = typeof middlewareEntry;
+
+                    if (type === 'string') {
+                        // [ 'namedMiddleware' ]
+                        middlewareFactory = this.getMiddlewareFactory(middlewareEntry);
+                        middleware = await middlewareFactory(undefined, this);
+                        middlewareFunctions.push({ name: middlewareEntry, middleware });
+                    } else if (type === 'function') {
+                        middlewareFunctions.push({
+                            name: middlewareEntry.name || 'unamed middleware',
+                            middleware: middlewareEntry,
+                        });
+                    } else if (Array.isArray(middlewareEntry)) {
+                        // [ [ 'namedMiddleware', config ] ]
+                        if (middlewareEntry.length === 0) {
+                            throw new InvalidConfiguration(
+                                'Empty array found as middleware entry!',
+                                this,
+                                'middlewares'
+                            );
+                        }
+
+                        middlewareFactory = this.getMiddlewareFactory(middlewareEntry[0]);
+                        middleware = await middlewareFactory(
+                            middlewareEntry.length > 1 ? middlewareEntry[1] : null,
+                            this
+                        );
+                        middlewareFunctions.push({ name: middlewareEntry[0], middleware });
+                    } else {
+                        if (!isPlainObject(middlewareEntry) || !('name' in middlewareEntry)) {
+                            throw new InvalidConfiguration('Invalid middleware entry!', this, 'middlewares');
+                        }
+
+                        middlewareFactory = this.getMiddlewareFactory(middlewareEntry.name);
+                        middleware = await middlewareFactory(middlewareEntry.options, this);
+                        middlewareFunctions.push({ name: middlewareEntry.name, middleware });
+                    }
+                });
+            }
+
+            middlewareFunctions.forEach(({ name, middleware }) => {
+                if (Array.isArray(middleware)) {
+                    middleware.forEach((m) => this.useMiddleware(router, m, name));
+                } else {
+                    this.useMiddleware(router, middleware, name);
+                }
+            });
+
+            return this;
+        }
+
+        /**
+         * Add a route to a router, skipped while the server running in deaf mode.
+         * @param router
+         * @param method
+         * @param route
+         * @param actions
+         */
+        async addRoute_(router, method, route, actions) {
+            let handlers = [],
+                middlewareFactory;
+
+            if (isPlainObject(actions)) {
+                await eachAsync_(actions, async (options, name) => {
+                    middlewareFactory = this.getMiddlewareFactory(name);
+                    handlers.push(this._wrapMiddlewareTracer(await middlewareFactory(options, this), name));
+                });
+            } else {
+                actions = _.castArray(actions);
+                let lastIndex = actions.length - 1;
+
+                await eachAsync_(actions, async (action, i) => {
+                    let type = typeof action;
+
+                    if (i === lastIndex) {
+                        // last middleware may be an action
+                        if (type === 'string' &amp;&amp; action.lastIndexOf('.') > 0) {
+                            action = {
+                                name: 'action',
+                                options: action,
+                            };
+
+                            type = 'object';
+                        }
+                    }
+
+                    if (type === 'string') {
+                        // [ 'namedMiddleware' ]
+                        middlewareFactory = this.getMiddlewareFactory(action);
+
+                        let middleware = await middlewareFactory(null, this);
+
+                        //in case it's register by the middlewareFactory feature
+                        if (Array.isArray(middleware)) {
+                            middleware.forEach((middlewareItem, i) =>
+                                handlers.push(
+                                    this._wrapMiddlewareTracer(
+                                        middlewareItem,
+                                        `${action}-${i}` + (middleware.name ? '-' + middleware.name : '')
+                                    )
+                                )
+                            );
+                        } else {
+                            handlers.push(this._wrapMiddlewareTracer(middleware, action));
+                        }
+                    } else if (type === 'function') {
+                        handlers.push(this._wrapMiddlewareTracer(action));
+                    } else if (Array.isArray(action)) {
+                        if (action.length === 0 || action.length > 2) {
+                            throw new InvalidConfiguration('Invalid middleware entry!', this, 'middlewares');
+                        }
+
+                        middlewareFactory = this.getMiddlewareFactory(action[0]);
+                        handlers.push(
+                            this._wrapMiddlewareTracer(
+                                await middlewareFactory(action.length > 1 ? action[1] : undefined, this)
+                            )
+                        );
+                    } else {
+                        if (typeof action !== 'object' || !('name' in action)) {
+                            throw new InvalidConfiguration('Invalid middleware entry!', this, 'middlewares');
+                        }
+
+                        middlewareFactory = this.getMiddlewareFactory(action.name);
+                        handlers.push(
+                            this._wrapMiddlewareTracer(await middlewareFactory(action.options, this), action.name)
+                        );
+                    }
+                });
+            }
+
+            router[method](route, ...handlers);
+
+            let endpoint = router.opts.prefix
+                ? urlUtil.join(this.route, router.opts.prefix, route)
+                : urlUtil.join(this.route, route);
+
+            this.log('verbose', `Route "${method}:${endpoint}" is added from module [${this.name}].`);
+
+            return this;
+        }
+
+        requireFeatures(features, middleware) {
+            const hasNotEnabled = _.find(_.castArray(features), (feature) => !this.enabled(feature));
+
+            if (hasNotEnabled) {
+                throw new InvalidConfiguration(
+                    `Middleware "${middleware}" requires "${hasNotEnabled}" feature to be enabled.`,
+                    this,
+                    `middlewares.${middleware}`
+                );
+            }
+        }
+
+        requireServices(services, middleware) {
+            const notRegisterred = _.find(_.castArray(services), (service) => !this.hasService(service));
+
+            if (notRegisterred) {
+                throw new InvalidConfiguration(
+                    `Middleware "${middleware}" requires "${notRegisterred}" service to be registerred.`,
+                    this,
+                    `middlewares.${middleware}`
+                );
+            }
+        }
+
+        /**
+         * Attach a router to this app module, skipped while the server running in deaf mode
+         * @param {Router} nestedRouter
+         */
+        addRouter(nestedRouter, baseRoute) {
+            this.engine.attach(nestedRouter, baseRoute);
+            return this;
+        }
+
+        /**
+         * Translate a relative path and query parameters if any to a url path
+         * @param {string} relativePath - Relative path
+         * @param {...*} [pathOrQuery] - Queries
+         * @returns {string}
+         */
+        toWebPath(relativePath, ...pathOrQuery) {
+            let url, query;
+
+            if (pathOrQuery &amp;&amp; pathOrQuery.length > 0 &amp;&amp; (pathOrQuery.length > 1 || pathOrQuery[0] !== undefined)) {
+                if (_.isObject(pathOrQuery[pathOrQuery.length - 1])) {
+                    query = pathOrQuery.pop();
+                }
+                pathOrQuery.unshift(relativePath);
+                url = urlUtil.join(this.route, ...pathOrQuery);
+            } else {
+                url = urlUtil.join(this.route, relativePath);
+            }
+
+            url = text.ensureStartsWith(url, '/');
+
+            if (query) {
+                url = urlUtil.appendQuery(url, query);
+                url = url.replace('/?', '?');
+            }
+
+            return url;
+        }
+
+        /**
+         * Attach a middleware to a router.
+         * @param {Router} router - The router to attach the middleware
+         * @param {function} middleware - (ctx, next) => ()
+         * @param {String} name - The name of the middleware
+         */
+        useMiddleware(router, middleware, name) {
+            if (typeof middleware !== 'function') {
+                throw new InvalidArgument('Invalid middleware.', { name, middleware });
+            }
+
+            router.use(this._wrapMiddlewareTracer(middleware, name));
+            this.log('verbose', `Attached middleware [${name}].`);
+        }
+
+        middlewareConfig(config, typeInfo, name) {
+            return this.sanitize(config, typeInfo, name, 'middlewares');
+        }
+
+        _wrapMiddlewareTracer(middleware, name) {
+            if (this.options.traceMiddlewares) {
+                return async (ctx, next) => {
+                    this.log('debug', `Step in middleware "${name || middleware.name}" ...`);
+                    let ret = await middleware(ctx, next);
+                    this.log('debug', `Step out from middleware "${name || middleware.name}".`);
+                    return ret;
+                };
+            }
+
+            return middleware;
+        }
+
+        _getFeatureFallbackPath() {
+            let pathArray = super._getFeatureFallbackPath();
+            pathArray.splice(1, 0, path.resolve(__dirname, 'webFeatures'));
+
+            return pathArray;
+        }
+    };
+
+export default Routable;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Dec 11 2023 19:03:00 GMT+0800 (Central Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

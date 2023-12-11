@@ -6,31 +6,133 @@
 
 ## Features
 
-* Support coverage test of @kitmi/jacaranda applicaiton 
+* [x] Support coverage test of @kitmi/jacaranda applicaiton 
 * [x] Support allure report
 * [x] Support async dump for debugging application hanging issue caused by pending async event
-* Support @kitmi/jacaranda worker 
-* Support JSON Validation Syntax
+* [x] Support @kitmi/jacaranda worker 
+* [x] Support JSON Validation Syntax
 * [x] Support configurable test case on/off switches
-* Support profiling and benchmark
-* Support test step and progress record
+* [x] Support profiling 
+* [x] Support benchmark 
+* [x] Support test step and progress record
 * Support job pipeline for long-run test
 
 ## Interface
 
-gobal object `gxt`
+gobal object `jacat`, or can also be imported by
+```js
+import { jacat } from '@kitmi/tester';
+```
+-   `startServer_(serverName?)`: start a server with options specified by serverName in the test config
 
--   `startWorker_(app => {/* test to run */}, options)`: // start a worker
+-   `startWorker_(name?, async app => {/* test to run */}, options)`: start a worker
 
--   `withHttpClient_(serverName?, [authenticator], app => {/* test to run */}, [options])`: // start a worker and create a http client
+-   `withClient_(serverName?, authentication, async (client, server) => {/* test to run */}, options?)`: // start a worker and create a http client
 
 -   `benchmark_(mapOfMethods, verifier, payload)`: // run benchmark againest several different implementions of the same purposes
+
+-   `profile_(name, async () => { //test })`: // run profiling againest a test function
 
 -   `step_(name, fn)`: // test step
 
 -   `param(name, value)`: // record param used in a test into test report
 
 -   `attach(name, value)`: // attach object produced during a test into test report
+
+## Usage
+
+### 1. add `.mocharc.js` to the project root
+
+```js
+require('@swc-node/register'); // for esmodule and commonjs hybid mode
+require('@kitmi/utils/testRegister'); // adding should and expect dialects for chai
+
+module.exports = {
+    timeout: 300000,
+    require: ['@kitmi/tester'], // for bootstrapping tester
+    reporter: 'mocha-multi', // for combining console reporter and allure reporter
+    reporterOptions: 'mocha-multi=test/mocha-multi-reporters.json', // as above
+};
+```
+
+### 2. add `test/mocha-multi-reporters.json` config
+
+```json
+{       
+    "spec": {
+        "stdout": "-",        
+        "options": {
+            "verbose": true
+        }
+    },     
+    "allure-mocha": {
+        "stdout": "-",
+        "options": {
+            "resultsDir": "./allure-results"
+        }
+    }
+}
+```
+
+### 3. add `test/test.config.json` config
+
+```json
+{
+    "skip": {
+        "suites": {            
+        }
+    },
+    "enableAsyncDump": false,
+    "enableAllure": true,
+    "servers": {
+        "server1": {
+            "configPath": "test/conf",
+            "controllersPath": "test/actions",
+            "sourcePath": "./",
+            "logLevel": "info"
+        }
+    },
+    "workers": {
+        "tester": { 
+            "configName": "test",
+            "configPath": "test/conf"
+        }
+    },
+    "authentications": {
+        "client1": {
+            "loginType": "password",
+            "accessType": "jwt",
+            "loginOptions": {
+                "endpoint": "/login",
+                "username": "user",
+                "password": "pass"
+            }
+        }
+    }
+}
+```
+
+### 4. write test cases
+
+Refers to `test/*.spec.js`.
+
+### 5. run test cases
+
+```bash
+mocha --recursive test/**/*.spec.js
+```
+
+### 6. generate test report
+
+```bash
+allure generate allure-results --clean -o allure-report && serve ./allure-report
+```
+
+### 7. run code coverage test and report
+
+```bash
+nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html
+```
 
 ## License
 

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Home - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="JacaTester.html">JacaTester</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#attach">attach</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#benchmark_">benchmark_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#closeAllServers_">closeAllServers_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#loadFixtures">loadFixtures</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#param">param</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#startServer_">startServer_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#startWorker_">startWorker_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#step_">step_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#stopServer_">stopServer_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#withClient_">withClient_</a></span></li>
+</nav>
+
+<div id="main">
+    
+
+    
+
+
+
+    
+
+
+
+
+
+
+
+
+
+    
+
+
+    <section class="readme">
+        <article><h2>@kitmi/tester</h2>
+<h2>Unit Test Utility</h2>
+<p><code>@kitmi/tester</code> is JavaScript unit test utility with api code coverage, async dump for tracking async leak.</p>
+<h2>Features</h2>
+<ul>
+<li>[x] Support coverage test of @kitmi/jacaranda applicaiton</li>
+<li>[x] Support allure report</li>
+<li>[x] Support async dump for debugging application hanging issue caused by pending async event</li>
+<li>[x] Support @kitmi/jacaranda worker</li>
+<li>[x] Support JSON Validation Syntax</li>
+<li>[x] Support configurable test case on/off switches</li>
+<li>[x] Support profiling</li>
+<li>[x] Support benchmark</li>
+<li>[x] Support test step and progress record</li>
+<li>Support job pipeline for long-run test</li>
+</ul>
+<h2>Interface</h2>
+<p>gobal object <code>jacat</code>, or can also be imported by</p>
+<pre class="prettyprint source lang-js"><code>import { jacat } from '@kitmi/tester';
+</code></pre>
+<ul>
+<li>
+<p><code>startServer_(serverName?)</code>: start a server with options specified by serverName in the test config</p>
+</li>
+<li>
+<p><code>startWorker_(name?, async app =&gt; {/* test to run */}, options)</code>: start a worker</p>
+</li>
+<li>
+<p><code>withClient_(serverName?, authentication, async (client, server) =&gt; {/* test to run */}, options?)</code>: // start a worker and create a http client</p>
+</li>
+<li>
+<p><code>benchmark_(mapOfMethods, verifier, payload)</code>: // run benchmark againest several different implementions of the same purposes</p>
+</li>
+<li>
+<p><code>profile_(name, async () =&gt; { //test })</code>: // run profiling againest a test function</p>
+</li>
+<li>
+<p><code>step_(name, fn)</code>: // test step</p>
+</li>
+<li>
+<p><code>param(name, value)</code>: // record param used in a test into test report</p>
+</li>
+<li>
+<p><code>attach(name, value)</code>: // attach object produced during a test into test report</p>
+</li>
+</ul>
+<h2>Usage</h2>
+<h3>1. add <code>.mocharc.js</code> to the project root</h3>
+<pre class="prettyprint source lang-js"><code>require('@swc-node/register'); // for esmodule and commonjs hybid mode
+require('@kitmi/utils/testRegister'); // adding should and expect dialects for chai
+
+module.exports = {
+    timeout: 300000,
+    require: ['@kitmi/tester'], // for bootstrapping tester
+    reporter: 'mocha-multi', // for combining console reporter and allure reporter
+    reporterOptions: 'mocha-multi=test/mocha-multi-reporters.json', // as above
+};
+</code></pre>
+<h3>2. add <code>test/mocha-multi-reporters.json</code> config</h3>
+<pre class="prettyprint source lang-json"><code>{       
+    &quot;spec&quot;: {
+        &quot;stdout&quot;: &quot;-&quot;,        
+        &quot;options&quot;: {
+            &quot;verbose&quot;: true
+        }
+    },     
+    &quot;allure-mocha&quot;: {
+        &quot;stdout&quot;: &quot;-&quot;,
+        &quot;options&quot;: {
+            &quot;resultsDir&quot;: &quot;./allure-results&quot;
+        }
+    }
+}
+</code></pre>
+<h3>3. add <code>test/test.config.json</code> config</h3>
+<pre class="prettyprint source lang-json"><code>{
+    &quot;skip&quot;: {
+        &quot;suites&quot;: {            
+        }
+    },
+    &quot;enableAsyncDump&quot;: false,
+    &quot;enableAllure&quot;: true,
+    &quot;servers&quot;: {
+        &quot;server1&quot;: {
+            &quot;configPath&quot;: &quot;test/conf&quot;,
+            &quot;controllersPath&quot;: &quot;test/actions&quot;,
+            &quot;sourcePath&quot;: &quot;./&quot;,
+            &quot;logLevel&quot;: &quot;info&quot;
+        }
+    },
+    &quot;workers&quot;: {
+        &quot;tester&quot;: { 
+            &quot;configName&quot;: &quot;test&quot;,
+            &quot;configPath&quot;: &quot;test/conf&quot;
+        }
+    },
+    &quot;authentications&quot;: {
+        &quot;client1&quot;: {
+            &quot;loginType&quot;: &quot;password&quot;,
+            &quot;accessType&quot;: &quot;jwt&quot;,
+            &quot;loginOptions&quot;: {
+                &quot;endpoint&quot;: &quot;/login&quot;,
+                &quot;username&quot;: &quot;user&quot;,
+                &quot;password&quot;: &quot;pass&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<h3>4. write test cases</h3>
+<p>Refers to <code>test/*.spec.js</code>.</p>
+<h3>5. run test cases</h3>
+<pre class="prettyprint source lang-bash"><code>mocha --recursive test/**/*.spec.js
+</code></pre>
+<h3>6. generate test report</h3>
+<pre class="prettyprint source lang-bash"><code>allure generate allure-results --clean -o allure-report && serve ./allure-report
+</code></pre>
+<h3>7. run code coverage test and report</h3>
+<pre class="prettyprint source lang-bash"><code>nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html
+</code></pre>
+<h2>License</h2>
+<p>This project is licensed under the MIT License.</p>
+<p>Copyright (c) 2023 KITMI PTY LTD</p></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Dec 11 2023 19:03:02 GMT+0800 (Central Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

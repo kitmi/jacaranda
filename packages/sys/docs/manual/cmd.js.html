@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>cmd.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-cmd.html">cmd</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-cmd.html#.runLive_">runLive_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-cmd.html#.runSync">runSync</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-cmd.html#.run_">run_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-eval.html">eval</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-eval.html#.evaluate">evaluate</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-eval.html#.interpolate">interpolate</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-fs.html">fs</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-fs.html#.isDir">isDir</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-fs.html#.isDirEmpty">isDirEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-fs.html#.isDirEmpty_">isDirEmpty_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-fs.html#.isDir_">isDir_</a></span></li><li class="nav-heading">Namespaces</li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="helpers.html">helpers</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="helpers.html#.tryRequire">tryRequire</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#fs">fs</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#reboot">reboot</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">cmd.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import childProcess from 'node:child_process';
+import { consoleLog, consoleError } from './functions';
+
+/**
+ * Execute a shell command.
+ * @function module:cmd.run_
+ * @param {string} cmd - Command line to execute
+ * @param {object} options
+ * @returns {Promise.&lt;Object>}
+ */
+export const run_ = (cmd, options) =>
+    new Promise((resolve, reject) =>
+        childProcess.exec(cmd, { windowsHide: true, ...options }, (error, stdout, stderr) => {
+            if (error) {
+                return reject(error);
+            }
+
+            return resolve({ stdout, stderr });
+        })
+    );
+
+/**
+ * Execute a shell command and lively output
+ * @function module:cmd.runLive_
+ * @param {string} cmd - Command line to execute
+ * @param {Array} [args] - Arguments list *
+ * @param {*} onStdOut -
+ * @param {*} onStdErr
+ * @param {*} options
+ * @returns {Promise.&lt;Object>}
+ */
+export const runLive_ = (cmd, args, onStdOut, onStdErr, options) =>
+    new Promise((resolve, reject) => {
+        let ps = childProcess.spawn(cmd, args, {
+            windowsHide: true,
+            ...options,
+        });
+        let e;
+
+        onStdOut ??= consoleLog;
+        onStdErr ??= consoleError;
+
+        ps.stdout.on('data', onStdOut);
+        ps.stderr.on('data', onStdErr);
+
+        ps.on('close', (code) => (e ? reject(e) : resolve(code)));
+        ps.on('error', (error) => {
+            e = error;
+        });
+    });
+
+/**
+ * Execute a shell command synchronously
+ * @function module:cmd.runSync
+ * @param {string} cmd - Command line to execute
+ * @returns {string}
+ */
+export const runSync = (cmd, options) => childProcess.execSync(cmd, { windowsHide: true, ...options }).toString();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Dec 11 2023 19:03:01 GMT+0800 (Central Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

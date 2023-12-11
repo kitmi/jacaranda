@@ -12,5 +12,6 @@ export { default as filterNull } from './filterNull';
 export { default as xNull } from './filterNull';
 export { default as defaultDeep } from './defaultDeep';
 export { default as hasMethod } from './hasMethod';
+export { default as keyAt } from './keyAt';
 
 export * from './objectPathUtils';

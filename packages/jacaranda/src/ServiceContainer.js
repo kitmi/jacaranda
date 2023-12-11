@@ -298,7 +298,7 @@ class ServiceContainer extends AsyncEmitter {
      * Try to require a package, if it's an esm module, import it.
      * @param {*} pkgName
      * @param {*} useDefault
-     * @returns
+     * @returns {*} 
      */
     async tryRequire_(pkgName, useDefault) {
         try {
@@ -320,6 +320,7 @@ class ServiceContainer extends AsyncEmitter {
      * @param {string} name
      * @param {object} serviceObject
      * @param {boolean} override
+     * @returns {ServiceContainer}
      */
     registerService(name, serviceObject, override) {
         if (name in this.services && !override) {
@@ -655,13 +656,18 @@ class ServiceContainer extends AsyncEmitter {
             }
 
             featureObject = this.tryRequire(featurePath);
-        }
+        }        
+
+        featureObject = typeof featureObject === 'function' ? featureObject(this) : featureObject;
 
         if (!Feature.validate(featureObject)) {
             throw new Error(`Invalid feature object loaded from "${featurePath}".`);
         }
 
-        featureObject = typeof featureObject === 'function' ? featureObject(this) : featureObject;
+        if (!featureObject.stage) {
+            featureObject.stage = Feature.SERVICE;
+        }
+
         featureObject.name = feature;
         this.features[feature] = featureObject;
         return featureObject;

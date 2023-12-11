@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A monorepo for JavaScript application framework & libraries",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "npm run build --workspaces",
     "doc": "npm run doc --workspaces",
@@ -19,6 +20,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "bin": {
+    "prepack": "./scripts/prepack.js"
+},
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
     "@swc-node/register": "^1.6.8",

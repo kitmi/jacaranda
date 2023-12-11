@@ -215,7 +215,7 @@ const configOverrider = (defConf, envConf)=>{
      * Try to require a package, if it's an esm module, import it.
      * @param {*} pkgName
      * @param {*} useDefault
-     * @returns
+     * @returns {*} 
      */ async tryRequire_(pkgName, useDefault) {
         try {
             return this.tryRequire(pkgName);
@@ -235,6 +235,7 @@ const configOverrider = (defConf, envConf)=>{
      * @param {string} name
      * @param {object} serviceObject
      * @param {boolean} override
+     * @returns {ServiceContainer}
      */ registerService(name, serviceObject, override) {
         if (name in this.services && !override) {
             throw new Error('Service "' + name + '" already registered!');
@@ -520,10 +521,13 @@ const configOverrider = (defConf, envConf)=>{
             }
             featureObject = this.tryRequire(featurePath);
         }
+        featureObject = typeof featureObject === 'function' ? featureObject(this) : featureObject;
         if (!_Feature.default.validate(featureObject)) {
             throw new Error(`Invalid feature object loaded from "${featurePath}".`);
         }
-        featureObject = typeof featureObject === 'function' ? featureObject(this) : featureObject;
+        if (!featureObject.stage) {
+            featureObject.stage = _Feature.default.SERVICE;
+        }
         featureObject.name = feature;
         this.features[feature] = featureObject;
         return featureObject;

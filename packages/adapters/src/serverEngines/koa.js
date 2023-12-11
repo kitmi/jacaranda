@@ -17,12 +17,12 @@ class KoaEngine {
 
             //inject the appModule instance in the first middleware
             koa.use((ctx, next) => {
-                ctx.appModule = engineWrapper.app;                
+                ctx.appModule = engineWrapper.app;
                 return next();
             });
 
             return koa;
-        }        
+        };
 
         //create a sub engine instance and inject the appModule instance in the first middleware
         this.createSubEngine = (subApp) => {
@@ -32,17 +32,19 @@ class KoaEngine {
 
         //create a router instance
         this.createRouter = (baseRoute) => {
-            return (!baseRoute || baseRoute === '/') ? new Router() : new Router({ prefix: text.dropIfEndsWith(baseRoute, '/') });
+            return !baseRoute || baseRoute === '/'
+                ? new Router()
+                : new Router({ prefix: text.dropIfEndsWith(baseRoute, '/') });
         };
 
         //mount a sub engine instance
         this.mount = (route, childApp) => {
             this.koa.use(mounter(route, childApp.engine.koa));
-        }
+        };
 
         this.koa = createEngine(this);
-        this._initialize(config); 
-    }    
+        this._initialize(config);
+    }
 
     _initialize(options) {
         const koa = this.koa;
@@ -81,28 +83,28 @@ class KoaEngine {
 
         let port = options.port;
 
-        server.on('ready', () => {
-            server.httpServer.listen(port, function (err) {
-                if (err) throw err;
+        server.on('ready', async () => {
+            return new Promise((resolve, reject) => {
+                server.httpServer.listen(port, function (err) {
+                    if (err) {
+                        return reject(err);
+                    }
 
-                let address = server.httpServer.address();
+                    let address = server.httpServer.address();
 
-                let host;
-                if (address.family === 'IPv6' && address.address === '::') {
-                    host = '127.0.0.1';
-                } else {
-                    host = address.address;
-                }
+                    let host;
+                    if (address.family === 'IPv6' && address.address === '::') {
+                        host = '127.0.0.1';
+                    } else {
+                        host = address.address;
+                    }
 
-                server.host = `${host}:${address.port}`;
-                server.port = address.port;
+                    server.host = `${host}:${address.port}`;
+                    server.port = address.port;
 
-                server.log('info', `A koa http service is listening on port [${address.port}] ...`);
-                /**
-                 * Http server ready event
-                 * @event WebServer#httpReady
-                 */
-                server.emit_('httpReady', server);
+                    server.log('info', `A koa http service is listening on port [${address.port}] ...`);
+                    resolve();
+                });
             });
         });
     }

@@ -6,17 +6,25 @@
     },
     "middlewares": {
         "ip": {},
-        "accessLog": { "logger": "accessLog" },
+        "accessLog": { },
         "koa-compress": {},
         "koa-etag": {},        
-        "serveStatic": {}
+        "serveStatic": {},
+        "koa-body": {
+            "multipart": false,
+            "jsonLimit": "15mb"
+        }
     },
     "routing": {
         "/test": {
             "rule": {                
-                "rules": {                    
-                    "get:/": "home.index"
-                }
+                "get:/": "home.index",
+                "get:/protected": "home.protected"
+            }
+        },
+        "/login": {
+            "rule": {                
+                "post:/": "home.login"
             }
         }
     }
