@@ -1,6 +1,6 @@
 /**
  * Box is a utility function that wrap an inner object and returns a reader proxy and a writer function.
- * @returns {[Proxy, Function]} - Reader proxy and writer function
+ * @returns {Array} - Reader proxy and writer function
  */
 function Box() {
     const innerObject = {};

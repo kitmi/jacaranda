@@ -3,7 +3,11 @@
     "jsc": {
         "parser": {
             "syntax": "ecmascript",
-            "jsx": false
+            "jsx": false,
+            "decorators": true
+        },
+        "transform": {
+            "legacyDecorator": true
         },
         "target": "es2021",
         "loose": false

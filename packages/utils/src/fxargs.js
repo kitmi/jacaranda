@@ -7,21 +7,21 @@ import { typeOf } from '@kitmi/types';
  * @example
  *  function withClient(...args) {
  *      const [server, authenticator, testToRun, options] = fxargs(args, ['string?', 'string?', 'function', 'object?']);
- *      // ...  
+ *      // ...
  *  }
- * 
+ *
  *  1. withClient('http://localhost:3000', 'admin', (app) => {});
  *      - server: 'http://localhost:3000'
  *      - authenticator: 'admin'
  *      - testToRun: (app) => {}
- *      - options: undefined 
- * 
+ *      - options: undefined
+ *
  *  2. withClient('http://localhost:3000', (app) => {});
  *      - server: 'http://localhost:3000'
  *      - authenticator: undefined
  *      - testToRun: (app) => {}
  *      - options: undefined
- * 
+ *
  *  3. withClient((app) => {});
  *      - server: undefined
  *      - authenticator: undefined
@@ -30,36 +30,35 @@ import { typeOf } from '@kitmi/types';
  */
 function fxargs(args, types) {
     const result = new Array(types.length).fill(undefined);
-    let argIndex = 0;
+    let argIndex = 0, lt = types.length, la = args.length;
 
-    for (let i = 0; i < types.length; i++) {
+    for (let i = 0; i < lt; i++) {
         const type = types[i];
         const isOptional = type.endsWith('?');
-        const typeName = isOptional ? type.slice(0, -1) : type;
-        const value = args[argIndex];
+        const typeOptions = isOptional ? type.slice(0, -1).split('|') : type.split('|');
 
-        // If there's a type mismatch and the type is optional, skip filling the result for this type
-        if (value === undefined) {
-            if (!isOptional) {
-                throw new Error(`Missing argument at index ${i}`);
+        let matched = false;
+
+        // Iterate over remaining args to find a match
+        while (argIndex < la && !matched) {
+            const value = args[argIndex];
+            if (typeOptions.some((typeOption) => typeOf(value) === typeOption)) {
+                // Assign the value and increment the argument index
+                result[i] = value;
+                argIndex++;
+                matched = true;
+            } else if (isOptional) {
+                // If the type is optional and no match found, break to allow for undefined
+                break;
+            } else {
+                // No match found for a required type
+                throw new Error(`Missing or invalid argument at index ${i}, expected "${type}".`);
             }
+        }
 
-            continue;
-        }       
-
-        if (typeOf(value) !== typeName) {
-            if (!isOptional) {
-                if (typeName !== 'any') {
-                    throw new Error(`Invalid argument at index ${i}: expected type "${typeName}", got "undefined"`);
-                }
-            }
-
-            continue;
-        }        
-
-        // Assign the value and increment the argument index
-        result[i] = value;
-        argIndex++;
+        if (!matched && !isOptional) {
+            throw new Error(`Missing argument at index ${i}, expected "${type}".`);
+        }
     }
 
     return result;

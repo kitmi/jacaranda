@@ -22,8 +22,10 @@ _export(exports, {
 const _utils = require("@kitmi/utils");
 const _jacaranda = /*#__PURE__*/ _interop_require_wildcard(require("@kitmi/jacaranda"));
 const _benchmark = /*#__PURE__*/ _interop_require_default(require("benchmark"));
-const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
+const _superagent = /*#__PURE__*/ _interop_require_default(require("superagent"));
+const _adapters = require("@kitmi/adapters");
 const _loadFixtures = /*#__PURE__*/ _interop_require_default(require("./loadFixtures"));
+const _createAuth = /*#__PURE__*/ _interop_require_default(require("./createAuth"));
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -103,23 +105,36 @@ const jacat = jacatProxy;
 const setJacat = _setJacat;
 /**
  * Jacaranda tester.
- * @class
+ * @class Tester
  */ class JacaTester {
     // ------------------------------
     // allure
     // ------------------------------
-    async step_(name, fn) {
+    /**
+     * Mark a step of a test case.
+     * @param {String} name - Name of the step.
+     * @param {Function} fn - Function to run.
+     * @async
+     */ async step_(name, fn) {
         if (allure) {
             await allure.step(name, fn);
         }
     }
-    param(name, value) {
+    /**
+     * Record a parameter in a test case report.
+     * @param {String} name - Name of the parameter.
+     * @param {*} value - Value of the parameter.
+     */ param(name, value) {
         if (allure) {
             const { content, type } = serialize(value);
             allure.parameter(name, content, type);
         }
     }
-    attach(name, value) {
+    /**
+     * Attach an object in a test case report.
+     * @param {String} name - Name of the attachment.
+     * @param {*} value - Value of the attachment.
+     */ attach(name, value) {
         if (allure) {
             const { content, type } = serialize(value, null, 4);
             allure.attachment(name, content, type);
@@ -128,26 +143,38 @@ const setJacat = _setJacat;
     // ------------------------------
     // server
     // ------------------------------
-    // for server code coverage
-    async startServer_(name) {
-        if (name == null) {
-            name = (0, _utils.keyAt)(this.config.servers);
-            if (!name) {
-                throw new Error('No server defined in config');
-            }
+    /**
+     * Start a server for code coverage testing.
+     * @param  {String} [name] - Name of the server to start, should be configured in test config.
+     * @param  {Object} [options]
+     * @async
+     */ async startServer_(...args) {
+        let [name, options] = (0, _utils.fxargs)(args, [
+            'string?',
+            'object?'
+        ]);
+        if (name && this.startedServers[name]) {
+            return this.startedServers[name];
         }
-        if (this.startedServers[name]) {
-            return;
-        }
-        const serverOptions = this.config.servers?.[name];
+        const serverOptions = name ? this.config.servers?.[name] : null;
         if (!serverOptions) {
-            throw new Error(`Server options for "${name}" not found`);
+            throw new Error(`Server options for "${name}" not found.`);
         }
-        const server = new _jacaranda.default(name, serverOptions);
+        const server = new _jacaranda.default(name, {
+            ...serverOptions,
+            ...options
+        });
         await server.start_();
-        this.startedServers[name] = server;
+        if (name) {
+            this.startedServers[name] = server;
+        }
+        return server;
     }
-    async stopServer_(server) {
+    /**
+     * Stop a running server.
+     * @param {WebServer} server
+     * @async
+     */ async stopServer_(server) {
         if (typeof server === 'string') {
             server = this.startedServers[server];
         }
@@ -157,7 +184,10 @@ const setJacat = _setJacat;
         await server.stop_();
         delete this.startedServers[server.name];
     }
-    async closeAllServers_() {
+    /**
+     * Stop all running servers.
+     * @async
+     */ async closeAllServers_() {
         await (0, _utils.batchAsync_)(Object.values(this.startedServers), async (server)=>{
             await server.stop_();
         });
@@ -170,14 +200,15 @@ const setJacat = _setJacat;
      * Start a worker app for testing
      * @param {String} [name] - Name of the worker to start.
      * @param {function} testToRun - Test (async) function to run.
+     * @param {*} [options] - Options for starting the worker.
      * @async
-     */ async startWorker_(name, testToRun) {
-        if (name == null) {
-            name = (0, _utils.keyAt)(this.config.servers);
-            if (!name) {
-                throw new Error('No server defined in config');
-            }
-        }
+     */ async startWorker_(...args) {
+        let [name, testToRun, options] = (0, _utils.fxargs)(args, [
+            'string?',
+            'function',
+            'object?'
+        ]);
+        const workerOptions = name ? this.config.workers?.[name] : null;
         let err;
         const result = await (0, _jacaranda.startWorker)(async (app)=>{
             try {
@@ -187,12 +218,7 @@ const setJacat = _setJacat;
                 err = e;
             }
         }, {
-            workerName: 'tester',
-            configName: 'test',
-            configPath: 'test/conf',
-            ignoreUncaught: true,
-            exitOnUncaught: false,
-            ...this.config.workerOptions,
+            ...workerOptions,
             ...options
         });
         if (err) {
@@ -210,64 +236,30 @@ const setJacat = _setJacat;
      * @param {Function} testToRun
      * @param {*} options
      * @returns
-     */ async withHttpClient_(server, authenticator, testToRun, options1) {
-        if (typeof options1 === 'undefined') {
-            if (typeof testToRun === 'undefined') {
-                testToRun = authenticator;
-                authenticator = null;
-            } else if (typeof testToRun === 'object') {
-                options1 = testToRun;
-                testToRun = authenticator;
-                authenticator = null;
-            }
-        }
-        const { worker: workerOptions, client: clientOptions } = options1 || {};
-        if (typeof server === 'string') {
+     */ async withClient_(...args) {
+        let [server, authenticator, testToRun, options] = (0, _utils.fxargs)(args, [
+            'string|object?',
+            'string?',
+            'function',
+            'object?'
+        ]);
+        if (typeof server !== 'object') {
             server = await this.startServer_(server);
         }
-        return this.startWorker_(async (app)=>{
-            if (typeof authenticator === 'string') {
-                authenticator = defaultUserAuth(authenticator /** authticationKey */ );
-            }
-            const { authentication: authConfig } = this.config;
-            const getHttpClient_ = async ()=>{
-                let agentClientSetting = this.config.httpAgent?.[this.isCoverMode ? 'coverage' : 'normal'];
-                if (typeof agentClientSetting === 'string') {
-                    agentClientSetting = {
-                        adapter: agentClientSetting
-                    };
-                } else if (Array.isArray(agentClientSetting)) {
-                    agentClientSetting = {
-                        adapter: agentClientSetting[0],
-                        options: agentClientSetting[1]
-                    };
-                }
-                const agentCreatorModule = agentClientSetting?.adapter ?? (this.isCoverMode ? 'supertest' : 'superagent');
-                const agentCreator = (0, _utils.esmCheck)(require(`@kitmi/adapters/${agentCreatorModule}`));
-                const agent = agentCreator();
-                if (this.isCoverMode) {
-                    agent.server = server.httpServer;
-                }
-                const client = new _jacaranda.HttpClient(agent, {
-                    ...agentClientSetting.options,
-                    ...clientOptions
-                });
-                client.onResponse = (result, req, res)=>{
-                    this.attach(`${req.method} ${req.url}`, {
-                        headers: res.header,
-                        response: result
-                    });
-                };
-                if (!authenticator) {
-                    delete client.onSending;
-                    return client;
-                }
-                await authenticator(client, authConfig);
-                return client;
-            };
-            const client = await getHttpClient_();
-            return testToRun(client, app);
-        }, workerOptions);
+        const authConfig = authenticator ? this.config.authentications?.[authenticator] : null;
+        authenticator &&= (0, _createAuth.default)(authenticator /** authticationKey */ , authConfig ?? {});
+        const client = new _jacaranda.HttpClient((0, _adapters.superagent)(_superagent.default), {
+            endpoint: server.host,
+            ...options
+        });
+        client.onResponse = (result, req, res)=>{
+            this.attach(`${req.method} ${req.url}`, {
+                headers: res.header,
+                response: result
+            });
+        };
+        authenticator && await authenticator(client);
+        await testToRun(client, server);
     }
     // ------------------------------
     // benchmark
@@ -302,13 +294,18 @@ const setJacat = _setJacat;
     }
     constructor(config){
         /**
+     * Test if an async function throws an error
+     * @function Tester.throw_
+     * @param {Function} fn - Function (async) that should throw an error
+     * @param {*} error
+     */ _define_property(this, "throw_", _utils.testShouldThrow_);
+        /**
      * Load fixtures and declare test case with `it`.
-     * @function module:tester.loadFixtures
+     * @function Tester.loadFixtures
      * @param {Function} [testCase] - Test case to run after loading fixtures. (data) => {}
      */ _define_property(this, "loadFixtures", _loadFixtures.default);
         this.config = config;
         this.startedServers = {};
-        this.isCoverMode = process.env.COVER && (0, _utils.toBoolean)(process.env.COVER);
     }
 }
 const _default = JacaTester;

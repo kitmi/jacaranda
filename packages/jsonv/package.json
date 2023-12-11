@@ -30,7 +30,7 @@
     "license": "MIT",
     "scripts": {
         "test": "mocha --recursive test/**/*.spec.js",
-        "doc": "jsdoc --configure .jsdoc.json --verbose",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && bun x prepack",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
         "prettier": "prettier --write .",
         "lint": "eslint \"**/*.js\"",

@@ -34,7 +34,7 @@
     },
     "scripts": {
         "test": "mocha --recursive ./__test__/*.spec.js",
-        "doc": "jsdoc --configure .jsdoc.json --verbose",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && bun x prepack",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive ./__test__/*.spec.js && open ./coverage/index.html",
         "prettier": "prettier --write .",
         "lint": "eslint \"./src/**/*.js\"",
@@ -54,7 +54,8 @@
         "@kitmi/types": "workspace:*",
         "benchmark": "^2.1.4",
         "csv-parse": "^5.0.4",
-        "mobx": "^6.9.0"
+        "mobx": "^6.9.0",
+        "jacaranda": "link:jacaranda"
     },
     "dependencies": {
         "lodash": "^4.17.21"

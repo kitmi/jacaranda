@@ -1,8 +1,11 @@
-import { _, esmCheck, toBoolean, batchAsync_, Box, keyAt } from '@kitmi/utils';
+import { _, testShouldThrow_, batchAsync_, Box, fxargs } from '@kitmi/utils';
 import WebServer, { startWorker, HttpClient } from '@kitmi/jacaranda';
 import Benchmark from 'benchmark';
-import path from "node:path";
+import _superagent from 'superagent';
+import { superagent } from '@kitmi/adapters';
+
 import loadFixtures from './loadFixtures';
+import createAuth from './createAuth';
 
 function serialize(obj, replacer, space) {
     let content;
@@ -19,19 +22,27 @@ function serialize(obj, replacer, space) {
     return { content, type };
 }
 
-const [ jacatProxy, _setJacat ] = Box();
+const [jacatProxy, _setJacat] = Box();
 
 export const jacat = jacatProxy;
 export const setJacat = _setJacat;
 
 /**
  * Jacaranda tester.
- * @class
+ * @class Tester
  */
 class JacaTester {
     /**
+     * Test if an async function throws an error
+     * @function Tester.throw_
+     * @param {Function} fn - Function (async) that should throw an error
+     * @param {*} error
+     */
+    throw_ = testShouldThrow_;
+
+    /**
      * Load fixtures and declare test case with `it`.
-     * @function module:tester.loadFixtures
+     * @function Tester.loadFixtures
      * @param {Function} [testCase] - Test case to run after loading fixtures. (data) => {}
      */
     loadFixtures = loadFixtures;
@@ -39,19 +50,29 @@ class JacaTester {
     constructor(config) {
         this.config = config;
         this.startedServers = {};
-        this.isCoverMode = process.env.COVER && toBoolean(process.env.COVER);
     }
 
     // ------------------------------
     // allure
     // ------------------------------
 
+    /**
+     * Mark a step of a test case.
+     * @param {String} name - Name of the step.
+     * @param {Function} fn - Function to run.
+     * @async
+     */
     async step_(name, fn) {
         if (allure) {
             await allure.step(name, fn);
         }
     }
 
+    /**
+     * Record a parameter in a test case report.
+     * @param {String} name - Name of the parameter.
+     * @param {*} value - Value of the parameter.
+     */
     param(name, value) {
         if (allure) {
             const { content, type } = serialize(value);
@@ -59,6 +80,11 @@ class JacaTester {
         }
     }
 
+    /**
+     * Attach an object in a test case report.
+     * @param {String} name - Name of the attachment.
+     * @param {*} value - Value of the attachment.
+     */
     attach(name, value) {
         if (allure) {
             const { content, type } = serialize(value, null, 4);
@@ -70,31 +96,40 @@ class JacaTester {
     // server
     // ------------------------------
 
-    // for server code coverage
-    async startServer_(name) {   
-        if (name == null) {
-            name = keyAt(this.config.servers);
-            if (!name) {
-                throw new Error('No server defined in config');
-            }
-        }
-        
-        if (this.startedServers[name]) {
-            return;
+    /**
+     * Start a server for code coverage testing.
+     * @param  {String} [name] - Name of the server to start, should be configured in test config.
+     * @param  {Object} [options]
+     * @async
+     */
+    async startServer_(...args) {
+        let [name, options] = fxargs(args, ['string?', 'object?']);
+
+        if (name && this.startedServers[name]) {
+            return this.startedServers[name];
         }
 
-        const serverOptions = this.config.servers?.[name];
+        const serverOptions = name ? this.config.servers?.[name] : null;
 
         if (!serverOptions) {
-            throw new Error(`Server options for "${name}" not found`);
+            throw new Error(`Server options for "${name}" not found.`);
         }
 
-        const server = new WebServer(name, serverOptions);
+        const server = new WebServer(name, { ...serverOptions, ...options });
         await server.start_();
 
-        this.startedServers[name] = server;
+        if (name) {
+            this.startedServers[name] = server;
+        }
+
+        return server;
     }
 
+    /**
+     * Stop a running server.
+     * @param {WebServer} server
+     * @async
+     */
     async stopServer_(server) {
         if (typeof server === 'string') {
             server = this.startedServers[server];
@@ -109,6 +144,10 @@ class JacaTester {
         delete this.startedServers[server.name];
     }
 
+    /**
+     * Stop all running servers.
+     * @async
+     */
     async closeAllServers_() {
         await batchAsync_(Object.values(this.startedServers), async (server) => {
             await server.stop_();
@@ -124,17 +163,13 @@ class JacaTester {
      * Start a worker app for testing
      * @param {String} [name] - Name of the worker to start.
      * @param {function} testToRun - Test (async) function to run.
+     * @param {*} [options] - Options for starting the worker.
      * @async
      */
-    async startWorker_(name, testToRun) {
-        
+    async startWorker_(...args) {
+        let [name, testToRun, options] = fxargs(args, ['string?', 'function', 'object?']);
 
-        if (name == null) {
-            name = keyAt(this.config.servers);
-            if (!name) {
-                throw new Error('No server defined in config');
-            }
-        }
+        const workerOptions = name ? this.config.workers?.[name] : null;
 
         let err;
 
@@ -148,12 +183,7 @@ class JacaTester {
                 }
             },
             {
-                workerName: 'tester',
-                configName: 'test',
-                configPath: 'test/conf',
-                ignoreUncaught: true,
-                exitOnUncaught: false,
-                ...this.config.workerOptions,
+                ...workerOptions,
                 ...options,
             }
         );
@@ -177,67 +207,30 @@ class JacaTester {
      * @param {*} options
      * @returns
      */
-    async withHttpClient_(server, authenticator, testToRun, options) {
-        if (typeof options === 'undefined') {
-            if (typeof testToRun === 'undefined') {
-                testToRun = authenticator;
-                authenticator = null;
-            } else if (typeof testToRun === 'object') {
-                options = testToRun;
-                testToRun = authenticator;
-                authenticator = null;
-            }
-        }
+    async withClient_(...args) {
+        let [server, authenticator, testToRun, options] = fxargs(args, [
+            'string|object?',
+            'string?',
+            'function',
+            'object?',
+        ]);
 
-        const { worker: workerOptions, client: clientOptions } = options || {};
-        if (typeof server === 'string') {
+        if (typeof server !== 'object') {
             server = await this.startServer_(server);
         }
 
-        return this.startWorker_(async (app) => {
-            if (typeof authenticator === 'string') {
-                authenticator = defaultUserAuth(authenticator /** authticationKey */);
-            }
+        const authConfig = authenticator ? this.config.authentications?.[authenticator] : null;
+        authenticator &&= createAuth(authenticator /** authticationKey */, authConfig ?? {});
 
-            const { authentication: authConfig } = this.config;
+        const client = new HttpClient(superagent(_superagent), { endpoint: server.host, ...options });
 
-            const getHttpClient_ = async () => {
-                let agentClientSetting =
-                    this.config.httpAgent?.[this.isCoverMode ? 'coverage' : 'normal'];
+        client.onResponse = (result, req, res) => {
+            this.attach(`${req.method} ${req.url}`, { headers: res.header, response: result });
+        };
 
-                if (typeof agentClientSetting === 'string') {
-                    agentClientSetting = { adapter: agentClientSetting };
-                } else if (Array.isArray(agentClientSetting)) {
-                    agentClientSetting = { adapter: agentClientSetting[0], options: agentClientSetting[1] };
-                }
-                    
-                const agentCreatorModule = agentClientSetting?.adapter ?? (this.isCoverMode ? 'supertest' : 'superagent');
-                const agentCreator = esmCheck(require(`@kitmi/adapters/${agentCreatorModule}`));
+        authenticator && (await authenticator(client));
 
-                const agent = agentCreator();
-                if (this.isCoverMode) {                    
-                    agent.server = server.httpServer;
-                }
-
-                const client = new HttpClient(agent, {  ...agentClientSetting.options , ...clientOptions });                
-
-                client.onResponse = (result, req, res) => {
-                    this.attach(`${req.method} ${req.url}`, { headers: res.header, response: result });
-                };
-
-                if (!authenticator) {
-                    delete client.onSending;
-                    return client;
-                }
-
-                await authenticator(client, authConfig);
-
-                return client;
-            }
-
-            const client = await getHttpClient_();
-            return testToRun(client, app);
-        }, workerOptions);
+        await testToRun(client, server);
     }
 
     // ------------------------------

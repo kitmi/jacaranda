@@ -17,7 +17,7 @@ describe('test-benchmark', function () {
 
             const file = path.relative(process.cwd(), path.resolve(__dirname, fileName));
 
-            await gxt.benchmark_(testees, verify, file);
+            await jacat.benchmark_(testees, verify, file);
         });
     });
 });

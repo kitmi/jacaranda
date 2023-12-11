@@ -79,23 +79,24 @@ class KoaEngine {
         });
         server.httpServer = _nodehttp.default.createServer(koa.callback());
         let port = options.port;
-        server.on('ready', ()=>{
-            server.httpServer.listen(port, function(err) {
-                if (err) throw err;
-                let address = server.httpServer.address();
-                let host;
-                if (address.family === 'IPv6' && address.address === '::') {
-                    host = '127.0.0.1';
-                } else {
-                    host = address.address;
-                }
-                server.host = `${host}:${address.port}`;
-                server.port = address.port;
-                server.log('info', `A koa http service is listening on port [${address.port}] ...`);
-                /**
-                 * Http server ready event
-                 * @event WebServer#httpReady
-                 */ server.emit_('httpReady', server);
+        server.on('ready', async ()=>{
+            return new Promise((resolve, reject)=>{
+                server.httpServer.listen(port, function(err) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    let address = server.httpServer.address();
+                    let host;
+                    if (address.family === 'IPv6' && address.address === '::') {
+                        host = '127.0.0.1';
+                    } else {
+                        host = address.address;
+                    }
+                    server.host = `${host}:${address.port}`;
+                    server.port = address.port;
+                    server.log('info', `A koa http service is listening on port [${address.port}] ...`);
+                    resolve();
+                });
             });
         });
     }

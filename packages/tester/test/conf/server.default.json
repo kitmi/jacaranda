@@ -6,7 +6,7 @@
     },
     "middlewares": {
         "ip": {},
-        "accessLog": { "logger": "accessLog" },
+        "accessLog": { },
         "koa-compress": {},
         "koa-etag": {},        
         "serveStatic": {}
@@ -14,9 +14,13 @@
     "routing": {
         "/test": {
             "rule": {                
-                "rules": {                    
-                    "get:/": "home.index"
-                }
+                "get:/": "home.index",
+                "get:/protected": "home.protected"
+            }
+        },
+        "/login": {
+            "rule": {                
+                "post:/": "home.login"
             }
         }
     }

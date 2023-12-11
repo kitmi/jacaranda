@@ -12,7 +12,8 @@
 * Support @kitmi/jacaranda worker 
 * Support JSON Validation Syntax
 * [x] Support configurable test case on/off switches
-* Support profiling and benchmark
+* Support profiling 
+* [x] Support benchmark 
 * Support test step and progress record
 * Support job pipeline for long-run test
 

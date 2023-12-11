@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>errors/DataErrors.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-AppErrors.ApplicationError.html">ApplicationError</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-AppErrors.ExposableError.html">ExposableError</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-AppErrors.GeneralError.html">GeneralError</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-AppErrors.InvalidArgument.html">InvalidArgument</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-AppErrors.InvalidConfiguration.html">InvalidConfiguration</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-DataErrors.DatabaseError.html">DatabaseError</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-DataErrors.DuplicateError.html">DuplicateError</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-DataErrors.ReferencedNotExist.html">ReferencedNotExist</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-DataErrors.UnexpectedState.html">UnexpectedState</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-DataErrors.ValidationError.html">ValidationError</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-HttpErrors.BadRequest.html">BadRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-HttpErrors.ExternalServiceError.html">ExternalServiceError</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-HttpErrors.Forbidden.html">Forbidden</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-HttpErrors.NotFound.html">NotFound</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-HttpErrors.ServerError.html">ServerError</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-HttpErrors.ServiceUnavailable.html">ServiceUnavailable</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-HttpErrors.Unauthorized.html">Unauthorized</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-AppErrors.html">AppErrors</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-DataErrors.html">DataErrors</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-HttpErrors.html">HttpErrors</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">errors/DataErrors.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { ExposableError, ApplicationError } from './AppErrors';
+import HttpCode from './HttpCode';
+
+/**
+ * Data errors.
+ * @module DataErrors
+ */
+
+/**
+ * Validation error.
+ * @class
+ */
+export class ValidationError extends ExposableError {
+    static formatError(error) {
+        let fullMessage = error.message;
+        if (error.info.path) {
+            fullMessage += ' Key: ' + error.info.path;
+        }
+
+        if (error.info.error) {
+            fullMessage += '\n' + error.info.error;
+        }
+
+        if (error.info.errors) {
+            fullMessage += '\nAll of these alternative validations failed:\n' + error.info.errors.map((_error, i) => `Option ${i+1} field "${_error.info.path}": ${_error.message}`).join('\n');
+        }
+
+        return fullMessage;
+    }
+
+    static extractFromError(error) {
+        const _error = {
+            message: error.message,
+            info: error.info
+        };
+
+        if (error.inner) {
+            _error.inner = ValidationError.extractFromError(error.inner);
+        }
+
+        return _error;
+    }
+
+    constructor(message, info, inner) {
+        super(message, info, HttpCode.BAD_REQUEST, 'E_INVALID_DATA');
+
+        this.inner = inner;
+    }
+}
+
+/**
+ * Referenced entity not found.
+ * @class
+ */
+export class ReferencedNotExist extends ExposableError {
+    constructor(message, info) {
+        super(message, info, HttpCode.BAD_REQUEST, 'E_REFERENCED_NOT_EXIST');
+    }
+}
+
+/**
+ * Duplicate error.
+ * @class
+ */
+export class DuplicateError extends ExposableError {
+    constructor(message, info) {
+        super(message, info, HttpCode.BAD_REQUEST, 'E_DUPLICATE');
+    }
+}
+
+/**
+ * Unexpected data/state error.
+ * @class
+ */
+export class UnexpectedState extends ApplicationError {
+    constructor(message, info) {
+        super(message, info, 'E_UNEXPECTED');
+    }
+}
+
+/**
+ * Database operation error.
+ * @class
+ */
+export class DatabaseError extends ApplicationError {
+    constructor(message, info) {
+        super(message, info, 'E_DATABASE');
+    }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Dec 11 2023 16:59:42 GMT+0800 (Central Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>
