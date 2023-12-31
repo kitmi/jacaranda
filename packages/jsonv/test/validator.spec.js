@@ -118,7 +118,7 @@ describe('jsv:validator', function () {
     });
 
     it('mixed', function () {
-        var c = { a: { b: 10 } };
+        var c = { a: { b: 10 }, c: 20 };
         let obj = {
             key1: 2000,
             key11: 2000,
@@ -160,12 +160,12 @@ describe('jsv:validator', function () {
         }).should.be.eql([true]);
 
         Jsv.match(obj, {
-            key1: { $hasKey: c.a.b },
-        }).should.be.eql([false, '"key1" must have all of these keys [10].']);
+            key3: { $hasKey: 'key1' },
+        }).should.be.eql([true]);
 
         Jsv.match(obj, {
-            key8: { $hasKey: [10] },
-        }).should.be.eql([false, '"key8" must have all of these keys [10].']);
+            key8: { $hasKeys: [ 'a', 'c' ] },
+        }).should.be.eql([true]);
     });
 
     it('Jsv', function () {

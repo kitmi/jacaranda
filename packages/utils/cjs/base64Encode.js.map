@@ -1,1 +1,0 @@
-{"version":3,"sources":["../src/base64Encode.js"],"sourcesContent":["function base64Encode(str) {\n    return Buffer.from(str).toString('base64');\n}\n\nexport default base64Encode;\n"],"names":["base64Encode","str","Buffer","from","toString"],"mappings":";;;;+BAIA;;;eAAA;;;AAJA,SAASA,aAAaC,GAAG;IACrB,OAAOC,OAAOC,IAAI,CAACF,KAAKG,QAAQ,CAAC;AACrC;MAEA,WAAeJ"}

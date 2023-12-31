@@ -23,7 +23,7 @@ describe("text", () => {
 
         it("should return the input value for rawValue input", () => {
             const value = "foo";
-            const result = text.sanitize(value, { rawValue: true }, {}, "");
+            const result = text.sanitize(value, { plain: true }, {}, "");
             result.should.equal(value);
         });
 

@@ -21,6 +21,7 @@ const END_WITH = 'end';
 const MATCH_PATTERN = 'pattern';
 const CONTAINS = 'contains';
 const SAME_AS = 'same';
+const IF = 'if';
 
 export default {
     EQUAL,
@@ -46,4 +47,6 @@ export default {
     MATCH_PATTERN,
     CONTAINS,
     SAME_AS,
+
+    IF,
 };

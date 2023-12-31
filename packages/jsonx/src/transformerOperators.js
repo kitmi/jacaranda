@@ -18,6 +18,7 @@ const SUB = 'sub';
 const MUL = 'mul';
 const DIV = 'div';
 const MOD = 'mod';
+const POW = 'pow';
 
 //Collection operators (pure)
 const KEYS = 'keys';
@@ -69,6 +70,7 @@ export default {
     MUL,
     DIV,
     MOD,
+    POW,
 
     KEYS,
     VALUES,

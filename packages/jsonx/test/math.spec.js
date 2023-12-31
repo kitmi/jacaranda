@@ -45,6 +45,14 @@ describe('Jxs:math', function () {
          transformed.should.be.eql(1);
      });
 
+     it('pow', function () {
+        let obj = 10;
+         
+         let transformed = Jxs.evaluate(obj, {'$pow': 3 });
+         //console.log(transformed)
+         transformed.should.be.eql(1000);
+     });
+
      it('obj', function () {
         let obj = {
             'id': 1,

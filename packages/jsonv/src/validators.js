@@ -8,7 +8,7 @@ import _size from 'lodash/size';
 import _castArray from 'lodash/castArray';
 import _mapValues from 'lodash/mapValues';
 
-import JsvError from './JvsError';
+import JsvError from './JsvError';
 import validate, { test } from './validate';
 
 import config, { contextVarKeys } from './config';
@@ -91,6 +91,8 @@ const OP_MATCH_PATTERN = [ops.MATCH_PATTERN, '$pattern', '$matchPattern', '$matc
 const OP_CONTAINS = [ops.CONTAINS, '$contain', '$contains', '$include', '$includes'];
 const OP_SAME_AS = [ops.SAME_AS, '$sameAs'];
 
+const OP_IF = [ops.IF, '$if'];
+
 config.addValidatorToMap(OP_EQUAL, (left, right, options, context) =>
     _isEqual(left, processRightValue(right, context))
 );
@@ -153,8 +155,10 @@ config.addValidatorToMap(OP_EXISTS, (left, right) => {
 });
 
 config.addValidatorToMap(OP_REQUIRED, (left, right) => {
+    right = processRightValue(right, context);
+
     if (typeof right !== 'boolean') {
-        throw new Error(MSG.OPERAND_NOT_BOOL(ops.OP_REQUIRED));
+        throw new Error(MSG.OPERAND_NOT_BOOL(ops.REQUIRED));
     }
 
     return right ? left != null : true;
@@ -184,7 +188,7 @@ config.addValidatorToMap(OP_MATCH, (left, right, options, context) => {
             }
 
             if (!options.asPredicate) {
-                context.$$ERROR = errors.length === 1 && options.plainError ? errors[0] : errors;
+                context.$$E = errors.length === 1 && options.plainError ? errors[0] : errors;
             }
 
             return false;
@@ -196,7 +200,7 @@ config.addValidatorToMap(OP_MATCH, (left, right, options, context) => {
     const reason2 = validate(left, right, options, context);
     if (reason2 !== true) {
         if (!options.asPredicate) {
-            context.$$ERROR = reason2;
+            context.$$E = reason2;
         }
 
         return false;
@@ -216,7 +220,7 @@ config.addValidatorToMap(OP_MATCH_ANY, (left, right, options, context) => {
     });
 
     if (!found) {
-        context.$$ERROR = MSG.validationErrors[ops.MATCH_ANY](context.name, left, right, context);
+        context.$$E = MSG.validationErrors[ops.MATCH_ANY](context.name, left, right, context);
     }
 
     return found ? true : false;
@@ -248,7 +252,7 @@ config.addValidatorToMap(OP_ALL_MATCH, (left, right, options, context) => {
         }
 
         if (!options.asPredicate) {
-            context.$$ERROR = errors.length === 1 && options.plainError ? errors[0] : errors;
+            context.$$E = errors.length === 1 && options.plainError ? errors[0] : errors;
         }
 
         return false;
@@ -268,7 +272,7 @@ config.addValidatorToMap(OP_ANY_ONE_MATCH, (left, right, options, context) => {
     });
 
     if (!found) {
-        context.$$ERROR = MSG.validationErrors[ops.ANY_ONE_MATCH](context.name, left, right, context);
+        context.$$E = MSG.validationErrors[ops.ANY_ONE_MATCH](context.name, left, right, context);
     }
 
     return found ? true : false;
@@ -362,13 +366,41 @@ config.addValidatorToMap(OP_CONTAINS, (left, right, options, context) => {
 
 config.addValidatorToMap(OP_SAME_AS, (left, right, options, context) => {
     if (typeof left === 'object') {
-        throw new Error(MSG.VALUE_NOT_PRIMITIVE(ops.OP_SAME_AS));
+        throw new Error(MSG.VALUE_NOT_PRIMITIVE(ops.SAME_AS));
     }
     if (typeof right !== 'string') {
-        throw new Error(MSG.OPERAND_NOT_STRING(ops.OP_SAME_AS));
+        throw new Error(MSG.OPERAND_NOT_STRING(ops.SAME_AS));
     }
 
-    return left === _get(context.$$PARENT, right);
+    return left === _get(context.$$P, right);
+});
+
+config.addValidatorToMap(OP_IF, (left, right, options, context) => {
+    if (!Array.isArray(right)) {
+        throw new Error(MSG.OPERAND_NOT_ARRAY(ops.IF));
+    }
+
+    if (right.length < 2 || right.length > 3) {
+        throw new Error(MSG.OPERAND_NOT_TUPLE_2_OR_3(ops.IF));
+    }
+
+    const condition = context.jsonx
+        ? context.jsonx(left, right[0], context, true)
+        : validate(left, right[0], { abortEarly: true, throwError: false, asPredicate: true }, context);
+
+    console.log({
+        condition,
+        left,
+        right
+    });
+
+    if (condition) {
+        return validate(left, right[1], options, context);
+    } else if (right.length > 2) {
+        return validate(left, right[2], options, context);
+    }
+
+    return true;
 });
 
 export default validate;

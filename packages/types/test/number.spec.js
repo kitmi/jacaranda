@@ -23,7 +23,7 @@ describe("number", () => {
 
         it("should return the input value for rawValue input", () => {
             const value = 123.45;
-            const result = number.sanitize(value, { rawValue: true }, {}, "");
+            const result = number.sanitize(value, { plain: true }, {}, "");
             result.should.equal(value);
         });
 

@@ -75,7 +75,7 @@ export default {
                     datasources: { type: 'object', optional: true },
                     log: {
                         type: 'array',
-                        elementSchema: { type: 'text' },
+                        element: { type: 'text' },
                         optional: true,
                     },
                 },

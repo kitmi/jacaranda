@@ -5,7 +5,7 @@ describe('all async', function () {
     it('bvt', async function () {
         await shouldThrow_(
             async () =>
-                Types.OBJECT.sanitize_({ a: 1 }, { schema: { a: { type: 'number', mod: [['~jsv', { $gt: 2 }]] } } }),
+                Types.OBJECT.sanitize_({ a: 1 }, { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } }),
             '"a" must be greater than 2.'
         );
     });
@@ -15,7 +15,7 @@ describe('all async', function () {
             async () =>
                 Types.OBJECT.sanitize_(
                     { a: 1 },
-                    { schema: { a: { type: 'number', mod: [['~jsv', { $gt: 2 }]] } } },
+                    { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } },
                     { locale: 'zh-CN' }
                 ),
             '"a" 的数值必须大于 2。'

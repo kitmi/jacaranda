@@ -1,6 +1,6 @@
 // JSON Expression Syntax (JES)
 import { remap, isPlainObject, get as _get, template, filterNull, objectToArray } from '@kitmi/utils';
-import { Types } from '@kitmi/types';
+import { Types, typeOf } from '@kitmi/types';
 import { validate, test, OP as v_ops } from '@kitmi/jsonv';
 
 import _size from 'lodash/size';
@@ -47,11 +47,12 @@ const OP_IF = [t_ops.IF, BINARY, '$if'];
 const OP_CAST_ARRAY = [t_ops.CAST_ARRAY, UNARY, '$castArray', '$makeArray'];
 
 //Math operators (pure)
-const OP_ADD = [t_ops.ADD, BINARY, '$add', '$plus', '$inc'];
-const OP_SUB = [t_ops.SUB, BINARY, '$sub', '$subtract', '$minus', '$dec'];
-const OP_MUL = [t_ops.MUL, BINARY, '$mul', '$multiply', '$times'];
-const OP_DIV = [t_ops.DIV, BINARY, '$div', '$divide'];
-const OP_MOD = [t_ops.MOD, BINARY, '$mod', '$remainder'];
+const OP_ADD = [t_ops.ADD, BINARY, '$add', '$plus', '$inc', '$+'];
+const OP_SUB = [t_ops.SUB, BINARY, '$sub', '$subtract', '$minus', '$dec', '$-'];
+const OP_MUL = [t_ops.MUL, BINARY, '$mul', '$multiply', '$times', '$*'];
+const OP_DIV = [t_ops.DIV, BINARY, '$div', '$divide', '$/'];
+const OP_MOD = [t_ops.MOD, BINARY, '$mod', '$remainder', '$%'];
+const OP_POW = [t_ops.POW, BINARY, '$pow', '$power', '$^'];
 
 //Collection operators (pure)
 const OP_KEYS = [t_ops.KEYS, UNARY, '$keys'];
@@ -106,9 +107,7 @@ config.addTransformerToMap(OP_SUM, (left) =>
     )
 );
 
-config.addTransformerToMap(OP_GET_TYPE, (left) =>
-    Array.isArray(left) ? 'array' : Number.isInteger(left) ? 'integer' : typeof left
-);
+config.addTransformerToMap(OP_GET_TYPE, (left) => typeOf(left));
 
 config.addTransformerToMap(OP_GET_BY_INDEX, (left, right) => _nth(left, right));
 config.addTransformerToMap(OP_GET_BY_KEY, (left, right) => _get(left, right));
@@ -186,6 +185,7 @@ config.addTransformerToMap(OP_SUB, (left, right) => left - right);
 config.addTransformerToMap(OP_MUL, (left, right) => left * right);
 config.addTransformerToMap(OP_DIV, (left, right) => left / right);
 config.addTransformerToMap(OP_MOD, (left, right) => left % right);
+config.addTransformerToMap(OP_POW, (left, right) => left ** right);
 
 config.addTransformerToMap(OP_KEYS, (left) => _keys(left));
 config.addTransformerToMap(OP_VALUES, (left) => _values(left));

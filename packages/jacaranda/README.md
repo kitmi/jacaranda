@@ -2,6 +2,8 @@
 
 ## JavaScript Application Framework
 
+`@kitmi/jacaranda` is a rich-feature JavaScript CLI application and http server application framework with plugable features. It supports to run by both `node.js` and `bun.sh`, and switch between `koa.js` (stable) and `hono.js` (high performance) as the http engine freely.
+
 ## Philosophy
 
 -   Every top-level node in the configuration file is a feature.

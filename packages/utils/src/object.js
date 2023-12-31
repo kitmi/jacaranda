@@ -3,6 +3,7 @@ export { default as diff } from './diff';
 export { default as take } from './take';
 export { default as pushIntoBucket } from './pushIntoBucket';
 export { default as get } from './get';
+export { default as getBy } from './getBy';
 export { default as set } from './set';
 export { default as cowSet } from './cowSet';
 export { default as objectToArray } from './objectToArray';

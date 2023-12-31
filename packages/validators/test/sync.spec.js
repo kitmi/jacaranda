@@ -5,7 +5,7 @@ describe('all sync', function () {
         (() =>
             Types.OBJECT.sanitize(
                 { a: 1 },
-                { schema: { a: { type: 'number', mod: [['~jsv', { $gt: 2 }]] } } }
+                { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } }
             )).should.Throw('"a" must be greater than 2.');
     });
 
@@ -13,7 +13,7 @@ describe('all sync', function () {
         (() =>
             Types.OBJECT.sanitize(
                 { a: 1 },
-                { schema: { a: { type: 'number', mod: [['~jsv', { $gt: 2 }]] } } },
+                { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } },
                 { locale: 'zh-CN' }
             )).should.Throw('"a" 的数值必须大于 2。');
     });
@@ -23,7 +23,7 @@ describe('all sync', function () {
             // key1 field's value should be an integer within the range from 10 to 30
             key1: {
                 type: 'integer',
-                mod: [
+                post: [
                     ['~max', 30],
                     ['~min', 10],
                 ],
@@ -31,14 +31,14 @@ describe('all sync', function () {
             // key2 field's value should be an integer within the range from 20 to 30
             key2: {
                 type: 'integer',
-                mod: [
+                post: [
                     ['~max', 20],
                     ['~min', 10],
                 ],
             },
         },
         optional: true,
-        mod: [
+        post: [
             {
                 // the object as a whole should match the jsonv expression below, ~jsv === ~jsonv
                 name: '~jsv',

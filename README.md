@@ -7,7 +7,7 @@
 ## Packages
 
 - `@kitmi/jacaranda`
-    - A rich-featured JavaScript CLI application and http server application framework with plugable features. It supports to run by both `node.js` and `bun.sh`, and switch between `koa.js` (stable) and `hono.js` (high performance) as the http engine freely.
+    - A rich-feature JavaScript CLI application and http server application framework with plugable features. It supports to run by both `node.js` and `bun.sh`, and switch between `koa.js` (stable) and `hono.js` (high performance) as the http engine freely.
     - See [Manual](https://kitmi.github.io/jacaranda/@kitmi/jacaranda/index.html)
 
 - `@kitmi/validators`

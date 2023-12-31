@@ -66,21 +66,21 @@ const result = validator.sanitize(obj, {
     schema: {
         key1: {
             type: 'integer',
-            mod: [
+            post: [
                 ['~max', 30],
                 ['~min', 10],
             ],
         },
         key2: {
             type: 'integer',
-            mod: [
+            post: [
                 ['~max', 20],
                 ['~min', 10],
             ],
         },
     },
     optional: true,
-    mod: [
+    post: [
         {
             name: '~jsv',
             options: {

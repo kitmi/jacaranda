@@ -28,7 +28,7 @@ describe.skip('Jxs:extension', function () {
             'intKey': { type: 'integer' },
             'intKey2': { type: 'integer', optional: true, 'default': 200 },
             'strKey': { type: 'text' },
-            'arrayKey': { type: 'array', 'elementSchema': {
+            'arrayKey': { type: 'array', 'element': {
                 type: 'object', schema: {
                     key1: { type: 'text' },
                     key2: { type: 'boolean' },

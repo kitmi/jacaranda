@@ -11,7 +11,7 @@ export default {
             {
                 schema: {
                     trustProxy: { type: 'boolean', optional: true },
-                    subdomainOffset: { type: 'integer', optional: true, mod: [['~min', 2]] },
+                    subdomainOffset: { type: 'integer', optional: true, post: [['~min', 2]] },
                     port: { type: 'integer', optional: true, default: 2331 },
                     keys: [
                         {
@@ -20,8 +20,8 @@ export default {
                         {
                             type: 'array',
                             optional: true,
-                            elementSchema: { type: 'text' },
-                            mod: [['~minLength', 1]],
+                            element: { type: 'text' },
+                            post: [['~minLength', 1]],
                         },
                     ],
                 },

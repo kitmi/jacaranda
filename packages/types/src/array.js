@@ -32,8 +32,8 @@ class T_ARRAY {
         }
 
         if (Array.isArray(value)) {
-            if (meta.elementSchema) {
-                const schema = typeof meta.elementSchema === 'function' ? meta.elementSchema() : meta.elementSchema;
+            if (meta.element) {
+                const schema = typeof meta.element === 'function' ? meta.element() : meta.element;
 
                 return value.map((a, i) => this.system.sanitize(a, schema, opts.i18n, padLeft(`[${i}]`, opts.path)));
             }
@@ -63,8 +63,8 @@ class T_ARRAY {
         }
 
         if (Array.isArray(value)) {
-            if (meta.elementSchema) {
-                const schema = typeof meta.elementSchema === 'function' ? meta.elementSchema() : meta.elementSchema;
+            if (meta.element) {
+                const schema = typeof meta.element === 'function' ? meta.element() : meta.element;
 
                 return batchAsync_(value, (a, i) => this.system.sanitize_(a, schema, opts.i18n, padLeft(`[${i}]`, opts.path)));
             }

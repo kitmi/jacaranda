@@ -40,7 +40,7 @@ describe('post process', () => {
     it('async array', async () => {
         const schema = {
             type: 'array',
-            elementSchema: {
+            element: {
                 type: 'text',
                 modifiers: [
                     async (value, meta, opts) => {

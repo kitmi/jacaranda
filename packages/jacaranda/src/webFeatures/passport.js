@@ -37,7 +37,7 @@ export default {
                     schema: {
                         strategies: {
                             type: 'array',
-                            elementSchema: { type: 'text' },
+                            element: { type: 'text' },
                         },
                         useSession: { type: 'bool', default: false },
                         init: { type: 'object', optional: true },

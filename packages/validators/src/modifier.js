@@ -89,13 +89,13 @@ function createModifier(modifierItem, handlers) {
 }
 
 const applyModifiers = (value, meta, context) =>
-    meta.mod.reduce((_value, modifier) => {
+    meta.post.reduce((_value, modifier) => {
         const [handler, options] = createModifier(modifier, context.system.handlers);
         return handler(_value, options, meta, context);
     }, value);
 
 const applyModifiers_ = async (value, meta, context) => {
-    await eachAsync_(meta.mod, async (modifier) => {
+    await eachAsync_(meta.post, async (modifier) => {
         const [handler, options] = createModifier(modifier, context.system.handlers);
         value = await handler(value, options, meta, context);
     });
@@ -104,7 +104,7 @@ const applyModifiers_ = async (value, meta, context) => {
 };
 
 export const postProcess_ = async (value, meta, opts) => {
-    if (meta.mod) {
+    if (meta.post) {
         value = await applyModifiers_(value, meta, opts);
     }
 
@@ -112,7 +112,7 @@ export const postProcess_ = async (value, meta, opts) => {
 };
 
 export const postProcess = (value, meta, opts) => {
-    if (meta.mod) {
+    if (meta.post) {
         value = applyModifiers(value, meta, opts);
     }
 

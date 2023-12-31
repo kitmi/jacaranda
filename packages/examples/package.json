@@ -19,9 +19,7 @@
             "require": "./cjs/**/*.js"
         }
     },
-    "publishConfig": {
-        "access": "public"
-    },
+    "private": true,
     "author": "Rockie Guo <rockie@kitmi.com.au>",
     "repository": {
         "type": "git",
