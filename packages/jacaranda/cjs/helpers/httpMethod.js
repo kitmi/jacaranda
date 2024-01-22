@@ -31,7 +31,7 @@ const _types = require("@kitmi/types");
  * Decorator for http method
  * @param {*} method
  * @param {*} middlewares
- * @returns
+ * @returns {Function}
  */ function httpMethod(method, middlewares) {
     if (arguments.length === 3) {
         return httpMethod('get')(...Array.prototype.slice.call(arguments));

@@ -2,8 +2,8 @@ import http from 'node:http';
 import { _, toBoolean, text } from '@kitmi/utils';
 
 class KoaEngine {
-    constructor(app) {
-        this.app = app;
+    constructor(appModule) {
+        this.app = appModule;
     }
 
     async init_(config) {
@@ -11,38 +11,40 @@ class KoaEngine {
         const mounter = await this.app.tryRequire_('koa-mount');
         const Router = await this.app.tryRequire_('@koa/router');
 
-        //create a koa instance and inject the appModule instance in the first middleware
-        const createEngine = (engineWrapper) => {
-            const koa = new Koa();
+        const koa = new Koa();
+
+        //create a module router
+        this.createModuleRouter = (appModule) => {
+            console.log('createModuleRouter', appModule.name);
+
+            const moduleEngine = new KoaEngine(appModule);
+            const _koa = new Koa();
 
             //inject the appModule instance in the first middleware
-            koa.use((ctx, next) => {
-                ctx.appModule = engineWrapper.app;
+            _koa.use((ctx, next) => {
+                ctx.module = appModule;
                 return next();
             });
 
-            return koa;
-        };
-
-        //create a sub engine instance and inject the appModule instance in the first middleware
-        this.createSubEngine = (subApp) => {
-            const subEngineWrapper = new KoaEngine(subApp);
-            subEngineWrapper.koa = createEngine(subEngineWrapper);
+            moduleEngine.koa = _koa;
+            return moduleEngine;
         };
 
         //create a router instance
         this.createRouter = (baseRoute) => {
+            console.log('createRouter', baseRoute);
+
             return !baseRoute || baseRoute === '/'
                 ? new Router()
                 : new Router({ prefix: text.dropIfEndsWith(baseRoute, '/') });
         };
 
         //mount a sub engine instance
-        this.mount = (route, childApp) => {
-            this.koa.use(mounter(route, childApp.engine.koa));
+        this.mount = (route, moduleRouter) => {
+            this.koa.use(mounter(route, moduleRouter.koa));
         };
 
-        this.koa = createEngine(this);
+        this.koa = koa;
         this._initialize(config);
     }
 
@@ -60,13 +62,13 @@ class KoaEngine {
         }
 
         koa.on('error', (err, ctx) => {
-            const info = { err, app: ctx.appModule.name };
+            const info = { err, app: ctx.module.name };
 
             if (err.status && err.status < 500) {
                 if (ctx.log) {
                     ctx.log.warn(info);
                 } else {
-                    ctx.appModule.log('warn', 'REQUEST ERROR', info);
+                    ctx.module.log('warn', 'REQUEST ERROR', info);
                 }
 
                 return;
@@ -75,7 +77,7 @@ class KoaEngine {
             if (ctx.log) {
                 ctx.log.error(info);
             } else {
-                ctx.appModule.log('error', 'SERVER ERROR', info);
+                ctx.module.log('error', 'SERVER ERROR', info);
             }
         });
 

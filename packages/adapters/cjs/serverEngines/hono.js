@@ -9,62 +9,98 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _utils = require("@kitmi/utils");
-let HTTPException;
 class HonoEngine {
     async init_(config) {
-        const Hono = await this.server.tryRequire_('hono');
-        if (!HTTPException) {
-            const { HTTPException: _HTTPException } = await this.server.tryRequire_('hono/http-exception');
-            HTTPException = _HTTPException;
-        }
-        this.engineType = Hono;
-        this.engine = new Hono();
-        this._initialize(config ?? {});
-    }
-    async _initialize_(options) {
-        const port = options.httpPort || 2331;
-        if (typeof Bun !== 'undefined') {
-            // this code will only run when the file is run with Bun
-            this.server.on('ready', ()=>{
-                const httpServer = Bun.serve({
-                    port,
-                    fetch: this.engine.fetch
-                });
-                this._ready(httpServer);
+        const { Hono } = await this.app.tryRequire_('hono');
+        //create a hono instance and inject the appModule instance in the first middleware
+        const createEngine = (engineWrapper)=>{
+            const hono = new Hono();
+            //inject the appModule instance in the first middleware
+            hono.use((ctx, next)=>{
+                ctx.app = engineWrapper.app;
+                return next();
             });
-        } else {
-            const { serve } = await this.server.tryRequire_('@hono/node-server');
-            server.on('ready', ()=>{
-                const httpServer = serve({
-                    port,
-                    fetch: this.engine.fetch
-                });
-                this._ready(httpServer);
+            return hono;
+        };
+        //create an engine instance for a module
+        this.createModuleEngine = (subApp)=>{
+            const subEngineWrapper = new KoaEngine(subApp);
+            subEngineWrapper.koa = createEngine(subEngineWrapper);
+        };
+        //create a router instance
+        this.createRouter = (baseRoute)=>{
+            return !baseRoute || baseRoute === '/' ? new Router() : new Router({
+                prefix: text.dropIfEndsWith(baseRoute, '/')
             });
-        }
+        };
+        //mount a sub engine instance
+        this.mount = (route, childApp)=>{
+            this.hono.use(mounter(route, childApp.engine.koa));
+        };
+        this.hono = createEngine(this);
+        this._initialize(config);
     }
-    _ready(httpServer) {
-        this.server.httpServer = httpServer;
-        this.server.host = httpServer.hostname;
-        this.server.port = httpServer.port;
-        this.server.log('info', `A hono http service is listening on port [${httpServer.port}] ...`);
-        /**
-         * Http server ready event
-         * @event WebServer#httpReady
-         */ this.server.emit_('httpReady', this.server);
+    _initialize(options) {
+        const koa = this.hono;
+        const server = this.app;
+        koa.proxy = options.trustProxy && toBoolean(options.trustProxy);
+        if (options.subdomainOffset != null) {
+            koa.subdomainOffset = options.subdomainOffset;
+        }
+        if (options.keys) {
+            koa.keys = _utils._.castArray(options.keys);
+        }
+        koa.on('error', (err, ctx)=>{
+            const info = {
+                err,
+                app: ctx.app.name
+            };
+            if (err.status && err.status < 500) {
+                if (ctx.log) {
+                    ctx.log.warn(info);
+                } else {
+                    ctx.app.log('warn', 'REQUEST ERROR', info);
+                }
+                return;
+            }
+            if (ctx.log) {
+                ctx.log.error(info);
+            } else {
+                ctx.app.log('error', 'SERVER ERROR', info);
+            }
+        });
+        server.httpServer = http.createServer(koa.callback());
+        let port = options.port;
+        server.on('ready', async ()=>{
+            return new Promise((resolve, reject)=>{
+                server.httpServer.listen(port, function(err) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    let address = server.httpServer.address();
+                    let host;
+                    if (address.family === 'IPv6' && address.address === '::') {
+                        host = '127.0.0.1';
+                    } else {
+                        host = address.address;
+                    }
+                    server.host = `${host}:${address.port}`;
+                    server.port = address.port;
+                    server.log('info', `A koa http service is listening on port [${address.port}] ...`);
+                    resolve();
+                });
+            });
+        });
     }
     use(middleware) {
-        this.engine.use(middleware);
+        this.hono.use(middleware);
     }
     attach(router) {
-        this.engine.use(router.routes());
-        this.engine.use(router.allowedMethods());
+        this.hono.use(router.routes());
+        this.hono.use(router.allowedMethods());
     }
-    mount(route, childApp) {
-        this.engine.route(route, childApp.engine);
-    }
-    constructor(server1){
-        this.server = server1;
+    constructor(app){
+        this.app = app;
     }
 }
 const _default = HonoEngine;

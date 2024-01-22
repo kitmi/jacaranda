@@ -93,25 +93,25 @@ function createModifier(modifierItem, handlers) {
         options
     ];
 }
-const applyModifiers = (value, meta, context)=>meta.mod.reduce((_value, modifier)=>{
+const applyModifiers = (value, meta, context)=>meta.post.reduce((_value, modifier)=>{
         const [handler, options] = createModifier(modifier, context.system.handlers);
         return handler(_value, options, meta, context);
     }, value);
 const applyModifiers_ = async (value, meta, context)=>{
-    await (0, _utils.eachAsync_)(meta.mod, async (modifier)=>{
+    await (0, _utils.eachAsync_)(meta.post, async (modifier)=>{
         const [handler, options] = createModifier(modifier, context.system.handlers);
         value = await handler(value, options, meta, context);
     });
     return value;
 };
 const postProcess_ = async (value, meta, opts)=>{
-    if (meta.mod) {
+    if (meta.post) {
         value = await applyModifiers_(value, meta, opts);
     }
     return value;
 };
 const postProcess = (value, meta, opts)=>{
-    if (meta.mod) {
+    if (meta.post) {
         value = applyModifiers(value, meta, opts);
     }
     return value;

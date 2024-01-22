@@ -74,7 +74,7 @@ function _interop_require_default(obj) {
             await app.addRoute_(router, 'put', singleUrl, (ctx)=>controller.update(ctx));
         }
         if ((0, _utils.hasMethod)(controller, 'remove')) {
-            await app.addRoute_(router, 'del', singleUrl, (ctx)=>controller.remove(ctx));
+            await app.addRoute_(router, 'delete', singleUrl, (ctx)=>controller.remove(ctx));
         }
     });
     app.addRouter(router);

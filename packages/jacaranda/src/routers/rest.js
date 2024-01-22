@@ -80,7 +80,7 @@ const restRouter = async (app, baseRoute, options) => {
         }
 
         if (hasMethod(controller, 'remove')) {
-            await app.addRoute_(router, 'del', singleUrl, (ctx) => controller.remove(ctx));
+            await app.addRoute_(router, 'delete', singleUrl, (ctx) => controller.remove(ctx));
         }
     });
 

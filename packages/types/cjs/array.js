@@ -49,8 +49,8 @@ class T_ARRAY {
             }
         }
         if (Array.isArray(value)) {
-            if (meta.elementSchema) {
-                const schema = typeof meta.elementSchema === 'function' ? meta.elementSchema() : meta.elementSchema;
+            if (meta.element) {
+                const schema = typeof meta.element === 'function' ? meta.element() : meta.element;
                 return value.map((a, i)=>this.system.sanitize(a, schema, opts.i18n, (0, _padding.padLeft)(`[${i}]`, opts.path)));
             }
             return value;
@@ -77,8 +77,8 @@ class T_ARRAY {
             }
         }
         if (Array.isArray(value)) {
-            if (meta.elementSchema) {
-                const schema = typeof meta.elementSchema === 'function' ? meta.elementSchema() : meta.elementSchema;
+            if (meta.element) {
+                const schema = typeof meta.element === 'function' ? meta.element() : meta.element;
                 return (0, _batchAsync_.default)(value, (a, i)=>this.system.sanitize_(a, schema, opts.i18n, (0, _padding.padLeft)(`[${i}]`, opts.path)));
             }
             return value;

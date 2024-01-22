@@ -21,18 +21,51 @@ const _default = {
         '@hono/node-server'
     ],
     load_: async function(app, options, name) {
-        const hono = await app.tryRequire_('hono');
-        const service = {
-            detect_: async (text)=>{
-                const { reliable, languages } = await cld.detect(text);
-                return {
-                    reliable,
-                    name: languages[0]?.name ?? 'unknown',
-                    code: languages[0]?.code ?? 'unknown'
-                };
+        options = server.featureConfig(options ?? {}, {
+            schema: {
+                trustProxy: {
+                    type: 'boolean',
+                    optional: true
+                },
+                subdomainOffset: {
+                    type: 'integer',
+                    optional: true,
+                    post: [
+                        [
+                            '~min',
+                            2
+                        ]
+                    ]
+                },
+                port: {
+                    type: 'integer',
+                    optional: true,
+                    default: 2331
+                },
+                keys: [
+                    {
+                        type: 'text'
+                    },
+                    {
+                        type: 'array',
+                        optional: true,
+                        element: {
+                            type: 'text'
+                        },
+                        post: [
+                            [
+                                '~minLength',
+                                1
+                            ]
+                        ]
+                    }
+                ]
             }
-        };
-        app.registerService(name, service);
+        }, name);
+        const { hono: HonoEngine } = server.tryRequire('@kitmi/adapters');
+        server.addMiddlewaresRegistry({});
+        server.engine = new HonoEngine(server);
+        await server.engine.init_(options);
     }
 };
 

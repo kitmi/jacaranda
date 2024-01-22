@@ -241,7 +241,12 @@ const Routable = (T)=>{
          * Attach a router to this app module, skipped while the server running in deaf mode
          * @param {Router} nestedRouter
          */ addRouter(nestedRouter, baseRoute) {
-            this.engine.attach(nestedRouter, baseRoute);
+            if (this.router == null) {
+                // if mount to server level
+                this.router = this.engine.createModuleRouter(this);
+                this.engine.mount('/', this.router);
+            }
+            this.router.attach(nestedRouter, baseRoute);
             return this;
         }
         /**

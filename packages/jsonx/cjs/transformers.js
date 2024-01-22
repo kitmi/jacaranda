@@ -155,7 +155,8 @@ const OP_ADD = [
     BINARY,
     '$add',
     '$plus',
-    '$inc'
+    '$inc',
+    '$+'
 ];
 const OP_SUB = [
     _transformerOperators.default.SUB,
@@ -163,26 +164,37 @@ const OP_SUB = [
     '$sub',
     '$subtract',
     '$minus',
-    '$dec'
+    '$dec',
+    '$-'
 ];
 const OP_MUL = [
     _transformerOperators.default.MUL,
     BINARY,
     '$mul',
     '$multiply',
-    '$times'
+    '$times',
+    '$*'
 ];
 const OP_DIV = [
     _transformerOperators.default.DIV,
     BINARY,
     '$div',
-    '$divide'
+    '$divide',
+    '$/'
 ];
 const OP_MOD = [
     _transformerOperators.default.MOD,
     BINARY,
     '$mod',
-    '$remainder'
+    '$remainder',
+    '$%'
+];
+const OP_POW = [
+    _transformerOperators.default.POW,
+    BINARY,
+    '$pow',
+    '$power',
+    '$^'
 ];
 //Collection operators (pure)
 const OP_KEYS = [
@@ -349,7 +361,7 @@ _config.default.addTransformerToMap(OP_SUM, (left)=>(0, _reduce.default)(left, (
         sum += item;
         return sum;
     }, 0));
-_config.default.addTransformerToMap(OP_GET_TYPE, (left)=>Array.isArray(left) ? 'array' : Number.isInteger(left) ? 'integer' : typeof left);
+_config.default.addTransformerToMap(OP_GET_TYPE, (left)=>(0, _types.typeOf)(left));
 _config.default.addTransformerToMap(OP_GET_BY_INDEX, (left, right)=>(0, _nth.default)(left, right));
 _config.default.addTransformerToMap(OP_GET_BY_KEY, (left, right)=>(0, _utils.get)(left, right));
 _config.default.addTransformerToMap(OP_FIND_INDEX, (left, right, context1)=>{
@@ -412,6 +424,7 @@ _config.default.addTransformerToMap(OP_SUB, (left, right)=>left - right);
 _config.default.addTransformerToMap(OP_MUL, (left, right)=>left * right);
 _config.default.addTransformerToMap(OP_DIV, (left, right)=>left / right);
 _config.default.addTransformerToMap(OP_MOD, (left, right)=>left % right);
+_config.default.addTransformerToMap(OP_POW, (left, right)=>left ** right);
 _config.default.addTransformerToMap(OP_KEYS, (left)=>(0, _keys.default)(left));
 _config.default.addTransformerToMap(OP_VALUES, (left)=>(0, _values.default)(left));
 _config.default.addTransformerToMap(OP_ENTRIES, (left)=>(0, _map.default)(left, (value, key)=>[

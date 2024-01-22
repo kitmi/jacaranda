@@ -44,10 +44,10 @@ function _interop_require_default(obj) {
  *  /:resource/:id                 get            findOne
  *  /:resource/:id                 patch          updateOne
  *  /:resource/:id                 put            replaceOne
- *  /:resource/:id                 del            deleteOne 
+ *  /:resource/:id                 delete         deleteOne 
  *  /:resource                     put            replaceMany
  *  /:resource                     patch          updateMany
- *  /:resource                     del            deleteMany
+ *  /:resource                     delete         deleteMany
  */ const jaRestRouter = async (app, baseRoute, options)=>{
     let router = app.engine.createRouter(baseRoute);
     let resourcePath = _nodepath.default.resolve(app.sourcePath, options.$controllerPath || 'resources');
@@ -99,11 +99,11 @@ function _interop_require_default(obj) {
         await addRoute_('create', 'post');
         await addRoute_('replaceMany', 'put');
         await addRoute_('updateMany', 'patch');
-        await addRoute_('deleteMany', 'del');
+        await addRoute_('deleteMany', 'delete');
         await addRouteWithId_('findOne', 'get');
         await addRouteWithId_('replaceOne', 'put');
         await addRouteWithId_('updateOne', 'patch');
-        await addRouteWithId_('deleteOne', 'del');
+        await addRouteWithId_('deleteOne', 'delete');
     });
     app.addRouter(router);
 };

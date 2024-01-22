@@ -1,1 +1,1 @@
-{"version":3,"sources":["../../src/serverEngines/index.js"],"sourcesContent":["export { default as koa } from './koa';\n"],"names":["koa"],"mappings":";;;;+BAAoBA;;;eAAAA,YAAG;;;4DAAQ"}
+{"version":3,"sources":["../../src/serverEngines/index.js"],"sourcesContent":["export { default as koa } from './koa';\nexport { default as hono } from './hono';\n"],"names":["hono","koa"],"mappings":";;;;;;;;;;;IACoBA,IAAI;eAAJA,aAAI;;IADJC,GAAG;eAAHA,YAAG;;;4DAAQ;6DACC"}

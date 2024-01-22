@@ -26,6 +26,7 @@ const SUB = 'sub';
 const MUL = 'mul';
 const DIV = 'div';
 const MOD = 'mod';
+const POW = 'pow';
 //Collection operators (pure)
 const KEYS = 'keys';
 const VALUES = 'values';
@@ -71,6 +72,7 @@ const _default = {
     MUL,
     DIV,
     MOD,
+    POW,
     KEYS,
     VALUES,
     ENTRIES,

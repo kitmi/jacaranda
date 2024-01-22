@@ -103,7 +103,7 @@ const _default = {
                 },
                 log: {
                     type: 'array',
-                    elementSchema: {
+                    element: {
                         type: 'text'
                     },
                     optional: true

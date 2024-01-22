@@ -35,7 +35,7 @@ const _default = {
                 subdomainOffset: {
                     type: 'integer',
                     optional: true,
-                    mod: [
+                    post: [
                         [
                             '~min',
                             2
@@ -54,10 +54,10 @@ const _default = {
                     {
                         type: 'array',
                         optional: true,
-                        elementSchema: {
+                        element: {
                             type: 'text'
                         },
-                        mod: [
+                        post: [
                             [
                                 '~minLength',
                                 1
