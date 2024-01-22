@@ -27,23 +27,15 @@ function _interop_require_default(obj) {
         default: obj
     };
 }
-const DEFAULT_LOCALE = 'en';
 function getUnmatchedExplanation(op, leftValue, rightValue, context) {
-    if (context.$$E) {
-        return context.$$E;
+    if (context.ERROR) {
+        return context.ERROR;
     }
-    let getter;
-    if (context.config.messages.validationErrors) {
-        getter = context.config.messages.validationErrors[op];
-    } else {
-        let locale = context.locale || DEFAULT_LOCALE;
-        if (!context.config.supportedLocales.has(locale)) {
-            locale = DEFAULT_LOCALE;
-        }
-        const messages = (0, _utils.esmCheck)(require('./locale/' + locale));
-        getter = messages.validationErrors[op];
+    const formatter = context.config.messages.validationErrors?.[op];
+    if (formatter == null) {
+        throw new Error('Missing validation error formatter for operator: ' + op);
     }
-    return getter(context.name, leftValue, rightValue, context);
+    return formatter(context.name, leftValue, rightValue, context);
 }
 function test(left, op, right, options, context) {
     const handler = context.config.getValidator(op);
@@ -112,7 +104,7 @@ function test(left, op, right, options, context) {
                 op = _validateOperators.default.EQUAL;
             }
         }
-        if (!test(left, op, opValue, _options, _context)) {
+        if (test(left, op, opValue, _options, _context) !== true) {
             if (asPredicate) {
                 return false;
             }

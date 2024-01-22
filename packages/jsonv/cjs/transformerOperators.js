@@ -15,7 +15,8 @@ const ROOT = 'root';
 const KEY = 'key';
 const VALUE_AT = 'byIndex';
 const GET_BY_KEY = 'byKey';
-const KEY_AT = 'byKey';
+const KEY_AT = 'keyAt';
+const MATCH = 'match';
 const _default = {
     THIS,
     PARENT,
@@ -23,7 +24,8 @@ const _default = {
     KEY,
     VALUE_AT,
     GET_BY_KEY,
-    KEY_AT
+    KEY_AT,
+    MATCH
 };
 
 //# sourceMappingURL=transformerOperators.js.map

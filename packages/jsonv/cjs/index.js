@@ -16,7 +16,7 @@ _export(exports, {
         return _config.default;
     },
     default: function() {
-        return _Jsvs.default;
+        return _Jsv.default;
     },
     getChildContext: function() {
         return _config.getChildContext;
@@ -31,7 +31,7 @@ _export(exports, {
 const _config = /*#__PURE__*/ _interop_require_wildcard(require("./config"));
 const _validateOperators = /*#__PURE__*/ _interop_require_default(require("./validateOperators"));
 const _validate = /*#__PURE__*/ _interop_require_wildcard(require("./validate"));
-const _Jsvs = /*#__PURE__*/ _interop_require_default(require("./Jsvs"));
+const _Jsv = /*#__PURE__*/ _interop_require_default(require("./Jsv"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj

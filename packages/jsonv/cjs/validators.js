@@ -18,7 +18,7 @@ const _castArray = /*#__PURE__*/ _interop_require_default(require("lodash/castAr
 const _mapValues = /*#__PURE__*/ _interop_require_default(require("lodash/mapValues"));
 const _JsvError = /*#__PURE__*/ _interop_require_default(require("./JsvError"));
 const _validate = /*#__PURE__*/ _interop_require_wildcard(require("./validate"));
-const _config = /*#__PURE__*/ _interop_require_wildcard(require("./config"));
+const _config = /*#__PURE__*/ _interop_require_default(require("./config"));
 const _validateOperators = /*#__PURE__*/ _interop_require_default(require("./validateOperators"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
@@ -67,41 +67,7 @@ function _interop_require_wildcard(obj, nodeInterop) {
     return newObj;
 }
 const MSG = _config.default.messages;
-function evaluateWithContext(value, context1) {
-    if (value == null) {
-        return null;
-    }
-    if (context1 == null) {
-        context1 = {};
-    }
-    const type = typeof value;
-    if (type === 'string') {
-        if (value.startsWith('$$')) {
-            //get from context
-            const pos = value.indexOf('.');
-            if (pos === -1) {
-                if (!_config.contextVarKeys.has(value)) {
-                    throw new Error(MSG.SYNTAX_INVALID_CONTEXT(value));
-                }
-                return context1[value];
-            }
-            const key = value.substring(0, pos);
-            if (!_config.contextVarKeys.has(key)) {
-                throw new Error(MSG.SYNTAX_INVALID_CONTEXT(key));
-            }
-            return (0, _utils.get)(context1, value);
-        }
-        return value;
-    }
-    if (Array.isArray(value)) {
-        return value.map((item)=>evaluateWithContext(item, context1));
-    }
-    if (type === 'object') {
-        return (0, _mapValues.default)(value, (item)=>evaluateWithContext(item, context1));
-    }
-    return value;
-}
-const processRightValue = (right, context1)=>context1.jsonx && (typeof right === 'string' && right[0] === '$' || (0, _utils.isPlainObject)(right)) ? context1.jsonx(undefined, right, context1, true) : evaluateWithContext(right, context1);
+const processExprLikeValue = (exprLikeValue, context1)=>typeof exprLikeValue === 'object' && exprLikeValue.$expr != null ? context1.transform(undefined, exprLikeValue.$expr, context1) : exprLikeValue;
 //Validators [ name, ...operator alias ]
 const OP_EQUAL = [
     _validateOperators.default.EQUAL,
@@ -241,30 +207,30 @@ const OP_IF = [
     _validateOperators.default.IF,
     '$if'
 ];
-_config.default.addValidatorToMap(OP_EQUAL, (left, right, options, context1)=>(0, _isEqual.default)(left, processRightValue(right, context1)));
-_config.default.addValidatorToMap(OP_NOT_EQUAL, (left, right, options, context1)=>!(0, _isEqual.default)(left, processRightValue(right, context1)));
-_config.default.addValidatorToMap(OP_NOT, (left, ...args)=>!(0, _validate.test)(left, _validateOperators.default.MATCH, ...args));
-_config.default.addValidatorToMap(OP_GREATER_THAN, (left, right, options, context1)=>left > processRightValue(right, context1));
-_config.default.addValidatorToMap(OP_GREATER_THAN_OR_EQUAL, (left, right, options, context1)=>left >= processRightValue(right, context1));
-_config.default.addValidatorToMap(OP_LESS_THAN, (left, right, options, context1)=>left < processRightValue(right, context1));
-_config.default.addValidatorToMap(OP_LESS_THAN_OR_EQUAL, (left, right, options, context1)=>left <= processRightValue(right, context1));
+_config.default.addValidatorToMap(OP_EQUAL, (left, right, options, context1)=>(0, _isEqual.default)(left, processExprLikeValue(right, context1)));
+_config.default.addValidatorToMap(OP_NOT_EQUAL, (left, right, options, context1)=>!(0, _isEqual.default)(left, processExprLikeValue(right, context1)));
+_config.default.addValidatorToMap(OP_NOT, (left, ...args)=>(0, _validate.test)(left, _validateOperators.default.MATCH, ...args) !== true);
+_config.default.addValidatorToMap(OP_GREATER_THAN, (left, right, options, context1)=>left > processExprLikeValue(right, context1));
+_config.default.addValidatorToMap(OP_GREATER_THAN_OR_EQUAL, (left, right, options, context1)=>left >= processExprLikeValue(right, context1));
+_config.default.addValidatorToMap(OP_LESS_THAN, (left, right, options, context1)=>left < processExprLikeValue(right, context1));
+_config.default.addValidatorToMap(OP_LESS_THAN_OR_EQUAL, (left, right, options, context1)=>left <= processExprLikeValue(right, context1));
 _config.default.addValidatorToMap(OP_LENGTH, (left, right, options, context1)=>(0, _validate.test)((0, _size.default)(left), _validateOperators.default.MATCH, right, options, context1));
 _config.default.addValidatorToMap(OP_IN, (left, right, options, context1)=>{
     if (right == null) {
         return false;
     }
-    right = processRightValue(right, context1);
+    right = processExprLikeValue(right, context1);
     if (!Array.isArray(right)) {
         throw new Error(MSG.OPERAND_NOT_ARRAY(_validateOperators.default.IN));
     }
     const equal = _config.default.getValidator(_validateOperators.default.EQUAL);
-    return right.find((element)=>equal(left, element, options, context1));
+    return right.findIndex((element)=>equal(left, element, options, context1)) !== -1;
 });
 _config.default.addValidatorToMap(OP_NOT_IN, (left, right, options, context1)=>{
     if (right == null) {
         return true;
     }
-    right = processRightValue(right, context1);
+    right = processExprLikeValue(right, context1);
     if (!Array.isArray(right)) {
         throw new Error(MSG.OPERAND_NOT_ARRAY(_validateOperators.default.NOT_IN));
     }
@@ -278,7 +244,7 @@ _config.default.addValidatorToMap(OP_EXISTS, (left, right)=>{
     return right ? left != null : left == null;
 });
 _config.default.addValidatorToMap(OP_REQUIRED, (left, right)=>{
-    right = processRightValue(right, context);
+    right = processExprLikeValue(right, context);
     if (typeof right !== 'boolean') {
         throw new Error(MSG.OPERAND_NOT_BOOL(_validateOperators.default.REQUIRED));
     }
@@ -305,7 +271,7 @@ _config.default.addValidatorToMap(OP_MATCH, (left, right, options, context1)=>{
                 throw new _JsvError.default(errors, left, context1.path);
             }
             if (!options.asPredicate) {
-                context1.$$E = errors.length === 1 && options.plainError ? errors[0] : errors;
+                context1.ERROR = errors.length === 1 && options.plainError ? errors[0] : errors;
             }
             return false;
         }
@@ -314,7 +280,7 @@ _config.default.addValidatorToMap(OP_MATCH, (left, right, options, context1)=>{
     const reason2 = (0, _validate.default)(left, right, options, context1);
     if (reason2 !== true) {
         if (!options.asPredicate) {
-            context1.$$E = reason2;
+            context1.ERROR = reason2;
         }
         return false;
     }
@@ -333,7 +299,7 @@ _config.default.addValidatorToMap(OP_MATCH_ANY, (left, right, options, context1)
         return reason === true;
     });
     if (!found) {
-        context1.$$E = MSG.validationErrors[_validateOperators.default.MATCH_ANY](context1.name, left, right, context1);
+        context1.ERROR = MSG.validationErrors[_validateOperators.default.MATCH_ANY](context1.name, left, right, context1);
     }
     return found ? true : false;
 });
@@ -360,7 +326,7 @@ _config.default.addValidatorToMap(OP_ALL_MATCH, (left, right, options, context1)
             throw new _JsvError.default(errors, left, context1.path);
         }
         if (!options.asPredicate) {
-            context1.$$E = errors.length === 1 && options.plainError ? errors[0] : errors;
+            context1.ERROR = errors.length === 1 && options.plainError ? errors[0] : errors;
         }
         return false;
     }
@@ -379,7 +345,7 @@ _config.default.addValidatorToMap(OP_ANY_ONE_MATCH, (left, right, options, conte
         return reason === true;
     });
     if (!found) {
-        context1.$$E = MSG.validationErrors[_validateOperators.default.ANY_ONE_MATCH](context1.name, left, right, context1);
+        context1.ERROR = MSG.validationErrors[_validateOperators.default.ANY_ONE_MATCH](context1.name, left, right, context1);
     }
     return found ? true : false;
 });
@@ -402,7 +368,7 @@ _config.default.addValidatorToMap(OP_START_WITH, (left, right, options, context1
     if (typeof left !== 'string') {
         return false;
     }
-    right = processRightValue(right, context1);
+    right = processExprLikeValue(right, context1);
     if (typeof right !== 'string') {
         throw new Error(MSG.OPERAND_NOT_STRING(_validateOperators.default.START_WITH));
     }
@@ -412,7 +378,7 @@ _config.default.addValidatorToMap(OP_END_WITH, (left, right, options, context1)=
     if (typeof left !== 'string') {
         return false;
     }
-    right = processRightValue(right, context1);
+    right = processExprLikeValue(right, context1);
     if (typeof right !== 'string') {
         throw new Error(MSG.OPERAND_NOT_STRING(_validateOperators.default.END_WITH));
     }
@@ -422,7 +388,7 @@ _config.default.addValidatorToMap(OP_MATCH_PATTERN, (left, right, options, conte
     if (typeof left !== 'string') {
         return false;
     }
-    right = processRightValue(right, context1);
+    right = processExprLikeValue(right, context1);
     let pattern = right;
     let flags;
     if (Array.isArray(right)) {
@@ -440,7 +406,7 @@ _config.default.addValidatorToMap(OP_CONTAINS, (left, right, options, context1)=
     if (typeof left !== 'string') {
         return false;
     }
-    right = processRightValue(right, context1);
+    right = processExprLikeValue(right, context1);
     if (typeof right !== 'string') {
         throw new Error(MSG.OPERAND_NOT_STRING(_validateOperators.default.CONTAINS));
     }
@@ -453,7 +419,7 @@ _config.default.addValidatorToMap(OP_SAME_AS, (left, right, options, context1)=>
     if (typeof right !== 'string') {
         throw new Error(MSG.OPERAND_NOT_STRING(_validateOperators.default.SAME_AS));
     }
-    return left === (0, _utils.get)(context1.$$P, right);
+    return left === (0, _utils.get)(context1.PARENT, right);
 });
 _config.default.addValidatorToMap(OP_IF, (left, right, options, context1)=>{
     if (!Array.isArray(right)) {
@@ -462,22 +428,14 @@ _config.default.addValidatorToMap(OP_IF, (left, right, options, context1)=>{
     if (right.length < 2 || right.length > 3) {
         throw new Error(MSG.OPERAND_NOT_TUPLE_2_OR_3(_validateOperators.default.IF));
     }
-    const condition = context1.jsonx ? context1.jsonx(left, right[0], context1, true) : (0, _validate.default)(left, right[0], {
-        abortEarly: true,
-        throwError: false,
-        asPredicate: true
-    }, context1);
-    console.log({
-        condition,
-        left,
-        right
-    });
+    const condition = processExprLikeValue(right[0], context1);
+    let result = true;
     if (condition) {
-        return (0, _validate.default)(left, right[1], options, context1);
+        result = (0, _validate.default)(left, right[1], options, context1);
     } else if (right.length > 2) {
-        return (0, _validate.default)(left, right[2], options, context1);
+        result = (0, _validate.default)(left, right[2], options, context1);
     }
-    return true;
+    return result;
 });
 const _default = _validate.default;
 

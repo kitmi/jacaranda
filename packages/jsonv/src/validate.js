@@ -1,31 +1,21 @@
 // JSON Validation Syntax
-import { get as _get, esmCheck } from '@kitmi/utils';
+import { get as _get } from '@kitmi/utils';
 import JsvError from './JsvError';
 import { initContext, getChildContext } from './config';
 import { isOperator } from './utils';
 import ops from './validateOperators';
 
-const DEFAULT_LOCALE = 'en';
-
 function getUnmatchedExplanation(op, leftValue, rightValue, context) {
-    if (context.$$E) {
-        return context.$$E;
+    if (context.ERROR) {
+        return context.ERROR;
     }
 
-    let getter;
-
-    if (context.config.messages.validationErrors) {
-        getter = context.config.messages.validationErrors[op];
-    } else {
-        let locale = context.locale || DEFAULT_LOCALE;
-        if (!context.config.supportedLocales.has(locale)) {
-            locale = DEFAULT_LOCALE;
-        }
-        const messages = esmCheck(require('./locale/' + locale));
-        getter = messages.validationErrors[op];
+    const formatter = context.config.messages.validationErrors?.[op];
+    if (formatter == null) {
+        throw new Error('Missing validation error formatter for operator: ' + op);
     }
-
-    return getter(context.name, leftValue, rightValue, context);
+    
+    return formatter(context.name, leftValue, rightValue, context);
 }
 
 /**
@@ -116,7 +106,7 @@ function validate(actual, jsv, options, context) {
             }
         }
 
-        if (!test(left, op, opValue, _options, _context)) {
+        if (test(left, op, opValue, _options, _context) !== true) {
             if (asPredicate) {
                 return false;
             }

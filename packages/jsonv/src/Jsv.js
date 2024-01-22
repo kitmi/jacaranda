@@ -1,5 +1,6 @@
 import config from './config';
 import validate from './validators';
+import transform from './transformers';
 
 /**
  * JSON Validation Syntax
@@ -17,7 +18,7 @@ class JSV {
                 plainError: true,
                 ...options,
             },
-            { config: this.config, ...context }
+            { config: this.config, transform, ...context }
         );
         if (reason === true) {
             return [true];
@@ -40,7 +41,12 @@ class JSV {
      * @returns {JSV}
      */
     match(expected) {
-        validate(this.value, expected, { throwError: true, abortEarly: true }, { config: this.constructor.config });
+        validate(
+            this.value,
+            expected,
+            { throwError: true, abortEarly: true },
+            { config: this.constructor.config, transform }
+        );
         return this;
     }
 }

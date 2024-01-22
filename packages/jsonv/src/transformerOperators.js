@@ -5,7 +5,9 @@ const ROOT = 'root';
 const KEY = 'key';
 const VALUE_AT = 'byIndex';
 const GET_BY_KEY = 'byKey';
-const KEY_AT = 'byKey';
+const KEY_AT = 'keyAt';
+
+const MATCH = 'match';
 
 export default {
     THIS,
@@ -16,4 +18,6 @@ export default {
     VALUE_AT,
     GET_BY_KEY,
     KEY_AT,
+
+    MATCH
 };

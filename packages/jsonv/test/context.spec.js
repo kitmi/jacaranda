@@ -37,11 +37,11 @@ describe.only('jsv:context', function () {
             $in: ['object', 'array', 'text'],
         },
         schema: {
-            $if: [['$$P.type', { $match: { $eq: 'object' } }], { $required: true }],
+            $if: [ { $expr: ['$parent.type', { $match: { $eq: 'object' } }] }, { $required: true }],
         },
         element: {
             $if: [
-                ['$$P.type', { $match: { $eq: 'object' } }],
+                { $expr: ['$parent.type', { $match: { $eq: 'array' } } ] },
                 [{ $required: true }, [{ type: { $in: ['text', 'integer'] } }]],
             ],
         },
@@ -65,5 +65,6 @@ describe.only('jsv:context', function () {
             }
         }, jsv);
         result[0].should.not.be.ok;
+        result[1].should.be.eql('"element" is required.');
     });
 });

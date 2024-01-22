@@ -48,14 +48,14 @@ npm install @kitmi/jsonv
 
 - **Validation with `null`**: Invoking `Jsv.match(value, null)` will always return `true`. It means the jsv is null, nothing to validate. To explicitly match `null`, use `{ $exist: false }`.
 - **Validation with Array**: Using `Jsv.match(value, [ ... ])` will validate the value against all JSV objects in the array. To check for equality with an array, use `{ $eq: [ ... ] }`. To check whether the value matches one of the element in the array, use `{ $in: [ ... ] }`.
+- **Validation with JSX**: Use { $expr:  } to wrap the value as a JSX expression
 
 ### Context Variables
 
-- **`$$`**: Represents the root value being validated.
-- **`$$C`**: Represents the current value being validated.
-- **`$$P`**: Represents the parent object of the current value being validated.
-- **`$$K`**: Represents the current key being validated.
-- **`$$E`**: Represents the error during validation.
+- **`$root`**: Represents the root value being validated.
+- **`$this`**: Represents the current value being validated.
+- **`$parent`**: Represents the parent object of the current value being validated.
+- **`$key`**: Represents the current key being validated.
 
 ### Validation Options
 

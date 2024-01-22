@@ -134,6 +134,15 @@ const PFX_REDUCE = '|+'; // reduce 1. intermediate = result op [key, value] 2. r
             return jsx;
         }
         if ((0, _utils1.isOperator)(jsx)) {
+            const arrayOp = jsx.split('.', 2);
+            if (arrayOp.length > 1 && context.config.getTransformerTagAndType(arrayOp[0]) != null) {
+                return transform(currentValue, [
+                    arrayOp[0],
+                    {
+                        $valueOf: arrayOp[1]
+                    }
+                ], context);
+            }
             const opMeta = context.config.getTransformerTagAndType(jsx);
             if (!opMeta) {
                 throw new Error(context.config.messages.INVALID_TRANSFORMER_OP(jsx));

@@ -10,6 +10,7 @@ Object.defineProperty(exports, "default", {
 });
 const _config = /*#__PURE__*/ _interop_require_default(require("./config"));
 const _validators = /*#__PURE__*/ _interop_require_default(require("./validators"));
+const _transformers = /*#__PURE__*/ _interop_require_default(require("./transformers"));
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -42,7 +43,8 @@ function _interop_require_default(obj) {
             throwError: true,
             abortEarly: true
         }, {
-            config: this.constructor.config
+            config: this.constructor.config,
+            transform: _transformers.default
         });
         return this;
     }
@@ -61,6 +63,7 @@ _define_property(JSV, "match", (value, jsv, options, context)=>{
         ...options
     }, {
         config: JSV.config,
+        transform: _transformers.default,
         ...context
     });
     if (reason === true) {
@@ -75,4 +78,4 @@ _define_property(JSV, "match", (value, jsv, options, context)=>{
 });
 const _default = JSV;
 
-//# sourceMappingURL=Jsvs.js.map
+//# sourceMappingURL=Jsv.js.map

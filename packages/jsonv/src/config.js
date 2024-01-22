@@ -128,7 +128,7 @@ const config = new Config();
 export const initContext = (context, currentValue) => {
     if (context == null) {
         context = {
-            config,
+            config
         };
     }
 

@@ -1,6 +1,6 @@
 // JSON Validation Syntax
 import { Types } from '@kitmi/types';
-import { isPlainObject, get as _get } from '@kitmi/utils';
+import { get as _get } from '@kitmi/utils';
 
 import _isEqual from 'lodash/isEqual';
 import _has from 'lodash/has';
@@ -11,60 +11,16 @@ import _mapValues from 'lodash/mapValues';
 import JsvError from './JsvError';
 import validate, { test } from './validate';
 
-import config, { contextVarKeys } from './config';
+import config from './config';
 
 import ops from './validateOperators';
 
 const MSG = config.messages;
 
-function evaluateWithContext(value, context) {
-    if (value == null) {
-        return null;
-    }
-
-    if (context == null) {
-        context = {};
-    }
-
-    const type = typeof value;
-
-    if (type === 'string') {
-        if (value.startsWith('$$')) {
-            //get from context
-            const pos = value.indexOf('.');
-            if (pos === -1) {
-                if (!contextVarKeys.has(value)) {
-                    throw new Error(MSG.SYNTAX_INVALID_CONTEXT(value));
-                }
-                return context[value];
-            }
-
-            const key = value.substring(0, pos);
-            if (!contextVarKeys.has(key)) {
-                throw new Error(MSG.SYNTAX_INVALID_CONTEXT(key));
-            }
-
-            return _get(context, value);
-        }
-
-        return value;
-    }
-
-    if (Array.isArray(value)) {
-        return value.map((item) => evaluateWithContext(item, context));
-    }
-
-    if (type === 'object') {
-        return _mapValues(value, (item) => evaluateWithContext(item, context));
-    }
-
-    return value;
-}
-
-const processRightValue = (right, context) =>
-    context.jsonx && ((typeof right === 'string' && right[0] === '$') || isPlainObject(right))
-        ? context.jsonx(undefined, right, context, true)
-        : evaluateWithContext(right, context);
+const processExprLikeValue = (exprLikeValue, context) =>    
+    (typeof exprLikeValue === 'object' && exprLikeValue.$expr != null)
+        ? context.transform(undefined, exprLikeValue.$expr, context)
+        : exprLikeValue;
 
 //Validators [ name, ...operator alias ]
 const OP_EQUAL = [ops.EQUAL, '$eq', '$eql', '$equal', '$being'];
@@ -94,22 +50,25 @@ const OP_SAME_AS = [ops.SAME_AS, '$sameAs'];
 const OP_IF = [ops.IF, '$if'];
 
 config.addValidatorToMap(OP_EQUAL, (left, right, options, context) =>
-    _isEqual(left, processRightValue(right, context))
+    _isEqual(left, processExprLikeValue(right, context))
 );
 config.addValidatorToMap(
     OP_NOT_EQUAL,
-    (left, right, options, context) => !_isEqual(left, processRightValue(right, context))
+    (left, right, options, context) => !_isEqual(left, processExprLikeValue(right, context))
 );
-config.addValidatorToMap(OP_NOT, (left, ...args) => !test(left, ops.MATCH, ...args));
-config.addValidatorToMap(OP_GREATER_THAN, (left, right, options, context) => left > processRightValue(right, context));
+config.addValidatorToMap(OP_NOT, (left, ...args) => test(left, ops.MATCH, ...args) !== true);
+config.addValidatorToMap(
+    OP_GREATER_THAN,
+    (left, right, options, context) => left > processExprLikeValue(right, context)
+);
 config.addValidatorToMap(
     OP_GREATER_THAN_OR_EQUAL,
-    (left, right, options, context) => left >= processRightValue(right, context)
+    (left, right, options, context) => left >= processExprLikeValue(right, context)
 );
-config.addValidatorToMap(OP_LESS_THAN, (left, right, options, context) => left < processRightValue(right, context));
+config.addValidatorToMap(OP_LESS_THAN, (left, right, options, context) => left < processExprLikeValue(right, context));
 config.addValidatorToMap(
     OP_LESS_THAN_OR_EQUAL,
-    (left, right, options, context) => left <= processRightValue(right, context)
+    (left, right, options, context) => left <= processExprLikeValue(right, context)
 );
 config.addValidatorToMap(OP_LENGTH, (left, right, options, context) =>
     test(_size(left), ops.MATCH, right, options, context)
@@ -120,14 +79,14 @@ config.addValidatorToMap(OP_IN, (left, right, options, context) => {
         return false;
     }
 
-    right = processRightValue(right, context);
+    right = processExprLikeValue(right, context);
 
     if (!Array.isArray(right)) {
         throw new Error(MSG.OPERAND_NOT_ARRAY(ops.IN));
     }
 
     const equal = config.getValidator(ops.EQUAL);
-    return right.find((element) => equal(left, element, options, context));
+    return right.findIndex((element) => equal(left, element, options, context)) !== -1;
 });
 
 config.addValidatorToMap(OP_NOT_IN, (left, right, options, context) => {
@@ -135,7 +94,7 @@ config.addValidatorToMap(OP_NOT_IN, (left, right, options, context) => {
         return true;
     }
 
-    right = processRightValue(right, context);
+    right = processExprLikeValue(right, context);
 
     if (!Array.isArray(right)) {
         throw new Error(MSG.OPERAND_NOT_ARRAY(ops.NOT_IN));
@@ -155,7 +114,7 @@ config.addValidatorToMap(OP_EXISTS, (left, right) => {
 });
 
 config.addValidatorToMap(OP_REQUIRED, (left, right) => {
-    right = processRightValue(right, context);
+    right = processExprLikeValue(right, context);
 
     if (typeof right !== 'boolean') {
         throw new Error(MSG.OPERAND_NOT_BOOL(ops.REQUIRED));
@@ -188,7 +147,7 @@ config.addValidatorToMap(OP_MATCH, (left, right, options, context) => {
             }
 
             if (!options.asPredicate) {
-                context.$$E = errors.length === 1 && options.plainError ? errors[0] : errors;
+                context.ERROR = errors.length === 1 && options.plainError ? errors[0] : errors;
             }
 
             return false;
@@ -200,7 +159,7 @@ config.addValidatorToMap(OP_MATCH, (left, right, options, context) => {
     const reason2 = validate(left, right, options, context);
     if (reason2 !== true) {
         if (!options.asPredicate) {
-            context.$$E = reason2;
+            context.ERROR = reason2;
         }
 
         return false;
@@ -220,7 +179,7 @@ config.addValidatorToMap(OP_MATCH_ANY, (left, right, options, context) => {
     });
 
     if (!found) {
-        context.$$E = MSG.validationErrors[ops.MATCH_ANY](context.name, left, right, context);
+        context.ERROR = MSG.validationErrors[ops.MATCH_ANY](context.name, left, right, context);
     }
 
     return found ? true : false;
@@ -252,7 +211,7 @@ config.addValidatorToMap(OP_ALL_MATCH, (left, right, options, context) => {
         }
 
         if (!options.asPredicate) {
-            context.$$E = errors.length === 1 && options.plainError ? errors[0] : errors;
+            context.ERROR = errors.length === 1 && options.plainError ? errors[0] : errors;
         }
 
         return false;
@@ -272,7 +231,7 @@ config.addValidatorToMap(OP_ANY_ONE_MATCH, (left, right, options, context) => {
     });
 
     if (!found) {
-        context.$$E = MSG.validationErrors[ops.ANY_ONE_MATCH](context.name, left, right, context);
+        context.ERROR = MSG.validationErrors[ops.ANY_ONE_MATCH](context.name, left, right, context);
     }
 
     return found ? true : false;
@@ -303,7 +262,7 @@ config.addValidatorToMap(OP_START_WITH, (left, right, options, context) => {
         return false;
     }
 
-    right = processRightValue(right, context);
+    right = processExprLikeValue(right, context);
 
     if (typeof right !== 'string') {
         throw new Error(MSG.OPERAND_NOT_STRING(ops.START_WITH));
@@ -317,7 +276,7 @@ config.addValidatorToMap(OP_END_WITH, (left, right, options, context) => {
         return false;
     }
 
-    right = processRightValue(right, context);
+    right = processExprLikeValue(right, context);
 
     if (typeof right !== 'string') {
         throw new Error(MSG.OPERAND_NOT_STRING(ops.END_WITH));
@@ -331,7 +290,7 @@ config.addValidatorToMap(OP_MATCH_PATTERN, (left, right, options, context) => {
         return false;
     }
 
-    right = processRightValue(right, context);
+    right = processExprLikeValue(right, context);
 
     let pattern = right;
     let flags;
@@ -355,7 +314,7 @@ config.addValidatorToMap(OP_CONTAINS, (left, right, options, context) => {
         return false;
     }
 
-    right = processRightValue(right, context);
+    right = processExprLikeValue(right, context);
 
     if (typeof right !== 'string') {
         throw new Error(MSG.OPERAND_NOT_STRING(ops.CONTAINS));
@@ -372,7 +331,7 @@ config.addValidatorToMap(OP_SAME_AS, (left, right, options, context) => {
         throw new Error(MSG.OPERAND_NOT_STRING(ops.SAME_AS));
     }
 
-    return left === _get(context.$$P, right);
+    return left === _get(context.PARENT, right);
 });
 
 config.addValidatorToMap(OP_IF, (left, right, options, context) => {
@@ -384,23 +343,17 @@ config.addValidatorToMap(OP_IF, (left, right, options, context) => {
         throw new Error(MSG.OPERAND_NOT_TUPLE_2_OR_3(ops.IF));
     }
 
-    const condition = context.jsonx
-        ? context.jsonx(left, right[0], context, true)
-        : validate(left, right[0], { abortEarly: true, throwError: false, asPredicate: true }, context);
+    const condition = processExprLikeValue(right[0], context);   
 
-    console.log({
-        condition,
-        left,
-        right
-    });
+    let result = true;
 
     if (condition) {
-        return validate(left, right[1], options, context);
+        result = validate(left, right[1], options, context);
     } else if (right.length > 2) {
-        return validate(left, right[2], options, context);
+        result = validate(left, right[2], options, context);
     }
 
-    return true;
+    return result;
 });
 
 export default validate;

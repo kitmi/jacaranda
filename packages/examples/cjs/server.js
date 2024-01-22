@@ -13,8 +13,7 @@ const server = (0, _jacaranda.serve)({
     configType: 'yaml',
     logLevel: 'verbose',
     logFeatures: true,
-    logMiddlewareRegistry: true,
-    traceMiddlewares: true
+    logMiddlewareRegistry: true
 });
 const _default = server;
 

@@ -163,9 +163,15 @@ function transform(currentValue, jsx, context, replaceLeft) {
     if (typeExpr === 'string') {
         if (replaceLeft) {
             return jsx;
-        }
+        }        
 
         if (isOperator(jsx)) {
+            const arrayOp = jsx.split('.', 2);
+            
+            if (arrayOp.length > 1 && context.config.getTransformerTagAndType(arrayOp[0]) != null) {
+                return transform(currentValue, [ arrayOp[0], { $valueOf: arrayOp[1] } ], context);
+            }
+
             const opMeta = context.config.getTransformerTagAndType(jsx);
             if (!opMeta) {
                 throw new Error(context.config.messages.INVALID_TRANSFORMER_OP(jsx));

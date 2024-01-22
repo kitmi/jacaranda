@@ -3,15 +3,23 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+Object.defineProperty(exports, "default", {
+    enumerable: true,
+    get: function() {
+        return _default;
+    }
+});
 const _utils = require("@kitmi/utils");
+const _config = /*#__PURE__*/ _interop_require_default(require("./config"));
 const _transformerOperators = /*#__PURE__*/ _interop_require_default(require("./transformerOperators"));
 const _transform = /*#__PURE__*/ _interop_require_default(require("./transform"));
+const _validate = require("./validate");
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
     };
 }
-const MSG = config.messages;
+const MSG = _config.default.messages;
 const UNARY = true;
 const BINARY = false;
 // Collection operators (pure)
@@ -61,27 +69,43 @@ const OP_KEY_AT = [
     '$keyAt',
     '$nthKey'
 ];
-config.addTransformerToMap(OP_THIS, (left, right, context)=>context.THIS);
-config.addTransformerToMap(OP_PARENT, (left, right, context)=>context.PARENT);
-config.addTransformerToMap(OP_ROOT, (left, right, context)=>context.ROOT);
-config.addTransformerToMap(OP_KEY, (left, right, context)=>context.KEY);
-config.addTransformerToMap(OP_GET_BY_INDEX, (left, right, context)=>{
+const OP_MATCH = [
+    _transformerOperators.default.MATCH,
+    BINARY,
+    '$has',
+    '$match',
+    '$all',
+    '$validate',
+    '$when'
+];
+_config.default.addTransformerToMap(OP_THIS, (left, context)=>context.THIS);
+_config.default.addTransformerToMap(OP_PARENT, (left, context)=>context.PARENT);
+_config.default.addTransformerToMap(OP_ROOT, (left, context)=>context.ROOT);
+_config.default.addTransformerToMap(OP_KEY, (left, context)=>context.KEY);
+_config.default.addTransformerToMap(OP_GET_BY_INDEX, (left, right, context)=>{
     right = (0, _transform.default)(undefined, right, context, true);
     if (right != null && !(0, _utils.isInteger)(right)) {
         throw new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.VALUE_AT));
     }
     return (0, _utils.valueAt)(left, right);
 });
-config.addTransformerToMap(OP_GET_BY_KEY, (left, right, context)=>{
+_config.default.addTransformerToMap(OP_GET_BY_KEY, (left, right, context)=>{
     right = (0, _transform.default)(undefined, right, context, true);
     return (0, _utils.getBy)(left, right, (obj, key)=>(0, _transform.default)(obj, key, context));
 });
-config.addTransformerToMap(OP_KEY_AT, (left, right, context)=>{
+_config.default.addTransformerToMap(OP_KEY_AT, (left, right, context)=>{
     right = (0, _transform.default)(undefined, right, context, true);
     if (right != null && !(0, _utils.isInteger)(right)) {
         throw new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.VALUE_AT));
     }
     return (0, _utils.keyAt)(left, right);
 });
+const matchOptions = {
+    throwError: false,
+    abortEarly: true,
+    asPredicate: true
+};
+_config.default.addTransformerToMap(OP_MATCH, (left, right, context)=>(0, _validate.test)(left, _transformerOperators.default.MATCH, right, matchOptions, context));
+const _default = _transform.default;
 
 //# sourceMappingURL=transformers.js.map
