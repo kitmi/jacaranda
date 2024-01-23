@@ -24,7 +24,7 @@
 <label for="nav-trigger" class="overlay"></label>
 
 <nav>
-    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Jvs.html">Jvs</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Jvs.html#match">match</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#getChildContext">getChildContext</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#test">test</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#validate">validate</a></span></li>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="JSV.html">JSV</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JSV.html#match">match</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#applyBinaryOperator">applyBinaryOperator</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#applyOperator">applyOperator</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#applyUnaryOperator">applyUnaryOperator</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#test">test</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#transform">transform</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#transformCollection">transformCollection</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#validate">validate</a></span></li>
 </nav>
 
 <div id="main">
@@ -40,33 +40,23 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>// JSON Validation Syntax
-import { get as _get, esmCheck } from '@kitmi/utils';
-import JsvError from './JvsError';
-import config, { getChildContext } from './config';
+import { get as _get } from '@kitmi/utils';
+import JsvError from './JsvError';
+import { initContext, getChildContext } from './config';
+import { isOperator } from './utils';
 import ops from './validateOperators';
 
-const MSG = config.messages;
-const DEFAULT_LOCALE = 'en';
-
 function getUnmatchedExplanation(op, leftValue, rightValue, context) {
-    if (context.$$ERROR) {
-        return context.$$ERROR;
+    if (context.ERROR) {
+        return context.ERROR;
     }
 
-    let getter;
-
-    if (MSG.validationErrors) {
-        getter = MSG.validationErrors[op];
-    } else {
-        let locale = context.locale || DEFAULT_LOCALE;
-        if (!config.supportedLocales.has(locale)) {
-            locale = DEFAULT_LOCALE;
-        }
-        const messages = esmCheck(require('./locale/' + locale));
-        getter = messages.validationErrors[op];
+    const formatter = context.config.messages.validationErrors?.[op];
+    if (formatter == null) {
+        throw new Error('Missing validation error formatter for operator: ' + op);
     }
-
-    return getter(context.name, leftValue, rightValue, context);
+    
+    return formatter(context.name, leftValue, rightValue, context);
 }
 
 /**
@@ -80,10 +70,10 @@ function getUnmatchedExplanation(op, leftValue, rightValue, context) {
  * @throws {Error} If the specified operator does not have a registered validator.
  */
 export function test(left, op, right, options, context) {
-    const handler = config.getValidator(op);
+    const handler = context.config.getValidator(op);
 
     if (!handler) {
-        throw new Error(MSG.INVALID_TEST_HANLDER(op));
+        throw new Error(context.config.messages.INVALID_TEST_HANLDER(op));
     }
 
     return handler(left, right, options, context);
@@ -92,65 +82,57 @@ export function test(left, op, right, options, context) {
 /**
  * Validate the given object with JSON Expression Syntax (JES)
  * @param {*} actual - The object to match
- * @param {*} jvs - Expected state in JSON Expression Syntax
+ * @param {*} jsv - Expected state in JSON Expression Syntax
  * @param {*} options - Validation options
  * @param {*} context - Validation context
  * @returns {array} - [ {boolean} matched, {string} unmatchedReason ]
  */
-function validate(actual, jvs, options, context = {}) {
-    if (jvs == null) {
+function validate(actual, jsv, options, context) {
+    if (jsv == null) {
         return true;
     }
 
-    const type = typeof jvs;
+    context = initContext(context, actual);
+
+    const type = typeof jsv;
 
     if (type === 'string') {
-        if (jvs.length === 0 || jvs[0] !== '$') {
-            throw new Error(MSG.SYNTAX_INVALID_EXPR(jvs));
+        if (!isOperator(jsv)) {
+            throw new Error(context.config.messages.SYNTAX_INVALID_EXPR(jsv));
         }
 
-        if (jvs.startsWith('$$')) {
-            return validate(actual, { $equal: jvs }, options, context);
-        }
-
-        return validate(actual, { [jvs]: null }, options, context);
+        return validate(actual, { [jsv]: null }, options, context);
     }
 
     const { throwError, abortEarly, asPredicate, plainError } = options;
 
-    if (Array.isArray(jvs)) {
-        return validate(actual, { $match: jvs }, options, context);
+    if (Array.isArray(jsv)) {
+        return validate(actual, { $match: jsv }, options, context);
     }
 
     if (type !== 'object') {
-        return validate(actual, { $equal: jvs }, options, context);
+        return validate(actual, { $equal: jsv }, options, context);
     }
 
     let { path } = context;
     const errors = [];
     const _options = !abortEarly &amp;&amp; throwError ? { ...options, throwError: false } : options;
 
-    for (let operator in jvs) {
+    for (let fieldName in jsv) {
         let op, left, _context;
 
-        const opValue = jvs[operator];
+        const opValue = jsv[fieldName];
 
-        if (
-            // $match
-            (operator.length > 1 &amp;&amp; operator[0] === '$') ||
-            // |>$all
-            (operator.length > 3 &amp;&amp; operator[0] === '|' &amp;&amp; operator[2] === '$')
-        ) {
+        if (isOperator(fieldName)) {
             //validator
-            op = config.getValidatorTag(operator);
+            op = context.config.getValidatorTag(fieldName);
             if (!op) {
-                throw new Error(MSG.UNSUPPORTED_VALIDATION_OP(operator, path));
+                throw new Error(context.config.messages.UNSUPPORTED_VALIDATION_OP(fieldName, path));
             }
 
             left = actual;
             _context = context;
         } else {
-            const fieldName = operator;
             let isComplexKey = fieldName.indexOf('.') !== -1;
 
             //pick a field and then apply manipulation
@@ -165,7 +147,7 @@ function validate(actual, jvs, options, context = {}) {
             }
         }
 
-        if (!test(left, op, opValue, _options, _context)) {
+        if (test(left, op, opValue, _options, _context) !== true) {
             if (asPredicate) {
                 return false;
             }
@@ -210,7 +192,7 @@ export default validate;
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Dec 11 2023 19:03:01 GMT+0800 (Central Standard Time) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Tue Jan 23 2024 09:02:02 GMT+0800 (Central Standard Time) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

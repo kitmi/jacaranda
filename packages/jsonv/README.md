@@ -67,6 +67,8 @@ npm install @kitmi/jsonv
 ## Usage Examples
 
 ```js
+import Jsv from '@kitmi/jsonv/bundle'; // bundled with multi-lang messages
+
 // Validate that 'key1' is greater than 1000
 Jsv.match(obj, { key1: { $gt: 1000 } });
 
@@ -75,6 +77,16 @@ Jsv.match(obj, { key4: { $exists: false } });
 
 // Validate that 'key8' has all specified keys: 'name', 'type'
 Jsv.match(obj, { key8: { $hasKeys: [ 'name', 'type' ] } });
+```
+
+Specific locale only
+```js
+import Jsv from '@kitmi/jsonv';
+import En from '@kitmi/jsonv/locale/en';
+
+Jsv.config.loadMessages('en-US', En).setLocale('en-US');
+
+Jsv.match(...);
 ```
 
 Note that the JSV framework is designed to be extensible and can be customized with additional validation rules and operators as needed. The syntax rules outlined in this document represent the core set of validation capabilities provided by the JSV framework.

@@ -3,7 +3,7 @@ import enUS from '../src/locale/en-US';
 
 Jsv.config.loadMessages('en-US', enUS).setLocale('en-US');
 
-describe.only('jsv:context', function () {
+describe('jsv:context', function () {
     const obj = {
         type: 'object',
         schema: {

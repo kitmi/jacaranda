@@ -21,6 +21,7 @@ const messages = {
             `${formatName(name, left, context)} 的數值必須小於 ${right}。`,
         [vops.LESS_THAN_OR_EQUAL]: (name, left, right, context) =>
             `${formatName(name, left, context)} 的數值不能超過 ${right}。`,
+        [vops.LENGTH]: (name, left, right, context) => `${formatName(name, left, context)} 的長度必須為 ${right}。`,
         [vops.IN]: (name, left, right, context) =>
             `${formatName(name, left, context)} 的值必須為 ${JSON.stringify(right)} 其中之一。`,
         [vops.NOT_IN]: (name, left, right, context) =>
@@ -45,10 +46,12 @@ const messages = {
         [vops.START_WITH]: (name, left, right, context) =>
             `${formatName(name, left, context)} 必須以 "${right}" 開頭。`,
         [vops.END_WITH]: (name, left, right, context) => `${formatName(name, left, context)} 必須以 "${right}" 結尾。`,
-        [vops.MATCH_PATTERN]: (name, left, right, context) => `${formatName(name, left, context)} 必須匹配 "${right}"。`,
+        [vops.MATCH_PATTERN]: (name, left, right, context) =>
+            `${formatName(name, left, context)} 必須匹配 "${right}"。`,
         [vops.CONTAINS]: (name, left, right, context) => `${formatName(name, left, context)} 必須包含 "${right}".`,
         [vops.SAME_AS]: (name, left, right, context) =>
             `${formatName(name, left, context)} 與 ${formatName(right)} 不一樣。`,
+        [vops.IF]: (name, left, right, context) => null, // error of branch should be returned in context
     },
 };
 

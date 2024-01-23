@@ -20,7 +20,7 @@ const OP_GET_BY_INDEX = [ops.VALUE_AT, BINARY, '$at', '$getByIndex', '$nth']; //
 const OP_GET_BY_KEY = [ops.GET_BY_KEY, BINARY, '$valueOf', '$getByKey']; // support key path
 const OP_KEY_AT = [ops.KEY_AT, BINARY, '$keyAt', '$nthKey'];
 
-const OP_MATCH = [ops.MATCH, BINARY, '$has', '$match', '$all', '$validate', '$when'];
+const OP_MATCH = [ops.MATCH, BINARY, '$is', '$has', '$match', '$all', '$validate', '$when'];
 
 config.addTransformerToMap(OP_THIS, (left, context) => context.THIS);
 config.addTransformerToMap(OP_PARENT, (left, context) => context.PARENT);

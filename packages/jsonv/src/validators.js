@@ -18,7 +18,7 @@ import ops from './validateOperators';
 const MSG = config.messages;
 
 const processExprLikeValue = (exprLikeValue, context) =>    
-    (typeof exprLikeValue === 'object' && exprLikeValue.$expr != null)
+    (typeof exprLikeValue === 'object' && exprLikeValue?.$expr != null)
         ? context.transform(undefined, exprLikeValue.$expr, context)
         : exprLikeValue;
 
@@ -35,7 +35,7 @@ const OP_IN = [ops.IN, '$in'];
 const OP_NOT_IN = [ops.NOT_IN, '$nin', '$notIn'];
 const OP_EXISTS = [ops.EXISTS, '$exist', '$exists', '$notNull'];
 const OP_REQUIRED = [ops.REQUIRED, '$required', '$mandatory'];
-const OP_MATCH = [ops.MATCH, '$has', '$match', '$all', '$should'];
+const OP_MATCH = [ops.MATCH, '$has', '$match', '$all', '$should', '$and'];
 const OP_MATCH_ANY = [ops.MATCH_ANY, '$any', '$or', '$either'];
 const OP_ALL_MATCH = [ops.ALL_MATCH, '$allMatch', '|>$all', '|>$match'];
 const OP_ANY_ONE_MATCH = [ops.ANY_ONE_MATCH, '$anyOneMatch', '|*$any', '|*$match', '|*$either'];
@@ -76,7 +76,7 @@ config.addValidatorToMap(OP_LENGTH, (left, right, options, context) =>
 
 config.addValidatorToMap(OP_IN, (left, right, options, context) => {
     if (right == null) {
-        return false;
+        throw new Error(MSG.OPERAND_NOT_ARRAY(ops.IN));
     }
 
     right = processExprLikeValue(right, context);
@@ -91,7 +91,7 @@ config.addValidatorToMap(OP_IN, (left, right, options, context) => {
 
 config.addValidatorToMap(OP_NOT_IN, (left, right, options, context) => {
     if (right == null) {
-        return true;
+        throw new Error(MSG.OPERAND_NOT_ARRAY(ops.NOT_IN));
     }
 
     right = processExprLikeValue(right, context);

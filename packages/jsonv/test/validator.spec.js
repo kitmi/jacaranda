@@ -152,9 +152,7 @@ describe('jsv:validator', function () {
             key21: { $neq: 'ng' },
 
             key22: { $in: ['ok', 'ng'] },
-            key23: { $nin: ['ng1', 'ng2'] },
-            key24: { $nin: null },
-            key25: { $nin: null },
+            key23: { $nin: ['ng1', 'ng2'] },            
 
             key4: { $exists: false },
         }).should.be.eql([true]);
@@ -246,7 +244,7 @@ describe('jsv:validator', function () {
             Jsvo.match({
                 key1: { $nin: 3000 },
             });
-        }, 'The right operand of a "nin" operator must be an array.');
+        }, 'The right operand of a "notIn" operator must be an array.');
 
         should.throws(() => {
             Jsvo.match({
