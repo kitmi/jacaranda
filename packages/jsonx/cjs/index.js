@@ -10,14 +10,14 @@ function _export(target, all) {
 }
 _export(exports, {
     default: function() {
-        return _Jxs.default;
+        return _Jsx.default;
     },
     transform: function() {
         return _transformers.default;
     }
 });
 const _transformers = /*#__PURE__*/ _interop_require_default(require("./transformers"));
-const _Jxs = /*#__PURE__*/ _interop_require_default(require("./Jxs"));
+const _Jsx = /*#__PURE__*/ _interop_require_default(require("./Jsx"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj

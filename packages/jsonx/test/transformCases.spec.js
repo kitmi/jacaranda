@@ -1,16 +1,18 @@
-import Jxs from '../src/bundle';
+import Jsx from '../src/bundle';
 
-describe('Jxs:cases', function () {
+describe('Jsx:cases', function () {
     it('case 1.1 - if else', function () {
         const objB = {
             value: '',
             enableShowTextForPrice: true,
         };
 
-        const result2 = Jxs.evaluate(objB, {
+        const result2 = Jsx.evaluate(objB, {
             $override: {
                 editMode: {
-                    $if: ['$$PARENT.enableShowTextForPrice', { $set: null }, { $set: 'disabled' }],
+                    $expr: {
+                        $if: ['$$PARENT.enableShowTextForPrice', { $set: null }, { $set: 'disabled' }],
+                    },
                 },
             },
         });
@@ -21,18 +23,20 @@ describe('Jxs:cases', function () {
     it('case 1.2', function () {
         const objB = {
             value: '',
-            enableShowTextForPrice: true,
+            enableShowTextForPrice: false,
         };
 
-        const result2 = Jxs.evaluate(objB, {
+        const result2 = Jsx.evaluate(objB, {
             $override: {
                 editMode: {
-                    $if: ['$$PARENT.enableShowTextForPrice', { $set: null }, { $set: 'disabled' }],
+                    $expr: {
+                        $if: ['$$PARENT.enableShowTextForPrice', { $set: null }, { $set: 'disabled' }],
+                    },
                 },
             },
         });
 
-        result2.should.be.eql({ value: '', enableShowTextForPrice: true, editMode: null });
+        result2.should.be.eql({ value: '', enableShowTextForPrice: false, editMode: 'disabled' });
     });
 
     it('case 2.1', function () {
@@ -42,11 +46,13 @@ describe('Jxs:cases', function () {
             disabled: false,
         };
 
-        const result = Jxs.evaluate(objA, {
+        const result = Jsx.evaluate(objA, {
             $override: {
                 enabled: {
-                    $match: {
-                        $exist: false,
+                    $expr: {
+                        $match: {
+                            $exist: false,
+                        },
                     },
                 },
             },
@@ -62,11 +68,13 @@ describe('Jxs:cases', function () {
             disabled: false,
         };
 
-        const result = Jxs.evaluate(objA, {
+        const result = Jsx.evaluate(objA, {
             $override: {
                 enabled: {
-                    $match: {
-                        $exist: false,
+                    $expr: {
+                        $match: {
+                            $exist: false,
+                        },
                     },
                 },
             },
@@ -104,7 +112,7 @@ describe('Jxs:cases', function () {
         ];
 
         objs.forEach((obj) => {
-            const result = Jxs.evaluate(obj, [
+            const result = Jsx.evaluate(obj, [
                 { $pick: ['isValid', 'isChanged'] },
                 '$values',
                 { $match: { '|>$all': { $being: true } } },
@@ -117,7 +125,7 @@ describe('Jxs:cases', function () {
     it('case 4.1 - string to object', function () {
         const str = 'value';
 
-        const result = Jxs.evaluate(str, {
+        const result = Jsx.evaluate(str, {
             name: '$$ROOT',
         });
 
@@ -130,7 +138,7 @@ describe('Jxs:cases', function () {
             value: 1,
         };
 
-        const result = Jxs.evaluate(obj, {
+        const result = Jsx.evaluate(obj, {
             $override: {
                 value: {
                     $match: {
@@ -149,11 +157,13 @@ describe('Jxs:cases', function () {
             value: 4,
         };
 
-        const result = Jxs.evaluate(obj, {
+        const result = Jsx.evaluate(obj, {
             $override: {
                 value: {
-                    $match: {
-                        $in: '$$ROOT.values',
+                    $expr: {
+                        $match: {
+                            $in: { $expr: '$$ROOT.values' },
+                        },
                     },
                 },
             },
@@ -165,7 +175,7 @@ describe('Jxs:cases', function () {
     it('case 6.1 - check complex condition', function () {
         const obj = { activeIndex: 0, propertyType: 'all', projectId: null };
 
-        const result = Jxs.evaluate(obj, {
+        const result = Jsx.evaluate(obj, {
             activeIndex: {
                 $if: [
                     [
@@ -200,7 +210,7 @@ describe('Jxs:cases', function () {
     it('case 6.2 - check complex condition 2', function () {
         const obj = { activeIndex: 0, propertyType: 'project', projectId: 123 };
 
-        const result = Jxs.evaluate(obj, {
+        const result = Jsx.evaluate(obj, {
             activeIndex: {
                 $if: [
                     [
@@ -235,25 +245,29 @@ describe('Jxs:cases', function () {
     it('case 7.1 - compare', function () {
         const obj = { selectedCount: 4, totalCount: 4 };
 
-        const result = Jxs.evaluate(obj, {
+        const result = Jsx.evaluate(obj, {
             $override: {
-                value: [
-                    '$$PARENT.selectedCount',
-                    {
-                        $match: {
-                            $eq: '$$PARENT.totalCount',
+                value: {
+                    $expr: [
+                        '$$PARENT.selectedCount',
+                        {
+                            $match: {
+                                $eq: { $expr: '$$PARENT.totalCount' },
+                            },
                         },
-                    },
-                ],
-                indeterminate: [
-                    '$$PARENT.selectedCount',
-                    {
-                        $match: {
-                            $lt: '$$PARENT.totalCount',
-                            $ne: 0,
+                    ],
+                },
+                indeterminate: {
+                    $expr: [
+                        '$$PARENT.selectedCount',
+                        {
+                            $match: {
+                                $lt: { $expr: '$$PARENT.totalCount' },
+                                $ne: 0,
+                            },
                         },
-                    },
-                ],
+                    ],
+                },
             },
         });
 
@@ -268,25 +282,29 @@ describe('Jxs:cases', function () {
     it('case 7.2 - compare', function () {
         const obj = { selectedCount: 2, totalCount: 4 };
 
-        const result = Jxs.evaluate(obj, {
+        const result = Jsx.evaluate(obj, {
             $override: {
-                value: [
-                    '$$PARENT.selectedCount',
-                    {
-                        $match: {
-                            $eq: '$$PARENT.totalCount',
+                value: {
+                    $expr: [
+                        '$$PARENT.selectedCount',
+                        {
+                            $match: {
+                                $eq: { $expr: '$$PARENT.totalCount' },
+                            },
                         },
-                    },
-                ],
-                indeterminate: [
-                    '$$PARENT.selectedCount',
-                    {
-                        $match: {
-                            $lt: '$$PARENT.totalCount',
-                            $ne: 0,
+                    ],
+                },
+                indeterminate: {
+                    $expr: [
+                        '$$PARENT.selectedCount',
+                        {
+                            $match: {
+                                $lt: { $expr: '$$PARENT.totalCount' },
+                                $ne: 0,
+                            },
                         },
-                    },
-                ],
+                    ],
+                },
             },
         });
 
@@ -301,25 +319,29 @@ describe('Jxs:cases', function () {
     it('case 7.3 - compare', function () {
         const obj = { selectedCount: 0, totalCount: 4 };
 
-        const result = Jxs.evaluate(obj, {
+        const result = Jsx.evaluate(obj, {
             $override: {
-                value: [
-                    '$$PARENT.selectedCount',
-                    {
-                        $match: {
-                            $eq: '$$PARENT.totalCount',
+                value: {
+                    $expr: [
+                        '$$PARENT.selectedCount',
+                        {
+                            $match: {
+                                $eq: { $expr: '$$PARENT.totalCount' },
+                            },
                         },
-                    },
-                ],
-                indeterminate: [
-                    '$$PARENT.selectedCount',
-                    {
-                        $match: {
-                            $lt: '$$PARENT.totalCount',
-                            $ne: 0,
+                    ],
+                },
+                indeterminate: {
+                    $expr: [
+                        '$$PARENT.selectedCount',
+                        {
+                            $match: {
+                                $lt: { $expr: '$$PARENT.totalCount' },
+                                $ne: 0,
+                            },
                         },
-                    },
-                ],
+                    ],
+                },
             },
         });
 
@@ -331,45 +353,27 @@ describe('Jxs:cases', function () {
         });
     });
 
-    it('case 8.1 - filter by value', function () {
-        const obj = {
-            a: true,
-            b: true,
-            c: true,
-            d: false
-        };
-
-        const result = Jxs.evaluate(obj, [
-            {
-                "$filterByValue": { $eq: true }
-            },
-            '$size'
-        ]);
-        
-        result.should.be.eql(3);
-    } );
-
     it('case 9.1 - adjust obj structure', function () {
         const obj = {
-            key1: "value1",
-            key2: "value2",
-            key3: "value3",
+            key1: 'value1',
+            key2: 'value2',
+            key3: 'value3',
             key4: {
-                key5: "value5",
-            }
+                key5: 'value5',
+            },
         };
 
-        const result = Jxs.evaluate(obj, {
+        const result = Jsx.evaluate(obj, {
             $assign: {
                 key3: undefined,
-                key4: '$$CURRENT.key5'
-            }
+                key4: { $expr: '$$CURRENT.key5' },
+            },
         });
-        
+
         result.should.be.eql({
-            key1: "value1",
-            key2: "value2",
-            key4: "value5"
+            key1: 'value1',
+            key2: 'value2',
+            key4: 'value5',
         });
-    } );
+    });
 });

@@ -1,6 +1,6 @@
-import Jxs from '../src';
+import Jsx from '../src';
 
-describe('Jxs:remap', function () {
+describe('Jsx:remap', function () {
     it('obj', function () {
         let obj = {
             'id': 1,
@@ -10,7 +10,7 @@ describe('Jxs:remap', function () {
             ':agency': { name: 'agency1', other: 'any' },
         };
 
-        let transformed = Jxs.evaluate(obj, { $remap: { user: 'username' } });
+        let transformed = Jsx.evaluate(obj, { $remap: { user: 'username' } });
         //console.log(transformed)
         transformed.should.be.eql({ username: 100 });
     });
@@ -26,7 +26,7 @@ describe('Jxs:remap', function () {
             },
         ];
 
-        let transformed = Jxs.evaluate(array, { '|>$remap': { user: 'username' } });
+        let transformed = Jsx.evaluate(array, { '|>$remap': { user: 'username' } });
         //console.log(transformed)
         transformed.should.be.eql([{ username: 100 }]);
     });
@@ -40,7 +40,7 @@ describe('Jxs:remap', function () {
             ':agency': { name: 'agency1', other: 'any' },
         };
 
-        let transformed = Jxs.evaluate(obj, { $remap: [{ user: 'username' }, true ] });
+        let transformed = Jsx.evaluate(obj, { $remap: [{ user: 'username' }, true ] });
         //console.log(transformed)
         transformed.should.be.eql({
             'id': 1,

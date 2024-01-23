@@ -1,6 +1,6 @@
 import fxargs from '../src/fxargs';
 
-describe.only('fxargs', function () {
+describe('fxargs', function () {
     it('should correctly process arguments', function () {
         function testFunction(...args) {
             return fxargs(args, ['string?', 'string?', 'function', 'object?']);

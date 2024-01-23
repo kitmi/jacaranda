@@ -24,7 +24,7 @@
 <label for="nav-trigger" class="overlay"></label>
 
 <nav>
-    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Jxs.html">Jxs</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Jxs.html#update">update</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#applyBinaryOperator">applyBinaryOperator</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#applyOperator">applyOperator</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#applyUnaryOperator">applyUnaryOperator</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#transform">transform</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#transformCollection">transformCollection</a></span></li>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="JSX.html">JSX</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JSX.html#evaluate">evaluate</a></span></li>
 </nav>
 
 <div id="main">
@@ -59,12 +59,147 @@
 </code></pre>
 <h2>Rules</h2>
 <ul>
-<li>Each jxs object can only has one $operator at a level</li>
+<li>Each jsx object can only has one $operator at a level</li>
 </ul>
+<h2>Usages</h2>
+<ul>
+<li>$size</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>Jsx.evaluate([1, 2, 3], '$size'); // 3
+</code></pre>
+<ul>
+<li>$sum</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>Jsx.evaluate([1, 2, 3], '$sum'); // 1+2+3 = 6
+</code></pre>
+<ul>
+<li>$type</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>Jsx.evaluate([1, 2, 3], '$type'); // array
+</code></pre>
+<ul>
+<li>$findIndex, $findKey</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>Jsx.evaluate([1, 2, 3], { $findIndex: { $eq: 2 } }); // 1
+Jsx.evaluate(
+    {
+        key1: 10,
+        key2: 20,
+        key3: 30,
+    },
+    { $findKey: { $eq: 20 } }
+); // 'key2'
+
+// from index
+Jsx.evaluate([1, 2, 2], { $findIndex: [{ $eq: 2 }, 2] }); // 2
+</code></pre>
+<ul>
+<li>$find</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>Jsx.evaluate([1, 3, 2], { $find: { $and: [{ $gt: 1 }, { $lt: 3 }] } }); // 2
+Jsx.evaluate(
+    {
+        key1: 10,
+        key2: 20,
+        key3: 30,
+    },
+    { $find: { $gt: 15 } }
+); // 20
+
+// from expr as index
+Jsx.evaluate(
+    {
+        key1: 1,
+        key2: 3,
+        key3: 4,
+
+        startFrom: 2,
+    },
+    { $find: [{ $gt: 1 }, { $expr: '$root.startFrom' }] }
+); // 4
+</code></pre>
+<ul>
+<li>$if</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>let obj = {
+    key1: 1.11,
+};
+
+// $if: [ &lt;condition-jsx>, &lt;then-jsx>, &lt;else-jsx> ]
+Jsx.evaluate(obj, {
+    $if: [{ $match: { key1: { $gt: 1 } } }, { $value: 'positive' }, { $value: 'non-positive' }],
+}).should.be.eql('positive');
+
+Jsx.evaluate(obj, {
+    $if: [{ $match: { key1: { $gt: 2 } } }, { $value: 'positive' }, { $value: 'non-positive' }],
+}).should.be.eql('non-positive');
+</code></pre>
+<ul>
+<li>
+<p>$castArray</p>
+</li>
+<li>
+<p>$add | $+, $sub | $-, $mul | $*, $div | $/, $mod | $%, $pow | $^</p>
+</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>Jsx.evaluate(10, { $mul: { $expr: [{ $value: 10 }, { $add: 5 }] } }); // 150
+Jsx.evaluate(10, { $mul: 15 }); // 150
+</code></pre>
+<ul>
+<li>
+<p>$keys, $values, $pairs, $filterNull</p>
+</li>
+<li>
+<p>$toArray</p>
+</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>Jsx.evaluate({ key: 'value' }, '$toArray'); // [{ name: 'key', value: 'value' }]
+Jsx.evaluate({ key: 'value' }, { $toArray: { myKey: '$key', myValue: '$this' } }); // [{ myKey: 'key', myValue: 'value' }]
+</code></pre>
+<ul>
+<li>
+<p>$pick, $omit, $group, $sort, $reverse</p>
+</li>
+<li>
+<p>$concat, $join, $merge</p>
+</li>
+<li>
+<p>$filter, $remap</p>
+</li>
+<li>
+<p>$set | $value</p>
+</li>
+<li>
+<p>$addItem | $append</p>
+</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>Jsx.evaluate([1, 2, 3], { $append: 4 }); // [1, 2, 3, 4]
+Jsx.evaluate({ key1: 1 }, { $append: ['key2', 2] }); // { key1: 1, key2: 2 }
+</code></pre>
+<ul>
+<li>$assign</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>Jsx.evaluate({ key1: 1 }, { $assign: { key2: 2 } }); // { key1: 1, key2: 2 }
+Jsx.evaluate(
+    {
+        key1: 1,
+        key2: 2,
+    },
+    {
+        $assign: {
+            key2: {
+                $expr: {
+                    $mul: 10,
+                },
+            },
+        },
+    }
+); // { key1: 1, key2: 20 }
+</code></pre>
 <h2>Wrong usage</h2>
 <pre class="prettyprint source lang-javascript"><code>// If you want to check if key1 is greater than 2, below usage is wrong
-// The first element will return { key1: false } which is treated as true, thus the result will be 'positive'
-Jxs.evaluate(
+// The first element will return { key1: false } which is treated as true, it will throw an error to avoid mistaken usage
+Jsx.evaluate(
     {
         key1: 1.5,
     },
@@ -74,7 +209,7 @@ Jxs.evaluate(
 ).should.be.eql('non-positive');
 
 // Correct usage should be
-Jxs.evaluate(
+Jsx.evaluate(
     {
         key1: 1.5,
     },
@@ -100,7 +235,7 @@ Jxs.evaluate(
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Dec 11 2023 19:03:01 GMT+0800 (Central Standard Time) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Tue Jan 23 2024 18:21:49 GMT+0800 (Central Standard Time) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

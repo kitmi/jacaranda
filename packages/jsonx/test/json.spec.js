@@ -1,6 +1,6 @@
-import Jxs from '../src';
+import Jsx from '../src';
 
-describe('jxs:json', function () {
+describe('jsx:json', function () {
     it('obj', function () {
         let obj = {
             'id': 1,
@@ -10,7 +10,7 @@ describe('jxs:json', function () {
             ':agency': { name: 'agency1', other: 'any' },
         };
 
-        let transformed = Jxs.evaluate(obj, '$json');
+        let transformed = Jsx.evaluate(obj, '$json');
         //console.log(transformed)
 
         transformed.should.be.eql(
@@ -21,7 +21,7 @@ describe('jxs:json', function () {
     it('array', function () {
         let array = [1, 2, 3];
 
-        let transformed = Jxs.evaluate(array, '$json');
+        let transformed = Jsx.evaluate(array, '$json');
         //console.log(transformed)
 
         transformed.should.be.eql('[1,2,3]');
@@ -30,14 +30,14 @@ describe('jxs:json', function () {
     it('num', function () {
         let num = 1;
 
-        let transformed = Jxs.evaluate(num, '$json');
+        let transformed = Jsx.evaluate(num, '$json');
         transformed.should.be.eql('1');
     });
 
     it('json', function () {
         let json = '{"one": 1}';
         
-        let transformed = Jxs.evaluate(json, '$object');
+        let transformed = Jsx.evaluate(json, '$object');
         //console.log(transformed)
         transformed.should.be.eql(
             {one :1}
@@ -47,7 +47,7 @@ describe('jxs:json', function () {
     it('string', function () {
         let json = 'fjiefjoa';
         
-        let transformed = Jxs.evaluate(json, '$json');
+        let transformed = Jsx.evaluate(json, '$json');
         //console.log(transformed)
         transformed.should.be.eql(
             '"fjiefjoa"'

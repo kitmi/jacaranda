@@ -47,6 +47,7 @@ export class Config {
             `The value to take a "${op}" operator must be a primitive value, e.g. string, number.`,
         VALUE_NOT_STRING: (op) => `The value to take a "${op}" operator must be a string.`,
         VALUE_NOT_OBJECT: (op) => `The value to take a "${op}" operator must be an object.`,
+        VALUE_NOT_BOOL: (op) => `The evaluated value used as the condition of a "${op}" operator must be a boolean.`,
 
         REQUIRE_RIGHT_OPERAND: (op) => `Binary operator "${op}" requires a right operand.`,
         RIGHT_OPERAND_NOT_EMPTY: (op) => `Unary operator "${op}" does not require a right operand.`,

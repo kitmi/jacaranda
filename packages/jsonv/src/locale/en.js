@@ -14,17 +14,17 @@ const messages = {
         [vops.NOT]: (name, left, right, context) =>
             `${formatName(name, left, context)} must not match ${JSON.stringify(right)}.`,
         [vops.GREATER_THAN]: (name, left, right, context) =>
-            `${formatName(name, left, context)} must be greater than ${right}.`,
+            `${formatName(name, left, context)} must be greater than ${JSON.stringify(right)}.`,
         [vops.GREATER_THAN_OR_EQUAL]: (name, left, right, context) =>
-            `${formatName(name, left, context)} must be greater than or equal to ${right}.`,
+            `${formatName(name, left, context)} must be greater than or equal to ${JSON.stringify(right)}.`,
         [vops.LESS_THAN]: (name, left, right, context) =>
-            `${formatName(name, left, context)} must be less than ${right}.`,
+            `${formatName(name, left, context)} must be less than ${JSON.stringify(right)}.`,
         [vops.LESS_THAN_OR_EQUAL]: (name, left, right, context) =>
-            `${formatName(name, left, context)} must not exceed ${right}.`,
+            `${formatName(name, left, context)} must not exceed ${JSON.stringify(right)}.`,
         [vops.LENGTH]: (name, left, right, context) =>
             `The length of ${formatName(name, left, context, {
                 lowerCase: true,
-            })} must be ${right}.`,
+            })} must be ${JSON.stringify(right)}.`,
         [vops.IN]: (name, left, right, context) =>
             `${formatName(name, left, context)} must be one of ${JSON.stringify(right)}.`,
         [vops.NOT_IN]: (name, left, right, context) =>

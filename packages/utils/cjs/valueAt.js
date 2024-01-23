@@ -25,7 +25,10 @@ function _interop_require_default(obj) {
     }
     index ??= 0;
     if ((0, _isPlainObject.default)(object)) {
-        return Object.values(object)[index];
+        object = Object.values(object);
+    }
+    if (index < 0) {
+        index = object.length + index;
     }
     return object[index];
 }

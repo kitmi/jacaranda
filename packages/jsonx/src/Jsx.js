@@ -5,9 +5,12 @@ import transform from './transformers';
  * JSON eXpression Syntax
  * @class
  */
-class Jxs {
+class JSX {
     static config = config;
-    static evaluate = transform;
+
+    static evaluate = (value, jsx, context) => {
+        return transform(value, jsx, { config: this.config, ...context });
+    };
 
     /**
      * @param {object} value
@@ -19,12 +22,12 @@ class Jxs {
     /**
      * Evaluate a JSON expression against the value and update the value
      * @param {object} - JSON operation expression
-     * @returns {Jxs}
+     * @returns {JSX}
      */
-    update(jxs) {
-        this.value = transform(this.value, jxs);
+    evaluate(jsx) {
+        this.value = transform(this.value, jsx, { config: this.constructor.config });
         return this;
     }
 }
 
-export default Jxs;
+export default JSX;

@@ -1,6 +1,6 @@
-import Jxs from '../src';
+import Jsx from '../src';
 
-describe('Jxs:setValue', function () {
+describe('Jsx:setValue', function () {
     it('obj', function () {
         let obj = {
             'id': 1,
@@ -10,7 +10,7 @@ describe('Jxs:setValue', function () {
             ':agency': { name: 'agency1', other: 'any' },
         };
 
-        let transformed = Jxs.evaluate(obj, { $set: 'new' });
+        let transformed = Jsx.evaluate(obj, { $set: 'new' });
         //console.log(typeof transformed)
         transformed.should.be.eql('new');
     });
@@ -18,20 +18,28 @@ describe('Jxs:setValue', function () {
     it('array', function () {
         let array = [1, 2, 3];
 
-        let transformed = Jxs.evaluate(array, { $set: 'new' });
+        let transformed = Jsx.evaluate(array, { $set: 'new' });
         //console.log(typeof transformed)
         transformed.should.be.eql('new');
+    });
+
+    it('set with expr', function () {
+        let array = [1, 2, 3];
+
+        let transformed = Jsx.evaluate(array, { $set: { $value: 100 } });
+        //console.log(typeof transformed)
+        transformed.should.be.eql({ $value: 100 });
     });
 
     it('num', function () {
         let num = 1;
 
-        let transformed = Jxs.evaluate(num, { $set: 'new' });
+        let transformed = Jsx.evaluate(num, { $set: 'new' });
         //console.log(typeof transformed)
         transformed.should.be.eql('new');
     });
 
-    it('obj', function () {
+    it('obj 2', function () {
         let obj = {
             'id': 1,
             'user': 100,
@@ -40,9 +48,9 @@ describe('Jxs:setValue', function () {
             ':agency': { name: 'agency1', other: 'any' },
         };
 
-        let transformed = Jxs.evaluate(obj, { 
+        let transformed = Jsx.evaluate(obj, { 
             $assign: {
-                'id': { $set: 2  }
+                'id':  2  
             }            
         });
         //console.log(typeof transformed)

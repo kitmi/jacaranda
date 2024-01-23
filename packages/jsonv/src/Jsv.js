@@ -1,6 +1,10 @@
 import config from './config';
-import validate from './validators';
-import transform from './transformers';
+import validate from './validate';
+import loadValidators from './validatorsLoader';
+import loadTransformers from './transformersLoader';
+
+loadValidators(config);
+loadTransformers(config);
 
 /**
  * JSON Validation Syntax
@@ -18,7 +22,7 @@ class JSV {
                 plainError: true,
                 ...options,
             },
-            { config: this.config, transform, ...context }
+            { config: this.config, ...context }
         );
         if (reason === true) {
             return [true];
@@ -45,7 +49,7 @@ class JSV {
             this.value,
             expected,
             { throwError: true, abortEarly: true },
-            { config: this.constructor.config, transform }
+            { config: this.constructor.config }
         );
         return this;
     }

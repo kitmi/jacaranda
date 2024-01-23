@@ -44,11 +44,29 @@ npm install @kitmi/jsonv
 - **Contains (`$contain` or `$contains`)**: Checks if the string value contains the specified substring.
 - **Same As (`$sameAs`)**: Checks if the value is the same as the value of the specified field in the parent object.
 
+### Use Expression as Operand
+
+Use { $expr:  } to wrap the value as a JSX expression
+
+```json
+{
+    $if: [
+        { $expr: [
+            '$parent.type', 
+            { $match: { $eq: 'array' } } 
+        ] }, // use an expression as condition
+        [ // then
+            { $required: true }, [{ type: { $in: ['text', 'integer'] } }]
+        ],
+        // else
+    ],
+}
+```
+
 ### Special Cases
 
 - **Validation with `null`**: Invoking `Jsv.match(value, null)` will always return `true`. It means the jsv is null, nothing to validate. To explicitly match `null`, use `{ $exist: false }`.
 - **Validation with Array**: Using `Jsv.match(value, [ ... ])` will validate the value against all JSV objects in the array. To check for equality with an array, use `{ $eq: [ ... ] }`. To check whether the value matches one of the element in the array, use `{ $in: [ ... ] }`.
-- **Validation with JSX**: Use { $expr:  } to wrap the value as a JSX expression
 
 ### Context Variables
 

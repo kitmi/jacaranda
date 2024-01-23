@@ -1,8 +1,7 @@
-import Jxs from '../src';
-const { Types } = require('@kitmi/types');
+import Jsx from '../src';
 
-describe.skip('Jxs:extension', function () {  
-    it('sanitize', function () {
+describe('Jsx:extension', function () {  
+    it('extension', function () {
         let obj = {
             'intKey': 100,
             'strKey': 'string',
@@ -22,47 +21,14 @@ describe.skip('Jxs:extension', function () {
                     boolKey: 'true'
                 }
             }
-        };
-    
-        let schema = {
-            'intKey': { type: 'integer' },
-            'intKey2': { type: 'integer', optional: true, 'default': 200 },
-            'strKey': { type: 'text' },
-            'arrayKey': { type: 'array', 'element': {
-                type: 'object', schema: {
-                    key1: { type: 'text' },
-                    key2: { type: 'boolean' },
-                }
-            } },
-            'objKey': {
-                type: 'object',
-                schema: {
-                    'objKey2': {
-                        type: 'object',
-                        schema: {
-                            intKey: { type: 'integer' },
-                            boolKey: { type: 'boolean' }
-                        }
-                    }
-                }
-            }
-        };
-
-        Jxs.config.addTransformerToMap([ 'Sanitize', false, '$sanitize' ], (left, right) => {
-            return Types.OBJECT.sanitize(left, { schema: right });
+        };    
+  
+        Jsx.config.addTransformerToMap([ 'Custom', false, '$custom' ], (left, right) => {
+            return right === 'special' ? 'special': left
         });
 
-        const sanitized = Jxs.evaluate(obj, { $sanitize: schema });
+        Jsx.evaluate(obj, { $custom: 'nothing' }).should.be.eql(obj);
+        Jsx.evaluate(obj, { $custom: 'special' }).should.be.eql('special');
 
-         let expected = {
-            intKey: 100,
-            intKey2: 200,
-            strKey: 'string',
-            arrayKey: [ { key1: 'value1', key2: false }, { key1: 'value2', key2: true } ],
-            objKey: { objKey2: { intKey: 1, boolKey: true } }
-        };
-        
-        //a.should.be.eql(1);
-        sanitized.should.be.eql(expected);
     })
 });

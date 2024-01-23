@@ -4,6 +4,7 @@ import JsvError from './JsvError';
 import { initContext, getChildContext } from './config';
 import { isOperator } from './utils';
 import ops from './validateOperators';
+import transform from './transform'
 
 function getUnmatchedExplanation(op, leftValue, rightValue, context) {
     if (context.ERROR) {
@@ -66,7 +67,7 @@ function validate(actual, jsv, options, context) {
     const { throwError, abortEarly, asPredicate, plainError } = options;
 
     if (Array.isArray(jsv)) {
-        return validate(actual, { $match: jsv }, options, context);
+        return validate(actual, { $all: jsv }, options, context);
     }
 
     if (type !== 'object') {

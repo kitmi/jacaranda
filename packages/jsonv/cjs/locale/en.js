@@ -23,13 +23,13 @@ const messages = {
         [_validateOperators.default.EQUAL]: (name, left, right, context)=>`${formatName(name, left, context)} must be ${JSON.stringify(right)}.`,
         [_validateOperators.default.NOT_EQUAL]: (name, left, right, context)=>`${formatName(name, left, context)} must not be ${JSON.stringify(right)}.`,
         [_validateOperators.default.NOT]: (name, left, right, context)=>`${formatName(name, left, context)} must not match ${JSON.stringify(right)}.`,
-        [_validateOperators.default.GREATER_THAN]: (name, left, right, context)=>`${formatName(name, left, context)} must be greater than ${right}.`,
-        [_validateOperators.default.GREATER_THAN_OR_EQUAL]: (name, left, right, context)=>`${formatName(name, left, context)} must be greater than or equal to ${right}.`,
-        [_validateOperators.default.LESS_THAN]: (name, left, right, context)=>`${formatName(name, left, context)} must be less than ${right}.`,
-        [_validateOperators.default.LESS_THAN_OR_EQUAL]: (name, left, right, context)=>`${formatName(name, left, context)} must not exceed ${right}.`,
+        [_validateOperators.default.GREATER_THAN]: (name, left, right, context)=>`${formatName(name, left, context)} must be greater than ${JSON.stringify(right)}.`,
+        [_validateOperators.default.GREATER_THAN_OR_EQUAL]: (name, left, right, context)=>`${formatName(name, left, context)} must be greater than or equal to ${JSON.stringify(right)}.`,
+        [_validateOperators.default.LESS_THAN]: (name, left, right, context)=>`${formatName(name, left, context)} must be less than ${JSON.stringify(right)}.`,
+        [_validateOperators.default.LESS_THAN_OR_EQUAL]: (name, left, right, context)=>`${formatName(name, left, context)} must not exceed ${JSON.stringify(right)}.`,
         [_validateOperators.default.LENGTH]: (name, left, right, context)=>`The length of ${formatName(name, left, context, {
                 lowerCase: true
-            })} must be ${right}.`,
+            })} must be ${JSON.stringify(right)}.`,
         [_validateOperators.default.IN]: (name, left, right, context)=>`${formatName(name, left, context)} must be one of ${JSON.stringify(right)}.`,
         [_validateOperators.default.NOT_IN]: (name, left, right, context)=>`${formatName(name, left, context)} must not be any one of ${JSON.stringify(right)}.`,
         [_validateOperators.default.EXISTS]: (name, left, right, context)=>`${formatName(name, left, context)} ${right ? 'must not be null' : 'must be null'}.`,

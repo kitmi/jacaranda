@@ -8,7 +8,8 @@ Object.defineProperty(exports, "default", {
         return _index.default;
     }
 });
-require("@kitmi/jsonv/bundle");
+const _config = /*#__PURE__*/ _interop_require_default(require("./config"));
+const _localesLoader = /*#__PURE__*/ _interop_require_default(require("@kitmi/jsonv/localesLoader"));
 const _index = /*#__PURE__*/ _interop_require_default(_export_star(require("./index"), exports));
 function _export_star(from, to) {
     Object.keys(from).forEach(function(k) {
@@ -28,5 +29,6 @@ function _interop_require_default(obj) {
         default: obj
     };
 }
+(0, _localesLoader.default)(_config.default);
 
 //# sourceMappingURL=bundle.js.map

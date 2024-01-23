@@ -14,7 +14,11 @@ function valueAt(object, index) {
     index ??= 0;
 
     if (isPlainObject(object)) {
-        return Object.values(object)[index];
+        object = Object.values(object);
+    }
+
+    if (index < 0) {
+        index = object.length + index;
     }
 
     return object[index];

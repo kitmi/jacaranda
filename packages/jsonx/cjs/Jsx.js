@@ -31,13 +31,15 @@ function _interop_require_default(obj) {
 /**
  * JSON eXpression Syntax
  * @class
- */ class Jxs {
+ */ class JSX {
     /**
      * Evaluate a JSON expression against the value and update the value
      * @param {object} - JSON operation expression
-     * @returns {Jxs}
-     */ update(jxs) {
-        this.value = (0, _transformers.default)(this.value, jxs);
+     * @returns {JSX}
+     */ evaluate(jsx) {
+        this.value = (0, _transformers.default)(this.value, jsx, {
+            config: this.constructor.config
+        });
         return this;
     }
     /**
@@ -46,8 +48,13 @@ function _interop_require_default(obj) {
         this.value = value;
     }
 }
-_define_property(Jxs, "config", _config.default);
-_define_property(Jxs, "evaluate", _transformers.default);
-const _default = Jxs;
+_define_property(JSX, "config", _config.default);
+_define_property(JSX, "evaluate", (value, jsx, context)=>{
+    return (0, _transformers.default)(value, jsx, {
+        config: JSX.config,
+        ...context
+    });
+});
+const _default = JSX;
 
-//# sourceMappingURL=Jxs.js.map
+//# sourceMappingURL=Jsx.js.map

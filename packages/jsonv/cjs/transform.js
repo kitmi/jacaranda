@@ -3,10 +3,21 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-Object.defineProperty(exports, "default", {
-    enumerable: true,
-    get: function() {
+function _export(target, all) {
+    for(var name in all)Object.defineProperty(target, name, {
+        enumerable: true,
+        get: all[name]
+    });
+}
+_export(exports, {
+    default: function() {
         return _default;
+    },
+    processExprLikeValue: function() {
+        return processExprLikeValue;
+    },
+    processExprLikeValueWithLeft: function() {
+        return processExprLikeValueWithLeft;
     }
 });
 const _utils = require("@kitmi/utils");
@@ -14,55 +25,16 @@ const _isEmpty = /*#__PURE__*/ _interop_require_default(require("lodash/isEmpty"
 const _reduce = /*#__PURE__*/ _interop_require_default(require("lodash/reduce"));
 const _map = /*#__PURE__*/ _interop_require_default(require("lodash/map"));
 const _mapValues = /*#__PURE__*/ _interop_require_default(require("lodash/mapValues"));
-const _config = /*#__PURE__*/ _interop_require_wildcard(require("./config"));
+const _config = require("./config");
+const _utils1 = require("./utils");
 const _transformerOperators = /*#__PURE__*/ _interop_require_default(require("./transformerOperators"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
     };
 }
-function _getRequireWildcardCache(nodeInterop) {
-    if (typeof WeakMap !== "function") return null;
-    var cacheBabelInterop = new WeakMap();
-    var cacheNodeInterop = new WeakMap();
-    return (_getRequireWildcardCache = function(nodeInterop) {
-        return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
-    })(nodeInterop);
-}
-function _interop_require_wildcard(obj, nodeInterop) {
-    if (!nodeInterop && obj && obj.__esModule) {
-        return obj;
-    }
-    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
-        return {
-            default: obj
-        };
-    }
-    var cache = _getRequireWildcardCache(nodeInterop);
-    if (cache && cache.has(obj)) {
-        return cache.get(obj);
-    }
-    var newObj = {
-        __proto__: null
-    };
-    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
-    for(var key in obj){
-        if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
-            var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
-            if (desc && (desc.get || desc.set)) {
-                Object.defineProperty(newObj, key, desc);
-            } else {
-                newObj[key] = obj[key];
-            }
-        }
-    }
-    newObj.default = obj;
-    if (cache) {
-        cache.set(obj, newObj);
-    }
-    return newObj;
-}
-const MSG = _config.default.messages;
+const processExprLikeValue = (exprLikeValue, context)=>typeof exprLikeValue === 'object' && exprLikeValue?.$expr !== undefined ? transform(undefined, exprLikeValue.$expr, context) : exprLikeValue;
+const processExprLikeValueWithLeft = (left, exprLikeValue, context)=>typeof exprLikeValue === 'object' && exprLikeValue?.$expr !== undefined ? transform(left, exprLikeValue.$expr, context) : exprLikeValue;
 const PFX_MAP = '|>'; // map
 const PFX_REDUCE = '|+'; // reduce 1. intermediate = result op [key, value] 2. result = result op intermediate
 /**
@@ -73,9 +45,9 @@ const PFX_REDUCE = '|+'; // reduce 1. intermediate = result op [key, value] 2. r
  * @param {*} context
  * @returns {*}
  */ function applyBinaryOperator(value, op, opValue, context) {
-    const handler = _config.default.getTransformer(op);
+    const handler = context.config.getTransformer(op);
     if (!handler) {
-        throw new Error(MSG.INVALID_TRANSFORMER_HANDLER(op));
+        throw new Error(context.config.messages.INVALID_TRANSFORMER_HANDLER(op));
     }
     return handler(value, opValue, context);
 }
@@ -86,9 +58,9 @@ const PFX_REDUCE = '|+'; // reduce 1. intermediate = result op [key, value] 2. r
  * @param {*} context
  * @returns {*}
  */ function applyUnaryOperator(value, tag, context) {
-    const handler = _config.default.getTransformer(tag);
+    const handler = context.config.getTransformer(tag);
     if (!handler) {
-        throw new Error(MSG.INVALID_TRANSFORMER_HANDLER(tag));
+        throw new Error(context.config.messages.INVALID_TRANSFORMER_HANDLER(tag));
     }
     return handler(value, context);
 }
@@ -120,11 +92,11 @@ const PFX_REDUCE = '|+'; // reduce 1. intermediate = result op [key, value] 2. r
             return (Array.isArray(currentValue) ? _map.default : _mapValues.default)(currentValue, (item, key)=>applyOperator(item, expectedFieldValue, opMeta, (0, _config.getChildContext)(context, currentValue, key, item)));
         case PFX_REDUCE:
             if (!Array.isArray(expectedFieldValue) || isUnary && expectedFieldValue.length !== 1) {
-                throw new Error(MSG.INVALID_COLLECTION_OP_EXPR(_transformerOperators.default.REDUCE, opMeta[0], expectedFieldValue));
+                throw new Error(context.config.messages.INVALID_COLLECTION_OP_EXPR(_transformerOperators.default.REDUCE, opMeta[0], expectedFieldValue));
             }
             return (0, _reduce.default)(currentValue, (result, item, key)=>applyOperator(result, expectedFieldValue[1], opMeta, (0, _config.getChildContext)(context, currentValue, key, item)), expectedFieldValue[0]);
         default:
-            throw new Error(MSG.INVALID_COLLECTION_OP(collectionOp));
+            throw new Error(context.config.messages.INVALID_COLLECTION_OP(collectionOp));
     }
 }
 /**
@@ -136,88 +108,95 @@ const PFX_REDUCE = '|+'; // reduce 1. intermediate = result op [key, value] 2. r
  *
  *
  * @param {*} currentValue
- * @param {*} jxs
+ * @param {*} jsx
  * @param {*} context
  * @param {boolean} replaceLeft - Whether the expression will replace the left value chain, like a setOp
  * @return {*}
- */ function transform(currentValue, jxs, context, replaceLeft) {
-    if (jxs == null) {
-        return replaceLeft ? jxs : currentValue;
+ */ function transform(currentValue, jsx, context, replaceLeft) {
+    // Null jsx means
+    //  - no change if replaceLeft is false
+    //  - undefined if replaceLeft is true
+    if (jsx == null) {
+        return replaceLeft ? jsx : currentValue;
     }
-    if (context == null) {
-        context = {
-            path: null,
-            $$ROOT: currentValue,
-            $$PARENT: null,
-            $$CURRENT: currentValue,
-            $$KEY: null
-        };
-    }
-    if (Array.isArray(jxs)) {
+    context = (0, _config.initContext)(context, currentValue);
+    if (Array.isArray(jsx)) {
         if (replaceLeft) {
-            return jxs.map((item)=>transform(undefined, item, {
-                    ...context
-                }, true));
+            return jsx.map((item)=>transform(undefined, item, context, true));
         }
-        return jxs.reduce((result, exprItem)=>transform(result, exprItem, {
-                ...context
-            }), currentValue);
+        return jsx.reduce((result, exprItem)=>transform(result, exprItem, context), currentValue);
     }
-    const typeExpr = typeof jxs;
+    const typeExpr = typeof jsx;
     if (typeExpr === 'boolean') {
         if (replaceLeft) {
-            return jxs;
+            return jsx;
         }
-        return jxs ? currentValue : undefined;
+        return jsx ? currentValue : undefined;
     }
     if (typeExpr === 'number' || typeExpr === 'bigint') {
         if (replaceLeft) {
-            return jxs;
+            return jsx;
         }
-        throw new Error(MSG.SYNTAX_NUMBER_AS_EXPR);
+        if ((0, _utils.isInteger)(jsx) && Array.isArray(currentValue)) {
+            return currentValue[jsx];
+        }
+        throw new Error(context.config.messages.SYNTAX_NUMBER_AS_EXPR);
     }
     if (typeExpr === 'string') {
-        if (jxs.startsWith('$$')) {
-            //get from context
-            const pos = jxs.indexOf('.');
-            if (pos === -1) {
-                return context[jxs];
-            }
-            return (0, _utils.get)(context[jxs.substr(0, pos)], jxs.substr(pos + 1));
-        }
         if (replaceLeft) {
-            return jxs;
+            return jsx;
         }
-        const opMeta = _config.default.getTransformerTagAndType(jxs);
-        if (!opMeta) {
-            throw new Error(MSG.INVALID_TRANSFORMER_OP(jxs));
+        if ((0, _utils1.isOperator)(jsx)) {
+            const posDot = jsx.indexOf('.');
+            if (posDot !== -1) {
+                const arrayOp = [
+                    jsx.substring(0, posDot),
+                    jsx.substring(posDot + 1)
+                ];
+                if (context.config.getTransformerTagAndType(arrayOp[0]) != null) {
+                    return transform(currentValue, [
+                        arrayOp[0],
+                        {
+                            $valueOf: arrayOp[1]
+                        }
+                    ], context);
+                }
+            }
+            const opMeta = context.config.getTransformerTagAndType(jsx);
+            if (!opMeta) {
+                throw new Error(context.config.messages.INVALID_TRANSFORMER_OP(jsx));
+            }
+            if (!opMeta[1]) {
+                return applyBinaryOperator(currentValue, opMeta[0], null, context);
+            }
+            return applyUnaryOperator(currentValue, opMeta[0], context);
         }
-        if (!opMeta[1]) {
-            return applyBinaryOperator(currentValue, opMeta[0], null, context);
+        if (currentValue != null && typeof currentValue !== 'object') {
+            throw new Error(context.config.messages.SYNTAX_INVALID_EXPR(jsx));
         }
-        return applyUnaryOperator(currentValue, opMeta[0], context);
+        return (0, _utils.get)(currentValue, jsx);
     }
     if (typeExpr !== 'object') {
-        throw new Error(MSG.SYNTAX_INVALID_EXPR(jxs));
+        throw new Error(context.config.messages.SYNTAX_INVALID_EXPR(jsx));
     }
     if (replaceLeft) {
-        return (0, _mapValues.default)(jxs, (item)=>transform(undefined, item, context, true));
+        return (0, _mapValues.default)(jsx, (item)=>transform(undefined, item, context, true));
     }
     let result, hasOperator = false;
-    for(let fieldName in jxs){
-        let expectedFieldValue = jxs[fieldName];
+    for(let fieldName in jsx){
+        let expectedFieldValue = jsx[fieldName];
         const l = fieldName.length;
         if (l > 1) {
             if (fieldName[0] === '$') {
                 if (result) {
-                    throw new Error(MSG.SYNTAX_OP_NOT_ALONE);
+                    throw new Error(context.config.messages.SYNTAX_OP_NOT_ALONE);
                 }
-                const opMeta = _config.default.getTransformerTagAndType(fieldName);
+                const opMeta = context.config.getTransformerTagAndType(fieldName);
                 if (!opMeta) {
-                    throw new Error(MSG.INVALID_TRANSFORMER_OP(fieldName));
+                    throw new Error(context.config.messages.INVALID_TRANSFORMER_OP(fieldName));
                 }
                 if (hasOperator) {
-                    throw new Error(MSG.SYNTAX_OP_NOT_ALONE);
+                    throw new Error(context.config.messages.SYNTAX_OP_NOT_ALONE);
                 }
                 result = applyOperator(currentValue, expectedFieldValue, opMeta, context);
                 hasOperator = true;
@@ -225,16 +204,16 @@ const PFX_REDUCE = '|+'; // reduce 1. intermediate = result op [key, value] 2. r
             }
             if (l > 3 && fieldName[0] === '|' && fieldName[2] === '$') {
                 if (result) {
-                    throw new Error(MSG.SYNTAX_OP_NOT_ALONE);
+                    throw new Error(context.config.messages.SYNTAX_OP_NOT_ALONE);
                 }
                 const collectionOp = fieldName.substring(0, 2);
                 fieldName = fieldName.substring(2);
-                const opMeta = _config.default.getTransformerTagAndType(fieldName);
+                const opMeta = context.config.getTransformerTagAndType(fieldName);
                 if (!opMeta) {
-                    throw new Error(MSG.INVALID_TRANSFORMER_OP(fieldName));
+                    throw new Error(context.config.messages.INVALID_TRANSFORMER_OP(fieldName));
                 }
                 if (hasOperator) {
-                    throw new Error(MSG.SYNTAX_OP_NOT_ALONE);
+                    throw new Error(context.config.messages.SYNTAX_OP_NOT_ALONE);
                 }
                 result = transformCollection(currentValue, collectionOp, opMeta, expectedFieldValue, context);
                 hasOperator = true;
@@ -242,7 +221,7 @@ const PFX_REDUCE = '|+'; // reduce 1. intermediate = result op [key, value] 2. r
             }
         }
         if (hasOperator) {
-            throw new Error(MSG.SYNTAX_OP_NOT_ALONE);
+            throw new Error(context.config.messages.SYNTAX_OP_NOT_ALONE);
         }
         let complexKey = fieldName.indexOf('.') !== -1;
         //pick a field and then apply manipulation

@@ -10,6 +10,17 @@ import { initContext, getChildContext } from './config';
 import { isOperator } from './utils';
 import ops from './transformerOperators';
 
+export const processExprLikeValue = (exprLikeValue, context) =>
+    typeof exprLikeValue === 'object' && exprLikeValue?.$expr !== undefined
+        ? transform(undefined, exprLikeValue.$expr, context)
+        : exprLikeValue;
+
+export const processExprLikeValueWithLeft = (left, exprLikeValue, context) =>
+typeof exprLikeValue === 'object' && exprLikeValue?.$expr !== undefined
+    ? transform(left, exprLikeValue.$expr, context)
+    : exprLikeValue;
+    
+
 const PFX_MAP = '|>'; // map
 const PFX_REDUCE = '|+'; // reduce 1. intermediate = result op [key, value] 2. result = result op intermediate
 
@@ -125,7 +136,7 @@ function transform(currentValue, jsx, context, replaceLeft) {
     //  - no change if replaceLeft is false
     //  - undefined if replaceLeft is true
     if (jsx == null) {
-        return replaceLeft ? undefined : currentValue;
+        return replaceLeft ? jsx : currentValue;
     }
 
     context = initContext(context, currentValue);
@@ -166,11 +177,13 @@ function transform(currentValue, jsx, context, replaceLeft) {
         }        
 
         if (isOperator(jsx)) {
-            const arrayOp = jsx.split('.', 2);
-            
-            if (arrayOp.length > 1 && context.config.getTransformerTagAndType(arrayOp[0]) != null) {
-                return transform(currentValue, [ arrayOp[0], { $valueOf: arrayOp[1] } ], context);
-            }
+            const posDot = jsx.indexOf('.');
+            if (posDot !== -1) {
+                const arrayOp = [ jsx.substring(0, posDot), jsx.substring(posDot + 1) ];
+                if (context.config.getTransformerTagAndType(arrayOp[0]) != null) {
+                    return transform(currentValue, [ arrayOp[0], { $valueOf: arrayOp[1] } ], context);
+                }
+            }            
 
             const opMeta = context.config.getTransformerTagAndType(jsx);
             if (!opMeta) {
