@@ -21,8 +21,7 @@ class WebModule extends ModuleBase(Routable(ServiceContainer)) {
         super(server, name, appPath, { ...defaultWebModuleOpts, ...options });
 
         this.server = this.host;
-
-        this.engine = this.server.engine.createSubEngine(this);
+        this.router = this.server.engine.createModuleRouter(this);
 
         /**
          * Mounting route.

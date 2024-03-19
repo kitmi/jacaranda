@@ -23,7 +23,7 @@ describe('binary', () => {
 
         it('should return the input value for rawValue input', () => {
             const value = Buffer.from('foo');
-            const result = binary.sanitize(value, { rawValue: true }, {}, '');
+            const result = binary.sanitize(value, { plain: true }, {}, '');
             result.should.eql(value);
         });
 

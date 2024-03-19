@@ -118,7 +118,7 @@ describe('jsv:validator', function () {
     });
 
     it('mixed', function () {
-        var c = { a: { b: 10 } };
+        var c = { a: { b: 10 }, c: 20 };
         let obj = {
             key1: 2000,
             key11: 2000,
@@ -152,20 +152,18 @@ describe('jsv:validator', function () {
             key21: { $neq: 'ng' },
 
             key22: { $in: ['ok', 'ng'] },
-            key23: { $nin: ['ng1', 'ng2'] },
-            key24: { $nin: null },
-            key25: { $nin: null },
+            key23: { $nin: ['ng1', 'ng2'] },            
 
             key4: { $exists: false },
         }).should.be.eql([true]);
 
         Jsv.match(obj, {
-            key1: { $hasKey: c.a.b },
-        }).should.be.eql([false, '"key1" must have all of these keys [10].']);
+            key3: { $hasKey: 'key1' },
+        }).should.be.eql([true]);
 
         Jsv.match(obj, {
-            key8: { $hasKey: [10] },
-        }).should.be.eql([false, '"key8" must have all of these keys [10].']);
+            key8: { $hasKeys: [ 'a', 'c' ] },
+        }).should.be.eql([true]);
     });
 
     it('Jsv', function () {
@@ -246,7 +244,7 @@ describe('jsv:validator', function () {
             Jsvo.match({
                 key1: { $nin: 3000 },
             });
-        }, 'The right operand of a "nin" operator must be an array.');
+        }, 'The right operand of a "notIn" operator must be an array.');
 
         should.throws(() => {
             Jsvo.match({

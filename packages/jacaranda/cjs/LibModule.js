@@ -8,13 +8,13 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _ServiceContainer = require("./ServiceContainer");
+const _ServiceContainer = /*#__PURE__*/ _interop_require_default(require("./ServiceContainer"));
 const _ModuleBase = /*#__PURE__*/ _interop_require_default(require("./ModuleBase"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
     };
 }
-const _default = (0, _ModuleBase.default)(_ServiceContainer.ServiceContainer);
+const _default = (0, _ModuleBase.default)(_ServiceContainer.default);
 
 //# sourceMappingURL=LibModule.js.map

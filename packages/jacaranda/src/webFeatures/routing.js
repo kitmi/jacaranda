@@ -4,6 +4,7 @@
  */
 
 import { _, batchAsync_, isPlainObject, esmCheck } from '@kitmi/utils';
+import { InvalidConfiguration } from '@kitmi/types';
 import Feature from '../Feature';
 
 export default {
@@ -19,12 +20,25 @@ export default {
      * @param {object} routes - Routes and configuration
      * @returns {Promise.<*>}
      */
-    load_: (app, routes) => {
-        app.on('after:' + Feature.PLUGIN, () =>
+    load_: (app, routes) => { 
+        if (app.router == null) {
+            // if mount to server level
+            app.createServerModuleRouter();
+        }
+
+        app.once('after:' + Feature.PLUGIN, () =>
             batchAsync_(routes, async (routersConfig, route) => {
                 if (isPlainObject(routersConfig)) {
                     return batchAsync_(routersConfig, async (options, type) => {
-                        let loader_ = esmCheck(require('../routers/' + type));
+                        let loader_;
+
+                        try {
+                            loader_ = esmCheck(require('../routers/' + type));
+                        } catch (e) {
+                            if (e.code === 'MODULE_NOT_FOUND') {
+                                throw new InvalidConfiguration(`Supported router type: ${type}`, app, `routing[${route}]`);
+                            }
+                        }
 
                         app.log('verbose', `A "${type}" router is created at "${route}" in app [${app.name}].`);
 

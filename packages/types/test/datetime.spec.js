@@ -26,7 +26,7 @@ describe("datetime", () => {
 
         it("should return the input value for rawValue input", () => {
             const value = new Date();
-            const result = datetime.sanitize(value, { rawValue: true }, {}, "");
+            const result = datetime.sanitize(value, { plain: true }, {}, "");
             result.should.equal(value);
         });
 

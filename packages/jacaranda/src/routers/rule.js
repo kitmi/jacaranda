@@ -42,7 +42,7 @@ import { supportedMethods } from '../helpers';
  * }
  */
 async function load_(app, baseRoute, options) {
-    let router = app.engine.createRouter(baseRoute);
+    let router = app.router.createRouter(baseRoute);
 
     if (options.$middlewares) {
         await app.useMiddlewares_(router, options.$middlewares);

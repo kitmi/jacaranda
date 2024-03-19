@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { _, url as urlUtil, text, esmCheck, eachAsync_, batchAsync_ } from '@kitmi/utils';
+import { url as urlUtil, naming, text, esmCheck, eachAsync_, batchAsync_ } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
 import { supportedMethods } from '../helpers';
 
@@ -27,7 +27,7 @@ import { supportedMethods } from '../helpers';
  *   }
  */
 async function moduleRouter(app, baseRoute, options) {
-    let controllerPath = options.$controllerPath;
+    let controllerPath = path.resolve(app.sourcePath, options.$controllerPath ?? 'controllers');
 
     if (typeof options === 'string') {
         // [ 'controllerName' ]
@@ -36,7 +36,9 @@ async function moduleRouter(app, baseRoute, options) {
         };
     }
 
-    let router = app.engine.createRouter(baseRoute);
+    const kebabify = options.$urlDasherize;
+
+    let router = app.router.createRouter(baseRoute);
 
     if (options.$middlewares) {
         //module-wide middlewares
@@ -59,13 +61,14 @@ async function moduleRouter(app, baseRoute, options) {
             try {
                 controller = esmCheck(require(controllerFile));
             } catch (e) {
+                /*
                 if (e.code === 'MODULE_NOT_FOUND') {
                     throw new InvalidConfiguration(
                         `Failed to load controller '${moduleController}'. ${e.message}`,
                         app,
                         `routing.${baseRoute}.module`
                     );
-                }
+                }*/
 
                 throw e;
             }
@@ -82,7 +85,7 @@ async function moduleRouter(app, baseRoute, options) {
                 if (typeof action !== 'function' || !action.__metaHttpMethod) continue; // only marked httpMethod should be mounted
 
                 const method = action.__metaHttpMethod;
-                const subRoute = urlUtil.join(subBaseRoute, text.dropIfStartsWith(action.__metaRoute || _.kebabCase(actionName), '/'));
+                const subRoute = urlUtil.join(subBaseRoute, text.dropIfStartsWith(action.__metaRoute || (kebabify ? naming.kebabCase(actionName) : actionName), '/'));
 
                 let bindAction;
 
@@ -96,7 +99,7 @@ async function moduleRouter(app, baseRoute, options) {
                     throw new InvalidConfiguration(
                         'Unsupported http method: ' + method,
                         app,
-                        `routing.${baseRoute}.module.subBaseRoute[${moduleController}.${actionName}]`
+                        `routing[${baseRoute}].module.subBaseRoute[${moduleController}.${actionName}]`
                     );
                 }
 

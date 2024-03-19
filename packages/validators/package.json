@@ -43,7 +43,7 @@
         "lint": "eslint \"./src/**/*.js\"",
         "lint-fix": "eslint \"./src/**/*.js\" --fix",
         "clean": "shx rm -rf cjs coverage .nyc_output",
-        "build": "bun run clean && swc ./src/**/*.js -d ./cjs"
+        "build": "bun run clean && swc ./src -d ./cjs"
     },
     "keywords": [
         "javascript",

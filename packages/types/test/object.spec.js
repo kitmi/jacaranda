@@ -23,7 +23,7 @@ describe("object", () => {
 
         it("should return the input value for rawValue input", () => {
             const value = { foo: "bar" };
-            const result = object.sanitize(value, { rawValue: true }, {}, "");
+            const result = object.sanitize(value, { plain: true }, {}, "");
             result.should.eql(value);
         });
 

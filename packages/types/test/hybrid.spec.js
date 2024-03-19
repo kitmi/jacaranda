@@ -37,7 +37,7 @@ describe("hybrid", () => {
                 },
                 c: {
                     type: 'array',
-                    elementSchema: {
+                    element: {
                         type: 'integer'
                     }
                 },
@@ -46,13 +46,13 @@ describe("hybrid", () => {
                     schema: {
                         e: {
                             type: 'array',
-                            elementSchema: {
+                            element: {
                                 type: 'boolean'
                             }
                         },
                         f: {
                             type: 'array',
-                            elementSchema: {
+                            element: {
                                 type: 'object',
                                 schema: {
                                     h: {

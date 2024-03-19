@@ -11,10 +11,10 @@ describe('Jxs:bugs', function () {
             $valueOf: 'index'
         },
         {
-            $match: '$$ROOT.maxIndex'
+            $match: { $expr: '$$ROOT.maxIndex' }
         }]);
 
-        result.should.not.be.ok;
+        result.should.be.false;
 
         const obj2 = {
             maxIndex: 3,
@@ -25,9 +25,9 @@ describe('Jxs:bugs', function () {
             $valueOf: 'index'
         },
         {
-            $match: '$$ROOT.maxIndex'
+            $match: { $expr: '$$ROOT.maxIndex' }
         }]);
 
-        result2.should.be.ok;
+        result2.should.be.true;
     });
 });

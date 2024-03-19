@@ -8,9 +8,8 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _async = /*#__PURE__*/ _interop_require_default(require("./async"));
+const _async = /*#__PURE__*/ _interop_require_default(_export_star(require("./async"), exports));
 const _injectAll = /*#__PURE__*/ _interop_require_default(require("./injectAll"));
-_export_star(require("./validator"), exports);
 function _export_star(from, to) {
     Object.keys(from).forEach(function(k) {
         if (k !== "default" && !Object.prototype.hasOwnProperty.call(to, k)) {

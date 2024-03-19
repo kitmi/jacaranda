@@ -137,11 +137,11 @@ export default {
             },
         };
 
-        app.on('ready', () => {
+        app.once('ready', () => {
             wsClient.connect_().catch(app.logError);
         });
 
-        app.on('stopping', () => {
+        app.once('stopping', () => {
             wsClient.close();
         });
 

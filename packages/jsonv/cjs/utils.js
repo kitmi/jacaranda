@@ -15,6 +15,9 @@ _export(exports, {
     formatPath: function() {
         return formatPath;
     },
+    isOperator: function() {
+        return isOperator;
+    },
     makePath: function() {
         return makePath;
     },
@@ -29,5 +32,8 @@ const namingFactory = (nameOfValue)=>(name, left, context, custom)=>{
 const formatKey = (key, hasPrefix)=>Number.isInteger(key) ? `[${key}]` : hasPrefix ? '.' + key : key;
 const makePath = (key, prefix)=>prefix != null ? `${prefix}${formatKey(key, true)}` : formatKey(key, false);
 const formatPath = (prefix)=>prefix ? '[' + prefix + ']' : '<ROOT>';
+const isOperator = (token)=>// $match
+    token.length > 1 && token[0] === '$' || // |>$all
+    token.length > 3 && token[0] === '|' && token[2] === '$';
 
 //# sourceMappingURL=utils.js.map

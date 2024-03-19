@@ -58,7 +58,7 @@ const _default = {
                 },
                 overlapSeparators: {
                     type: 'array',
-                    elementSchema: {
+                    element: {
                         type: 'text'
                     },
                     default: [

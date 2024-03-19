@@ -140,7 +140,7 @@ export class TypeSystem {
             });
         }
 
-        if (meta.rawValue) return [true, value];
+        if (meta.plain) return [true, value];
 
         // more prerequisites here ...
         if (this.plugins.preProcess) {

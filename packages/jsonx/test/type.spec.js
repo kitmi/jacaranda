@@ -67,7 +67,6 @@ describe('Jxs:type', function () {
         let nullValue = null;
 
         let transformed = Jxs.evaluate(nullValue, '$type');
-        //console.log(transformed)
-        transformed.should.be.eql('object');
+        transformed.should.be.eql('any');
     });
 });

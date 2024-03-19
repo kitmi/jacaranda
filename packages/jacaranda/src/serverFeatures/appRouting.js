@@ -53,11 +53,15 @@ export default {
                 logMiddlewareRegistry: server.options.logMiddlewareRegistry,     
                 sourcePath: server.options.sourcePath,           
                 ...config.options,
-            };
+            };            
 
             let appPath;
 
-            if (config.npmModule) {
+            const moduleMeta = server.modulesRegistry[config.name];
+
+            if (moduleMeta != null) {
+                appPath = moduleMeta.appPath;
+            } else if (config.npmModule) {
                 appPath = server.toAbsolutePath('node_modules', config.name);
             } else {
                 appPath = path.join(server.appModulesPath, config.name);
@@ -75,7 +79,7 @@ export default {
             let app = new WebModule(server, config.name, baseRoute, appPath, options);
             app.now = server.now;
 
-            app.on('configLoaded', () => {
+            app.once('configLoaded', () => {
                 if (!_.isEmpty(config.overrides)) {
                     Object.assign(app.config, config.overrides);
                     server.log('verbose', 'App config is overrided.');

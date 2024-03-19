@@ -27,6 +27,7 @@ const messages = {
         [_validateOperators.default.GREATER_THAN_OR_EQUAL]: (name, left, right, context)=>`${formatName(name, left, context)} 的數值不能小於 ${right}.`,
         [_validateOperators.default.LESS_THAN]: (name, left, right, context)=>`${formatName(name, left, context)} 的數值必須小於 ${right}。`,
         [_validateOperators.default.LESS_THAN_OR_EQUAL]: (name, left, right, context)=>`${formatName(name, left, context)} 的數值不能超過 ${right}。`,
+        [_validateOperators.default.LENGTH]: (name, left, right, context)=>`${formatName(name, left, context)} 的長度必須為 ${right}。`,
         [_validateOperators.default.IN]: (name, left, right, context)=>`${formatName(name, left, context)} 的值必須為 ${JSON.stringify(right)} 其中之一。`,
         [_validateOperators.default.NOT_IN]: (name, left, right, context)=>`${formatName(name, left, context)} 的值不能為 ${JSON.stringify(right)} 其中之一。`,
         [_validateOperators.default.EXISTS]: (name, left, right, context)=>`${formatName(name, left, context)} 的值${right ? '不能為空' : '必須為空'}。`,
@@ -43,7 +44,8 @@ const messages = {
         [_validateOperators.default.END_WITH]: (name, left, right, context)=>`${formatName(name, left, context)} 必須以 "${right}" 結尾。`,
         [_validateOperators.default.MATCH_PATTERN]: (name, left, right, context)=>`${formatName(name, left, context)} 必須匹配 "${right}"。`,
         [_validateOperators.default.CONTAINS]: (name, left, right, context)=>`${formatName(name, left, context)} 必須包含 "${right}".`,
-        [_validateOperators.default.SAME_AS]: (name, left, right, context)=>`${formatName(name, left, context)} 與 ${formatName(right)} 不一樣。`
+        [_validateOperators.default.SAME_AS]: (name, left, right, context)=>`${formatName(name, left, context)} 與 ${formatName(right)} 不一樣。`,
+        [_validateOperators.default.IF]: (name, left, right, context)=>null
     }
 };
 const _default = messages;

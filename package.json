@@ -18,11 +18,12 @@
   "author": "Rockie Guo <rockie@kitmi.com.au>",
   "license": "MIT",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "bin": {
     "prepack": "./scripts/prepack.js"
-},
+  },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
     "@swc-node/register": "^1.6.8",
@@ -34,8 +35,7 @@
     "mocha": "^10.0.0",
     "mocha-multi": "^1.1.7",
     "nyc": "^15.1.0",
-    "shx": "0.3.4",
-    "taffydb": "^2.7.3"
+    "shx": "0.3.4"
   },
   "prettier": {
     "quoteProps": "consistent",

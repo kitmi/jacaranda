@@ -27,9 +27,10 @@ const Runnable = (T) =>
             if (this.started) {
                 if (this._logCache.length) {
                     this.flushLogCache();
-                }
-                this.stop_().catch(this.logError);
+                }                
             }
+
+            this.stop_().catch(this.logError);                
         };
 
         /**
@@ -50,7 +51,7 @@ const Runnable = (T) =>
 
             this.runnable = true;
 
-            this.libModulesPath = this.toAbsolutePath(this.options.libModulesPath);
+            this.libModulesPath = this.toAbsolutePath(this.options.libModulesPath);            
         }
 
         /**
@@ -67,17 +68,7 @@ const Runnable = (T) =>
 
             process.on('exit', this._onExit);
 
-            try {
-                await super.start_();
-            } catch (error) {
-                if (error.code === 'E_INVALID_CONF') {
-                    throw new Error(
-                        `Invalid configuration. Reason: ${error.message}\nInfo: ${JSON.stringify(error.info)}`
-                    );
-                }
-
-                throw error;
-            }
+            await super.start_();
 
             if (
                 this.options.logFeatures &&

@@ -51,7 +51,7 @@ export default {
                     maxChunkOverlap: { type: 'integer', default: 100 },
                     overlapSeparators: {
                         type: 'array',
-                        elementSchema: { type: 'text' },
+                        element: { type: 'text' },
                         default: ['\n\n', '\n', '。', '.', '！', '!', '？', '?', '；', ';', '，', ',', ' '],
                     },
                     encodingForModel: {

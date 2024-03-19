@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { _, text, hasMethod, esmCheck, batchAsync_ } from '@kitmi/utils';
+import { naming, text, hasMethod, esmCheck, batchAsync_ } from '@kitmi/utils';
 import { globSync } from 'glob';
 
 /**
@@ -32,9 +32,10 @@ import { globSync } from 'glob';
  *  /:resource/:id                 delete         remove
  */
 const restRouter = async (app, baseRoute, options) => {
-    let router = app.engine.createRouter(baseRoute);
+    let router = app.router.createRouter(baseRoute);
 
     let resourcePath = path.resolve(app.sourcePath, options.$controllerPath ?? 'resources');
+    const kebabify = options.$urlDasherize;
 
     app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.$errorOptions, app), 'jsonError');
 
@@ -51,7 +52,7 @@ const restRouter = async (app, baseRoute, options) => {
             relPath
                 .substring(0, relPath.length - 3)
                 .split(path.sep)
-                .map((p) => _.kebabCase(p))
+                .map((p) => kebabify ? naming.kebabCase(p) : p)
                 .join('/'),
             '/'
         );
@@ -80,7 +81,7 @@ const restRouter = async (app, baseRoute, options) => {
         }
 
         if (hasMethod(controller, 'remove')) {
-            await app.addRoute_(router, 'del', singleUrl, (ctx) => controller.remove(ctx));
+            await app.addRoute_(router, 'delete', singleUrl, (ctx) => controller.remove(ctx));
         }
     });
 

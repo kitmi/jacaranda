@@ -9,7 +9,7 @@ describe('test-server', function () {
 
     it('/test/protected ng', async function () {
         await jacat.withClient_('server1', async (client, server) => {            
-            jacat.throw_(() => client.get('/test/protected'), 'Unauthenticated');
+            await jacat.throw_(() => client.get('/test/protected'), 'Unauthenticated');
         });
     });
 

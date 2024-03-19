@@ -59,6 +59,9 @@ class WebServer extends Routable(Runnable(ServiceContainer)) {
          */
         this.route = '/';
 
+        // preloaded modules
+        this.modulesRegistry = { ...this.options.modulesRegistry };
+
         // register built-in middlewares
         this.addMiddlewaresRegistryFrom(path.resolve(__dirname, 'middlewares'));
 

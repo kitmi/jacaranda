@@ -1,6 +1,6 @@
-import Jxs from '../src';
+import Jsx from '../src';
 
-describe('jxs:addItem', function () {
+describe('jsx:addItem', function () {
     it('object', function () {
         let obj = {
             'id': 1,
@@ -10,7 +10,7 @@ describe('jxs:addItem', function () {
             ':agency': { name: 'agency1', other: 'any' },
         };
 
-        let transformed = Jxs.evaluate(obj, { '$addItem': ["key", { $value: 100 }] });
+        let transformed = Jsx.evaluate(obj, { '$addItem': ["key", 100] });
         //console.log(transformed)
         transformed.should.be.eql(
             {
@@ -20,10 +20,27 @@ describe('jxs:addItem', function () {
         );
     });
 
+    it('object with expr key', function () {
+        let obj = {
+            key1: 1,
+            key2: 2,
+            key3: 'key3AsKey'
+        };
+
+        let transformed = Jsx.evaluate(obj, { '$addItem': [{ $expr: '$this.key3' }, 100] });
+        //console.log(transformed)
+        transformed.should.be.eql(
+            {
+                ...obj,
+                key3AsKey: 100
+            }
+        );
+    });
+
     it('array', function () {
         let array = [1, 2, 3];
 
-        let transformed = Jxs.evaluate(array, { '$addItem': { $value: 4 } });
+        let transformed = Jsx.evaluate(array, { '$addItem': 4 });
         //console.log(transformed)
         transformed.should.be.eql(
             [1, 2, 3, 4]
@@ -32,7 +49,7 @@ describe('jxs:addItem', function () {
 
     it('array 2', function () {
         let array = [1, 2, 3];
-
-        should.throws(() => Jxs.evaluate(array, { '$addItem': 4 }), 'Number value cannot be used as a transformer expression.');
+        const result = Jsx.evaluate(array, { '$addItem': { $expr: '$size' } });
+        result.should.be.eql([1, 2, 3, 3]);
     });
 });

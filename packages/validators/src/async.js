@@ -1,9 +1,7 @@
-import createModifiableSystem from './modifibleSystem';
+import createModifiableSystem from './modifiableSystem';
 import { postProcess_ } from './modifier';
 
-const validator = createModifiableSystem();
-validator.addPlugin('postProcess', postProcess_);
+const typeSystem = createModifiableSystem(postProcess_);
 
-export const Types = validator.types;
-
-export default validator;
+export const Types = typeSystem.types;
+export default typeSystem;

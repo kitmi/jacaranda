@@ -1,10 +1,10 @@
-import Jxs from '../src';
+import Jsx from '../src';
 
-describe('jxs:castArray', function () {
+describe('jsx:castArray', function () {
     it('obj', function () {
         let obj = { key: 'any object' };
 
-        let transformed = Jxs.evaluate(obj, '$castArray');
+        let transformed = Jsx.evaluate(obj, '$castArray');
         //console.log(transformed)
         transformed.should.be.eql([obj]);
     });
@@ -12,7 +12,7 @@ describe('jxs:castArray', function () {
     it('array', function () {
         let array = [1, 2, 3];
 
-        let transformed = Jxs.evaluate(array, '$castArray');
+        let transformed = Jsx.evaluate(array, '$castArray');
         //console.log(transformed)
         transformed.should.be.eql(array);
     });
@@ -20,7 +20,7 @@ describe('jxs:castArray', function () {
     it('str', function () {
         let str = 'jeoajfi';
 
-        let transformed = Jxs.evaluate(str, '$castArray');
+        let transformed = Jsx.evaluate(str, '$castArray');
         //console.log(transformed)
         transformed.should.be.eql([str]);
     });
@@ -28,7 +28,7 @@ describe('jxs:castArray', function () {
     it('null', function () {
         let a = null;
 
-        let transformed = Jxs.evaluate(a, '$castArray');
+        let transformed = Jsx.evaluate(a, '$castArray');
         //console.log()
         should.not.exist(transformed);
     });

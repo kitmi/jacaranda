@@ -27,6 +27,9 @@ _export(exports, {
     get: function() {
         return _get.default;
     },
+    getBy: function() {
+        return _getBy.default;
+    },
     hasMethod: function() {
         return _hasMethod.default;
     },
@@ -60,6 +63,7 @@ const _diff = /*#__PURE__*/ _interop_require_default(require("./diff"));
 const _take = /*#__PURE__*/ _interop_require_default(require("./take"));
 const _pushIntoBucket = /*#__PURE__*/ _interop_require_default(require("./pushIntoBucket"));
 const _get = /*#__PURE__*/ _interop_require_default(require("./get"));
+const _getBy = /*#__PURE__*/ _interop_require_default(require("./getBy"));
 const _set = /*#__PURE__*/ _interop_require_default(require("./set"));
 const _cowSet = /*#__PURE__*/ _interop_require_default(require("./cowSet"));
 const _objectToArray = /*#__PURE__*/ _interop_require_default(require("./objectToArray"));

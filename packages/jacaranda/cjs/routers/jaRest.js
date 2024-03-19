@@ -44,13 +44,14 @@ function _interop_require_default(obj) {
  *  /:resource/:id                 get            findOne
  *  /:resource/:id                 patch          updateOne
  *  /:resource/:id                 put            replaceOne
- *  /:resource/:id                 del            deleteOne 
+ *  /:resource/:id                 delete         deleteOne 
  *  /:resource                     put            replaceMany
  *  /:resource                     patch          updateMany
- *  /:resource                     del            deleteMany
+ *  /:resource                     delete         deleteMany
  */ const jaRestRouter = async (app, baseRoute, options)=>{
-    let router = app.engine.createRouter(baseRoute);
+    let router = app.router.createRouter(baseRoute);
     let resourcePath = _nodepath.default.resolve(app.sourcePath, options.$controllerPath || 'resources');
+    const kebabify = options.$urlDasherize;
     app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.$errorOptions, app), 'jsonError');
     if (options.$middlewares) {
         await app.useMiddlewares_(router, options.$middlewares);
@@ -70,7 +71,7 @@ function _interop_require_default(obj) {
         if (entithNameWithPath in options) {
             baseEndpoint = _utils.text.ensureStartsWith(_utils.text.dropIfEndsWith(options[entithNameWithPath], '/'), '/');
         } else {
-            const urlPath = entithNameWithPath.split('/').map((p)=>_utils.naming.kebabCase(p)).join('/');
+            const urlPath = entithNameWithPath.split('/').map((p)=>kebabify ? _utils.naming.kebabCase(p) : p).join('/');
             baseEndpoint = _utils.text.ensureStartsWith(urlPath, '/');
         }
         let idName = _utils.naming.camelCase(entityName) + 'Id';
@@ -95,15 +96,15 @@ function _interop_require_default(obj) {
                 ] : _action);
             }
         }
-        await addRoute_('find', 'get');
-        await addRoute_('create', 'post');
+        await addRoute_('query', 'get');
+        await addRoute_('post', 'post');
         await addRoute_('replaceMany', 'put');
         await addRoute_('updateMany', 'patch');
-        await addRoute_('deleteMany', 'del');
+        await addRoute_('deleteMany', 'delete');
         await addRouteWithId_('findOne', 'get');
         await addRouteWithId_('replaceOne', 'put');
         await addRouteWithId_('updateOne', 'patch');
-        await addRouteWithId_('deleteOne', 'del');
+        await addRouteWithId_('deleteOne', 'delete');
     });
     app.addRouter(router);
 };

@@ -7,7 +7,7 @@ const LESS_THAN = 'lt';
 const LESS_THAN_OR_EQUAL = 'lte';
 const LENGTH = 'size';
 const IN = 'in';
-const NOT_IN = 'nin';
+const NOT_IN = 'notIn';
 const EXISTS = 'exist';
 const REQUIRED = 'required';
 const MATCH = 'match';
@@ -21,6 +21,7 @@ const END_WITH = 'end';
 const MATCH_PATTERN = 'pattern';
 const CONTAINS = 'contains';
 const SAME_AS = 'same';
+const IF = 'if';
 
 export default {
     EQUAL,
@@ -46,4 +47,6 @@ export default {
     MATCH_PATTERN,
     CONTAINS,
     SAME_AS,
+
+    IF,
 };

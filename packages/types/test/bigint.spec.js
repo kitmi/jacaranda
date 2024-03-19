@@ -27,7 +27,7 @@ describe("bigint", () => {
 
         it("should return the input value for rawValue input", () => {
             const value = 123n;
-            const result = bigint.sanitize(value, { rawValue: true }, {}, "");
+            const result = bigint.sanitize(value, { plain: true }, {}, "");
             result.should.equal(value);
         });
 

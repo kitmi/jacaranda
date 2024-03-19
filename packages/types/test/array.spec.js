@@ -15,7 +15,7 @@ describe('array', () => {
 
         it("should return rawValue", () => {
             const value = 'fjeioajfiojf';
-            array.sanitize('fjeioajfiojf', { rawValue: true }, {}, "test").should.be.eql(value);
+            array.sanitize('fjeioajfiojf', { plain: true }, {}, "test").should.be.eql(value);
         });
 
         it("should parse a comma-separated string into an array", () => {
@@ -39,8 +39,8 @@ describe('array', () => {
         });
 
         it("should sanitize array elements according to the element schema", () => {
-            const elementSchema = { type: "integer" };
-            array.sanitize(["1", "2", "3"], { type: "array", elementSchema }, {}, "test").should.eql([1, 2, 3]);
+            const element = { type: "integer" };
+            array.sanitize(["1", "2", "3"], { type: "array", element }, {}, "test").should.eql([1, 2, 3]);
         });
     });
 

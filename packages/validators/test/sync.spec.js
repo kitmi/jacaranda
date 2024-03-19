@@ -1,20 +1,28 @@
-import { Types } from '../src/allSync';
+import SYS, { Types } from '../src/allSync';
+import zh from '@kitmi/jsonv/locale/zh';
+
+SYS.jsvConfig.loadMessages('zh-CN', zh);
 
 describe('all sync', function () {
     it('bvt', function () {
+        SYS.jsvConfig.setLocale('en');
+
         (() =>
             Types.OBJECT.sanitize(
                 { a: 1 },
-                { schema: { a: { type: 'number', mod: [['~jsv', { $gt: 2 }]] } } }
+                { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } }
             )).should.Throw('"a" must be greater than 2.');
     });
 
     it('bvt - zh-CN', function () {
+        SYS.jsvConfig.setLocale('zh-CN');
+
+        console.log(SYS.jsvConfig.locale);
+
         (() =>
             Types.OBJECT.sanitize(
                 { a: 1 },
-                { schema: { a: { type: 'number', mod: [['~jsv', { $gt: 2 }]] } } },
-                { locale: 'zh-CN' }
+                { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } }
             )).should.Throw('"a" 的数值必须大于 2。');
     });
 
@@ -23,7 +31,7 @@ describe('all sync', function () {
             // key1 field's value should be an integer within the range from 10 to 30
             key1: {
                 type: 'integer',
-                mod: [
+                post: [
                     ['~max', 30],
                     ['~min', 10],
                 ],
@@ -31,20 +39,20 @@ describe('all sync', function () {
             // key2 field's value should be an integer within the range from 20 to 30
             key2: {
                 type: 'integer',
-                mod: [
+                post: [
                     ['~max', 20],
                     ['~min', 10],
                 ],
             },
         },
         optional: true,
-        mod: [
+        post: [
             {
                 // the object as a whole should match the jsonv expression below, ~jsv === ~jsonv
                 name: '~jsv',
                 options: {
                     key1: {
-                        $gt: '$$.key2', // or $$ROOT.key2
+                        $gt: { $expr: '$root.key2' }, // or $$ROOT.key2
                     },
                 },
             },
@@ -67,7 +75,9 @@ describe('all sync', function () {
     });
 
     it('sample 2', function () {
-        (() => Types.OBJECT.sanitize({ key1: 15, key2: 20 }, meta)).should.Throw('"key1" must be greater than $$.key2.');
+        SYS.jsvConfig.setLocale('en');
+
+        (() => Types.OBJECT.sanitize({ key1: 15, key2: 20 }, meta)).should.Throw('"key1" must be greater than {"$expr":"$root.key2"}.');
     });
 
     it('sample 3', function () {

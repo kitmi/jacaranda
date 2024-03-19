@@ -8,7 +8,7 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _validator = /*#__PURE__*/ _interop_require_default(_export_star(require("./validator"), exports));
+const _sync = /*#__PURE__*/ _interop_require_default(_export_star(require("./sync"), exports));
 const _injectAll = /*#__PURE__*/ _interop_require_default(require("./injectAll"));
 function _export_star(from, to) {
     Object.keys(from).forEach(function(k) {
@@ -28,7 +28,7 @@ function _interop_require_default(obj) {
         default: obj
     };
 }
-(0, _injectAll.default)(_validator.default);
-const _default = _validator.default;
+(0, _injectAll.default)(_sync.default);
+const _default = _sync.default;
 
 //# sourceMappingURL=allSync.js.map

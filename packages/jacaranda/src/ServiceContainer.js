@@ -517,7 +517,7 @@ class ServiceContainer extends AsyncEmitter {
 
                 let feature;
                 try {
-                    feature = this._loadFeature(name);
+                    feature = this._loadFeature(name, featureOptions);
                 } catch (err) {
                     //ignore the first trial
                     //this.log('warn', err.message, { err });
@@ -560,7 +560,7 @@ class ServiceContainer extends AsyncEmitter {
                 return;
             }
 
-            let feature = this._loadFeature(name);
+            let feature = this._loadFeature(name, featureOptions);
 
             if (!(feature.stage in featureGroups)) {
                 throw new Error(`Invalid feature stage. Feature: ${name}, type: ${feature.stage}`);
@@ -610,7 +610,7 @@ class ServiceContainer extends AsyncEmitter {
      * @param {string} feature
      * @returns {object}
      */
-    _loadFeature(feature) {
+    _loadFeature(feature, featureOptions) {
         let featureObject = this.features[feature];
         if (featureObject) return featureObject;
 
@@ -651,14 +651,14 @@ class ServiceContainer extends AsyncEmitter {
             if (!found) {
                 throw new InvalidConfiguration(`Don't know where to load feature "${feature}".`, this, {
                     feature,
-                    searchingPath,
+                    searchingPath: searchingPath.join("\n"),
                 });
             }
 
             featureObject = this.tryRequire(featurePath);
         }        
 
-        featureObject = typeof featureObject === 'function' ? featureObject(this) : featureObject;
+        featureObject = typeof featureObject === 'function' ? featureObject(this, featureOptions) : featureObject;
 
         if (!Feature.validate(featureObject)) {
             throw new Error(`Invalid feature object loaded from "${featurePath}".`);

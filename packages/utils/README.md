@@ -44,6 +44,8 @@ E.g.
 ```
 require('@swc-node/register');
 require('@kitmi/utils/testRegister');
+
+(() => {}).should.throw(...);
 ```
 
 ### some difference between should and chai

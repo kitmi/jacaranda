@@ -8,6 +8,7 @@ import {
     csvLineParse,
     padLeft,
     padRight,
+    base64Encode,
     base64Decode,
     pascalCase,
     camelCase,
@@ -18,24 +19,25 @@ import {
 const _quoteSet = ['"', "'"];
 
 export default {
-    trimLines: (value, options, meta, context) => trimLines(value, options?.lineDelimiter),
+    trimLines: (value, options) => trimLines(value, options?.lineDelimiter),
 
-    stripLines: (value, options, meta, context) =>
+    stripLines: (value, options) =>
         deleteLines(value, Array.isArray(options) ? options : options?.patterns, options?.lineDelimiter),
-    grepLines: (value, options, meta, context) =>
+    grepLines: (value, options) =>
         grepLines(value, Array.isArray(options) ? options : options?.patterns, options?.lineDelimiter),
 
-    quote: (value, options, meta, context) => quote(value, options?.quoteChar),
-    unquote: (value, options, meta, context) => unquote(value, options?.unescape, options?.quoteSet ?? _quoteSet),
+    quote: (value, options) => quote(value, options?.quoteChar),
+    unquote: (value, options) => unquote(value, options?.unescape, options?.quoteSet ?? _quoteSet),
 
-    fromCsv: (value, options, meta, context) => csvLineParse(value, options), // delimiter, emptyAsNull
+    fromCsv: (value, options) => csvLineParse(value, options), // delimiter, emptyAsNull
 
-    padLeft: (value, options, meta, context) =>
+    padLeft: (value, options) =>
         padLeft(value, typeof options === 'string' ? options : _.repeat(' ', options)),
-    padRight: (value, options, meta, context) =>
+    padRight: (value, options) =>
         padRight(value, typeof options === 'string' ? options : _.repeat(' ', options)),
 
-    fromBase64: (value, options, meta, context) => base64Decode(value),
+    toBase64: (value) => base64Encode(value),
+    fromBase64: (value) => base64Decode(value),
 
     pascalCase: (value) => pascalCase(value),
     camelCase: (value) => camelCase(value),

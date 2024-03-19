@@ -1,2 +1,1 @@
-export * from './validator';
-export { default } from './validator';
+export { default, Types } from './sync';

@@ -1,3 +1,5 @@
 # Summary
 
-- [Get Started](index.md)
+- [Bundle](index.md)
+- [Type & Validation](type.md)
+- [Reflection-based Features](features.md)

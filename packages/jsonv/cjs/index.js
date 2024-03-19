@@ -9,14 +9,17 @@ function _export(target, all) {
     });
 }
 _export(exports, {
+    Config: function() {
+        return _config.Config;
+    },
     OP: function() {
         return _validateOperators.default;
     },
-    config: function() {
-        return _config.default;
+    createJSV: function() {
+        return _Jsv.createJSV;
     },
     default: function() {
-        return _Jvs.default;
+        return _Jsv.default;
     },
     getChildContext: function() {
         return _config.getChildContext;
@@ -24,14 +27,18 @@ _export(exports, {
     test: function() {
         return _validate.test;
     },
+    transform: function() {
+        return _transform.default;
+    },
     validate: function() {
         return _validate.default;
     }
 });
-const _config = /*#__PURE__*/ _interop_require_wildcard(require("./config"));
+const _config = require("./config");
 const _validateOperators = /*#__PURE__*/ _interop_require_default(require("./validateOperators"));
 const _validate = /*#__PURE__*/ _interop_require_wildcard(require("./validate"));
-const _Jvs = /*#__PURE__*/ _interop_require_default(require("./Jvs"));
+const _transform = /*#__PURE__*/ _interop_require_default(require("./transform"));
+const _Jsv = /*#__PURE__*/ _interop_require_wildcard(require("./Jsv"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj

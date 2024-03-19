@@ -27,6 +27,9 @@ _export(exports, {
     ifThen: function() {
         return _ifThen.default;
     },
+    isEmpty: function() {
+        return _isEmpty.default;
+    },
     isInteger: function() {
         return _isInteger.default;
     },
@@ -35,6 +38,9 @@ _export(exports, {
     },
     isPromise: function() {
         return _isPromise.default;
+    },
+    isTypedArray: function() {
+        return _isTypedArray.default;
     },
     pipeAsync_: function() {
         return _pipeAsync_.default;
@@ -51,8 +57,14 @@ _export(exports, {
     toInteger: function() {
         return _toInteger.default;
     },
+    toNumber: function() {
+        return _toNumber.default;
+    },
     unexistDelegate: function() {
         return _unexistDelegate.default;
+    },
+    valueAt: function() {
+        return _valueAt.default;
     },
     waitUntil_: function() {
         return _waitUntil_.default;
@@ -66,9 +78,13 @@ const _pipeAsync_ = /*#__PURE__*/ _interop_require_default(require("./pipeAsync_
 const _isPlainObject = /*#__PURE__*/ _interop_require_default(require("./isPlainObject"));
 const _isInteger = /*#__PURE__*/ _interop_require_default(require("./isInteger"));
 const _isPromise = /*#__PURE__*/ _interop_require_default(require("./isPromise"));
+const _isTypedArray = /*#__PURE__*/ _interop_require_default(require("./isTypedArray"));
+const _isEmpty = /*#__PURE__*/ _interop_require_default(require("./isEmpty"));
 const _toInteger = /*#__PURE__*/ _interop_require_default(require("./toInteger"));
 const _toBoolean = /*#__PURE__*/ _interop_require_default(require("./toBoolean"));
+const _toNumber = /*#__PURE__*/ _interop_require_default(require("./toNumber"));
 const _toFloat = /*#__PURE__*/ _interop_require_default(require("./toFloat"));
+const _valueAt = /*#__PURE__*/ _interop_require_default(require("./valueAt"));
 const _esmCheck = /*#__PURE__*/ _interop_require_default(require("./esmCheck"));
 const _esmIsMain = /*#__PURE__*/ _interop_require_default(require("./esmIsMain"));
 const _unexistDelegate = /*#__PURE__*/ _interop_require_default(require("./unexistDelegate"));

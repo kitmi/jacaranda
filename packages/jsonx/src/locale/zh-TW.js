@@ -1,1 +1,1 @@
-export { default } from '@kitmi/jsonv/lib/locale/zh-TW';
+export { default } from '@kitmi/jsonv/locale/zh-TW';

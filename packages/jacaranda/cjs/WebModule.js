@@ -41,7 +41,7 @@ function _interop_require_default(obj) {
             ...options
         });
         this.server = this.host;
-        this.engine = this.server.engine.createSubEngine(this);
+        this.router = this.server.engine.createModuleRouter(this);
         /**
          * Mounting route.
          * @member {string}

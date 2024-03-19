@@ -45,7 +45,7 @@ const _default = {
             schema: {
                 strategies: {
                     type: 'array',
-                    elementSchema: {
+                    element: {
                         type: 'text'
                     }
                 },

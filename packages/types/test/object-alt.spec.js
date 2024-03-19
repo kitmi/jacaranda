@@ -15,7 +15,7 @@ describe('object with alternative schemas', () => {
 
     const objSchema2 = {
         schema: {
-            key: [{ type: 'text' }, { type: 'array', elementSchema: { type: 'text' } }],
+            key: [{ type: 'text' }, { type: 'array', element: { type: 'text' } }],
         },
     };
 

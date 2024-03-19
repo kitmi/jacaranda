@@ -93,25 +93,40 @@ function createModifier(modifierItem, handlers) {
         options
     ];
 }
-const applyModifiers = (value, meta, context)=>meta.mod.reduce((_value, modifier)=>{
+/**
+ * Apply post modifiers one-by-one
+ * @param {*} value
+ * @param {Object} meta - The current type meta
+ * @property {Array} meta.post - The list of post modifiers
+ * @property {string} meta.type - The type name
+ * @param {Object} context
+ * @property {Object} context.system - The type system
+ * @property {Object} context.system.types - All types meta in the type system
+ * @property {Object} context.system.handlers - The modifier handlers for the type system
+ * @property {Object} context.i18n - The i18n object
+ * @property {Function} context.i18n.t - The i18n translate function
+ * @property {string} context.path - The current field path
+ * @property {*} context.rawValue - The raw value
+ * @returns
+ */ const applyModifiers = (value, meta, context)=>meta.post.reduce((_value, modifier)=>{
         const [handler, options] = createModifier(modifier, context.system.handlers);
         return handler(_value, options, meta, context);
     }, value);
 const applyModifiers_ = async (value, meta, context)=>{
-    await (0, _utils.eachAsync_)(meta.mod, async (modifier)=>{
+    await (0, _utils.eachAsync_)(meta.post, async (modifier)=>{
         const [handler, options] = createModifier(modifier, context.system.handlers);
         value = await handler(value, options, meta, context);
     });
     return value;
 };
 const postProcess_ = async (value, meta, opts)=>{
-    if (meta.mod) {
+    if (meta.post) {
         value = await applyModifiers_(value, meta, opts);
     }
     return value;
 };
 const postProcess = (value, meta, opts)=>{
-    if (meta.mod) {
+    if (meta.post) {
         value = applyModifiers(value, meta, opts);
     }
     return value;

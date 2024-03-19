@@ -16,8 +16,8 @@ export default {
                         key: { type: 'text' },
                     },
                     {
-                        privateKey: { type: 'text', mod: ['|trimLines'] },
-                        publicKey: { type: 'text', mod: ['|trimLines'] },
+                        privateKey: { type: 'text', post: ['|trimLines'] },
+                        publicKey: { type: 'text', post: ['|trimLines'] },
                     },
                 ],
             },

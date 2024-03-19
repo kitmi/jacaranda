@@ -163,7 +163,7 @@ class TypeSystem {
                 path: opts.path
             });
         }
-        if (meta.rawValue) return [
+        if (meta.plain) return [
             true,
             value
         ];

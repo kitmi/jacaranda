@@ -1,31 +1,21 @@
 // JSON Validation Syntax
-import { get as _get, esmCheck } from '@kitmi/utils';
-import JsvError from './JvsError';
-import config, { getChildContext } from './config';
+import { get as _get } from '@kitmi/utils';
+import JsvError from './JsvError';
+import { initContext, getChildContext } from './config';
+import { isOperator } from './utils';
 import ops from './validateOperators';
 
-const MSG = config.messages;
-const DEFAULT_LOCALE = 'en';
-
 function getUnmatchedExplanation(op, leftValue, rightValue, context) {
-    if (context.$$ERROR) {
-        return context.$$ERROR;
+    if (context.ERROR) {
+        return context.ERROR;
     }
 
-    let getter;
-
-    if (MSG.validationErrors) {
-        getter = MSG.validationErrors[op];
-    } else {
-        let locale = context.locale || DEFAULT_LOCALE;
-        if (!config.supportedLocales.has(locale)) {
-            locale = DEFAULT_LOCALE;
-        }
-        const messages = esmCheck(require('./locale/' + locale));
-        getter = messages.validationErrors[op];
+    const formatter = context.config.messages.validationErrors?.[op];
+    if (formatter == null) {
+        throw new Error('Missing validation error formatter for operator: ' + op);
     }
-
-    return getter(context.name, leftValue, rightValue, context);
+    
+    return formatter(context.name, leftValue, rightValue, context);
 }
 
 /**
@@ -39,10 +29,10 @@ function getUnmatchedExplanation(op, leftValue, rightValue, context) {
  * @throws {Error} If the specified operator does not have a registered validator.
  */
 export function test(left, op, right, options, context) {
-    const handler = config.getValidator(op);
+    const handler = context.config.getValidator(op);
 
     if (!handler) {
-        throw new Error(MSG.INVALID_TEST_HANLDER(op));
+        throw new Error(context.config.messages.INVALID_TEST_HANLDER(op));
     }
 
     return handler(left, right, options, context);
@@ -51,65 +41,65 @@ export function test(left, op, right, options, context) {
 /**
  * Validate the given object with JSON Expression Syntax (JES)
  * @param {*} actual - The object to match
- * @param {*} jvs - Expected state in JSON Expression Syntax
+ * @param {*} jsv - Expected state in JSON Expression Syntax
  * @param {*} options - Validation options
- * @param {*} context - Validation context
+ * @param {*} [context] - Validation context
+ * @property {Object} context.config - The configuration object for the current validation context
+ * @property {string} [context.path] - The current path of the data structure being validated
+ * @property {*} [context.THIS] - The current value being validated
+ * @property {*} [context.ROOT] - The root of the data structure being validated
+ * @property {*} [context.PARENT] - The parent of the current field being validated
+ * @property {string} [context.KEY] - The key of the current field being validated
+ * @property {string|Array} [context.ERROR] - The error message to display if the validation fails
+ * @property {Object} [context.mapOfNames] - A map of field names to use for error messages
+ * @property {string} [context.name] - The name of the current field being validated, provided by the user
  * @returns {array} - [ {boolean} matched, {string} unmatchedReason ]
  */
-function validate(actual, jvs, options, context = {}) {
-    if (jvs == null) {
+function validate(actual, jsv, options, context) {
+    if (jsv == null) {
         return true;
     }
 
-    const type = typeof jvs;
+    context = initContext(context, actual);
+
+    const type = typeof jsv;
 
     if (type === 'string') {
-        if (jvs.length === 0 || jvs[0] !== '$') {
-            throw new Error(MSG.SYNTAX_INVALID_EXPR(jvs));
+        if (!isOperator(jsv)) {
+            throw new Error(context.config.messages.SYNTAX_INVALID_EXPR(jsv));
         }
 
-        if (jvs.startsWith('$$')) {
-            return validate(actual, { $equal: jvs }, options, context);
-        }
-
-        return validate(actual, { [jvs]: null }, options, context);
+        return validate(actual, { [jsv]: null }, options, context);
     }
 
     const { throwError, abortEarly, asPredicate, plainError } = options;
 
-    if (Array.isArray(jvs)) {
-        return validate(actual, { $match: jvs }, options, context);
+    if (Array.isArray(jsv)) {
+        return validate(actual, { $all: jsv }, options, context);
     }
 
     if (type !== 'object') {
-        return validate(actual, { $equal: jvs }, options, context);
+        return validate(actual, { $equal: jsv }, options, context);
     }
-
-    let { path } = context;
+    
     const errors = [];
     const _options = !abortEarly && throwError ? { ...options, throwError: false } : options;
 
-    for (let operator in jvs) {
+    for (let fieldName in jsv) {
         let op, left, _context;
 
-        const opValue = jvs[operator];
+        const opValue = jsv[fieldName];
 
-        if (
-            // $match
-            (operator.length > 1 && operator[0] === '$') ||
-            // |>$all
-            (operator.length > 3 && operator[0] === '|' && operator[2] === '$')
-        ) {
+        if (isOperator(fieldName)) {
             //validator
-            op = config.getValidatorTag(operator);
+            op = context.config.getValidatorTag(fieldName);
             if (!op) {
-                throw new Error(MSG.UNSUPPORTED_VALIDATION_OP(operator, path));
+                throw new Error(context.config.messages.UNSUPPORTED_VALIDATION_OP(fieldName, context.path));
             }
 
             left = actual;
             _context = context;
         } else {
-            const fieldName = operator;
             let isComplexKey = fieldName.indexOf('.') !== -1;
 
             //pick a field and then apply manipulation
@@ -124,17 +114,17 @@ function validate(actual, jvs, options, context = {}) {
             }
         }
 
-        if (!test(left, op, opValue, _options, _context)) {
+        if (test(left, op, opValue, _options, _context) !== true) {
             if (asPredicate) {
                 return false;
             }
 
             const reason = getUnmatchedExplanation(op, left, opValue, _context);
             if (abortEarly && throwError) {
-                throw new JsvError(reason, left, _context.path);
+                throw new JsvError(reason, left, _context);
             }
 
-            errors.push(plainError ? reason : new JsvError(reason, left, _context.path));
+            errors.push(plainError ? reason : new JsvError(reason, left, _context));
             if (abortEarly) {
                 break;
             }
@@ -147,7 +137,7 @@ function validate(actual, jvs, options, context = {}) {
         }
 
         if (throwError) {
-            throw new JsvError(errors, actual, path);
+            throw new JsvError(errors, actual, context);
         }
 
         return errors.length === 1 && plainError ? errors[0] : errors;

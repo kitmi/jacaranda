@@ -22,7 +22,7 @@ describe("boolean", () => {
         });
 
         it("should return the input value for rawValue input", () => {
-            const result = boolean.sanitize(true, { rawValue: true }, {});
+            const result = boolean.sanitize(true, { plain: true }, {});
             result.should.be.true;
         });
 

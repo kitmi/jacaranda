@@ -31,13 +31,13 @@ const _default = {
                 {
                     privateKey: {
                         type: 'text',
-                        mod: [
+                        post: [
                             '|trimLines'
                         ]
                     },
                     publicKey: {
                         type: 'text',
-                        mod: [
+                        post: [
                             '|trimLines'
                         ]
                     }

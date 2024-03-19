@@ -12,9 +12,6 @@ Object.defineProperty(exports, "default", {
 const SIZE = 'size';
 const SUM = 'sum';
 const GET_TYPE = 'typeof';
-const MATCH = 'validate';
-const GET_BY_INDEX = 'byIndex';
-const GET_BY_KEY = 'byKey';
 const FIND_INDEX = 'findIndex';
 const FIND = 'find';
 const IF = 'if';
@@ -26,6 +23,7 @@ const SUB = 'sub';
 const MUL = 'mul';
 const DIV = 'div';
 const MOD = 'mod';
+const POW = 'pow';
 //Collection operators (pure)
 const KEYS = 'keys';
 const VALUES = 'values';
@@ -38,6 +36,7 @@ const SLICE = 'slice'; // limit offset, count
 const GROUP = 'groupBy';
 const SORT = 'orderBy';
 const REVERSE = 'reverse';
+const CONCAT = 'concat';
 const JOIN = 'join';
 const MERGE = 'merge';
 const FILTER = 'filterBy'; // filter by value
@@ -48,6 +47,7 @@ const TO_OBJ = 'parse';
 const SET = 'set';
 const ADD_ITEM = 'addItem';
 const ASSIGN = 'assign';
+const CREATE = 'create';
 const APPLY = 'apply';
 const SANITIZE = 'sanitize';
 const SPLIT = 'split';
@@ -59,9 +59,6 @@ const _default = {
     SIZE,
     SUM,
     GET_TYPE,
-    MATCH,
-    GET_BY_INDEX,
-    GET_BY_KEY,
     FIND_INDEX,
     FIND,
     IF,
@@ -71,6 +68,7 @@ const _default = {
     MUL,
     DIV,
     MOD,
+    POW,
     KEYS,
     VALUES,
     ENTRIES,
@@ -82,6 +80,7 @@ const _default = {
     GROUP,
     SORT,
     REVERSE,
+    CONCAT,
     JOIN,
     MERGE,
     FILTER,
@@ -91,6 +90,7 @@ const _default = {
     SET,
     ADD_ITEM,
     ASSIGN,
+    CREATE,
     APPLY,
     SANITIZE,
     SPLIT,

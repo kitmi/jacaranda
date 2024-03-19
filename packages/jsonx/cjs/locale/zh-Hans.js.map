@@ -1,1 +1,1 @@
-{"version":3,"sources":["../../src/locale/zh-Hans.js"],"sourcesContent":["export { default } from '@kitmi/jsonv/lib/locale/zh-Hans';\n"],"names":["default"],"mappings":";;;;+BAASA;;;eAAAA,eAAO;;;+DAAQ"}
+{"version":3,"sources":["../../src/locale/zh-Hans.js"],"sourcesContent":["export { default } from '@kitmi/jsonv/locale/zh-Hans';\n"],"names":["default"],"mappings":";;;;+BAASA;;;eAAAA,eAAO;;;+DAAQ"}
