@@ -4,7 +4,6 @@ import JsvError from './JsvError';
 import { initContext, getChildContext } from './config';
 import { isOperator } from './utils';
 import ops from './validateOperators';
-import transform from './transform'
 
 function getUnmatchedExplanation(op, leftValue, rightValue, context) {
     if (context.ERROR) {
@@ -44,7 +43,16 @@ export function test(left, op, right, options, context) {
  * @param {*} actual - The object to match
  * @param {*} jsv - Expected state in JSON Expression Syntax
  * @param {*} options - Validation options
- * @param {*} context - Validation context
+ * @param {*} [context] - Validation context
+ * @property {Object} context.config - The configuration object for the current validation context
+ * @property {string} [context.path] - The current path of the data structure being validated
+ * @property {*} [context.THIS] - The current value being validated
+ * @property {*} [context.ROOT] - The root of the data structure being validated
+ * @property {*} [context.PARENT] - The parent of the current field being validated
+ * @property {string} [context.KEY] - The key of the current field being validated
+ * @property {string|Array} [context.ERROR] - The error message to display if the validation fails
+ * @property {Object} [context.mapOfNames] - A map of field names to use for error messages
+ * @property {string} [context.name] - The name of the current field being validated, provided by the user
  * @returns {array} - [ {boolean} matched, {string} unmatchedReason ]
  */
 function validate(actual, jsv, options, context) {
@@ -73,8 +81,7 @@ function validate(actual, jsv, options, context) {
     if (type !== 'object') {
         return validate(actual, { $equal: jsv }, options, context);
     }
-
-    let { path } = context;
+    
     const errors = [];
     const _options = !abortEarly && throwError ? { ...options, throwError: false } : options;
 
@@ -87,7 +94,7 @@ function validate(actual, jsv, options, context) {
             //validator
             op = context.config.getValidatorTag(fieldName);
             if (!op) {
-                throw new Error(context.config.messages.UNSUPPORTED_VALIDATION_OP(fieldName, path));
+                throw new Error(context.config.messages.UNSUPPORTED_VALIDATION_OP(fieldName, context.path));
             }
 
             left = actual;
@@ -114,10 +121,10 @@ function validate(actual, jsv, options, context) {
 
             const reason = getUnmatchedExplanation(op, left, opValue, _context);
             if (abortEarly && throwError) {
-                throw new JsvError(reason, left, _context.path);
+                throw new JsvError(reason, left, _context);
             }
 
-            errors.push(plainError ? reason : new JsvError(reason, left, _context.path));
+            errors.push(plainError ? reason : new JsvError(reason, left, _context));
             if (abortEarly) {
                 break;
             }
@@ -130,7 +137,7 @@ function validate(actual, jsv, options, context) {
         }
 
         if (throwError) {
-            throw new JsvError(errors, actual, path);
+            throw new JsvError(errors, actual, context);
         }
 
         return errors.length === 1 && plainError ? errors[0] : errors;

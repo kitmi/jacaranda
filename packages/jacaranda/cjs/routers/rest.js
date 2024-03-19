@@ -43,8 +43,9 @@ function _interop_require_default(obj) {
  *  /:resource/:id                 put            update
  *  /:resource/:id                 delete         remove
  */ const restRouter = async (app, baseRoute, options)=>{
-    let router = app.engine.createRouter(baseRoute);
+    let router = app.router.createRouter(baseRoute);
     let resourcePath = _nodepath.default.resolve(app.sourcePath, options.$controllerPath ?? 'resources');
+    const kebabify = options.$urlDasherize;
     app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.$errorOptions, app), 'jsonError');
     if (options.$middlewares) {
         await app.useMiddlewares_(router, options.$middlewares);
@@ -55,7 +56,7 @@ function _interop_require_default(obj) {
     });
     await (0, _utils.batchAsync_)(files, async (file)=>{
         let relPath = _nodepath.default.relative(resourcePath, file);
-        let batchUrl = _utils.text.ensureStartsWith(relPath.substring(0, relPath.length - 3).split(_nodepath.default.sep).map((p)=>_utils._.kebabCase(p)).join('/'), '/');
+        let batchUrl = _utils.text.ensureStartsWith(relPath.substring(0, relPath.length - 3).split(_nodepath.default.sep).map((p)=>kebabify ? _utils.naming.kebabCase(p) : p).join('/'), '/');
         let singleUrl = batchUrl + '/:id';
         let controller = (0, _utils.esmCheck)(require(file));
         if (typeof controller === 'function') {

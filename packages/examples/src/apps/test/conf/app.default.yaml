@@ -1,0 +1,32 @@
+appFeature:
+    param: test
+apiWrapper: {}
+routing:
+    /:
+        rule:
+            $middlewares:
+                views:
+                    root: views
+                    extension: swig
+                    options:
+                        cache: false
+            'get:/': home.index
+    /module:
+        module:
+            $middlewares:
+                - dummy
+            $controllerPath: actions            
+            '/': test
+    /module2:        
+        module:
+            $controllerPath: actions
+            '/': test2
+    /api:
+        rest: 
+            $urlDasherize: true
+    /api/v2:
+        jaREST:
+            $controllerPath: actions2
+            $urlDasherize: true
+            pet: '/store/:storeId/pet'
+                

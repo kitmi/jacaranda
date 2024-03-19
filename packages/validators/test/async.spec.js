@@ -1,5 +1,8 @@
-import { Types } from '../src/allAsync';
+import SYS, { Types } from '../src/allAsync';
+import zh from '@kitmi/jsonv/locale/zh';
 import shouldThrow_ from '@kitmi/utils/testShouldThrow_';
+
+SYS.jsvConfig.loadMessages('zh-CN', zh);
 
 describe('all async', function () {
     it('bvt', async function () {
@@ -11,6 +14,8 @@ describe('all async', function () {
     });
 
     it('bvt - zh-CN', async function () {
+        SYS.jsvConfig.setLocale('zh-CN');
+
         await shouldThrow_(
             async () =>
                 Types.OBJECT.sanitize_(

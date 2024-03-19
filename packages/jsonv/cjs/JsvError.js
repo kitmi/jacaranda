@@ -8,9 +8,8 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _config = require("./config");
 class JsvError extends Error {
-    constructor(errorOrErrors, value, field){
+    constructor(errorOrErrors, value, context){
         const errors = [];
         let inner = [];
         (Array.isArray(errorOrErrors) ? errorOrErrors : [
@@ -34,10 +33,10 @@ class JsvError extends Error {
                 }
             }
         });
-        super(errors.length > 1 ? _config.messages.MULTI_ERRORS(errors.length) : errors[0]);
+        super(errors.length > 1 ? context.config.messages.MULTI_ERRORS(errors.length) : errors[0]);
         this.name = 'JsvError';
         this.value = value;
-        this.path = field;
+        this.path = context.path;
         this.errors = errors;
         this.inner = inner;
     }

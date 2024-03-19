@@ -1,33 +1,59 @@
 import config from './config';
-import transform from './transformers';
+import loadMoreTransformers from './transformers';
+import { createJSV, transform } from '@kitmi/jsonv';
 
-/**
- * JSON eXpression Syntax
- * @class
- */
-class JSX {
-    static config = config;
+export function createJSX(_config) {
+    let _jsv;
 
-    static evaluate = (value, jsx, context) => {
-        return transform(value, jsx, { config: this.config, ...context });
-    };
+    if (_config == null) {
+        _jsv = createJSV();
+        _config = _jsv.config;
 
-    /**
-     * @param {object} value
-     */
-    constructor(value) {
-        this.value = value;
+        loadMoreTransformers(_config);
+    } else {
+        _jsv = createJSV(_config);
     }
 
     /**
-     * Evaluate a JSON expression against the value and update the value
-     * @param {object} - JSON operation expression
-     * @returns {JSX}
+     * JSON eXpression Syntax
+     * @class
      */
-    evaluate(jsx) {
-        this.value = transform(this.value, jsx, { config: this.constructor.config });
-        return this;
+    class JSX {
+        static get JSV() {
+            return _jsv;
+        }
+
+        static get config() {
+            return _config;
+        }
+
+        static evaluate(value, jsx, context) {
+            return transform(value, jsx, { config: this.config, ...context });
+        }
+
+        /**
+         * @param {object} value
+         */
+        constructor(value) {
+            this.value = value;
+        }
+
+        /**
+         * Evaluate a JSON expression against the value and update the value
+         * @param {object} - JSON operation expression
+         * @returns {JSX}
+         */
+        evaluate(jsx) {
+            this.value = transform(this.value, jsx, { config: this.constructor.config });
+            return this;
+        }
     }
+
+    return JSX;
 }
 
-export default JSX;
+loadMoreTransformers(config);
+
+const defaultJSX = createJSX(config);
+
+export default defaultJSX;

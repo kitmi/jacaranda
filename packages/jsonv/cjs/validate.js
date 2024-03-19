@@ -22,7 +22,6 @@ const _JsvError = /*#__PURE__*/ _interop_require_default(require("./JsvError"));
 const _config = require("./config");
 const _utils1 = require("./utils");
 const _validateOperators = /*#__PURE__*/ _interop_require_default(require("./validateOperators"));
-const _transform = /*#__PURE__*/ _interop_require_default(require("./transform"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
@@ -50,7 +49,16 @@ function test(left, op, right, options, context) {
  * @param {*} actual - The object to match
  * @param {*} jsv - Expected state in JSON Expression Syntax
  * @param {*} options - Validation options
- * @param {*} context - Validation context
+ * @param {*} [context] - Validation context
+ * @property {Object} context.config - The configuration object for the current validation context
+ * @property {string} [context.path] - The current path of the data structure being validated
+ * @property {*} [context.THIS] - The current value being validated
+ * @property {*} [context.ROOT] - The root of the data structure being validated
+ * @property {*} [context.PARENT] - The parent of the current field being validated
+ * @property {string} [context.KEY] - The key of the current field being validated
+ * @property {string|Array} [context.ERROR] - The error message to display if the validation fails
+ * @property {Object} [context.mapOfNames] - A map of field names to use for error messages
+ * @property {string} [context.name] - The name of the current field being validated, provided by the user
  * @returns {array} - [ {boolean} matched, {string} unmatchedReason ]
  */ function validate(actual, jsv, options, context) {
     if (jsv == null) {
@@ -77,7 +85,6 @@ function test(left, op, right, options, context) {
             $equal: jsv
         }, options, context);
     }
-    let { path } = context;
     const errors = [];
     const _options = !abortEarly && throwError ? {
         ...options,
@@ -90,7 +97,7 @@ function test(left, op, right, options, context) {
             //validator
             op = context.config.getValidatorTag(fieldName);
             if (!op) {
-                throw new Error(context.config.messages.UNSUPPORTED_VALIDATION_OP(fieldName, path));
+                throw new Error(context.config.messages.UNSUPPORTED_VALIDATION_OP(fieldName, context.path));
             }
             left = actual;
             _context = context;
@@ -111,9 +118,9 @@ function test(left, op, right, options, context) {
             }
             const reason = getUnmatchedExplanation(op, left, opValue, _context);
             if (abortEarly && throwError) {
-                throw new _JsvError.default(reason, left, _context.path);
+                throw new _JsvError.default(reason, left, _context);
             }
-            errors.push(plainError ? reason : new _JsvError.default(reason, left, _context.path));
+            errors.push(plainError ? reason : new _JsvError.default(reason, left, _context));
             if (abortEarly) {
                 break;
             }
@@ -124,7 +131,7 @@ function test(left, op, right, options, context) {
             return false;
         }
         if (throwError) {
-            throw new _JsvError.default(errors, actual, path);
+            throw new _JsvError.default(errors, actual, context);
         }
         return errors.length === 1 && plainError ? errors[0] : errors;
     }

@@ -82,8 +82,13 @@ class Config {
         return this;
     }
     setLocale(locale) {
-        if (locale in this.messagesCache) {
-            Object.assign(this.messages, this.messagesCache[locale]);
+        if (this.locale != locale) {
+            if (locale in this.messagesCache) {
+                Object.assign(this.messages, this.messagesCache[locale]);
+                this.locale = locale;
+            } else {
+                throw new Error(`Messages of locale "${locale}" not loaded.`);
+            }
         }
     }
     constructor(){
@@ -92,6 +97,7 @@ class Config {
         _define_property(this, "transformerHandlers", {});
         _define_property(this, "mapOfTransformers", {});
         _define_property(this, "messagesCache", {});
+        _define_property(this, "locale", null);
         // default message handlers
         _define_property(this, "messages", {
             //Exception messages
@@ -141,12 +147,15 @@ class Config {
     }
 }
 //JSON Dynamic Expression Runtime Configuration
-const config = new Config();
+const defaultConfig = new Config();
 const initContext = (context, currentValue)=>{
     if (context == null) {
         context = {
-            config
+            config: defaultConfig
         };
+    }
+    if (context.config == null) {
+        context.config = defaultConfig;
     }
     if (!('THIS' in context)) {
         context = {
@@ -159,11 +168,11 @@ const initContext = (context, currentValue)=>{
 };
 const getChildContext = (context, currentValue, childKey, childValue)=>({
         ...context,
-        path: (0, _utils.makePath)(childKey, context.path),
+        path: (0, _utils.makePath)(childKey, context.path ?? context.name),
         PARENT: currentValue,
         THIS: childValue,
         KEY: childKey
     });
-const _default = config;
+const _default = defaultConfig;
 
 //# sourceMappingURL=config.js.map

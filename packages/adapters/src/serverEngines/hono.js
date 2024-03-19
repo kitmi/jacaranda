@@ -80,7 +80,7 @@ class HonoEngine {
 
         let port = options.port;
 
-        server.on('ready', async () => {
+        server.once('ready', async () => {
             return new Promise((resolve, reject) => {
                 server.httpServer.listen(port, function (err) {
                     if (err) {

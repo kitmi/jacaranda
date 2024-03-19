@@ -1,1 +1,1 @@
-{"version":3,"sources":["../src/index.js"],"sourcesContent":["export * from './validator';\nexport { default } from './validator';\n"],"names":["default"],"mappings":";;;;+BACSA;;;eAAAA,kBAAO;;;+EADF"}
+{"version":3,"sources":["../src/index.js"],"sourcesContent":["export { default, Types } from './sync';\n"],"names":["Types","default"],"mappings":";;;;;;;;;;;IAAkBA,KAAK;eAALA,WAAK;;IAAdC,OAAO;eAAPA,aAAO;;;8DAAe"}

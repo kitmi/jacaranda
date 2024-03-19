@@ -51,7 +51,12 @@ class AsyncEmitter {
         const _handlers = [
             ...handlers
         ];
-        this._handlers[event] = handlers.filter((item)=>!item.once);
+        const filtered = handlers.filter((item)=>!item.once);
+        if (filtered.length === 0) {
+            delete this._handlers[event];
+        } else {
+            this._handlers[event] = filtered;
+        }
         await (0, _utils.batchAsync_)(_handlers, (item)=>item.handler(...args));
         return true;
     }

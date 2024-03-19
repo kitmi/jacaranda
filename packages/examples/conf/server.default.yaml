@@ -1,19 +1,23 @@
 logger: {}
 
-koa:
+engine:
+    type: koa
     port: 3000
+    middlewares:
+        - - favicon
+          - public/favicon.ico
+        - ip
+        - accessLog
+        - compress
+        - etag
+        - serveStatic
+        - - body
+          - multipart: false
+            jsonLimit: 15mb
 
-middlewares:
-    - - favicon
-      - public/favicon.ico
-    - ip
-    - accessLog
-    - koa-compress
-    - koa-etag
-    - serveStatic
-    - - koa-body
-      - multipart: false
-        jsonLimit: 15mb
+appRouting:
+  /test-app:
+    name: test
 
 routing:
     /:

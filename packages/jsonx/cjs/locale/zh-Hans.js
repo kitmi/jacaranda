@@ -8,7 +8,7 @@ Object.defineProperty(exports, "default", {
         return _zhHans.default;
     }
 });
-const _zhHans = /*#__PURE__*/ _interop_require_default(require("@kitmi/jsonv/lib/locale/zh-Hans"));
+const _zhHans = /*#__PURE__*/ _interop_require_default(require("@kitmi/jsonv/locale/zh-Hans"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj

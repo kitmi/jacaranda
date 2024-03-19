@@ -14,7 +14,6 @@ const _types = require("@kitmi/types");
 const _jsonv = require("@kitmi/jsonv");
 const _transform = /*#__PURE__*/ _interop_require_wildcard(require("@kitmi/jsonv/transform"));
 const _transformersLoader = require("@kitmi/jsonv/transformersLoader");
-const _config = /*#__PURE__*/ _interop_require_default(require("./config"));
 const _size = /*#__PURE__*/ _interop_require_default(require("lodash/size"));
 const _reduce = /*#__PURE__*/ _interop_require_default(require("lodash/reduce"));
 const _reverse = /*#__PURE__*/ _interop_require_default(require("lodash/reverse"));
@@ -83,7 +82,6 @@ function _interop_require_wildcard(obj, nodeInterop) {
     }
     return newObj;
 }
-const MSG = _config.default.messages;
 const UNARY = true;
 const BINARY = false;
 //Query & aggregate operators (pure)
@@ -337,314 +335,317 @@ const OP_INTERPOLATE = [
     '$interpolate',
     '$template'
 ];
-_config.default.addTransformerToMap(OP_SIZE, (left)=>(0, _size.default)(left));
-_config.default.addTransformerToMap(OP_SUM, (left)=>(0, _reduce.default)(left, (sum, item)=>{
-        sum += item;
-        return sum;
-    }, 0));
-_config.default.addTransformerToMap(OP_GET_TYPE, (left)=>(0, _types.typeOf)(left));
-_config.default.addTransformerToMap(OP_FIND_INDEX, (left, right, context)=>{
-    let jvs;
-    let fromIndex = 0;
-    if (Array.isArray(right)) {
-        if (!Array.isArray(left)) {
-            throw new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.FIND_INDEX));
-        }
-        if (right.length !== 2) {
-            throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.FIND_INDEX));
-        }
-        jvs = right[0];
-        fromIndex = (0, _transform.processExprLikeValue)(right[1], context);
-    } else {
-        jvs = right;
-    }
-    const predicate = (value, key)=>(0, _jsonv.validate)(value, jvs, _transformersLoader.matchOptions, (0, _jsonv.getChildContext)(context, left, key, value));
-    return Array.isArray(left) ? (0, _findIndex.default)(left, predicate, fromIndex) : (0, _findKey.default)(left, predicate);
-});
-_config.default.addTransformerToMap(OP_FIND, (left, right, context)=>{
-    let jvs;
-    let fromIndex = 0;
-    if (Array.isArray(right)) {
-        if (right.length !== 2) {
-            throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.FIND_INDEX));
-        }
-        jvs = right[0];
-        fromIndex = (0, _transform.processExprLikeValue)(right[1], context);
-    } else {
-        jvs = right;
-    }
-    const predicate = (value, key)=>(0, _jsonv.validate)(value, jvs, _transformersLoader.matchOptions, (0, _jsonv.getChildContext)(context, left, key, value));
-    return (0, _find.default)(left, predicate, fromIndex);
-});
-_config.default.addTransformerToMap(OP_IF, (left, right, context)=>{
-    if (!Array.isArray(right)) {
-        throw new Error(MSG.OPERAND_NOT_ARRAY(_transformerOperators.default.IF));
-    }
-    if (right.length < 2 || right.length > 3) {
-        throw new Error(MSG.OPERAND_NOT_TUPLE_2_OR_3(_transformerOperators.default.IF));
-    }
-    const condition = (0, _transform.default)(left, right[0], context);
-    if (typeof condition !== 'boolean') {
-        throw new Error(MSG.VALUE_NOT_BOOL(_transformerOperators.default.IF));
-    }
-    if (condition) {
-        return (0, _transform.default)(left, right[1], context);
-    } else if (right.length > 2) {
-        return (0, _transform.default)(left, right[2], context);
-    }
-    return left;
-});
-_config.default.addTransformerToMap(OP_CAST_ARRAY, (left)=>left == null ? null : Array.isArray(left) ? left : [
-        left
-    ]);
-_config.default.addTransformerToMap(OP_ADD, (left, right, context)=>left + (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
-_config.default.addTransformerToMap(OP_SUB, (left, right, context)=>left - (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
-_config.default.addTransformerToMap(OP_MUL, (left, right, context)=>left * (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
-_config.default.addTransformerToMap(OP_DIV, (left, right, context)=>left / (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
-_config.default.addTransformerToMap(OP_MOD, (left, right, context)=>left % (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
-_config.default.addTransformerToMap(OP_POW, (left, right, context)=>left ** (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
-_config.default.addTransformerToMap(OP_KEYS, (left)=>(0, _keys.default)(left));
-_config.default.addTransformerToMap(OP_VALUES, (left)=>(0, _values.default)(left));
-_config.default.addTransformerToMap(OP_ENTRIES, (left)=>(0, _map.default)(left, (value, key)=>[
-            key,
-            value
-        ]));
-_config.default.addTransformerToMap(OP_OBJ_TO_ARRAY, (left, right, context)=>{
-    if (right == null) {
-        return (0, _utils.objectToArray)(left);
-    }
-    return (0, _map.default)(left, (v, k)=>(0, _transform.default)(v, {
-            $create: right
-        }, (0, _jsonv.getChildContext)(context, left, k, v)));
-});
-_config.default.addTransformerToMap(OP_FILTER_NULL, (left)=>(0, _utils.filterNull)(left));
-_config.default.addTransformerToMap(OP_PICK, (left, right, context)=>{
-    if (left == null) {
-        return null;
-    }
-    if (typeof right !== 'object') {
-        right = [
-            right
-        ];
-    }
-    if (Array.isArray(right)) {
-        return (0, _pick.default)(left, right);
-    }
-    return (0, _pickBy.default)(left, (item, key)=>(0, _jsonv.test)(key, _jsonv.OP.MATCH, right, _transformersLoader.matchOptions, (0, _jsonv.getChildContext)(context, left, key, item)));
-});
-_config.default.addTransformerToMap(OP_OMIT, (left, right, context)=>{
-    if (left == null) {
-        return null;
-    }
-    if (typeof right !== 'object') {
-        right = [
-            right
-        ];
-    }
-    if (Array.isArray(right)) {
-        return (0, _omit.default)(left, right);
-    }
-    return (0, _omitBy.default)(left, (item, key)=>(0, _jsonv.test)(key, _jsonv.OP.MATCH, right, _transformersLoader.matchOptions, (0, _jsonv.getChildContext)(context, left, key, item)));
-});
-_config.default.addTransformerToMap(OP_SLICE, (left, right)=>{
-    if (left == null) {
-        return null;
-    }
-    if (!Array.isArray(left)) {
-        return new Error(MSG.VALUE_NOT_ARRAY(_transformerOperators.default.SLICE));
-    }
-    if (Number.isInteger(right)) {
-        return left.slice(right);
-    }
-    if (Array.isArray(right)) {
-        if (right.length === 0 || right.length > 2) {
-            return new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.SLICE, right, [
-                'integer',
-                '[integer]'
-            ]));
-        }
-        return left.slice(...right);
-    }
-    return new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.SLICE, right));
-});
-_config.default.addTransformerToMap(OP_GROUP, (left, right)=>(0, _groupBy.default)(left, right));
-_config.default.addTransformerToMap(OP_SORT, (left, right)=>(0, _sortBy.default)(left, right));
-_config.default.addTransformerToMap(OP_REVERSE, (left)=>(0, _reverse.default)(left));
-_config.default.addTransformerToMap(OP_CONCAT, (left, right)=>{
-    if (left == null) {
-        left = '';
-    }
-    right = (0, _transform.processExprLikeValue)(right);
-    if (right == null) {
-        right = '';
-    } else if (Array.isArray(right)) {
-        right = right.join('');
-    } else if (typeof right !== 'string') {
-        throw new Error(MSG.VALUE_NOT_STRING(_transformerOperators.default.CONCAT));
-    }
-    return left + right;
-});
-_config.default.addTransformerToMap(OP_JOIN, (left, right)=>{
-    if (left == null) {
-        return null;
-    }
-    if (!Array.isArray(left)) {
-        throw new Error(MSG.VALUE_NOT_ARRAY(_transformerOperators.default.JOIN));
-    }
-    right = (0, _transform.processExprLikeValue)(right);
-    if (typeof right !== 'string') {
-        throw new Error(MSG.VALUE_NOT_STRING(_transformerOperators.default.JOIN));
-    }
-    return left.join(right);
-});
-const objectMerger = (left, context)=>[
-        (result, expr)=>Object.assign(result, (0, _transform.default)(left, expr, context)),
-        {}
-    ];
-const arrayMerger = (left, context)=>[
-        (result, expr)=>[
-                ...result,
-                ...(0, _castArray.default)((0, _transform.default)(left, expr, context))
-            ],
-        []
-    ];
-_config.default.addTransformerToMap(OP_MERGE, (left, right, context)=>{
-    if (!Array.isArray(right)) {
-        throw new Error(MSG.OPERAND_NOT_ARRAY(_transformerOperators.default.MERGE));
-    }
-    return right.reduce(...Array.isArray(left) ? arrayMerger(left, context) : objectMerger(left, context));
-});
-_config.default.addTransformerToMap(OP_FILTER, (left, right, context)=>{
-    if (left == null) {
-        return null;
-    }
-    if (typeof left !== 'object') {
-        throw new Error(MSG.VALUE_NOT_COLLECTION(_transformerOperators.default.FILTER));
-    }
-    return (0, _filter.default)(left, (value, key)=>(0, _jsonv.test)(value, _jsonv.OP.MATCH, right, _transformersLoader.matchOptions, (0, _jsonv.getChildContext)(context, left, key, value)));
-});
-_config.default.addTransformerToMap(OP_REMAP, (left, right)=>{
-    if (left == null) {
-        return null;
-    }
-    if (typeof left !== 'object') {
-        throw new Error(MSG.VALUE_NOT_COLLECTION(_transformerOperators.default.REMAP));
-    }
-    if (Array.isArray(right)) {
-        if (right.length !== 2) {
-            throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.REMAP));
-        }
-        if (!(0, _utils.isPlainObject)(right[0]) || right[1] != null && typeof right[1] !== 'boolean') {
-            throw new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.REMAP, right, [
-                'object',
-                'boolean'
-            ]));
-        }
-        return (0, _utils.remap)(left, right[0], right[1]);
-    }
-    if (!(0, _utils.isPlainObject)(right)) {
-        throw new Error(MSG.OPERAND_NOT_OBJECT(_transformerOperators.default.REMAP));
-    }
-    return (0, _utils.remap)(left, right);
-});
-_config.default.addTransformerToMap(OP_TO_JSON, (left)=>left == null ? left : JSON.stringify(left));
-_config.default.addTransformerToMap(OP_TO_OBJ, (left)=>left == null ? left : JSON.parse(left));
-_config.default.addTransformerToMap(OP_SET, (left, right, context)=>(0, _transform.default)(undefined, right, context, true));
-_config.default.addTransformerToMap(OP_ADD_ITEM, (left, right, context)=>{
-    if (typeof left !== 'object') {
-        throw new Error(MSG.VALUE_NOT_COLLECTION(_transformerOperators.default.ADD_ITEM));
-    }
-    if (Array.isArray(left)) {
-        return left.concat((0, _transform.processExprLikeValueWithLeft)(left, right, context));
-    }
-    if (!Array.isArray(right) || right.length !== 2) {
-        throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.ADD_ITEM));
-    }
-    const key = (0, _transform.processExprLikeValueWithLeft)(left, right[0], context);
-    if (typeof key !== 'string') {
-        throw new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.ADD_ITEM, right, [
-            'string',
-            'any'
-        ]));
-    }
-    return {
-        ...left,
-        [key]: (0, _transform.processExprLikeValueWithLeft)(left, right[1], context)
-    };
-});
-_config.default.addTransformerToMap(OP_ASSIGN, (left, right, context)=>{
-    if (!(0, _utils.isPlainObject)(left)) {
-        if (left == null) {
-            left = {};
+function transformersFactory(config) {
+    const MSG = config.messages;
+    config.addTransformerToMap(OP_SIZE, (left)=>(0, _size.default)(left));
+    config.addTransformerToMap(OP_SUM, (left)=>(0, _reduce.default)(left, (sum, item)=>{
+            sum += item;
+            return sum;
+        }, 0));
+    config.addTransformerToMap(OP_GET_TYPE, (left)=>(0, _types.typeOf)(left));
+    config.addTransformerToMap(OP_FIND_INDEX, (left, right, context)=>{
+        let jvs;
+        let fromIndex = 0;
+        if (Array.isArray(right)) {
+            if (!Array.isArray(left)) {
+                throw new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.FIND_INDEX));
+            }
+            if (right.length !== 2) {
+                throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.FIND_INDEX));
+            }
+            jvs = right[0];
+            fromIndex = (0, _transform.processExprLikeValue)(right[1], context);
         } else {
-            throw new Error(MSG.VALUE_NOT_OBJECT(_transformerOperators.default.ASSIGN));
+            jvs = right;
         }
-    }
-    if (!(0, _utils.isPlainObject)(right)) {
-        throw new Error(MSG.OPERAND_NOT_OBJECT(_transformerOperators.default.ASSIGN));
-    }
-    const rightValue = (0, _mapValues.default)(right, (expr, key)=>{
-        const leftValue = left[key];
-        return (0, _transform.processExprLikeValueWithLeft)(leftValue, expr, (0, _jsonv.getChildContext)(context, left, key, leftValue));
+        const predicate = (value, key)=>(0, _jsonv.validate)(value, jvs, _transformersLoader.matchOptions, (0, _jsonv.getChildContext)(context, left, key, value));
+        return Array.isArray(left) ? (0, _findIndex.default)(left, predicate, fromIndex) : (0, _findKey.default)(left, predicate);
     });
-    const toRemove = [];
-    (0, _each.default)(rightValue, (value, key)=>{
-        if (value === undefined) {
-            toRemove.push(key);
+    config.addTransformerToMap(OP_FIND, (left, right, context)=>{
+        let jvs;
+        let fromIndex = 0;
+        if (Array.isArray(right)) {
+            if (right.length !== 2) {
+                throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.FIND_INDEX));
+            }
+            jvs = right[0];
+            fromIndex = (0, _transform.processExprLikeValue)(right[1], context);
+        } else {
+            jvs = right;
         }
+        const predicate = (value, key)=>(0, _jsonv.validate)(value, jvs, _transformersLoader.matchOptions, (0, _jsonv.getChildContext)(context, left, key, value));
+        return (0, _find.default)(left, predicate, fromIndex);
     });
-    const merged = {
-        ...left,
-        ...rightValue
-    };
-    return toRemove.length > 0 ? (0, _omit.default)(merged, toRemove) : merged;
-});
-_config.default.addTransformerToMap(OP_CREATE, (left, right, context)=>{
-    return (0, _mapValues.default)(right, (expr)=>(0, _transform.default)(left, expr, context));
-});
-_config.default.addTransformerToMap(OP_APPLY, _transform.default);
-_config.default.addTransformerToMap(OP_SANITIZE, (left, right, context)=>{
-    return _types.Types.sanitize(left, (0, _transform.default)(undefined, right, context, true));
-});
-_config.default.addTransformerToMap(OP_SPLIT, (left, right)=>{
-    if (typeof left !== 'string') {
-        throw new Error(MSG.VALUE_NOT_STRING(_transformerOperators.default.SPLIT));
-    }
-    if (Array.isArray(right)) {
-        if (right.length !== 2) {
-            throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.SPLIT));
+    config.addTransformerToMap(OP_IF, (left, right, context)=>{
+        if (!Array.isArray(right)) {
+            throw new Error(MSG.OPERAND_NOT_ARRAY(_transformerOperators.default.IF));
         }
-        const [separator, limit] = right;
-        if (typeof separator !== 'string' || limit != null && typeof limit !== 'number') {
-            throw new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.SPLIT, right, [
+        if (right.length < 2 || right.length > 3) {
+            throw new Error(MSG.OPERAND_NOT_TUPLE_2_OR_3(_transformerOperators.default.IF));
+        }
+        const condition = (0, _transform.default)(left, right[0], context);
+        if (typeof condition !== 'boolean') {
+            throw new Error(MSG.VALUE_NOT_BOOL(_transformerOperators.default.IF));
+        }
+        if (condition) {
+            return (0, _transform.default)(left, right[1], context);
+        } else if (right.length > 2) {
+            return (0, _transform.default)(left, right[2], context);
+        }
+        return left;
+    });
+    config.addTransformerToMap(OP_CAST_ARRAY, (left)=>left == null ? null : Array.isArray(left) ? left : [
+            left
+        ]);
+    config.addTransformerToMap(OP_ADD, (left, right, context)=>left + (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
+    config.addTransformerToMap(OP_SUB, (left, right, context)=>left - (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
+    config.addTransformerToMap(OP_MUL, (left, right, context)=>left * (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
+    config.addTransformerToMap(OP_DIV, (left, right, context)=>left / (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
+    config.addTransformerToMap(OP_MOD, (left, right, context)=>left % (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
+    config.addTransformerToMap(OP_POW, (left, right, context)=>left ** (0, _utils.toNumber)((0, _transform.processExprLikeValue)(right, context)));
+    config.addTransformerToMap(OP_KEYS, (left)=>(0, _keys.default)(left));
+    config.addTransformerToMap(OP_VALUES, (left)=>(0, _values.default)(left));
+    config.addTransformerToMap(OP_ENTRIES, (left)=>(0, _map.default)(left, (value, key)=>[
+                key,
+                value
+            ]));
+    config.addTransformerToMap(OP_OBJ_TO_ARRAY, (left, right, context)=>{
+        if (right == null) {
+            return (0, _utils.objectToArray)(left);
+        }
+        return (0, _map.default)(left, (v, k)=>(0, _transform.default)(v, {
+                $create: right
+            }, (0, _jsonv.getChildContext)(context, left, k, v)));
+    });
+    config.addTransformerToMap(OP_FILTER_NULL, (left)=>(0, _utils.filterNull)(left));
+    config.addTransformerToMap(OP_PICK, (left, right, context)=>{
+        if (left == null) {
+            return null;
+        }
+        if (typeof right !== 'object') {
+            right = [
+                right
+            ];
+        }
+        if (Array.isArray(right)) {
+            return (0, _pick.default)(left, right);
+        }
+        return (0, _pickBy.default)(left, (item, key)=>(0, _jsonv.test)(key, _jsonv.OP.MATCH, right, _transformersLoader.matchOptions, (0, _jsonv.getChildContext)(context, left, key, item)));
+    });
+    config.addTransformerToMap(OP_OMIT, (left, right, context)=>{
+        if (left == null) {
+            return null;
+        }
+        if (typeof right !== 'object') {
+            right = [
+                right
+            ];
+        }
+        if (Array.isArray(right)) {
+            return (0, _omit.default)(left, right);
+        }
+        return (0, _omitBy.default)(left, (item, key)=>(0, _jsonv.test)(key, _jsonv.OP.MATCH, right, _transformersLoader.matchOptions, (0, _jsonv.getChildContext)(context, left, key, item)));
+    });
+    config.addTransformerToMap(OP_SLICE, (left, right)=>{
+        if (left == null) {
+            return null;
+        }
+        if (!Array.isArray(left)) {
+            return new Error(MSG.VALUE_NOT_ARRAY(_transformerOperators.default.SLICE));
+        }
+        if (Number.isInteger(right)) {
+            return left.slice(right);
+        }
+        if (Array.isArray(right)) {
+            if (right.length === 0 || right.length > 2) {
+                return new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.SLICE, right, [
+                    'integer',
+                    '[integer]'
+                ]));
+            }
+            return left.slice(...right);
+        }
+        return new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.SLICE, right));
+    });
+    config.addTransformerToMap(OP_GROUP, (left, right)=>(0, _groupBy.default)(left, right));
+    config.addTransformerToMap(OP_SORT, (left, right)=>(0, _sortBy.default)(left, right));
+    config.addTransformerToMap(OP_REVERSE, (left)=>(0, _reverse.default)(left));
+    config.addTransformerToMap(OP_CONCAT, (left, right)=>{
+        if (left == null) {
+            left = '';
+        }
+        right = (0, _transform.processExprLikeValue)(right);
+        if (right == null) {
+            right = '';
+        } else if (Array.isArray(right)) {
+            right = right.join('');
+        } else if (typeof right !== 'string') {
+            throw new Error(MSG.VALUE_NOT_STRING(_transformerOperators.default.CONCAT));
+        }
+        return left + right;
+    });
+    config.addTransformerToMap(OP_JOIN, (left, right)=>{
+        if (left == null) {
+            return null;
+        }
+        if (!Array.isArray(left)) {
+            throw new Error(MSG.VALUE_NOT_ARRAY(_transformerOperators.default.JOIN));
+        }
+        right = (0, _transform.processExprLikeValue)(right);
+        if (typeof right !== 'string') {
+            throw new Error(MSG.VALUE_NOT_STRING(_transformerOperators.default.JOIN));
+        }
+        return left.join(right);
+    });
+    const objectMerger = (left, context)=>[
+            (result, expr)=>Object.assign(result, (0, _transform.default)(left, expr, context)),
+            {}
+        ];
+    const arrayMerger = (left, context)=>[
+            (result, expr)=>[
+                    ...result,
+                    ...(0, _castArray.default)((0, _transform.default)(left, expr, context))
+                ],
+            []
+        ];
+    config.addTransformerToMap(OP_MERGE, (left, right, context)=>{
+        if (!Array.isArray(right)) {
+            throw new Error(MSG.OPERAND_NOT_ARRAY(_transformerOperators.default.MERGE));
+        }
+        return right.reduce(...Array.isArray(left) ? arrayMerger(left, context) : objectMerger(left, context));
+    });
+    config.addTransformerToMap(OP_FILTER, (left, right, context)=>{
+        if (left == null) {
+            return null;
+        }
+        if (typeof left !== 'object') {
+            throw new Error(MSG.VALUE_NOT_COLLECTION(_transformerOperators.default.FILTER));
+        }
+        return (0, _filter.default)(left, (value, key)=>(0, _jsonv.test)(value, _jsonv.OP.MATCH, right, _transformersLoader.matchOptions, (0, _jsonv.getChildContext)(context, left, key, value)));
+    });
+    config.addTransformerToMap(OP_REMAP, (left, right)=>{
+        if (left == null) {
+            return null;
+        }
+        if (typeof left !== 'object') {
+            throw new Error(MSG.VALUE_NOT_COLLECTION(_transformerOperators.default.REMAP));
+        }
+        if (Array.isArray(right)) {
+            if (right.length !== 2) {
+                throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.REMAP));
+            }
+            if (!(0, _utils.isPlainObject)(right[0]) || right[1] != null && typeof right[1] !== 'boolean') {
+                throw new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.REMAP, right, [
+                    'object',
+                    'boolean'
+                ]));
+            }
+            return (0, _utils.remap)(left, right[0], right[1]);
+        }
+        if (!(0, _utils.isPlainObject)(right)) {
+            throw new Error(MSG.OPERAND_NOT_OBJECT(_transformerOperators.default.REMAP));
+        }
+        return (0, _utils.remap)(left, right);
+    });
+    config.addTransformerToMap(OP_TO_JSON, (left)=>left == null ? left : JSON.stringify(left));
+    config.addTransformerToMap(OP_TO_OBJ, (left)=>left == null ? left : JSON.parse(left));
+    config.addTransformerToMap(OP_SET, (left, right, context)=>(0, _transform.default)(undefined, right, context, true));
+    config.addTransformerToMap(OP_ADD_ITEM, (left, right, context)=>{
+        if (typeof left !== 'object') {
+            throw new Error(MSG.VALUE_NOT_COLLECTION(_transformerOperators.default.ADD_ITEM));
+        }
+        if (Array.isArray(left)) {
+            return left.concat((0, _transform.processExprLikeValueWithLeft)(left, right, context));
+        }
+        if (!Array.isArray(right) || right.length !== 2) {
+            throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.ADD_ITEM));
+        }
+        const key = (0, _transform.processExprLikeValueWithLeft)(left, right[0], context);
+        if (typeof key !== 'string') {
+            throw new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.ADD_ITEM, right, [
                 'string',
-                'number'
+                'any'
             ]));
         }
-        return left.split(separator, limit);
-    } else if (typeof right !== 'string') {
-        throw new Error(MSG.OPERAND_NOT_STRING(_transformerOperators.default.SPLIT));
-    }
-    return left.split(right);
-});
-const esTemplateSetting = {
-    interpolate: /\$\{([\s\S]+?)\}/g
-};
-_config.default.addTransformerToMap(OP_INTERPOLATE, (left, right)=>{
-    if (typeof left !== 'string') {
-        throw new Error(MSG.VALUE_NOT_STRING(_transformerOperators.default.INTERPOLATE));
-    }
-    if (right != null && typeof right !== 'object') {
-        throw new Error(MSG.OPERAND_NOT_OBJECT(_transformerOperators.default.INTERPOLATE));
-    }
-    if (Array.isArray(right)) {
-        if (right.length !== 2) {
-            throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.INTERPOLATE));
+        return {
+            ...left,
+            [key]: (0, _transform.processExprLikeValueWithLeft)(left, right[1], context)
+        };
+    });
+    config.addTransformerToMap(OP_ASSIGN, (left, right, context)=>{
+        if (!(0, _utils.isPlainObject)(left)) {
+            if (left == null) {
+                left = {};
+            } else {
+                throw new Error(MSG.VALUE_NOT_OBJECT(_transformerOperators.default.ASSIGN));
+            }
         }
-        return (0, _utils.template)(left, right[0], right[1] === 'es6' ? esTemplateSetting : right[1]);
-    }
-    return (0, _utils.template)(left, right);
-});
-const _default = _transform.default;
+        if (!(0, _utils.isPlainObject)(right)) {
+            throw new Error(MSG.OPERAND_NOT_OBJECT(_transformerOperators.default.ASSIGN));
+        }
+        const rightValue = (0, _mapValues.default)(right, (expr, key)=>{
+            const leftValue = left[key];
+            return (0, _transform.processExprLikeValueWithLeft)(leftValue, expr, (0, _jsonv.getChildContext)(context, left, key, leftValue));
+        });
+        const toRemove = [];
+        (0, _each.default)(rightValue, (value, key)=>{
+            if (value === undefined) {
+                toRemove.push(key);
+            }
+        });
+        const merged = {
+            ...left,
+            ...rightValue
+        };
+        return toRemove.length > 0 ? (0, _omit.default)(merged, toRemove) : merged;
+    });
+    config.addTransformerToMap(OP_CREATE, (left, right, context)=>{
+        return (0, _mapValues.default)(right, (expr)=>(0, _transform.default)(left, expr, context));
+    });
+    config.addTransformerToMap(OP_APPLY, _transform.default);
+    config.addTransformerToMap(OP_SANITIZE, (left, right, context)=>{
+        return _types.Types.sanitize(left, (0, _transform.default)(undefined, right, context, true));
+    });
+    config.addTransformerToMap(OP_SPLIT, (left, right)=>{
+        if (typeof left !== 'string') {
+            throw new Error(MSG.VALUE_NOT_STRING(_transformerOperators.default.SPLIT));
+        }
+        if (Array.isArray(right)) {
+            if (right.length !== 2) {
+                throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.SPLIT));
+            }
+            const [separator, limit] = right;
+            if (typeof separator !== 'string' || limit != null && typeof limit !== 'number') {
+                throw new Error(MSG.INVALID_OP_EXPR(_transformerOperators.default.SPLIT, right, [
+                    'string',
+                    'number'
+                ]));
+            }
+            return left.split(separator, limit);
+        } else if (typeof right !== 'string') {
+            throw new Error(MSG.OPERAND_NOT_STRING(_transformerOperators.default.SPLIT));
+        }
+        return left.split(right);
+    });
+    const esTemplateSetting = {
+        interpolate: /\$\{([\s\S]+?)\}/g
+    };
+    config.addTransformerToMap(OP_INTERPOLATE, (left, right)=>{
+        if (typeof left !== 'string') {
+            throw new Error(MSG.VALUE_NOT_STRING(_transformerOperators.default.INTERPOLATE));
+        }
+        if (right != null && typeof right !== 'object') {
+            throw new Error(MSG.OPERAND_NOT_OBJECT(_transformerOperators.default.INTERPOLATE));
+        }
+        if (Array.isArray(right)) {
+            if (right.length !== 2) {
+                throw new Error(MSG.OPERAND_NOT_TUPLE(_transformerOperators.default.INTERPOLATE));
+            }
+            return (0, _utils.template)(left, right[0], right[1] === 'es6' ? esTemplateSetting : right[1]);
+        }
+        return (0, _utils.template)(left, right);
+    });
+}
+const _default = transformersFactory;
 
 //# sourceMappingURL=transformers.js.map

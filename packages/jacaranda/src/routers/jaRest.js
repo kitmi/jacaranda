@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { globSync } from 'glob';
-import { _, naming, text, hasMethod, esmCheck, batchAsync_ } from '@kitmi/utils';
+import { naming, text, hasMethod, esmCheck, batchAsync_ } from '@kitmi/utils';
 
 /**
  * Jacaranda Restful API Spec (jaREST) router.
@@ -39,9 +39,10 @@ const appendId = (baseEndpoint, idName) => (idName ? `${baseEndpoint}/:${idName}
  *  /:resource                     delete         deleteMany
  */
 const jaRestRouter = async (app, baseRoute, options) => {
-    let router = app.engine.createRouter(baseRoute);
+    let router = app.router.createRouter(baseRoute);
 
     let resourcePath = path.resolve(app.sourcePath, options.$controllerPath || 'resources');
+    const kebabify = options.$urlDasherize;
 
     app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.$errorOptions, app), 'jsonError');
 
@@ -70,7 +71,7 @@ const jaRestRouter = async (app, baseRoute, options) => {
         } else {
             const urlPath = entithNameWithPath
                 .split('/')
-                .map((p) => naming.kebabCase(p))
+                .map((p) => kebabify ? naming.kebabCase(p) : p)
                 .join('/');
             baseEndpoint = text.ensureStartsWith(urlPath, '/');
         }
@@ -94,8 +95,8 @@ const jaRestRouter = async (app, baseRoute, options) => {
             }
         }
 
-        await addRoute_('find', 'get');
-        await addRoute_('create', 'post');
+        await addRoute_('query', 'get');
+        await addRoute_('post', 'post');
         await addRoute_('replaceMany', 'put');
         await addRoute_('updateMany', 'patch');
         await addRoute_('deleteMany', 'delete');

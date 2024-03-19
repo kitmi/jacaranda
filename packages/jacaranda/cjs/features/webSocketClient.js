@@ -130,10 +130,10 @@ const _default = {
                 queue.length = 0;
             }
         };
-        app.on('ready', ()=>{
+        app.once('ready', ()=>{
             wsClient.connect_().catch(app.logError);
         });
-        app.on('stopping', ()=>{
+        app.once('stopping', ()=>{
             wsClient.close();
         });
         app.registerService(name, wsClient);

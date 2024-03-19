@@ -9,10 +9,9 @@
     "enableAllure": true,
     "servers": {
         "server1": {
-            "configPath": "test/conf",
-            "controllersPath": "test/actions",
-            "sourcePath": "./",
-            "logLevel": "info"
+            "configType": "yaml",            
+            "logLevel": "info",
+            "appModulesPath": "src/apps"
         }
     },
     "workers": {

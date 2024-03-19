@@ -4,6 +4,7 @@
 
 ### Engine
 
+- ::packages - static member, returns required packages for the engine
 - init_ - called by the framework to initialize the engine
 - createModuleRouter - called by the framework to create a base router for web module
 - mount - called by the server to mount a module engine

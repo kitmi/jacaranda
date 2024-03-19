@@ -16,16 +16,15 @@ _export(exports, {
         return _default;
     }
 });
-const _modifibleSystem = /*#__PURE__*/ _interop_require_default(require("./modifibleSystem"));
+const _modifiableSystem = /*#__PURE__*/ _interop_require_default(require("./modifiableSystem"));
 const _modifier = require("./modifier");
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
     };
 }
-const validator = (0, _modifibleSystem.default)();
-validator.addPlugin('postProcess', _modifier.postProcess_);
-const Types = validator.types;
-const _default = validator;
+const typeSystem = (0, _modifiableSystem.default)(_modifier.postProcess_);
+const Types = typeSystem.types;
+const _default = typeSystem;
 
 //# sourceMappingURL=async.js.map

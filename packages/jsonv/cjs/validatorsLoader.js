@@ -269,7 +269,7 @@ function validatorsFactory(config) {
             });
             if (errors.length > 0) {
                 if (options.throwError) {
-                    throw new _JsvError.default(errors, left, context1.path);
+                    throw new _JsvError.default(errors, left, context1);
                 }
                 if (!options.asPredicate) {
                     context1.ERROR = errors.length === 1 && options.plainError ? errors[0] : errors;
@@ -324,7 +324,7 @@ function validatorsFactory(config) {
         });
         if (errors.length > 0) {
             if (options.throwError) {
-                throw new _JsvError.default(errors, left, context1.path);
+                throw new _JsvError.default(errors, left, context1);
             }
             if (!options.asPredicate) {
                 context1.ERROR = errors.length === 1 && options.plainError ? errors[0] : errors;

@@ -28,8 +28,11 @@ const _default = {
      * @param {*} middlewares - Middlewares and options
      * @returns {Promise.<*>}
      */ load_: async function(app, middlewares) {
-        //delay to load middlewares after all plug-ins are ready
-        await app.useMiddlewares_(app.engine, middlewares);
+        if (app.router == null) {
+            // if mount to server level
+            app.createServerModuleRouter();
+        }
+        await app.useMiddlewares_(app.router, middlewares);
     }
 };
 

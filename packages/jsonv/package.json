@@ -14,9 +14,9 @@
             "import": "./src/*.js",
             "require": "./cjs/*.js"
         },
-        "./**/*": {
-            "import": "./src/**/*.js",
-            "require": "./cjs/**/*.js"
+        "./locale/*": {
+            "import": "./src/locale/*.js",
+            "require": "./cjs/locale/*.js"
         }
     },
     "publishConfig": {

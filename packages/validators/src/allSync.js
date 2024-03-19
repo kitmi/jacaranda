@@ -1,7 +1,7 @@
-import validator from './validator';
+import typeSystem from './sync';
 import injectAll from './injectAll';
 
-injectAll(validator);
+injectAll(typeSystem);
 
-export * from './validator';
-export default validator;
+export * from './sync';
+export default typeSystem;

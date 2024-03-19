@@ -169,6 +169,10 @@ function _interop_require_default(obj) {
          * Base route.
          * @member {string}
          */ this.route = '/';
+        // preloaded modules
+        this.modulesRegistry = {
+            ...this.options.modulesRegistry
+        };
         // register built-in middlewares
         this.addMiddlewaresRegistryFrom(_nodepath.default.resolve(__dirname, 'middlewares'));
         this.once('after:Initial', ()=>{

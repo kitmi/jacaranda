@@ -45,7 +45,11 @@ export default {
 
             let appPath;
 
-            if (config.npmModule) {
+            const moduleMeta = server.modulesRegistry[name];
+
+            if (moduleMeta != null) {
+                appPath = moduleMeta.appPath;
+            } else if (config.npmModule) {
                 appPath = app.toAbsolutePath('node_modules', name);
             } else {
                 appPath = path.join(app.libModulesPath, name);
@@ -58,7 +62,7 @@ export default {
 
             let lib = new LibModule(app, name, appPath, options);
 
-            lib.on('configLoaded', () => {
+            lib.once('configLoaded', () => {
                 if (!_.isEmpty(config.settings)) {
                     lib.config.settings = { ...lib.config.settings, ...config.settings };
                     app.log('verbose', `Lib settings of [${lib.name}] is overrided.`);

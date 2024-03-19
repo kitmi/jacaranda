@@ -62,7 +62,7 @@ const _default = {
                 throw new _types.InvalidConfiguration(`Lib [${name}] not exists.`, app, `libModules.${name}`);
             }
             let lib = new _LibModule.default(app, name, appPath, options);
-            lib.on('configLoaded', ()=>{
+            lib.once('configLoaded', ()=>{
                 if (!_utils._.isEmpty(config.settings)) {
                     lib.config.settings = {
                         ...lib.config.settings,

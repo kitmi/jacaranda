@@ -12,6 +12,7 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _utils = require("@kitmi/utils");
+const _types = require("@kitmi/types");
 const _Feature = /*#__PURE__*/ _interop_require_default(require("../Feature"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
@@ -29,10 +30,21 @@ const _default = {
      * @param {object} routes - Routes and configuration
      * @returns {Promise.<*>}
      */ load_: (app, routes)=>{
-        app.on('after:' + _Feature.default.PLUGIN, ()=>(0, _utils.batchAsync_)(routes, async (routersConfig, route)=>{
+        if (app.router == null) {
+            // if mount to server level
+            app.createServerModuleRouter();
+        }
+        app.once('after:' + _Feature.default.PLUGIN, ()=>(0, _utils.batchAsync_)(routes, async (routersConfig, route)=>{
                 if ((0, _utils.isPlainObject)(routersConfig)) {
                     return (0, _utils.batchAsync_)(routersConfig, async (options, type)=>{
-                        let loader_ = (0, _utils.esmCheck)(require('../routers/' + type));
+                        let loader_;
+                        try {
+                            loader_ = (0, _utils.esmCheck)(require('../routers/' + type));
+                        } catch (e) {
+                            if (e.code === 'MODULE_NOT_FOUND') {
+                                throw new _types.InvalidConfiguration(`Supported router type: ${type}`, app, `routing[${route}]`);
+                            }
+                        }
                         app.log('verbose', `A "${type}" router is created at "${route}" in app [${app.name}].`);
                         return loader_(app, route, options);
                     });

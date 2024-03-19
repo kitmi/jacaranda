@@ -38,7 +38,7 @@ function _interop_require_default(obj) {
  *       module: "controller"
  *   }
  */ async function moduleRouter(app, baseRoute, options) {
-    let controllerPath = options.$controllerPath;
+    let controllerPath = _nodepath.default.resolve(app.sourcePath, options.$controllerPath ?? 'controllers');
     if (typeof options === 'string') {
         // [ 'controllerName' ]
         options = {
@@ -47,7 +47,8 @@ function _interop_require_default(obj) {
             ]
         };
     }
-    let router = app.engine.createRouter(baseRoute);
+    const kebabify = options.$urlDasherize;
+    let router = app.router.createRouter(baseRoute);
     if (options.$middlewares) {
         //module-wide middlewares
         await app.useMiddlewares_(router, options.$middlewares);
@@ -67,10 +68,14 @@ function _interop_require_default(obj) {
             try {
                 controller = (0, _utils.esmCheck)(require(controllerFile));
             } catch (e) {
+                /*
                 if (e.code === 'MODULE_NOT_FOUND') {
-                    throw new _types.InvalidConfiguration(`Failed to load controller '${moduleController}'. ${e.message}`, app, `routing.${baseRoute}.module`);
-                }
-                throw e;
+                    throw new InvalidConfiguration(
+                        `Failed to load controller '${moduleController}'. ${e.message}`,
+                        app,
+                        `routing.${baseRoute}.module`
+                    );
+                }*/ throw e;
             }
             let isController = false;
             if (typeof controller === 'function') {
@@ -81,7 +86,7 @@ function _interop_require_default(obj) {
                 let action = controller[actionName];
                 if (typeof action !== 'function' || !action.__metaHttpMethod) continue; // only marked httpMethod should be mounted
                 const method = action.__metaHttpMethod;
-                const subRoute = _utils.url.join(subBaseRoute, _utils.text.dropIfStartsWith(action.__metaRoute || _utils._.kebabCase(actionName), '/'));
+                const subRoute = _utils.url.join(subBaseRoute, _utils.text.dropIfStartsWith(action.__metaRoute || (kebabify ? _utils.naming.kebabCase(actionName) : actionName), '/'));
                 let bindAction;
                 if (isController) {
                     bindAction = action.bind(controller);
@@ -89,7 +94,7 @@ function _interop_require_default(obj) {
                     bindAction = action;
                 }
                 if (!_helpers.supportedMethods.has(method)) {
-                    throw new _types.InvalidConfiguration('Unsupported http method: ' + method, app, `routing.${baseRoute}.module.subBaseRoute[${moduleController}.${actionName}]`);
+                    throw new _types.InvalidConfiguration('Unsupported http method: ' + method, app, `routing[${baseRoute}].module.subBaseRoute[${moduleController}.${actionName}]`);
                 }
                 await app.addRoute_(router, method, subRoute, action.__metaMiddlewares ? action.__metaMiddlewares.concat([
                     bindAction

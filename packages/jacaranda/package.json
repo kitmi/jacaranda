@@ -36,7 +36,7 @@
         "lint": "eslint \"**/*.js\"",
         "lint-fix": "eslint \"**/*.js\" --fix",
         "clean": "shx rm -rf cjs coverage .nyc_output",
-        "build": "bun run clean && swc src/**/*.js -d ./cjs"
+        "build": "bun run clean && swc ./src -d ./cjs"
     },
     "keywords": [
         "kitmi",
@@ -56,8 +56,6 @@
         "@kitmi/adapters": "workspace:*",
         "@kitmi/algo": "workspace:*",
         "@kitmi/config": "workspace:*",
-        "@kitmi/jsonv": "workspace:*",
-        "@kitmi/jsonx": "workspace:*",
         "@kitmi/sys": "workspace:*",
         "@kitmi/types": "workspace:*",
         "@kitmi/utils": "workspace:*",

@@ -142,7 +142,7 @@ export default function validatorsFactory(config) {
 
             if (errors.length > 0) {
                 if (options.throwError) {
-                    throw new JsvError(errors, left, context.path);
+                    throw new JsvError(errors, left, context);
                 }
 
                 if (!options.asPredicate) {
@@ -209,7 +209,7 @@ export default function validatorsFactory(config) {
 
         if (errors.length > 0) {
             if (options.throwError) {
-                throw new JsvError(errors, left, context.path);
+                throw new JsvError(errors, left, context);
             }
 
             if (!options.asPredicate) {

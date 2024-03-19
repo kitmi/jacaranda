@@ -2,59 +2,73 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-Object.defineProperty(exports, "default", {
-    enumerable: true,
-    get: function() {
+function _export(target, all) {
+    for(var name in all)Object.defineProperty(target, name, {
+        enumerable: true,
+        get: all[name]
+    });
+}
+_export(exports, {
+    createJSX: function() {
+        return createJSX;
+    },
+    default: function() {
         return _default;
     }
 });
 const _config = /*#__PURE__*/ _interop_require_default(require("./config"));
 const _transformers = /*#__PURE__*/ _interop_require_default(require("./transformers"));
-function _define_property(obj, key, value) {
-    if (key in obj) {
-        Object.defineProperty(obj, key, {
-            value: value,
-            enumerable: true,
-            configurable: true,
-            writable: true
-        });
-    } else {
-        obj[key] = value;
-    }
-    return obj;
-}
+const _jsonv = require("@kitmi/jsonv");
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
     };
 }
-/**
- * JSON eXpression Syntax
- * @class
- */ class JSX {
-    /**
-     * Evaluate a JSON expression against the value and update the value
-     * @param {object} - JSON operation expression
-     * @returns {JSX}
-     */ evaluate(jsx) {
-        this.value = (0, _transformers.default)(this.value, jsx, {
-            config: this.constructor.config
-        });
-        return this;
+function createJSX(_config) {
+    let _jsv;
+    if (_config == null) {
+        _jsv = (0, _jsonv.createJSV)();
+        _config = _jsv.config;
+        (0, _transformers.default)(_config);
+    } else {
+        _jsv = (0, _jsonv.createJSV)(_config);
     }
     /**
-     * @param {object} value
-     */ constructor(value){
-        this.value = value;
+     * JSON eXpression Syntax
+     * @class
+     */ class JSX {
+        static get JSV() {
+            return _jsv;
+        }
+        static get config() {
+            return _config;
+        }
+        static evaluate(value, jsx, context) {
+            return (0, _jsonv.transform)(value, jsx, {
+                config: this.config,
+                ...context
+            });
+        }
+        /**
+         * Evaluate a JSON expression against the value and update the value
+         * @param {object} - JSON operation expression
+         * @returns {JSX}
+         */ evaluate(jsx) {
+            this.value = (0, _jsonv.transform)(this.value, jsx, {
+                config: this.constructor.config
+            });
+            return this;
+        }
+        /**
+         * @param {object} value
+         */ constructor(value){
+            this.value = value;
+        }
     }
+    return JSX;
 }
-_define_property(JSX, "config", _config.default);
-_define_property(JSX, "evaluate", (value, jsx, context)=>{
-    return (0, _transformers.default)(value, jsx, {
-        config: JSX.config,
-        ...context
-    });
-});
-const _default = JSX;
+(0, _transformers.default)(_config.default);
+const defaultJSX = createJSX(_config.default);
+const _default = defaultJSX;
 
 //# sourceMappingURL=Jsx.js.map

@@ -10,6 +10,19 @@ Object.defineProperty(exports, "default", {
 });
 const _nodehttp = /*#__PURE__*/ _interop_require_default(require("node:http"));
 const _utils = require("@kitmi/utils");
+function _define_property(obj, key, value) {
+    if (key in obj) {
+        Object.defineProperty(obj, key, {
+            value: value,
+            enumerable: true,
+            configurable: true,
+            writable: true
+        });
+    } else {
+        obj[key] = value;
+    }
+    return obj;
+}
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
@@ -17,38 +30,86 @@ function _interop_require_default(obj) {
 }
 class KoaEngine {
     async init_(config) {
+        this.app.addMiddlewaresRegistry({
+            body: 'koa-body',
+            compress: 'koa-compress',
+            etag: 'koa-etag'
+        });
+        const options = this.app.featureConfig(config, {
+            schema: {
+                trustProxy: {
+                    type: 'boolean',
+                    optional: true
+                },
+                subdomainOffset: {
+                    type: 'integer',
+                    optional: true,
+                    post: [
+                        [
+                            '~min',
+                            2
+                        ]
+                    ]
+                },
+                port: {
+                    type: 'integer',
+                    optional: true,
+                    default: 2331
+                },
+                keys: [
+                    {
+                        type: 'text'
+                    },
+                    {
+                        type: 'array',
+                        optional: true,
+                        element: {
+                            type: 'text'
+                        },
+                        post: [
+                            [
+                                '~minLength',
+                                1
+                            ]
+                        ]
+                    }
+                ]
+            }
+        }, 'engine');
         const Koa = await this.app.tryRequire_('koa');
         const mounter = await this.app.tryRequire_('koa-mount');
         const Router = await this.app.tryRequire_('@koa/router');
-        const koa = new Koa();
-        //create a module router
-        this.createModuleRouter = (appModule)=>{
-            console.log('createModuleRouter', appModule.name);
-            const moduleEngine = new KoaEngine(appModule);
-            const _koa = new Koa();
+        const _initEngine = (engine, isServerDefault)=>{
+            const koa = new Koa();
             //inject the appModule instance in the first middleware
-            _koa.use((ctx, next)=>{
-                ctx.module = appModule;
-                return next();
-            });
-            moduleEngine.koa = _koa;
+            if (!isServerDefault) {
+                koa.use((ctx, next)=>{
+                    ctx.module = engine.app;
+                    return next();
+                });
+            }
+            //create a router instance
+            engine.createRouter = (baseRoute)=>{
+                return !baseRoute || baseRoute === '/' ? new Router() : new Router({
+                    prefix: _utils.text.dropIfEndsWith(baseRoute, '/')
+                });
+            };
+            //mount a sub engine instance
+            engine.mount = (route, moduleRouter)=>{
+                koa.use(mounter(route, moduleRouter.koa));
+            };
+            engine.koa = koa;
+        };
+        //create a module router
+        this.createModuleRouter = (appModule, isServerDefault)=>{
+            const moduleEngine = new KoaEngine(appModule);
+            _initEngine(moduleEngine, isServerDefault);
             return moduleEngine;
         };
-        //create a router instance
-        this.createRouter = (baseRoute)=>{
-            console.log('createRouter', baseRoute);
-            return !baseRoute || baseRoute === '/' ? new Router() : new Router({
-                prefix: _utils.text.dropIfEndsWith(baseRoute, '/')
-            });
-        };
-        //mount a sub engine instance
-        this.mount = (route, moduleRouter)=>{
-            this.koa.use(mounter(route, moduleRouter.koa));
-        };
-        this.koa = koa;
-        this._initialize(config);
+        _initEngine(this);
+        this._initializeServerEngine(options);
     }
-    _initialize(options) {
+    _initializeServerEngine(options) {
         const koa = this.koa;
         const server = this.app;
         koa.proxy = options.trustProxy && (0, _utils.toBoolean)(options.trustProxy);
@@ -79,7 +140,7 @@ class KoaEngine {
         });
         server.httpServer = _nodehttp.default.createServer(koa.callback());
         let port = options.port;
-        server.on('ready', async ()=>{
+        server.once('ready', async ()=>{
             return new Promise((resolve, reject)=>{
                 server.httpServer.listen(port, function(err) {
                     if (err) {
@@ -111,6 +172,15 @@ class KoaEngine {
         this.app = appModule;
     }
 }
+_define_property(KoaEngine, "packages", [
+    'koa',
+    'koa-mount',
+    '@koa/router',
+    'koa-body',
+    'koa-compress',
+    'koa-etag',
+    'koa-static'
+]);
 const _default = KoaEngine;
 
 //# sourceMappingURL=koa.js.map

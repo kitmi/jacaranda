@@ -9,6 +9,8 @@ export class Config {
 
     messagesCache = {};
 
+    locale = null;
+
     // default message handlers
     messages = {
         //Exception messages
@@ -117,20 +119,29 @@ export class Config {
     }
 
     setLocale(locale) {
-        if (locale in this.messagesCache) {
-            Object.assign(this.messages, this.messagesCache[locale]);
+        if (this.locale != locale) {
+            if (locale in this.messagesCache) {
+                Object.assign(this.messages, this.messagesCache[locale]);
+                this.locale = locale;
+            } else {
+                throw new Error(`Messages of locale "${locale}" not loaded.`);            
+            }
         }
     }
 }
 
 //JSON Dynamic Expression Runtime Configuration
-const config = new Config();
+const defaultConfig = new Config();
 
 export const initContext = (context, currentValue) => {
     if (context == null) {
         context = {
-            config
+            config: defaultConfig
         };
+    }
+
+    if (context.config == null) {
+        context.config = defaultConfig;
     }
 
     if (!('THIS' in context)) {
@@ -146,10 +157,10 @@ export const initContext = (context, currentValue) => {
 
 export const getChildContext = (context, currentValue, childKey, childValue) => ({
     ...context,
-    path: makePath(childKey, context.path),
+    path: makePath(childKey, context.path ?? context.name),
     PARENT: currentValue,
     THIS: childValue,
     KEY: childKey,
 });
 
-export default config;
+export default defaultConfig;

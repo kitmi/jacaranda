@@ -15,6 +15,9 @@ _export(exports, {
     ServiceContainer: function() {
         return _ServiceContainer.default;
     },
+    WebModule: function() {
+        return _WebModule.default;
+    },
     default: function() {
         return _WebServer.default;
     }
@@ -23,6 +26,7 @@ const _ServiceContainer = /*#__PURE__*/ _interop_require_default(require("./Serv
 const _Feature = /*#__PURE__*/ _interop_require_default(require("./Feature"));
 _export_star(require("./helpers"), exports);
 _export_star(require("./starters"), exports);
+const _WebModule = /*#__PURE__*/ _interop_require_default(require("./WebModule"));
 const _WebServer = /*#__PURE__*/ _interop_require_default(require("./WebServer"));
 function _export_star(from, to) {
     Object.keys(from).forEach(function(k) {

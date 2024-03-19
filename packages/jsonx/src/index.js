@@ -1,2 +1,2 @@
 export { default as transform } from './transformers';
-export { default } from './Jsx';
+export { default, createJSX } from './Jsx';

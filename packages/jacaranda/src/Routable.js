@@ -31,7 +31,7 @@ const Routable = (T) =>
 
             this._middlewareRegistry = {};
 
-            this.on('configLoaded', () => {
+            this.once('configLoaded', () => {
                 //load middlewares if exists in server or app path
                 if (fs.pathExistsSync(this.middlewaresPath) && isDir(this.middlewaresPath)) {
                     this.addMiddlewaresRegistryFrom(this.middlewaresPath);
@@ -297,7 +297,7 @@ const Routable = (T) =>
                 ? urlUtil.join(this.route, router.opts.prefix, route)
                 : urlUtil.join(this.route, route);
 
-            this.log('verbose', `Route "${method}:${endpoint}" is added from module [${this.name}].`);
+            this.log('verbose', `Route "${method}:${endpoint}" is added from app [${this.name}].`);
 
             return this;
         }
@@ -333,12 +333,20 @@ const Routable = (T) =>
         addRouter(nestedRouter, baseRoute) {
             if (this.router == null) {
                 // if mount to server level
-                this.router = this.engine.createModuleRouter(this);
-                this.engine.mount('/', this.router);
+                this.createServerModuleRouter();
             }
 
             this.router.attach(nestedRouter, baseRoute);
             return this;
+        }
+
+        createServerModuleRouter() {
+            if (!this.isServer) {
+                throw new ApplicationError('Only the server instance can create a server module router.');
+            }
+
+            this.router = this.engine.createModuleRouter(this);
+            this.engine.mount('/', this.router);
         }
 
         /**

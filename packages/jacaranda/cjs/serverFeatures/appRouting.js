@@ -61,7 +61,10 @@ const _default = {
                 ...config.options
             };
             let appPath;
-            if (config.npmModule) {
+            const moduleMeta = server.modulesRegistry[config.name];
+            if (moduleMeta != null) {
+                appPath = moduleMeta.appPath;
+            } else if (config.npmModule) {
                 appPath = server.toAbsolutePath('node_modules', config.name);
             } else {
                 appPath = _nodepath.default.join(server.appModulesPath, config.name);
@@ -72,7 +75,7 @@ const _default = {
             }
             let app = new _WebModule.default(server, config.name, baseRoute, appPath, options);
             app.now = server.now;
-            app.on('configLoaded', ()=>{
+            app.once('configLoaded', ()=>{
                 if (!_utils._.isEmpty(config.overrides)) {
                     Object.assign(app.config, config.overrides);
                     server.log('verbose', 'App config is overrided.');

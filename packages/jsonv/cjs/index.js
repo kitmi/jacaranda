@@ -15,6 +15,9 @@ _export(exports, {
     OP: function() {
         return _validateOperators.default;
     },
+    createJSV: function() {
+        return _Jsv.createJSV;
+    },
     default: function() {
         return _Jsv.default;
     },
@@ -24,6 +27,9 @@ _export(exports, {
     test: function() {
         return _validate.test;
     },
+    transform: function() {
+        return _transform.default;
+    },
     validate: function() {
         return _validate.default;
     }
@@ -31,7 +37,8 @@ _export(exports, {
 const _config = require("./config");
 const _validateOperators = /*#__PURE__*/ _interop_require_default(require("./validateOperators"));
 const _validate = /*#__PURE__*/ _interop_require_wildcard(require("./validate"));
-const _Jsv = /*#__PURE__*/ _interop_require_default(require("./Jsv"));
+const _transform = /*#__PURE__*/ _interop_require_default(require("./transform"));
+const _Jsv = /*#__PURE__*/ _interop_require_wildcard(require("./Jsv"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
