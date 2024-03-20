@@ -32,3 +32,5 @@ chatgpt.development.yaml
 # runtime files #
 ######################
 .env
+**/prisma/client
+bun.lockb

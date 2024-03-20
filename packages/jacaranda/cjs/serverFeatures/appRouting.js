@@ -65,7 +65,8 @@ const _default = {
             if (moduleMeta != null) {
                 appPath = moduleMeta.appPath;
             } else if (config.npmModule) {
-                appPath = server.toAbsolutePath('node_modules', config.name);
+                moduleInfo = await server.tryRequire_(config.name, true);
+                appPath = moduleInfo.appPath;
             } else {
                 appPath = _nodepath.default.join(server.appModulesPath, config.name);
             }

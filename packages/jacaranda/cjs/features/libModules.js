@@ -52,7 +52,10 @@ const _default = {
                 ...config.options
             };
             let appPath;
-            if (config.npmModule) {
+            const moduleMeta = server.modulesRegistry[name];
+            if (moduleMeta != null) {
+                appPath = moduleMeta.appPath;
+            } else if (config.npmModule) {
                 appPath = app.toAbsolutePath('node_modules', name);
             } else {
                 appPath = _nodepath.default.join(app.libModulesPath, name);

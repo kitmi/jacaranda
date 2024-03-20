@@ -9,6 +9,7 @@ export { default as superAgent } from './superAgent';
 export { default as supabase } from './supabase';
 export { default as settings } from './settings';
 export { default as serviceGroup } from './serviceGroup';
+export { default as prismaImporter } from './prismaImporter';
 export { default as prisma } from './prisma';
 export { default as postgres } from './postgres';
 export { default as pgVectorStore } from './pgVectorStore';

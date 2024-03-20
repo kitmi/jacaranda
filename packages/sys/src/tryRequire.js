@@ -55,12 +55,13 @@ function tryRequireBy(packageName, mainModule, throwWhenNotFound) {
  * @returns {Object}
  */
 function tryRequire(packageName, basePath) {
-    if (
-        packageName.startsWith('@') ||
-        path.isAbsolute(packageName) ||
-        // not a path
-        (packageName.indexOf(path.sep) === -1 && !packageName.startsWith('.'))
-    ) {
+    // relative path
+    const isRelative = packageName.indexOf(path.sep) > 0 && packageName.startsWith('.');
+    if (isRelative) {
+        packageName = path.resolve(basePath ?? '', packageName);
+    }
+
+    if (packageName.startsWith('@') || path.isAbsolute(packageName)) {
         try {
             return require(packageName);
         } catch (error) {

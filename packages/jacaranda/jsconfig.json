@@ -3,6 +3,6 @@
         "baseUrl": "./src",
         "target": "es2021"
     },
-    "include": ["src"],
+    "include": ["src", "../../apps/taronga-db/src/features/prisma.js"],
     "exclude": ["node_modules", "cjs"]
 }

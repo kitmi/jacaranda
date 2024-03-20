@@ -55,8 +55,12 @@ function tryRequireBy(packageName, mainModule, throwWhenNotFound) {
  * @param {String} [basePath] - Base path to find the module
  * @returns {Object}
  */ function tryRequire(packageName, basePath) {
-    if (packageName.startsWith('@') || _nodepath.default.isAbsolute(packageName) || // not a path
-    packageName.indexOf(_nodepath.default.sep) === -1 && !packageName.startsWith('.')) {
+    // relative path
+    const isRelative = packageName.indexOf(_nodepath.default.sep) > 0 && packageName.startsWith('.');
+    if (isRelative) {
+        packageName = _nodepath.default.resolve(basePath ?? '', packageName);
+    }
+    if (packageName.startsWith('@') || _nodepath.default.isAbsolute(packageName)) {
         try {
             return require(packageName);
         } catch (error) {

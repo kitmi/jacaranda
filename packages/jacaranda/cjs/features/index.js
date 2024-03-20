@@ -75,6 +75,9 @@ _export(exports, {
     prisma: function() {
         return _prisma.default;
     },
+    prismaImporter: function() {
+        return _prismaImporter.default;
+    },
     serviceGroup: function() {
         return _serviceGroup.default;
     },
@@ -120,6 +123,7 @@ const _superAgent = /*#__PURE__*/ _interop_require_default(require("./superAgent
 const _supabase = /*#__PURE__*/ _interop_require_default(require("./supabase"));
 const _settings = /*#__PURE__*/ _interop_require_default(require("./settings"));
 const _serviceGroup = /*#__PURE__*/ _interop_require_default(require("./serviceGroup"));
+const _prismaImporter = /*#__PURE__*/ _interop_require_default(require("./prismaImporter"));
 const _prisma = /*#__PURE__*/ _interop_require_default(require("./prisma"));
 const _postgres = /*#__PURE__*/ _interop_require_default(require("./postgres"));
 const _pgVectorStore = /*#__PURE__*/ _interop_require_default(require("./pgVectorStore"));
