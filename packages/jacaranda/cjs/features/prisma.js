@@ -2,23 +2,13 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-function _export(target, all) {
-    for(var name in all)Object.defineProperty(target, name, {
-        enumerable: true,
-        get: all[name]
-    });
-}
-_export(exports, {
-    DefaultModel: function() {
-        return DefaultModel;
-    },
-    default: function() {
+Object.defineProperty(exports, "default", {
+    enumerable: true,
+    get: function() {
         return _default;
     }
 });
-const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 const _utils = require("@kitmi/utils");
-const _types = require("@kitmi/types");
 const _Feature = /*#__PURE__*/ _interop_require_default(require("../Feature"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
@@ -72,15 +62,10 @@ const prismsHelper = {
         return where;
     }
 };
-const symCache = Symbol('cache');
-class DefaultModel {
-    constructor(prisma, app, pascalModelName){
-        this.db = prisma;
-        this.model = prisma[(0, _utils.camelCase)(pascalModelName)];
-        this.app = app;
-    }
-}
 const DEFAULT_CLIENT = '@prisma/client';
+const modelDelegate = (target, prop)=>{
+    return target.model[prop];
+};
 function _default(app, { clientPath }) {
     return {
         stage: _Feature.default.SERVICE,
@@ -89,11 +74,11 @@ function _default(app, { clientPath }) {
             '@prisma/client'
         ],
         load_: async function(app, options, name) {
-            const { modelPath, clientPath, ttlCacheService, ...prismaOptions } = app.featureConfig(options, {
+            const { useModels, clientPath, ttlCacheService, ...prismaOptions } = app.featureConfig(options, {
                 schema: {
-                    modelPath: {
-                        type: 'string',
-                        default: 'models'
+                    useModels: {
+                        type: 'boolean',
+                        default: true
                     },
                     clientPath: {
                         type: 'string',
@@ -117,103 +102,32 @@ function _default(app, { clientPath }) {
                 }
             }, name);
             const { PrismaClient } = await app.tryRequire_(clientPath);
-            const _modelPath = _nodepath.default.join(app.sourcePath, modelPath);
-            const modelCache = new Map();
+            const _models = new Map();
             const prisma = new PrismaClient(prismaOptions);
             await prisma.$connect();
             app.on('stopping', async ()=>{
                 await prisma.$disconnect();
             });
             Object.assign(prisma, prismsHelper);
-            const modelDelegate = (target, prop)=>{
-                return target.model[prop];
+            const cacheService = ttlCacheService && app.getService(ttlCacheService);
+            prisma._$env = {
+                cacheService
             };
-            prisma.$model = (name)=>{
-                const _name = name.toLowerCase();
-                let modelObject = modelCache.get(_name);
-                if (!modelObject) {
-                    const pascalName = (0, _utils.pascalCase)(name);
-                    let Model;
-                    try {
-                        Model = (0, _utils.esmCheck)(require(_nodepath.default.join(_modelPath, pascalName)));
-                    } catch (err) {
-                        if (err.code === 'MODULE_NOT_FOUND') {
-                            Model = DefaultModel;
-                        } else {
-                            throw err;
-                        }
-                    }
-                    const modelInstance = new Model(prisma, app, pascalName);
-                    modelInstance.retryCreate_ = async (createOptions, onDuplicate, maxRetry)=>{
-                        maxRetry || (maxRetry = 99);
-                        let retry = 0;
-                        let error;
-                        while(retry++ < maxRetry){
-                            try {
-                                return await modelInstance.model.create(createOptions);
-                            } catch (err) {
-                                //P2002: Unique constraint failed
-                                if (err.code !== 'P2002') {
-                                    throw err;
-                                }
-                                createOptions = await onDuplicate(createOptions);
-                                error = err;
-                            }
-                        }
-                        throw error;
-                    };
-                    if (ttlCacheService) {
-                        modelInstance.ttlCacheUnique_ = async (key, findUnique, ttl)=>{
-                            const cache = app.getService(ttlCacheService);
-                            const cacheKey = `prisma:${name}:${key}`;
-                            return await cache.get_(cacheKey, ()=>modelInstance.model.findUnique(findUnique), ttl);
-                        };
-                        modelInstance.ttlCacheMany_ = async (key, findMany, ttl)=>{
-                            const cache = app.getService(ttlCacheService);
-                            const cacheKey = `prisma:${name}:${key}`;
-                            return await cache.get_(cacheKey, ()=>modelInstance.model.findMany(findMany), ttl);
-                        };
-                    }
-                    modelObject = (0, _utils.unexistDelegate)(modelInstance, modelDelegate, true);
-                    modelCache.set(_name, modelObject);
+            if (useModels) {
+                if (!app.registry.models) {
+                    throw new Error('No models found in the app registry');
                 }
-                return modelObject;
-            };
-            prisma.$setupCache = (modelBox, entries)=>{
-                if (!modelBox.model) {
-                    throw new _types.ApplicationError('prisma.$setupCache should be called in the constructor and after model is assigned.');
-                }
-                modelBox[symCache] = new Map();
-                modelBox.cache_ = async (key)=>{
-                    let cache = modelBox[symCache].get(key);
-                    if (cache) {
-                        return cache;
+                _utils._.each(app.registry.models, (ModelClass, name)=>{
+                    const modelInstance = new ModelClass(app, prisma, name);
+                    const modelObject = (0, _utils.unexistDelegate)(modelInstance, modelDelegate, true);
+                    _models.set(modelInstance.name, modelObject);
+                    const altName = (0, _utils.camelCase)(modelInstance.name);
+                    if (altName !== modelInstance.name) {
+                        _models.set(altName, modelObject);
                     }
-                    const meta = entries[key];
-                    if (!meta) {
-                        throw new _types.InvalidArgument(`No cache setup for key: ${key}`);
-                    }
-                    const { where = {}, type = 'list', mapByKey, ...others } = meta;
-                    let data = await modelBox.model.findMany({
-                        where,
-                        ...others
-                    });
-                    if (type === 'map') {
-                        if (!mapByKey) {
-                            throw new _types.InvalidArgument(`No "mapByKey" set for map type cache: ${key}`);
-                        }
-                        data = data.reduce((result, item)=>{
-                            result[item[mapByKey]] = item;
-                            return result;
-                        }, {});
-                    } // else type === 'list'
-                    modelBox[symCache].set(key, data);
-                    return data;
-                };
-                modelBox.resetCache = (key)=>{
-                    modelBox[symCache].delete(key);
-                };
-            };
+                });
+            }
+            prisma.$model = (name)=>_models.get(name);
             app.registerService(name, prisma);
         }
     };

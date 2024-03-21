@@ -39,18 +39,19 @@ export default {
         return batchAsync_(entries, async (config, name) => {
             let options = {
                 env: app.env,
+                configType: app.options.configType,
                 logLevel: app.options.logLevel,
                 ...config.options,
             };
 
             let appPath;
-
-            const moduleMeta = server.modulesRegistry[name];
+            let moduleMeta = app.registry?.libs?.[name];
 
             if (moduleMeta != null) {
                 appPath = moduleMeta.appPath;
-            } else if (config.npmModule) {
-                appPath = app.toAbsolutePath('node_modules', name);
+            } else if (config.npmModule) {                
+                moduleMeta = await app.tryRequire_(name, true); 
+                appPath = moduleMeta.appPath;
             } else {
                 appPath = path.join(app.libModulesPath, name);
             }
@@ -60,7 +61,7 @@ export default {
                 throw new InvalidConfiguration(`Lib [${name}] not exists.`, app, `libModules.${name}`);
             }
 
-            let lib = new LibModule(app, name, appPath, options);
+            let lib = new LibModule(app, name, appPath, { registry: moduleMeta?.registry, ...options });       
 
             lib.once('configLoaded', () => {
                 if (!_.isEmpty(config.settings)) {
@@ -74,9 +75,8 @@ export default {
 
             await lib.start_();
 
-            app.registerLib(lib);
-
-            app.log('verbose', `Lib [${lib.name}] is loaded.`);
+            app.registerLib(lib);  
+            app.log('verbose', `Lib [${lib.name}] is loaded.`);            
         });
     },
 };

@@ -61,12 +61,12 @@ const _default = {
                 ...config.options
             };
             let appPath;
-            const moduleMeta = server.modulesRegistry[config.name];
+            let moduleMeta = server.registry?.libs?.[config.name];
             if (moduleMeta != null) {
                 appPath = moduleMeta.appPath;
             } else if (config.npmModule) {
-                moduleInfo = await server.tryRequire_(config.name, true);
-                appPath = moduleInfo.appPath;
+                moduleMeta = await server.tryRequire_(config.name, true);
+                appPath = moduleMeta.appPath;
             } else {
                 appPath = _nodepath.default.join(server.appModulesPath, config.name);
             }
@@ -74,7 +74,10 @@ const _default = {
             if (!exists) {
                 throw new _types.InvalidConfiguration(`App [${config.name}] not found at ${appPath}`, server, `appRouting[${baseRoute}].name`);
             }
-            let app = new _WebModule.default(server, config.name, baseRoute, appPath, options);
+            let app = new _WebModule.default(server, config.name, baseRoute, appPath, {
+                registry: moduleMeta?.registry,
+                ...options
+            });
             app.now = server.now;
             app.once('configLoaded', ()=>{
                 if (!_utils._.isEmpty(config.overrides)) {

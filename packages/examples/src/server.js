@@ -10,7 +10,9 @@ const server = serve({
     logLevel: 'verbose',
     logFeatures: true,
     logMiddlewareRegistry: true,
-    modulesRegistry
+    registry: {
+        apps: modulesRegistry
+    }
 });
 
 export default server;

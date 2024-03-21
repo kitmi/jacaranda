@@ -586,6 +586,11 @@ const configOverrider = (defConf, envConf)=>{
         /**
          * Feature path
          */ this.featuresPath = _nodepath.default.resolve(this.sourcePath, this.options.featuresPath);
+        // preloaded modules
+        // { apps, libs, models }
+        this.registry = {
+            ...this.options.registry
+        };
         this._logCache = [];
         // dummy
         this.log = (...args)=>{

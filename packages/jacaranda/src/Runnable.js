@@ -1,6 +1,7 @@
 import { _, sleep_, batchAsync_ } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
 import { defaultRunnableOpts } from './defaultOpts';
+import path from 'node:path';
 
 /**
  * Runnable app mixin.
@@ -47,7 +48,7 @@ const Runnable = (T) =>
             super(name, {
                 ...defaultRunnableOpts,
                 ...options,
-            });
+            });            
 
             this.runnable = true;
 
@@ -231,6 +232,13 @@ const Runnable = (T) =>
             }
 
             process.on('warning', this._onWarning);
+        }
+
+        _getFeatureFallbackPath() {
+            let pathArray = super._getFeatureFallbackPath();
+            pathArray.splice(1, 0, path.resolve(__dirname, 'appFeatures'));
+    
+            return pathArray;
         }
     };
 

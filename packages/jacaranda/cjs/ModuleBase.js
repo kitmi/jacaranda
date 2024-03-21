@@ -41,7 +41,7 @@ const ModuleBase = (Base)=>{
          * Require a js module from backend path
          * @param {*} relativePath
          */ require(relativePath) {
-            let modPath = _nodepath.default.join(this.sourcePath, relativePath);
+            let modPath = _nodepath.default.resolve(this.sourcePath, relativePath);
             return require(modPath);
         }
         /**

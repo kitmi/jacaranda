@@ -67,7 +67,7 @@ const ModuleBase = (Base) =>
          * @param {*} relativePath
          */
         require(relativePath) {
-            let modPath = path.join(this.sourcePath, relativePath);
+            let modPath = path.resolve(this.sourcePath, relativePath);
             return require(modPath);
         }
 

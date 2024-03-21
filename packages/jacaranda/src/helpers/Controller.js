@@ -1,4 +1,5 @@
 import { ApplicationError } from '@kitmi/types';
+import { _ } from '@kitmi/utils';
 
 class BasicController {
     constructor(app) {
@@ -8,8 +9,30 @@ class BasicController {
         if (!this.apiWrapper) {
             throw new ApplicationError('"apiWrapper" service is required when using the built-in Controller.');
         }
+
+        if (this.app.settings.models) {
+            // init models service
+            this.modelsService = _.mapValues(this.app.settings.models, ({ lib, driver }, schema) => {
+                if (this.defaultSchema == null) {
+                    this.defaultSchema = schema;
+                }
+
+                const modelsModule = lib ? this.app.host.getLib(lib) : this.app;
+                const service = modelsModule.getService(driver);
+                if (service == null) {
+                    throw new ApplicationError(`Model driver "${driver}" not found in ${lib ? 'lib' : 'app module'} "${lib ?? this.app.name}"`);
+                }
+
+                return service;
+            });
+        }
     }
 
+    /**
+     * Return a service by name
+     * @param {string} serviceName 
+     * @returns 
+     */
     $(serviceName) {
         const service = this.app.getService(serviceName);
         if (!service) {
@@ -17,6 +40,11 @@ class BasicController {
         }
 
         return service;
+    }
+
+    $m(name, schema) {
+        const service = this.modelsService[schema ?? this.defaultSchema];
+        return service.$model(name);
     }
 
     /**

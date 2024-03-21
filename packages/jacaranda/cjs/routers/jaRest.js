@@ -40,7 +40,7 @@ function _interop_require_default(obj) {
  *
  *  route                          http method    function of ctrl
  *  /:resource                     get            find
- *  /:resource                     post           create
+ *  /:resource                     post           post
  *  /:resource/:id                 get            findOne
  *  /:resource/:id                 patch          updateOne
  *  /:resource/:id                 put            replaceOne

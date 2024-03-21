@@ -125,6 +125,10 @@ class ServiceContainer extends AsyncEmitter {
          */
         this.featuresPath = path.resolve(this.sourcePath, this.options.featuresPath);
 
+        // preloaded modules
+        // { apps, libs, models }
+        this.registry = { ...this.options.registry };
+
         this._logCache = [];
 
         // dummy

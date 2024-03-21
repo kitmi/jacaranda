@@ -56,14 +56,13 @@ export default {
             };            
 
             let appPath;
-
-            const moduleMeta = server.modulesRegistry[config.name];
+            let moduleMeta = server.registry?.libs?.[config.name];
 
             if (moduleMeta != null) {
                 appPath = moduleMeta.appPath;
             } else if (config.npmModule) {
-                moduleInfo = await server.tryRequire_(config.name, true); 
-                appPath = moduleInfo.appPath;
+                moduleMeta = await server.tryRequire_(config.name, true); 
+                appPath = moduleMeta.appPath;
             } else {
                 appPath = path.join(server.appModulesPath, config.name);
             }
@@ -77,8 +76,8 @@ export default {
                 );
             }
 
-            let app = new WebModule(server, config.name, baseRoute, appPath, options);
-            app.now = server.now;
+            let app = new WebModule(server, config.name, baseRoute, appPath, { registry: moduleMeta?.registry, ...options });
+            app.now = server.now;            
 
             app.once('configLoaded', () => {
                 if (!_.isEmpty(config.overrides)) {

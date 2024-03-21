@@ -11,6 +11,7 @@ Object.defineProperty(exports, "default", {
 const _utils = require("@kitmi/utils");
 const _types = require("@kitmi/types");
 const _defaultOpts = require("./defaultOpts");
+const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -23,6 +24,11 @@ function _define_property(obj, key, value) {
         obj[key] = value;
     }
     return obj;
+}
+function _interop_require_default(obj) {
+    return obj && obj.__esModule ? obj : {
+        default: obj
+    };
 }
 /**
  * Runnable app mixin.
@@ -166,6 +172,11 @@ function _define_property(obj, key, value) {
                 process.on('uncaughtException', this._onUncaughtException);
             }
             process.on('warning', this._onWarning);
+        }
+        _getFeatureFallbackPath() {
+            let pathArray = super._getFeatureFallbackPath();
+            pathArray.splice(1, 0, _nodepath.default.resolve(__dirname, 'appFeatures'));
+            return pathArray;
         }
         /**
          * @param {string} name - The name of the application.
