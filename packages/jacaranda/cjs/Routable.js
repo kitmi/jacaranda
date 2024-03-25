@@ -231,12 +231,6 @@ const Routable = (T)=>{
                 throw new _types.InvalidConfiguration(`Middleware "${middleware}" requires "${hasNotEnabled}" feature to be enabled.`, this, `middlewares.${middleware}`);
             }
         }
-        requireServices(services, middleware) {
-            const notRegisterred = _utils._.find(_utils._.castArray(services), (service)=>!this.hasService(service));
-            if (notRegisterred) {
-                throw new _types.InvalidConfiguration(`Middleware "${middleware}" requires "${notRegisterred}" service to be registerred.`, this, `middlewares.${middleware}`);
-            }
-        }
         /**
          * Attach a router to this app module, skipped while the server running in deaf mode
          * @param {Router} nestedRouter

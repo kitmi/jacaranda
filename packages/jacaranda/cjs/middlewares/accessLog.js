@@ -23,7 +23,7 @@ const _default = async (opt, app)=>{
     const pinoHttp = await app.tryRequire_('pino-http');
     app.requireServices([
         logger
-    ], 'accessLog');
+    ]);
     const pinoLogger = app.getService(logger);
     const log = pinoHttp({
         quietReqLogger: true,

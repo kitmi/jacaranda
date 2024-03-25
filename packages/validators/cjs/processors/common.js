@@ -27,7 +27,9 @@ const _default = {
     pascalCase: (value)=>(0, _utils.pascalCase)(value),
     camelCase: (value)=>(0, _utils.camelCase)(value),
     kebabCase: (value)=>(0, _utils.kebabCase)(value),
-    snakeCase: (value)=>(0, _utils.snakeCase)(value)
+    snakeCase: (value)=>(0, _utils.snakeCase)(value),
+    toLower: (value)=>value.toLowerCase(),
+    toUpper: (value)=>value.toUpperCase()
 };
 
 //# sourceMappingURL=common.js.map

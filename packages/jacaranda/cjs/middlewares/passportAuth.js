@@ -33,7 +33,7 @@ const middlewareName = 'passportAuth';
     }, middlewareName);
     app.requireServices([
         'passport'
-    ], middlewareName);
+    ]);
     const passportService = app.getService('passport');
     return passportService.authenticate(strategy, options);
 };

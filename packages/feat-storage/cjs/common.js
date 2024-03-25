@@ -16,7 +16,7 @@ _export(exports, {
         return DEFAULT_UPLOAD_EXPIRY;
     }
 });
-const DEFAULT_UPLOAD_EXPIRY = 300; // 5 mintues
+const DEFAULT_UPLOAD_EXPIRY = 900; // 15 mintues
 const DEFAULT_DOWNLOAD_EXPIRY = 1800; // 30 mintues
 
 //# sourceMappingURL=common.js.map

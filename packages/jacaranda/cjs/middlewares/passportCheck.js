@@ -34,7 +34,7 @@ const middlewareName = 'passportCheck';
     }, middlewareName);
     app.requireServices([
         'passport'
-    ], middlewareName);
+    ]);
     return async (ctx, next)=>{
         if (ctx.isAuthenticated()) {
             return next();

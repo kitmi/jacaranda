@@ -75,7 +75,7 @@ const _default = {
             },
             ...config
         };
-        const names = name.split('-', 2);
+        const names = name.split('.', 2);
         let isAppLogger = true;
         if (names.length > 1) {
             options.name = names[1];
@@ -85,8 +85,9 @@ const _default = {
             level: app.options.logLevel === 'verbose' ? 'debug' : app.options.logLevel,
             ...options
         });
+        logger.verbose = logger.debug.bind(logger);
+        logger.log = (level, message, info)=>logger[level](info, message);
         if (isAppLogger) {
-            logger.verbose = logger.debug.bind(logger);
             if (app._logCache.length > 0) {
                 app._logCache.forEach(([level, message, obj])=>logger[level](obj, message));
                 app._logCache.length = 0;

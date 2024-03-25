@@ -2,17 +2,14 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-Object.defineProperty(exports, /**
- * General cloud storage feature
- * @module Feature_Storage
- */ "default", {
+Object.defineProperty(exports, "default", {
     enumerable: true,
     get: function() {
         return _default;
     }
 });
 const _jacaranda = require("@kitmi/jacaranda");
-const _drivers = /*#__PURE__*/ _interop_require_wildcard(require("./drivers"));
+const _Pipeline = /*#__PURE__*/ _interop_require_wildcard(require("./Pipeline"));
 function _getRequireWildcardCache(nodeInterop) {
     if (typeof WeakMap !== "function") return null;
     var cacheBabelInterop = new WeakMap();
@@ -54,48 +51,57 @@ function _interop_require_wildcard(obj, nodeInterop) {
     }
     return newObj;
 }
-const mapOfProviderToDriver = {
-    digitalocean: 'S3v2',
-    aws: 'S3v3',
-    azure: 'Azure'
-};
-function validateOptions(app, options, name) {
-    return app.featureConfig(options, {
-        schema: {
-            provider: {
-                type: 'boolean',
-                enum: Object.keys(mapOfProviderToDriver)
+const _default = {
+    stage: _jacaranda.Feature.PLUGIN,
+    groupable: true,
+    packages: [
+        'mime'
+    ],
+    /**
+     * Load the feature
+     * @param {App} app - The app module object
+     * @param {object} options - Options for the feature
+     * @property {string} options.vendor - Cloud storage vendor.
+     * @property {object} options.options - Storage driver options.
+     * @returns {Promise.<*>}
+     *
+     * @example
+     *
+     * provider: 'digitalocean',
+     * options: {
+     *
+     * }
+     */ load_: async function(app, options, name) {
+        let { taskProvider } = app.featureConfig(options, {
+            schema: {
+                taskProvider: {
+                    type: 'text'
+                },
+                stepLogger: {
+                    type: 'text',
+                    optional: true,
+                    default: "logger"
+                }
             }
-        }
-    }, name);
-}
-function _default(app, options, name) {
-    const { provider } = validateOptions(app, options, name);
-    const Driver = _drivers[mapOfProviderToDriver[provider]];
-    return {
-        stage: _jacaranda.Feature.SERVICE,
-        groupable: true,
-        packages: Driver.packages,
-        /**
-         * Load the feature
-         * @param {App} app - The app module object
-         * @param {object} options - Options for the feature
-         * @property {string} options.provider - Cloud storage vendor.
-         * @property {object} options.options - Storage driver options.
-         * @returns {Promise.<*>}
-         *
-         * @example
-         *
-         * provider: 'digitalocean',
-         * options: {
-         *
-         * }
-         */ load_: async function(app, options, name) {
-            const { options: providerOptions } = validateOptions(app, options, name);
-            const service = new Driver(app, providerOptions);
-            app.registerService(name, service);
-        }
-    };
-}
+        }, name);
+        app.requireServices([
+            taskProvider,
+            stepLogger
+        ]);
+        const service = {
+            create (name, steps) {
+                const _steps = (0, _Pipeline.normalizeSteps)(steps);
+                return async (input)=>{
+                    const pipeline = new _Pipeline.default(app, name, _steps, {
+                        taskProvider,
+                        stepLogger
+                    });
+                    return pipeline.run_(input);
+                };
+            }
+        };
+        app.registerService(name, service);
+    }
+};
 
 //# sourceMappingURL=index.js.map

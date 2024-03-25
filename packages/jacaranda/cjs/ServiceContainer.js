@@ -332,6 +332,12 @@ const configOverrider = (defConf, envConf)=>{
             throw new _types.InvalidConfiguration(message, this, category ? `${category}::${name}` : name);
         }
     }
+    requireServices(services) {
+        const notRegisterred = _utils._.find(_utils._.castArray(services), (service)=>!this.hasService(service));
+        if (notRegisterred) {
+            throw new _types.ApplicationError(`Service "${notRegisterred}" is required.`);
+        }
+    }
     _getConfigVariables() {
         const processInfo = {
             env: process.env,

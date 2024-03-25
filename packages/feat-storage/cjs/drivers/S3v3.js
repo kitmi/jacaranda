@@ -36,9 +36,11 @@ class S3Service {
          * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/modules/putobjectrequest.html
          */ const putObjectInput = {
             Bucket: this.bucket,
-            Key: objectKey,
-            ...payload
+            Key: objectKey
         };
+        if (payload?.publicRead) {
+            putObjectInput.ACL = 'public-read';
+        }
         if (contentType) {
             // most of the time, you don't know the contentType before user selected the file
             putObjectInput.ContentType = contentType;
