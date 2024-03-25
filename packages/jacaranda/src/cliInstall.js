@@ -2,19 +2,19 @@ import ServiceInstaller from './ServiceInstaller';
 import Runnable from './Runnable';
 
 /**
- * Installer cli.
+ * Installer for cli app.
  * @class
  * @mixes {Runnable}
  * @extends {ServiceInstaller}
  */
 class Installer extends Runnable(ServiceInstaller) {
-    constructor(name, options) {
-        super(name || 'installer', options);
+    constructor(options) {
+        super('installer', options);
     }
 }
 
 function install(options) {
-    const installer = new Installer(null, options);
+    const installer = new Installer(options);
 
     installer
         .start_()

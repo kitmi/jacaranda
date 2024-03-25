@@ -25,7 +25,7 @@ routing:
         rest: 
             $urlDasherize: true
     /api/v2:
-        jaREST:
+        jacaranda:
             $controllerPath: actions2
             $urlDasherize: true
             pet: '/store/:storeId/pet'

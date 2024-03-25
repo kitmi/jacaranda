@@ -9,7 +9,7 @@ import { globSync } from 'glob';
 
 /**
  * Create a RESTful router.
- * @param {*} app
+ * @param {Routable} app
  * @param {string} baseRoute
  * @param {object} options
  * @property {string} [options.$controllerPath]

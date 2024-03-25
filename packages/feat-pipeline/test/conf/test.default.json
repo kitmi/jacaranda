@@ -1,0 +1,11 @@
+{
+    "timezone": "Australia/Sydney",
+    "serviceGroup": {
+        "superTest": {
+            "default": "http://localhost:3000"
+        },
+        "restClient": {
+            "default": "http://localhost:3000"
+        }
+    }    
+}

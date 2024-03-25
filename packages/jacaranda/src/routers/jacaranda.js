@@ -3,7 +3,7 @@ import { globSync } from 'glob';
 import { naming, text, hasMethod, esmCheck, batchAsync_ } from '@kitmi/utils';
 
 /**
- * Jacaranda Restful API Spec (jaREST) router.
+ * Jacaranda Restful API Spec (jacaranda) router.
  * @module Router_JaREST
  */
 
@@ -14,11 +14,12 @@ const appendId = (baseEndpoint, idName) => (idName ? `${baseEndpoint}/:${idName}
  * @param {*} app
  * @param {string} baseRoute
  * @param {object} options
- * @property {string} [options.resourcesPath]
- * @property {object|array} [options.middlewares]
+ * @property {string} [options.$controllerPath]
+ * @property {object|array} [options.$middlewares]
+ * @property {boolean} [options.$urlDasherize]
  * @example
  *  '<base path>': {
- *      jaREST: {
+ *      jacaranda: {
  *          $controllerPath:
  *          $middlewares:
  *          $errorOptions
@@ -97,14 +98,12 @@ const jaRestRouter = async (app, baseRoute, options) => {
 
         await addRoute_('query', 'get');
         await addRoute_('post', 'post');
-        await addRoute_('replaceMany', 'put');
-        await addRoute_('updateMany', 'patch');
-        await addRoute_('deleteMany', 'delete');
+        await addRoute_('put', 'put');
+        await addRoute_('del', 'delete');
 
-        await addRouteWithId_('findOne', 'get');
-        await addRouteWithId_('replaceOne', 'put');
-        await addRouteWithId_('updateOne', 'patch');
-        await addRouteWithId_('deleteOne', 'delete');        
+        await addRouteWithId_('getOne', 'get');
+        await addRouteWithId_('putOne', 'put');
+        await addRouteWithId_('delOne', 'delete');        
     });
 
     app.addRouter(router);

@@ -30,7 +30,10 @@ import { typeOf } from '@kitmi/types';
  */
 function fxargs(args, types) {
     const result = new Array(types.length).fill(undefined);
-    let argIndex = 0, lt = types.length, la = args.length;
+    let argIndex = 0,
+        lt = types.length,
+        la = args.length;
+    const optionalSpots = [];
 
     for (let i = 0; i < lt; i++) {
         const type = types[i];
@@ -46,18 +49,40 @@ function fxargs(args, types) {
                 // Assign the value and increment the argument index
                 result[i] = value;
                 argIndex++;
-                matched = true;
+                matched = true;                
+
+                if (isOptional) {
+                    optionalSpots.push(i);
+                } else {
+                    optionalSpots.length = 0;
+                }
             } else if (isOptional) {
                 // If the type is optional and no match found, break to allow for undefined
                 break;
             } else {
+                // Try pop up an optional value
+                if (optionalSpots.length > 0 && lt - i >= la - argIndex + 1) {
+                    const optionalIndex = optionalSpots.pop();
+                    result[optionalIndex] = undefined;
+                    argIndex--;                    
+                    continue;
+                }
+
                 // No match found for a required type
                 throw new Error(`Missing or invalid argument at index ${i}, expected "${type}".`);
             }
         }
 
         if (!matched && !isOptional) {
-            throw new Error(`Missing argument at index ${i}, expected "${type}".`);
+            // Try pop up an optional value
+            if (optionalSpots.length > 0 && lt - i >= la - argIndex + 1) {
+                const optionalIndex = optionalSpots.pop();
+                result[optionalIndex] = undefined;
+                argIndex--;                    
+                i--;
+            } else {
+                throw new Error(`Missing argument at index ${i}, expected "${type}".`);
+            }
         }
     }
 

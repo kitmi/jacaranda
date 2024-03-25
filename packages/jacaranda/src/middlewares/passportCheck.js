@@ -26,7 +26,7 @@ const passportCheck = (options, app) => {
         middlewareName
     );
 
-    app.requireServices(['passport'], middlewareName);
+    app.requireServices(['passport']);
 
     return async (ctx, next) => {
         if (ctx.isAuthenticated()) {

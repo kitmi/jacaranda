@@ -61,7 +61,7 @@ const _default = {
                 ...config.options
             };
             let appPath;
-            let moduleMeta = server.registry?.libs?.[config.name];
+            let moduleMeta = server.registry?.apps?.[config.name];
             if (moduleMeta != null) {
                 appPath = moduleMeta.appPath;
             } else if (config.npmModule) {

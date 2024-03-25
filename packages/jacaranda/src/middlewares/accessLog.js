@@ -16,7 +16,7 @@ export default async (opt, app) => {
 
     const pinoHttp = await app.tryRequire_('pino-http');
 
-    app.requireServices([logger], 'accessLog');
+    app.requireServices([logger]);
 
     const pinoLogger = app.getService(logger);
 

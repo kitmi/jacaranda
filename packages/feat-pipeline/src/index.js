@@ -1,0 +1,53 @@
+import { Feature } from '@kitmi/jacaranda';
+import Pipeline, { normalizeSteps } from './Pipeline';
+
+export default {
+    stage: Feature.PLUGIN,
+
+    groupable: true,
+
+    packages: ['mime'],
+
+    /**
+     * Load the feature
+     * @param {App} app - The app module object
+     * @param {object} options - Options for the feature
+     * @property {string} options.vendor - Cloud storage vendor.
+     * @property {object} options.options - Storage driver options.
+     * @returns {Promise.<*>}
+     *
+     * @example
+     *
+     * provider: 'digitalocean',
+     * options: {
+     *
+     * }
+     */
+    load_: async function (app, options, name) {
+        let { taskProvider } = app.featureConfig(
+            options,
+            {
+                schema: {
+                    taskProvider: { type: 'text' },
+                    stepLogger: { type: 'text', optional: true, default: "logger" },
+                },
+            },
+            name
+        );
+
+        app.requireServices([ taskProvider, stepLogger ]);
+
+        const service = {
+            create(name, steps) {
+                const _steps = normalizeSteps(steps)
+
+                return async (input) => {                    
+                    const pipeline = new Pipeline(app, name, _steps, { taskProvider, stepLogger });
+                    return pipeline.run_(input);
+                };
+            }
+        };
+
+        app.registerService(name, service);
+    }
+};

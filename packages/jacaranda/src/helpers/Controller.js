@@ -10,7 +10,7 @@ class BasicController {
             throw new ApplicationError('"apiWrapper" service is required when using the built-in Controller.');
         }
 
-        if (this.app.settings.models) {
+        if (this.app.settings?.models) {
             // init models service
             this.modelsService = _.mapValues(this.app.settings.models, ({ lib, driver }, schema) => {
                 if (this.defaultSchema == null) {

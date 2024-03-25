@@ -21,7 +21,7 @@ function _interop_require_default(obj) {
  * @module Router_REST
  */ /**
  * Create a RESTful router.
- * @param {*} app
+ * @param {Routable} app
  * @param {string} baseRoute
  * @param {object} options
  * @property {string} [options.$controllerPath]

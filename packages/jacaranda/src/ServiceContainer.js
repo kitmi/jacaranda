@@ -1,7 +1,7 @@
 import ConfigLoader, { JsonConfigProvider, YamlConfigProvider } from '@kitmi/config';
 import { _, pushIntoBucket, eachAsync_, arrayToObject, esmCheck } from '@kitmi/utils';
 import { fs, tryRequire as _tryRequire } from '@kitmi/sys';
-import { InvalidConfiguration, ValidationError } from '@kitmi/types';
+import { InvalidConfiguration, ValidationError, ApplicationError } from '@kitmi/types';
 import { Types } from '@kitmi/validators/allSync';
 import { TopoSort } from '@kitmi/algo';
 
@@ -11,6 +11,8 @@ import Feature from './Feature';
 import defaultOpts from './defaultOpts';
 import AsyncEmitter from './helpers/AsyncEmitter';
 import { consoleLogger, makeLogger } from './logger';
+
+import runtime from './runtime';
 
 const FILE_EXT = ['.js', '.mjs', '.cjs', '.ts'];
 
@@ -435,6 +437,16 @@ class ServiceContainer extends AsyncEmitter {
         }
     }
 
+    requireServices(services) {
+        const notRegisterred = _.find(_.castArray(services), (service) => !this.hasService(service));
+
+        if (notRegisterred) {
+            throw new ApplicationError(
+                `Service "${notRegisterred}" is required.`
+            );
+        }
+    }
+
     _getConfigVariables() {
         const processInfo = {
             env: process.env,
@@ -662,7 +674,7 @@ class ServiceContainer extends AsyncEmitter {
             featureObject = this.tryRequire(featurePath);
         }        
 
-        featureObject = typeof featureObject === 'function' ? featureObject(this, featureOptions) : featureObject;
+        featureObject = typeof featureObject === 'function' ? featureObject(this, featureOptions, feature) : featureObject;
 
         if (!Feature.validate(featureObject)) {
             throw new Error(`Invalid feature object loaded from "${featurePath}".`);

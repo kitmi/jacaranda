@@ -43,4 +43,7 @@ export default {
     camelCase: (value) => camelCase(value),
     kebabCase: (value) => kebabCase(value),
     snakeCase: (value) => snakeCase(value),
+
+    toLower: (value) => value.toLowerCase(),
+    toUpper: (value) => value.toUpperCase(),
 };

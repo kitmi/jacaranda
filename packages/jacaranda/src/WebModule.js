@@ -7,7 +7,7 @@ import { defaultWebModuleOpts } from './defaultServerOpts';
 /**
  * Web application module class.
  * @class
- * @extends Routable(LibModule)
+ * @extends ModuleBase(Routable(ServiceContainer))
  */
 class WebModule extends ModuleBase(Routable(ServiceContainer)) {
     /**

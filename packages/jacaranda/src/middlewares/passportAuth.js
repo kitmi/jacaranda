@@ -25,7 +25,7 @@ const passportAuth = (opt, app) => {
         middlewareName
     );
 
-    app.requireServices(['passport'], middlewareName);
+    app.requireServices(['passport']);
 
     const passportService = app.getService('passport');
 

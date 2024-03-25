@@ -2,6 +2,7 @@ import { _, sleep_, batchAsync_ } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
 import { defaultRunnableOpts } from './defaultOpts';
 import path from 'node:path';
+import minimist from 'minimist';
 
 /**
  * Runnable app mixin.
@@ -45,6 +46,11 @@ const Runnable = (T) =>
          * @constructs Runnable
          */
         constructor(name, options) {
+            if (process.argv.length > 2) {
+                const { _, ...cliOptions } = minimist(process.argv.slice(2));
+                options = { ...cliOptions, ...options };
+            }            
+
             super(name, {
                 ...defaultRunnableOpts,
                 ...options,

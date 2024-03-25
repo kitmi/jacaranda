@@ -17,7 +17,7 @@ function _interop_require_default(obj) {
     };
 }
 /**
- * Jacaranda Restful API Spec (jaREST) router.
+ * Jacaranda Restful API Spec (jacaranda) router.
  * @module Router_JaREST
  */ const appendId = (baseEndpoint, idName)=>idName ? `${baseEndpoint}/:${idName}` : baseEndpoint;
 /**
@@ -25,11 +25,12 @@ function _interop_require_default(obj) {
  * @param {*} app
  * @param {string} baseRoute
  * @param {object} options
- * @property {string} [options.resourcesPath]
- * @property {object|array} [options.middlewares]
+ * @property {string} [options.$controllerPath]
+ * @property {object|array} [options.$middlewares]
+ * @property {boolean} [options.$urlDasherize]
  * @example
  *  '<base path>': {
- *      jaREST: {
+ *      jacaranda: {
  *          $controllerPath:
  *          $middlewares:
  *          $errorOptions
@@ -98,16 +99,14 @@ function _interop_require_default(obj) {
         }
         await addRoute_('query', 'get');
         await addRoute_('post', 'post');
-        await addRoute_('replaceMany', 'put');
-        await addRoute_('updateMany', 'patch');
-        await addRoute_('deleteMany', 'delete');
-        await addRouteWithId_('findOne', 'get');
-        await addRouteWithId_('replaceOne', 'put');
-        await addRouteWithId_('updateOne', 'patch');
-        await addRouteWithId_('deleteOne', 'delete');
+        await addRoute_('put', 'put');
+        await addRoute_('del', 'delete');
+        await addRouteWithId_('getOne', 'get');
+        await addRouteWithId_('putOne', 'put');
+        await addRouteWithId_('delOne', 'delete');
     });
     app.addRouter(router);
 };
 const _default = jaRestRouter;
 
-//# sourceMappingURL=jaRest.js.map
+//# sourceMappingURL=jacaranda.js.map

@@ -1,0 +1,17 @@
+{
+    "$schema": "http://json.schemastore.org/swcrc",
+    "jsc": {
+        "parser": {
+            "syntax": "ecmascript",
+            "jsx": false
+        },
+        "target": "es2021",
+        "loose": false
+    },
+    "module": {
+        "type": "commonjs"        
+    },
+    "isModule": true,
+    "minify": false,
+    "sourceMaps": true
+}

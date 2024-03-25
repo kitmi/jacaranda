@@ -5,6 +5,9 @@
     "main": "cjs/index.js",
     "module": "src/index.js",
     "react-native": "src/index.js",
+    "bin": {
+        "kj-install": "cjs/install.js"
+    },
     "exports": {
         ".": {
             "import": "./src/index.js",

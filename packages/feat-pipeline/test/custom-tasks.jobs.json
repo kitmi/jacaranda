@@ -1,0 +1,36 @@
+{
+    "jobs": {
+        "default": {
+            "dependsOn": ["job1"],
+            "picks": {
+                "job1": [{ "from": "var3", "to": "var4" }, "var3"]
+            },
+            "steps": [
+                {
+                    "task": "exec",
+                    "command": "echo ${var3} ${var4}"
+                }
+            ],
+            "emits": [
+                "var4",
+                {
+                    "from": "var3",
+                    "to": "var5"
+                }
+            ]
+        },
+        "job1": {
+            "steps": [
+                {
+                    "task": "init"
+                },
+                {
+                    "task": "add"
+                },
+                {
+                    "task": "subtract"
+                }
+            ]
+        }
+    }
+}

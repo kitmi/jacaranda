@@ -12,6 +12,7 @@ const _utils = require("@kitmi/utils");
 const _types = require("@kitmi/types");
 const _defaultOpts = require("./defaultOpts");
 const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
+const _minimist = /*#__PURE__*/ _interop_require_default(require("minimist"));
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -188,6 +189,13 @@ function _interop_require_default(obj) {
          * @property {object} [options.logConfig=false] - Log finalized config
          * @constructs Runnable
          */ constructor(name, options){
+            if (process.argv.length > 2) {
+                const { _, ...cliOptions } = (0, _minimist.default)(process.argv.slice(2));
+                options = {
+                    ...cliOptions,
+                    ...options
+                };
+            }
             super(name, {
                 ..._defaultOpts.defaultRunnableOpts,
                 ...options

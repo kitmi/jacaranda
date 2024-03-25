@@ -19,6 +19,7 @@ const _Feature = /*#__PURE__*/ _interop_require_default(require("./Feature"));
 const _defaultOpts = /*#__PURE__*/ _interop_require_default(require("./defaultOpts"));
 const _AsyncEmitter = /*#__PURE__*/ _interop_require_default(require("./helpers/AsyncEmitter"));
 const _logger = require("./logger");
+const _runtime = /*#__PURE__*/ _interop_require_default(require("./runtime"));
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -521,7 +522,7 @@ const configOverrider = (defConf, envConf)=>{
             }
             featureObject = this.tryRequire(featurePath);
         }
-        featureObject = typeof featureObject === 'function' ? featureObject(this, featureOptions) : featureObject;
+        featureObject = typeof featureObject === 'function' ? featureObject(this, featureOptions, feature) : featureObject;
         if (!_Feature.default.validate(featureObject)) {
             throw new Error(`Invalid feature object loaded from "${featurePath}".`);
         }

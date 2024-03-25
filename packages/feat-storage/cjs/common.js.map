@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/common.js"],"sourcesContent":["export const DEFAULT_UPLOAD_EXPIRY = 300; // 5 mintues\nexport const DEFAULT_DOWNLOAD_EXPIRY = 1800; // 30 mintues\n"],"names":["DEFAULT_DOWNLOAD_EXPIRY","DEFAULT_UPLOAD_EXPIRY"],"mappings":";;;;;;;;;;;IACaA,uBAAuB;eAAvBA;;IADAC,qBAAqB;eAArBA;;;AAAN,MAAMA,wBAAwB,KAAK,YAAY;AAC/C,MAAMD,0BAA0B,MAAM,aAAa"}

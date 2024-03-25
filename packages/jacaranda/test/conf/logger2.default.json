@@ -1,0 +1,13 @@
+{
+    "serviceGroup": {
+        "logger": {
+            "app": {},
+            "custom": {
+                "transport": {
+                    "target": "pino/file",
+                    "options": { "destination": "./test/test.log" }
+                }
+            }
+        }
+    }
+}

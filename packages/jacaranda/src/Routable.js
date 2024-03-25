@@ -314,18 +314,6 @@ const Routable = (T) =>
             }
         }
 
-        requireServices(services, middleware) {
-            const notRegisterred = _.find(_.castArray(services), (service) => !this.hasService(service));
-
-            if (notRegisterred) {
-                throw new InvalidConfiguration(
-                    `Middleware "${middleware}" requires "${notRegisterred}" service to be registerred.`,
-                    this,
-                    `middlewares.${middleware}`
-                );
-            }
-        }
-
         /**
          * Attach a router to this app module, skipped while the server running in deaf mode
          * @param {Router} nestedRouter

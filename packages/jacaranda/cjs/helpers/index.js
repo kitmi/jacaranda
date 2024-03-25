@@ -24,6 +24,9 @@ _export(exports, {
     PrismaModel: function() {
         return _DbModel.PrismaModel;
     },
+    RuntimeRegistry: function() {
+        return _RuntimeRegistry.default;
+    },
     httpMethod: function() {
         return _httpMethod.default;
     },
@@ -38,6 +41,7 @@ _export(exports, {
     }
 });
 const _AsyncEmitter = /*#__PURE__*/ _interop_require_default(require("./AsyncEmitter"));
+const _RuntimeRegistry = /*#__PURE__*/ _interop_require_default(require("./RuntimeRegistry"));
 const _HttpClient = /*#__PURE__*/ _interop_require_default(require("./HttpClient"));
 const _Controller = /*#__PURE__*/ _interop_require_default(require("./Controller"));
 const _DbModel = /*#__PURE__*/ _interop_require_wildcard(require("./DbModel"));
