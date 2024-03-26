@@ -6,7 +6,6 @@ const defaultServerOpts = {
 };
 
 export const defaultRoutableOpts = {
-    engine: 'koa',
     traceMiddlewares: false,
     logMiddlewareRegistry: false,
     publicPath: 'public',

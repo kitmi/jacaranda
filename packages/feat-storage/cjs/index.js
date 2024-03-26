@@ -59,43 +59,44 @@ const mapOfProviderToDriver = {
     aws: 'S3v3',
     azure: 'Azure'
 };
-function validateOptions(app, options, name) {
-    return app.featureConfig(options, {
-        schema: {
-            provider: {
-                type: 'boolean',
-                enum: Object.keys(mapOfProviderToDriver)
+const _default = {
+    stage: _jacaranda.Feature.SERVICE,
+    groupable: true,
+    packages: (app, { provider })=>{
+        const Driver = _drivers[mapOfProviderToDriver[provider]];
+        return Driver.packages;
+    },
+    /**
+     * Load the feature
+     * @param {App} app - The app module object
+     * @param {object} options - Options for the feature
+     * @property {string} options.provider - Cloud storage vendor.
+     * @property {object} options.options - Storage driver options.
+     * @returns {Promise.<*>}
+     *
+     * @example
+     *
+     * provider: 'digitalocean',
+     * options: {
+     *
+     * }
+     */ load_: async function(app, options, name) {
+        const { provider, options: providerOptions } = app.featureConfig(options, {
+            schema: {
+                provider: {
+                    type: 'text',
+                    enum: Object.keys(mapOfProviderToDriver)
+                },
+                options: {
+                    type: 'object',
+                    optional: true
+                }
             }
-        }
-    }, name);
-}
-function _default(app, options, name) {
-    const { provider } = validateOptions(app, options, name);
-    const Driver = _drivers[mapOfProviderToDriver[provider]];
-    return {
-        stage: _jacaranda.Feature.SERVICE,
-        groupable: true,
-        packages: Driver.packages,
-        /**
-         * Load the feature
-         * @param {App} app - The app module object
-         * @param {object} options - Options for the feature
-         * @property {string} options.provider - Cloud storage vendor.
-         * @property {object} options.options - Storage driver options.
-         * @returns {Promise.<*>}
-         *
-         * @example
-         *
-         * provider: 'digitalocean',
-         * options: {
-         *
-         * }
-         */ load_: async function(app, options, name) {
-            const { options: providerOptions } = validateOptions(app, options, name);
-            const service = new Driver(app, providerOptions);
-            app.registerService(name, service);
-        }
-    };
-}
+        }, name);
+        const Driver = _drivers[mapOfProviderToDriver[provider]];
+        const service = new Driver(app, providerOptions);
+        app.registerService(name, service);
+    }
+};
 
 //# sourceMappingURL=index.js.map

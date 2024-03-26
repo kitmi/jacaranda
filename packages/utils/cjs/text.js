@@ -50,6 +50,9 @@ _export(exports, {
     ensureStartsWith: function() {
         return _ensureStartsWith.default;
     },
+    esTemplate: function() {
+        return _template.esTemplate;
+    },
     grepLines: function() {
         return _grepLines.default;
     },
@@ -87,7 +90,7 @@ const _bin2Hex = /*#__PURE__*/ _interop_require_default(require("./bin2Hex"));
 const _base64Encode = /*#__PURE__*/ _interop_require_default(require("./base64Encode"));
 const _base64Decode = /*#__PURE__*/ _interop_require_default(require("./base64Decode"));
 const _compile = /*#__PURE__*/ _interop_require_default(require("./compile"));
-const _template = /*#__PURE__*/ _interop_require_default(require("./template"));
+const _template = /*#__PURE__*/ _interop_require_wildcard(require("./template"));
 const _replaceAll = /*#__PURE__*/ _interop_require_default(require("./replaceAll"));
 const _dropIfEndsWith = /*#__PURE__*/ _interop_require_default(require("./dropIfEndsWith"));
 const _dropIfStartsWith = /*#__PURE__*/ _interop_require_default(require("./dropIfStartsWith"));
@@ -119,6 +122,47 @@ function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
     };
+}
+function _getRequireWildcardCache(nodeInterop) {
+    if (typeof WeakMap !== "function") return null;
+    var cacheBabelInterop = new WeakMap();
+    var cacheNodeInterop = new WeakMap();
+    return (_getRequireWildcardCache = function(nodeInterop) {
+        return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
+    })(nodeInterop);
+}
+function _interop_require_wildcard(obj, nodeInterop) {
+    if (!nodeInterop && obj && obj.__esModule) {
+        return obj;
+    }
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+        return {
+            default: obj
+        };
+    }
+    var cache = _getRequireWildcardCache(nodeInterop);
+    if (cache && cache.has(obj)) {
+        return cache.get(obj);
+    }
+    var newObj = {
+        __proto__: null
+    };
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+    for(var key in obj){
+        if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
+            var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+            if (desc && (desc.get || desc.set)) {
+                Object.defineProperty(newObj, key, desc);
+            } else {
+                newObj[key] = obj[key];
+            }
+        }
+    }
+    newObj.default = obj;
+    if (cache) {
+        cache.set(obj, newObj);
+    }
+    return newObj;
 }
 
 //# sourceMappingURL=text.js.map

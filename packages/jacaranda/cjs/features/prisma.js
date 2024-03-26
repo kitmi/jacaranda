@@ -66,71 +66,71 @@ const DEFAULT_CLIENT = '@prisma/client';
 const modelDelegate = (target, prop)=>{
     return target.model[prop];
 };
-function _default(app, { clientPath }) {
-    return {
-        stage: _Feature.default.SERVICE,
-        groupable: true,
-        packages: clientPath && clientPath != DEFAULT_CLIENT ? [] : [
+const _default = {
+    stage: _Feature.default.SERVICE,
+    groupable: true,
+    packages: (app, { clientPath })=>{
+        return clientPath && clientPath != DEFAULT_CLIENT ? [] : [
             '@prisma/client'
-        ],
-        load_: async function(app, options, name) {
-            const { useModels, clientPath, ttlCacheService, ...prismaOptions } = app.featureConfig(options, {
-                schema: {
-                    useModels: {
-                        type: 'boolean',
-                        default: true
+        ];
+    },
+    load_: async function(app, options, name) {
+        const { useModels, clientPath, ttlCacheService, ...prismaOptions } = app.featureConfig(options, {
+            schema: {
+                useModels: {
+                    type: 'boolean',
+                    default: true
+                },
+                clientPath: {
+                    type: 'string',
+                    default: '@prisma/client'
+                },
+                ttlCacheService: {
+                    type: 'string',
+                    optional: true
+                },
+                datasources: {
+                    type: 'object',
+                    optional: true
+                },
+                log: {
+                    type: 'array',
+                    element: {
+                        type: 'text'
                     },
-                    clientPath: {
-                        type: 'string',
-                        default: '@prisma/client'
-                    },
-                    ttlCacheService: {
-                        type: 'string',
-                        optional: true
-                    },
-                    datasources: {
-                        type: 'object',
-                        optional: true
-                    },
-                    log: {
-                        type: 'array',
-                        element: {
-                            type: 'text'
-                        },
-                        optional: true
-                    }
+                    optional: true
                 }
-            }, name);
-            const { PrismaClient } = await app.tryRequire_(clientPath);
-            const _models = new Map();
-            const prisma = new PrismaClient(prismaOptions);
-            await prisma.$connect();
-            app.on('stopping', async ()=>{
-                await prisma.$disconnect();
-            });
-            Object.assign(prisma, prismsHelper);
-            const cacheService = ttlCacheService && app.getService(ttlCacheService);
-            prisma._$env = {
-                cacheService
-            };
-            if (useModels) {
-                if (!app.registry.models) {
-                    throw new Error('No models found in the app registry');
-                }
-                _utils._.each(app.registry.models, (ModelClass, name)=>{
-                    const modelInstance = new ModelClass(app, prisma, name);
-                    const modelObject = (0, _utils.unexistDelegate)(modelInstance, modelDelegate, true);
-                    _models.set(modelInstance.name, modelObject);
-                    const altName = (0, _utils.camelCase)(modelInstance.name);
-                    if (altName !== modelInstance.name) {
-                        _models.set(altName, modelObject);
-                    }
-                });
             }
-            prisma.$model = (name)=>_models.get(name);
-            app.registerService(name, prisma);
+        }, name);
+        const { PrismaClient } = await app.tryRequire_(clientPath);
+        const _models = new Map();
+        const prisma = new PrismaClient(prismaOptions);
+        await prisma.$connect();
+        app.on('stopping', async ()=>{
+            await prisma.$disconnect();
+        });
+        Object.assign(prisma, prismsHelper);
+        const cacheService = ttlCacheService && app.getService(ttlCacheService);
+        prisma._$env = {
+            cacheService
+        };
+        if (useModels) {
+            if (!app.registry.models) {
+                throw new Error('No models found in the app registry');
+            }
+            _utils._.each(app.registry.models, (ModelClass, name)=>{
+                const modelInstance = new ModelClass(app, prisma, name);
+                const modelObject = (0, _utils.unexistDelegate)(modelInstance, modelDelegate, true);
+                _models.set(modelInstance.name, modelObject);
+                const altName = (0, _utils.camelCase)(modelInstance.name);
+                if (altName !== modelInstance.name) {
+                    _models.set(altName, modelObject);
+                }
+            });
         }
-    };
-}
+        prisma.$model = (name)=>_models.get(name);
+        app.registerService(name, prisma);
+    }
+};
 
 //# sourceMappingURL=prisma.js.map

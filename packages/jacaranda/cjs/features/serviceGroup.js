@@ -44,10 +44,10 @@ function _interop_require_default(obj) {
         features = app._sortFeatures(features);
         await (0, _utils.eachAsync_)(features, async ([feature])=>{
             const instances = instancesMap[feature.name];
-            await (0, _utils.batchAsync_)(instances, (serviceOptions, instanceName)=>{
+            await (0, _utils.batchAsync_)(instances, async (serviceOptions, instanceName)=>{
                 const fullName = `${feature.name}.${instanceName}`;
                 const { load_, ...others } = feature;
-                load_(app, serviceOptions, fullName);
+                await load_(app, serviceOptions, fullName);
                 others.enabled = true;
                 app.features[fullName] = others;
             });

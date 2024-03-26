@@ -147,7 +147,6 @@ function createWebServer(Base) {
          * @param {object} [options] - The app module's extra options defined in its parent's configuration.
          * @property {object} [options.logger] - Logger options
          * @property {bool} [options.verbose=false] - Flag to output trivial information for diagnostics
-         * @property {string} [options.env] - Environment, default to process.env.NODE_ENV
          * @property {string} [options.workingPath] - App's working path, default to process.cwd()
          * @property {string} [options.configPath] - App's config path, default to "conf" under workingPath
          * @property {string} [options.configName] - App's config basename, default to "app"

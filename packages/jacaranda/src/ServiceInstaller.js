@@ -17,14 +17,14 @@ class ServiceInstaller extends ServiceContainer {
 
         let counter = 0;
 
-        await eachAsync_(featureGroup, async ([feature]) => {
+        await eachAsync_(featureGroup, async ([feature, options]) => {
             const { name, depends } = feature;
             await this.emit_('before:load:' + name);
             this.log('info', `Installing dependencies for feature "${name}" ...`);
 
             depends && this._dependsOn(depends, name);
 
-            const requiredPackages = feature.packages ?? [];
+            const requiredPackages = feature.packages ? (typeof feature.packages === 'function' ? feature.packages(options) : feature.packages) : [];
             if (this.options.dryRun) {
                 this.log('info', `Detected dependencies: [${requiredPackages.join(', ')}]`)
             } else {

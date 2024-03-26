@@ -1,25 +1,29 @@
 import { fs } from '@kitmi/sys';
+import { Types } from '@kitmi/validators/allSync';
 import path from 'node:path';
 import mime from 'mime';
 
 export default async function fileInfo(step, settings) {
-    if (!settings.file) {
-        throw new Error('Missing file setting.');
-    }
+    let { file } = Types.OBJECT.sanitize(settings, {
+        schema: {
+            file: { type: 'text' }
+        },
+    });
 
-    const filePath = step.getValue(settings.file);
+    const filePath = step.getValue(file);
     const stat = await fs.stat(filePath);
     const ext = path.extname(filePath);
+    const baseName = path.basename(filePath, ext);
 
     const result = {
-        baseName: path.basename(filePath, ext),
+        baseName,
         extName: ext,
         fileName: baseName + ext,
         size: stat.size,
         mime: mime.getType(ext),
     };
 
-    step.stepLog('info', `File info for "${filePath}".`, {
+    step.stepLog('info', `File info attained for "${filePath}".`, {
         result,
     });
 

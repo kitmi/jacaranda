@@ -1,9 +1,11 @@
 const LOG_UNKNOWN = 'unknown';
-const LOG_DEBUG = 'debug';
-const LOG_VERBOSE = 'verbose';
-const LOG_INFO = 'info';
-const LOG_WARNING = 'warning';
-const LOG_ERROR = 'error';
+
+export const LOG_DEBUG = 'debug';
+export const LOG_VERBOSE = 'verbose';
+export const LOG_INFO = 'info';
+export const LOG_WARNING = 'warning';
+export const LOG_ERROR = 'error';
+
 const LOG_DISABLE = 'disable';
 const TRACE = -1;
 const DEBUG = 1;
@@ -24,7 +26,6 @@ const mapLogLevels = {
 };
 
 const levelText = [LOG_UNKNOWN, LOG_DEBUG, LOG_VERBOSE, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_DISABLE];
-
 
 export const makeLogger =
     (logger, logLevel, channel) =>

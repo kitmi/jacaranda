@@ -47,6 +47,7 @@ const _Controller = /*#__PURE__*/ _interop_require_default(require("./Controller
 const _DbModel = /*#__PURE__*/ _interop_require_wildcard(require("./DbModel"));
 const _httpMethod = /*#__PURE__*/ _interop_require_default(_export_star(require("./httpMethod"), exports));
 const _middleware = /*#__PURE__*/ _interop_require_default(require("./middleware"));
+_export_star(require("./logger"), exports);
 const _supportedMethods = /*#__PURE__*/ _interop_require_default(require("./supportedMethods"));
 const _serve = /*#__PURE__*/ _interop_require_default(require("./serve"));
 function _export_star(from, to) {

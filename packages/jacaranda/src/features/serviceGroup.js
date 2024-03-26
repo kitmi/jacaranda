@@ -47,10 +47,10 @@ module.exports = {
 
         await eachAsync_(features, async ([feature]) => {
             const instances = instancesMap[feature.name];
-            await batchAsync_(instances, (serviceOptions, instanceName) => {
-                const fullName = `${feature.name}.${instanceName}`;
+            await batchAsync_(instances, async (serviceOptions, instanceName) => {
+                const fullName = `${feature.name}.${instanceName}`;                
                 const { load_, ...others } = feature;
-                load_(app, serviceOptions, fullName);
+                await load_(app, serviceOptions, fullName);
                 others.enabled = true;
                 app.features[fullName] = others;
             });

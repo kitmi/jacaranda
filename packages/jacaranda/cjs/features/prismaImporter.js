@@ -31,8 +31,18 @@ const _default = {
                 }
             },
             import_: async (prisma, dataset)=>{
-                const { model, refs, data } = dataset;
-                for (const record of data){
+                const { model, refs, pre, data } = dataset;
+                let pipeline_;
+                if (pre) {
+                    const pipelineService = app.getService('pipeline');
+                    pipeline_ = pipelineService.create(`${model} Pre-process`, pre, {
+                        modelName: model
+                    });
+                }
+                for (let record of data){
+                    if (pipeline_) {
+                        record = await pipeline_(record);
+                    }
                     const refFields = _utils._.pick(record, refs);
                     const updateFields = _utils._.omit(record, refs);
                     await prisma[model].upsert({

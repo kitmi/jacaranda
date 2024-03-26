@@ -9,6 +9,8 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _utils = require("@kitmi/utils");
+const _sys = require("@kitmi/sys");
+const _allSync = require("@kitmi/validators/allSync");
 const _common = require("../common");
 function _define_property(obj, key, value) {
     if (key in obj) {
@@ -24,6 +26,31 @@ function _define_property(obj, key, value) {
     return obj;
 }
 class S3Service {
+    async upload_(...args) {
+        const [objectKey, file, contentType, payload] = (0, _utils.fxargs)(args, [
+            'string',
+            'string',
+            'string?',
+            'object?'
+        ]);
+        const { PutObjectCommand } = this.SDK;
+        const putObjectInput = {
+            Bucket: this.bucket,
+            Key: objectKey,
+            Body: _sys.fs.createReadStream(file)
+        };
+        if (payload?.publicRead) {
+            putObjectInput.ACL = 'public-read';
+        }
+        if (contentType) {
+            // most of the time, you don't know the contentType before user selected the file
+            putObjectInput.ContentType = contentType;
+        }
+        const command = new PutObjectCommand(putObjectInput);
+        const result = await this.client.send(command);
+        result.url = `https://s3.${this.region}.amazonaws.com/${this.bucket}/${objectKey}`;
+        return result;
+    }
     async getUploadUrl_(...args) {
         const [objectKey, contentType, expiresInSeconds = _common.DEFAULT_UPLOAD_EXPIRY, payload] = (0, _utils.fxargs)(args, [
             'string',
@@ -45,7 +72,6 @@ class S3Service {
             // most of the time, you don't know the contentType before user selected the file
             putObjectInput.ContentType = contentType;
         }
-        console.log(putObjectInput);
         const command = new PutObjectCommand(putObjectInput);
         return this.presigner.getSignedUrl(this.client, command, {
             expiresIn: expiresInSeconds
@@ -63,14 +89,33 @@ class S3Service {
             Key: objectKey,
             ...payload
         };
-        console.log(getObjectInput);
         const command = new GetObjectCommand(getObjectInput);
         return this.presigner.getSignedUrl(this.client, command, {
             expiresIn: expiresInSeconds
         });
     }
     constructor(app, options){
-        const { region, accessKeyId, secretAccessKey, bucket } = options;
+        let { region, accessKeyId, secretAccessKey, bucket } = _allSync.Types.OBJECT.sanitize(options, {
+            schema: {
+                region: {
+                    type: 'text'
+                },
+                accessKeyId: {
+                    type: 'text'
+                },
+                secretAccessKey: {
+                    type: 'text'
+                },
+                bucket: {
+                    type: 'text'
+                }
+            }
+        });
+        const vars = app.getRuntimeVariables();
+        region = (0, _utils.esTemplate)(region, vars);
+        accessKeyId = (0, _utils.esTemplate)(accessKeyId, vars);
+        secretAccessKey = (0, _utils.esTemplate)(secretAccessKey, vars);
+        bucket = (0, _utils.esTemplate)(bucket, vars);
         this.SDK = app.tryRequire('@aws-sdk/client-s3');
         const S3Client = this.SDK.S3Client;
         this.presigner = app.tryRequire('@aws-sdk/s3-request-presigner');
@@ -81,6 +126,7 @@ class S3Service {
                 secretAccessKey
             }
         });
+        this.region = region;
         this.bucket = bucket;
     }
 }

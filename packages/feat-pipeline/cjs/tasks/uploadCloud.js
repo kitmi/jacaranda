@@ -8,9 +8,7 @@ Object.defineProperty(exports, "default", {
         return uploadCloud;
     }
 });
-const _jacaranda = require("@kitmi/jacaranda");
-const _adapters = require("@kitmi/adapters");
-const _allSync = require("@kitmi/validtors/allSync");
+const _allSync = require("@kitmi/validators/allSync");
 const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
@@ -21,16 +19,16 @@ async function uploadCloud(step, settings) {
     let { file, objectKey, contentType, service, payload } = _allSync.Types.OBJECT.sanitize(settings, {
         schema: {
             file: {
-                type: 'string'
+                type: 'text'
             },
             objectKey: {
-                type: 'string'
+                type: 'text'
             },
             contentType: {
-                type: 'string'
+                type: 'text'
             },
             service: {
-                type: 'string'
+                type: 'text'
             },
             payload: {
                 type: 'object',
@@ -43,20 +41,12 @@ async function uploadCloud(step, settings) {
     contentType = step.getValue(contentType);
     service = step.getService(service);
     const fileName = _nodepath.default.basename(file);
-    const httpClient = new _jacaranda.HttpClient((0, _adapters.superagent)());
-    const url = await service.getUploadUrl_(objectKey, contentType, payload);
-    step.stepLog('info', `Uploading to: ${url}`, {
+    step.stepLog('info', `Uploading to cloud...`, {
         fileName,
         objectKey,
         contentType
     });
-    const result = await httpClient.upload(url, file, null, {
-        httpMethod: 'put',
-        headers: {
-            'Content-Type': contentType
-        },
-        fileName
-    });
+    const result = await service.upload_(objectKey, file, contentType, payload);
     step.stepLog('info', 'Successfully uploaded.', {
         result
     });

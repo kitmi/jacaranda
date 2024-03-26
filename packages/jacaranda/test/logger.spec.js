@@ -1,6 +1,6 @@
 import { startWorker } from '../src';
 
-describe.only('feature:logger', function () {
+describe('feature:logger', function () {
     it('test', async function () {
         await startWorker(
             async (app) => {

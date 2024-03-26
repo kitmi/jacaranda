@@ -52,8 +52,7 @@
   "dependencies": {
     "@kitmi/jacaranda": "workspace:*",
     "@kitmi/utils": "workspace:*",
-    "taronga-api": "workspace:*",
-    "taronga-db": "workspace:*"
+    "@kitmi/validators": "workspace:*"
   },
   "devDependencies": {
     "@kitmi/tester": "workspace:*"

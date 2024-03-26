@@ -9,6 +9,7 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _utils = require("@kitmi/utils");
+const _allSync = require("@kitmi/validators/allSync");
 const _sys = require("@kitmi/sys");
 function trimBuffer(buf) {
     let output = buf.toString();
@@ -39,17 +40,45 @@ async function run_(step, settings, command) {
         step.stepLog('error', trimBuffer(buf));
     }, options);
 }
-const esTemplateSetting = {
-    interpolate: /\$\{([\s\S]+?)\}/g
-};
 const exec = async (step, settings)=>{
-    let { command, ...others } = settings;
+    let { command, ...others } = _allSync.Types.OBJECT.sanitize(settings, {
+        schema: {
+            command: [
+                {
+                    type: 'text'
+                },
+                {
+                    type: 'array',
+                    elementSchema: {
+                        type: 'text'
+                    }
+                }
+            ],
+            cwd: {
+                type: 'text',
+                optional: true
+            },
+            env: {
+                type: 'object',
+                optional: true
+            },
+            timeout: {
+                type: 'integer',
+                optional: true
+            },
+            detached: {
+                type: 'boolean',
+                optional: true
+            }
+        },
+        keepUnsanitized: true
+    });
     command = _utils._.castArray(command);
     const variables = step.cloneValues();
     await (0, _utils.eachAsync_)(command, (_command)=>{
         let __command;
         try {
-            __command = _utils._.template(_command, esTemplateSetting)(variables);
+            __command = (0, _utils.esTemplate)(_command, variables);
         } catch (e) {
             throw new Error(`Failed to interpolate command line \`${_command}\`, ${e.message}`);
         }

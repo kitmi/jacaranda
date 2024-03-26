@@ -9,6 +9,9 @@ function _export(target, all) {
     });
 }
 _export(exports, {
+    K_ENV: function() {
+        return K_ENV;
+    },
     NS_APP: function() {
         return NS_APP;
     },
@@ -39,6 +42,7 @@ const NS_LIB = 'libs';
 const NS_FEAT = 'features';
 const NS_MIDDLEWARE = 'middlewares';
 const NS_ROUTER = 'routers';
+const K_ENV = 'env';
 const runtime = new _RuntimeRegistry.default();
 const _default = runtime;
 

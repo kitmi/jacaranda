@@ -9,15 +9,29 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
+const _allSync = require("@kitmi/validators/allSync");
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
     };
 }
 function pathResolve(step, settings) {
-    const { path: _path, base } = settings;
+    let { path: _path, base } = _allSync.Types.OBJECT.sanitize(settings, {
+        schema: {
+            path: {
+                type: 'text'
+            },
+            base: {
+                type: 'text'
+            }
+        }
+    });
     const _base = step.getValue(base);
-    return _nodepath.default.resolve(_base, step.getValue(_path));
+    const result = _nodepath.default.resolve(_base, step.getValue(_path));
+    step.stepLog('info', `Resolved path: ${result}`, {
+        result
+    });
+    return result;
 }
 
 //# sourceMappingURL=pathResolve.js.map

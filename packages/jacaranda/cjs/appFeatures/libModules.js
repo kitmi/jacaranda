@@ -47,7 +47,6 @@ const _default = {
      */ load_: async (app, entries)=>{
         return (0, _utils.batchAsync_)(entries, async (config, name)=>{
             let options = {
-                env: app.env,
                 configType: app.options.configType,
                 logLevel: app.options.logLevel,
                 ...config.options

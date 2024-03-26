@@ -8,9 +8,21 @@ Object.defineProperty(exports, "default", {
         return hashFile;
     }
 });
+const _allSync = require("@kitmi/validators/allSync");
 const _hash = require("@kitmi/jacaranda/features/utils/hash");
 async function hashFile(step, settings) {
-    const { algorithm = 'md5', file } = settings;
+    let { algorithm, file } = _allSync.Types.OBJECT.sanitize(settings, {
+        schema: {
+            algorithm: {
+                type: 'text',
+                optional: true,
+                default: 'md5'
+            },
+            file: {
+                type: 'text'
+            }
+        }
+    });
     const filePath = step.getValue(file);
     const digest = await (0, _hash.hashFile_)(algorithm, filePath);
     step.stepLog('info', `File "${filePath}" hashed with "${algorithm}" algorithm.`, {

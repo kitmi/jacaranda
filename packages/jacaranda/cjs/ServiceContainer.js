@@ -2,10 +2,18 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-Object.defineProperty(exports, "default", {
-    enumerable: true,
-    get: function() {
+function _export(target, all) {
+    for(var name in all)Object.defineProperty(target, name, {
+        enumerable: true,
+        get: all[name]
+    });
+}
+_export(exports, {
+    default: function() {
         return _default;
+    },
+    getNodeEnv: function() {
+        return getNodeEnv;
     }
 });
 const _config = /*#__PURE__*/ _interop_require_wildcard(require("@kitmi/config"));
@@ -18,8 +26,8 @@ const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 const _Feature = /*#__PURE__*/ _interop_require_default(require("./Feature"));
 const _defaultOpts = /*#__PURE__*/ _interop_require_default(require("./defaultOpts"));
 const _AsyncEmitter = /*#__PURE__*/ _interop_require_default(require("./helpers/AsyncEmitter"));
-const _logger = require("./logger");
-const _runtime = /*#__PURE__*/ _interop_require_default(require("./runtime"));
+const _logger = require("./helpers/logger");
+const _runtime = /*#__PURE__*/ _interop_require_wildcard(require("./runtime"));
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -85,6 +93,9 @@ const FILE_EXT = [
     '.cjs',
     '.ts'
 ];
+function getNodeEnv() {
+    return process.env.NODE_ENV || 'development';
+}
 const configOverrider = (defConf, envConf)=>{
     const { serviceGroup: defServiceGroup, ..._def } = defConf ?? {};
     const { serviceGroup: envServiceGroup, ..._env } = envConf ?? {};
@@ -138,9 +149,9 @@ const configOverrider = (defConf, envConf)=>{
         } else {
             let configLoader;
             if (this.options.configType === 'yaml') {
-                configLoader = this.options.disableEnvAwareConfig ? new _config.default(new _config.YamlConfigProvider(_nodepath.default.join(this.configPath, this.options.configName + '.yaml')), this) : _config.default.createEnvAwareYamlLoader(this.configPath, this.options.configName, this.env, this, configOverrider);
+                configLoader = this.options.disableEnvAwareConfig ? new _config.default(new _config.YamlConfigProvider(_nodepath.default.join(this.configPath, this.options.configName + '.yaml')), this) : _config.default.createEnvAwareYamlLoader(this.configPath, this.options.configName, getNodeEnv(), this, configOverrider);
             } else {
-                configLoader = this.options.disableEnvAwareConfig ? new _config.default(new _config.JsonConfigProvider(_nodepath.default.join(this.configPath, this.options.configName + '.json')), this) : _config.default.createEnvAwareJsonLoader(this.configPath, this.options.configName, this.env, this, configOverrider);
+                configLoader = this.options.disableEnvAwareConfig ? new _config.default(new _config.JsonConfigProvider(_nodepath.default.join(this.configPath, this.options.configName + '.json')), this) : _config.default.createEnvAwareJsonLoader(this.configPath, this.options.configName, getNodeEnv(), this, configOverrider);
             }
             /**
              * Configuration loader instance
@@ -190,7 +201,7 @@ const configOverrider = (defConf, envConf)=>{
     /**
      * @returns {ServiceContainer}
      */ async loadConfig_() {
-        let configVariables = this._getConfigVariables();
+        let configVariables = this.getRuntimeVariables();
         /**
          * App configuration
          * @member {object}
@@ -216,7 +227,7 @@ const configOverrider = (defConf, envConf)=>{
      * Try to require a package, if it's an esm module, import it.
      * @param {*} pkgName
      * @param {*} useDefault
-     * @returns {*} 
+     * @returns {*}
      */ async tryRequire_(pkgName, useDefault) {
         try {
             return this.tryRequire(pkgName);
@@ -324,6 +335,7 @@ const configOverrider = (defConf, envConf)=>{
             }, this.i18n, name);
         } catch (err) {
             let message;
+            console.log(err);
             if (err instanceof _types.ValidationError) {
                 message = _types.ValidationError.formatError(err);
             } else {
@@ -338,18 +350,23 @@ const configOverrider = (defConf, envConf)=>{
             throw new _types.ApplicationError(`Service "${notRegisterred}" is required.`);
         }
     }
-    _getConfigVariables() {
+    getRuntimeVariables() {
         const processInfo = {
-            env: process.env,
             arch: process.arch,
-            argv: process.argv,
             cwd: process.cwd(),
             pid: process.pid,
             platform: process.platform
         };
         return {
-            app: this,
-            env: this.env,
+            app: {
+                name: this.name,
+                workingPath: this.workingPath,
+                configPath: this.configPath,
+                sourcePath: this.sourcePath,
+                featuresPath: this.featuresPath,
+                options: this.options
+            },
+            env: _runtime.default.get(_runtime.K_ENV) ?? {},
             process: processInfo
         };
     }
@@ -414,7 +431,7 @@ const configOverrider = (defConf, envConf)=>{
                 }
                 let feature;
                 try {
-                    feature = this._loadFeature(name, featureOptions);
+                    feature = this._loadFeature(name);
                 } catch (err) {
                 //ignore the first trial
                 //this.log('warn', err.message, { err });
@@ -452,7 +469,7 @@ const configOverrider = (defConf, envConf)=>{
                 //skip disabled features
                 return;
             }
-            let feature = this._loadFeature(name, featureOptions);
+            let feature = this._loadFeature(name);
             if (!(feature.stage in featureGroups)) {
                 throw new Error(`Invalid feature stage. Feature: ${name}, type: ${feature.stage}`);
             }
@@ -491,44 +508,46 @@ const configOverrider = (defConf, envConf)=>{
      * @private
      * @param {string} feature
      * @returns {object}
-     */ _loadFeature(feature, featureOptions) {
+     */ _loadFeature(feature) {
         let featureObject = this.features[feature];
         if (featureObject) return featureObject;
         let featurePath;
-        if (this._featureRegistry.hasOwnProperty(feature)) {
-            //load by registry entry
-            let loadOption = this._featureRegistry[feature];
-            if (Array.isArray(loadOption)) {
-                if (loadOption.length === 0) {
-                    throw new Error(`Invalid registry value for feature "${feature}".`);
-                }
-                featurePath = loadOption[0];
-                featureObject = this.tryRequire(featurePath);
-                if (loadOption.length > 1) {
-                    //one module may contains more than one feature
-                    featureObject = _utils._.get(featureObject, loadOption[1]);
+        featureObject = this.registry?.features?.[feature];
+        if (featureObject == null) {
+            if (this._featureRegistry.hasOwnProperty(feature)) {
+                //load by registry entry
+                let loadOption = this._featureRegistry[feature];
+                if (Array.isArray(loadOption)) {
+                    if (loadOption.length === 0) {
+                        throw new Error(`Invalid registry value for feature "${feature}".`);
+                    }
+                    featurePath = loadOption[0];
+                    featureObject = this.tryRequire(featurePath);
+                    if (loadOption.length > 1) {
+                        //one module may contains more than one feature
+                        featureObject = _utils._.get(featureObject, loadOption[1]);
+                    }
+                } else {
+                    featurePath = loadOption;
+                    featureObject = this.tryRequire(featurePath);
                 }
             } else {
-                featurePath = loadOption;
+                //load by fallback paths
+                let searchingPath = this._featureRegistry['*'];
+                //reverse fallback stack
+                let found = _utils._.findLast(searchingPath, (p)=>FILE_EXT.find((ext)=>{
+                        featurePath = _nodepath.default.join(p, feature + ext);
+                        return _sys.fs.existsSync(featurePath);
+                    }));
+                if (!found) {
+                    throw new _types.InvalidConfiguration(`Don't know where to load feature "${feature}".`, this, {
+                        feature,
+                        searchingPath: searchingPath.join('\n')
+                    });
+                }
                 featureObject = this.tryRequire(featurePath);
             }
-        } else {
-            //load by fallback paths
-            let searchingPath = this._featureRegistry['*'];
-            //reverse fallback stack
-            let found = _utils._.findLast(searchingPath, (p)=>FILE_EXT.find((ext)=>{
-                    featurePath = _nodepath.default.join(p, feature + ext);
-                    return _sys.fs.existsSync(featurePath);
-                }));
-            if (!found) {
-                throw new _types.InvalidConfiguration(`Don't know where to load feature "${feature}".`, this, {
-                    feature,
-                    searchingPath: searchingPath.join("\n")
-                });
-            }
-            featureObject = this.tryRequire(featurePath);
         }
-        featureObject = typeof featureObject === 'function' ? featureObject(this, featureOptions, feature) : featureObject;
         if (!_Feature.default.validate(featureObject)) {
             throw new Error(`Invalid feature object loaded from "${featurePath}".`);
         }
@@ -542,7 +561,6 @@ const configOverrider = (defConf, envConf)=>{
     /**
      * @param {string} name - The name of the container instance.
      * @param {object} [options] - Container options
-     * @property {string} [options.env] - Environment, default to process.env.NODE_ENV
      * @property {string} [options.workingPath] - App's working path, default to process.cwd()
      * @property {string} [options.configPath="conf"] - App's config path, default to "conf" under workingPath
      * @property {string} [options.configName="app"] - App's config basename, default to "app"
@@ -574,10 +592,6 @@ const configOverrider = (defConf, envConf)=>{
             ..._defaultOpts.default,
             ...options
         };
-        /**
-         * Environment flag
-         * @member {string}
-         */ this.env = this.options.env;
         /**
          * Working directory of this cli app
          * @member {string}

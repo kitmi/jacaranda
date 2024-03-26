@@ -66,15 +66,15 @@ function _interop_require_wildcard(obj, nodeInterop) {
     return newObj;
 }
 const JSV = _bundle.default.JSV;
-function pushStep(steps1, step) {
+function pushStep(steps, step) {
     if (step.name.startsWith('$')) {
         throw new Error('Invalid step name: ' + step.name);
     }
-    steps1.push(step);
+    steps.push(step);
 }
-function normalizeSteps(steps1) {
-    if (Array.isArray(steps1)) {
-        return steps1.reduce((acc, step)=>{
+function normalizeSteps(steps) {
+    if (Array.isArray(steps)) {
+        return steps.reduce((acc, step)=>{
             if (typeof step === 'string') {
                 pushStep(acc, {
                     name: step,
@@ -94,10 +94,10 @@ function normalizeSteps(steps1) {
             return acc;
         }, []);
     }
-    if (!(0, _utils.isPlainObject)(steps1)) {
-        throw new Error('Invalid steps: ' + JSON.stringify(steps1));
+    if (!(0, _utils.isPlainObject)(steps)) {
+        throw new Error('Invalid steps: ' + JSON.stringify(steps));
     }
-    return _utils._.reduce(steps1, (acc, stepInfo, name)=>{
+    return _utils._.reduce(steps, (acc, stepInfo, name)=>{
         pushStep(acc, {
             name,
             task: name,
@@ -138,9 +138,9 @@ class Pipeline {
             this.variables.$input = input;
             this.app.info(`Running job "${this.name}" ...`, {
                 job: this.name,
-                numSteps: steps.length
+                numSteps: this.steps.length
             });
-            await (0, _utils.eachAsync_)(steps, async ({ name, task, when, continueOnError, ...stepInfo }, stepIndex)=>{
+            await (0, _utils.eachAsync_)(this.steps, async ({ name, task, when, continueOnError, ...stepInfo }, stepIndex)=>{
                 if (when) {
                     const [matched, unmatchedReason] = JSV.match(this.variables, when);
                     if (!matched) {
@@ -152,7 +152,7 @@ class Pipeline {
                         return;
                     }
                 }
-                const taskExecutor = this.taskProvider.getTask(task) || _tasks[task];
+                const taskExecutor = this.taskProvider?.getTask(task) || _tasks[task];
                 if (taskExecutor == null) {
                     throw new Error(`Task "${task}" not found.`);
                 }
@@ -183,13 +183,16 @@ class Pipeline {
                     }
                 };
                 this.processing = stepMeta;
-                this.app.info(`Running step "${name}" ... [${stepIndex + 1}/${steps.length}]`, {
+                this.app.info(`Running step "${name}" ... [${stepIndex + 1}/${this.steps.length}]`, {
                     job: this.name,
                     ...stepMeta
                 });
                 try {
                     this.variables[name] = await taskExecutor(step, stepInfo);
                 } catch (error) {
+                    if (this.failed == null) {
+                        this.failed = [];
+                    }
                     this.failed.push(this.processing);
                     delete this.processing;
                     if (continueOnError) {
@@ -203,6 +206,7 @@ class Pipeline {
                         job: this.name,
                         ...stepMeta
                     });
+                    console.log(error);
                     throw error;
                 }
                 this.completed.push(this.processing);
@@ -219,10 +223,10 @@ class Pipeline {
         });
         return this.variables.$data;
     }
-    constructor(app, name, steps1, { taskProvider, stepLogger }){
+    constructor(app, name, steps, { env, taskProvider, stepLogger }){
         this.app = app;
         this.name = name;
-        this.steps = steps1;
+        this.steps = steps;
         this.taskProvider = this.app.getService(taskProvider);
         this.stepLogger = this.app.getService(stepLogger);
         this.completed = [];
@@ -230,6 +234,7 @@ class Pipeline {
             $app: {
                 workingPath: app.workingPath
             },
+            $env: env,
             $data: null
         };
         this.failed = null;

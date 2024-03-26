@@ -1,4 +1,5 @@
-import { _, eachAsync_ } from '@kitmi/utils';
+import { _, eachAsync_, esTemplate } from '@kitmi/utils';
+import { Types } from '@kitmi/validators/allSync';
 import { cmd } from '@kitmi/sys';
 
 function trimBuffer(buf) {
@@ -38,12 +39,18 @@ async function run_(step, settings, command) {
     );
 }
 
-const esTemplateSetting = {
-    interpolate: /\$\{([\s\S]+?)\}/g,
-};
-
 const exec = async (step, settings) => {
-    let { command, ...others } = settings;
+    let { command, ...others } = Types.OBJECT.sanitize(settings, {
+        schema: {
+            command: [{ type: 'text' }, { type: 'array', elementSchema: { type: 'text' } }],
+            cwd: { type: 'text', optional: true },
+            env: { type: 'object', optional: true },
+            timeout: { type: 'integer', optional: true },
+            detached: { type: 'boolean', optional: true },
+        },
+        keepUnsanitized: true,
+    });
+
     command = _.castArray(command);
 
     const variables = step.cloneValues();
@@ -51,7 +58,7 @@ const exec = async (step, settings) => {
     await eachAsync_(command, (_command) => {
         let __command;
         try {
-            __command = _.template(_command, esTemplateSetting)(variables);
+            __command = esTemplate(_command, variables);
         } catch (e) {
             throw new Error(`Failed to interpolate command line \`${_command}\`, ${e.message}`);
         }

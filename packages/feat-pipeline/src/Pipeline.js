@@ -47,7 +47,7 @@ export function normalizeSteps(steps) {
 }
 
 class Pipeline {
-    constructor(app, name, steps, { taskProvider, stepLogger }) {
+    constructor(app, name, steps, { env, taskProvider, stepLogger }) {
         this.app = app;
         this.name = name;
         this.steps = steps;
@@ -60,6 +60,7 @@ class Pipeline {
             $app: {
                 workingPath: app.workingPath,
             },
+            $env: env,
             $data: null,
         };
         this.failed = null;
@@ -99,9 +100,9 @@ class Pipeline {
         if (!this.finished) {
             this.variables.$input = input;
 
-            this.app.info(`Running job "${this.name}" ...`, { job: this.name, numSteps: steps.length });
+            this.app.info(`Running job "${this.name}" ...`, { job: this.name, numSteps: this.steps.length });
 
-            await eachAsync_(steps, async ({ name, task, when, continueOnError, ...stepInfo }, stepIndex) => {
+            await eachAsync_(this.steps, async ({ name, task, when, continueOnError, ...stepInfo }, stepIndex) => {
                 if (when) {
                     const [matched, unmatchedReason] = JSV.match(this.variables, when);
                     if (!matched) {
@@ -114,7 +115,7 @@ class Pipeline {
                     }
                 }
 
-                const taskExecutor = this.taskProvider.getTask(task) || builtinTasks[task];
+                const taskExecutor = this.taskProvider?.getTask(task) || builtinTasks[task];
 
                 if (taskExecutor == null) {
                     throw new Error(`Task "${task}" not found.`);
@@ -144,7 +145,7 @@ class Pipeline {
 
                 this.processing = stepMeta;
 
-                this.app.info(`Running step "${name}" ... [${stepIndex + 1}/${steps.length}]`, {
+                this.app.info(`Running step "${name}" ... [${stepIndex + 1}/${this.steps.length}]`, {
                     job: this.name,
                     ...stepMeta,
                 });
@@ -152,6 +153,9 @@ class Pipeline {
                 try {
                     this.variables[name] = await taskExecutor(step, stepInfo);
                 } catch (error) {
+                    if (this.failed == null) {
+                        this.failed = [];
+                    }
                     this.failed.push(this.processing);
                     delete this.processing;
 
@@ -167,6 +171,7 @@ class Pipeline {
                     }
 
                     this.app.error(`Step "${name}" failed.`, { job: this.name, ...stepMeta });
+                    console.log(error);
                     throw error;
                 }
 

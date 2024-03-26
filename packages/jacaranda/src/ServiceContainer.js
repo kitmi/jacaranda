@@ -10,11 +10,15 @@ import path from 'node:path';
 import Feature from './Feature';
 import defaultOpts from './defaultOpts';
 import AsyncEmitter from './helpers/AsyncEmitter';
-import { consoleLogger, makeLogger } from './logger';
+import { consoleLogger, makeLogger } from './helpers/logger';
 
-import runtime from './runtime';
+import runtime, { K_ENV } from './runtime';
 
 const FILE_EXT = ['.js', '.mjs', '.cjs', '.ts'];
+
+export function getNodeEnv() {
+    return process.env.NODE_ENV || 'development';
+}
 
 const configOverrider = (defConf, envConf) => {
     const { serviceGroup: defServiceGroup, ..._def } = defConf ?? {};
@@ -70,7 +74,6 @@ class ServiceContainer extends AsyncEmitter {
     /**
      * @param {string} name - The name of the container instance.
      * @param {object} [options] - Container options
-     * @property {string} [options.env] - Environment, default to process.env.NODE_ENV
      * @property {string} [options.workingPath] - App's working path, default to process.cwd()
      * @property {string} [options.configPath="conf"] - App's config path, default to "conf" under workingPath
      * @property {string} [options.configName="app"] - App's config basename, default to "app"
@@ -97,12 +100,6 @@ class ServiceContainer extends AsyncEmitter {
             ...defaultOpts,
             ...options,
         };
-
-        /**
-         * Environment flag
-         * @member {string}
-         */
-        this.env = this.options.env;
 
         /**
          * Working directory of this cli app
@@ -182,7 +179,7 @@ class ServiceContainer extends AsyncEmitter {
                     : ConfigLoader.createEnvAwareYamlLoader(
                           this.configPath,
                           this.options.configName,
-                          this.env,
+                          getNodeEnv(),
                           this,
                           configOverrider
                       );
@@ -195,7 +192,7 @@ class ServiceContainer extends AsyncEmitter {
                     : ConfigLoader.createEnvAwareJsonLoader(
                           this.configPath,
                           this.options.configName,
-                          this.env,
+                          getNodeEnv(),
                           this,
                           configOverrider
                       );
@@ -218,7 +215,7 @@ class ServiceContainer extends AsyncEmitter {
 
         if (!_.isEmpty(this.config)) {
             await this._loadFeatures_();
-        } else {            
+        } else {
             this.log('verbose', `Empty configuration! Config path: ${this.configPath}`);
             this.flushLogCache();
         }
@@ -270,7 +267,7 @@ class ServiceContainer extends AsyncEmitter {
      * @returns {ServiceContainer}
      */
     async loadConfig_() {
-        let configVariables = this._getConfigVariables();
+        let configVariables = this.getRuntimeVariables();
 
         /**
          * App configuration
@@ -304,7 +301,7 @@ class ServiceContainer extends AsyncEmitter {
      * Try to require a package, if it's an esm module, import it.
      * @param {*} pkgName
      * @param {*} useDefault
-     * @returns {*} 
+     * @returns {*}
      */
     async tryRequire_(pkgName, useDefault) {
         try {
@@ -428,6 +425,8 @@ class ServiceContainer extends AsyncEmitter {
         } catch (err) {
             let message;
 
+            console.log(err);
+
             if (err instanceof ValidationError) {
                 message = ValidationError.formatError(err);
             } else {
@@ -441,25 +440,28 @@ class ServiceContainer extends AsyncEmitter {
         const notRegisterred = _.find(_.castArray(services), (service) => !this.hasService(service));
 
         if (notRegisterred) {
-            throw new ApplicationError(
-                `Service "${notRegisterred}" is required.`
-            );
+            throw new ApplicationError(`Service "${notRegisterred}" is required.`);
         }
     }
 
-    _getConfigVariables() {
+    getRuntimeVariables() {
         const processInfo = {
-            env: process.env,
             arch: process.arch, // The operating system CPU architecture， 'arm', 'arm64','x64', ...
-            argv: process.argv,
             cwd: process.cwd(),
             pid: process.pid,
             platform: process.platform,
         };
 
         return {
-            app: this,
-            env: this.env,
+            app: {
+                name: this.name,
+                workingPath: this.workingPath,
+                configPath: this.configPath,
+                sourcePath: this.sourcePath,
+                featuresPath: this.featuresPath,
+                options: this.options,
+            },
+            env: runtime.get(K_ENV) ?? {},
             process: processInfo,
         };
     }
@@ -533,7 +535,7 @@ class ServiceContainer extends AsyncEmitter {
 
                 let feature;
                 try {
-                    feature = this._loadFeature(name, featureOptions);
+                    feature = this._loadFeature(name);
                 } catch (err) {
                     //ignore the first trial
                     //this.log('warn', err.message, { err });
@@ -576,7 +578,7 @@ class ServiceContainer extends AsyncEmitter {
                 return;
             }
 
-            let feature = this._loadFeature(name, featureOptions);
+            let feature = this._loadFeature(name);
 
             if (!(feature.stage in featureGroups)) {
                 throw new Error(`Invalid feature stage. Feature: ${name}, type: ${feature.stage}`);
@@ -626,55 +628,56 @@ class ServiceContainer extends AsyncEmitter {
      * @param {string} feature
      * @returns {object}
      */
-    _loadFeature(feature, featureOptions) {
+    _loadFeature(feature) {
         let featureObject = this.features[feature];
         if (featureObject) return featureObject;
 
         let featurePath;
 
-        if (this._featureRegistry.hasOwnProperty(feature)) {
-            //load by registry entry
-            let loadOption = this._featureRegistry[feature];
+        featureObject = this.registry?.features?.[feature];
+        if (featureObject == null) {
+            if (this._featureRegistry.hasOwnProperty(feature)) {
+                //load by registry entry
+                let loadOption = this._featureRegistry[feature];
 
-            if (Array.isArray(loadOption)) {
-                if (loadOption.length === 0) {
-                    throw new Error(`Invalid registry value for feature "${feature}".`);
-                }
+                if (Array.isArray(loadOption)) {
+                    if (loadOption.length === 0) {
+                        throw new Error(`Invalid registry value for feature "${feature}".`);
+                    }
 
-                featurePath = loadOption[0];
-                featureObject = this.tryRequire(featurePath);
+                    featurePath = loadOption[0];
+                    featureObject = this.tryRequire(featurePath);
 
-                if (loadOption.length > 1) {
-                    //one module may contains more than one feature
-                    featureObject = _.get(featureObject, loadOption[1]);
+                    if (loadOption.length > 1) {
+                        //one module may contains more than one feature
+                        featureObject = _.get(featureObject, loadOption[1]);
+                    }
+                } else {
+                    featurePath = loadOption;
+                    featureObject = this.tryRequire(featurePath);
                 }
             } else {
-                featurePath = loadOption;
+                //load by fallback paths
+                let searchingPath = this._featureRegistry['*'];
+
+                //reverse fallback stack
+                let found = _.findLast(searchingPath, (p) =>
+                    FILE_EXT.find((ext) => {
+                        featurePath = path.join(p, feature + ext);
+                        return fs.existsSync(featurePath);
+                    })
+                );
+
+                if (!found) {
+                    throw new InvalidConfiguration(`Don't know where to load feature "${feature}".`, this, {
+                        feature,
+                        searchingPath: searchingPath.join('\n'),
+                    });
+                }
+
                 featureObject = this.tryRequire(featurePath);
             }
-        } else {
-            //load by fallback paths
-            let searchingPath = this._featureRegistry['*'];
-
-            //reverse fallback stack
-            let found = _.findLast(searchingPath, (p) =>
-                FILE_EXT.find((ext) => {
-                    featurePath = path.join(p, feature + ext);
-                    return fs.existsSync(featurePath);
-                })
-            );
-
-            if (!found) {
-                throw new InvalidConfiguration(`Don't know where to load feature "${feature}".`, this, {
-                    feature,
-                    searchingPath: searchingPath.join("\n"),
-                });
-            }
-
-            featureObject = this.tryRequire(featurePath);
-        }        
-
-        featureObject = typeof featureObject === 'function' ? featureObject(this, featureOptions, feature) : featureObject;
+        }
 
         if (!Feature.validate(featureObject)) {
             throw new Error(`Invalid feature object loaded from "${featurePath}".`);

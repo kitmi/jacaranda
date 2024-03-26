@@ -12,8 +12,8 @@ export default {
      * Load the feature
      * @param {App} app - The app module object
      * @param {object} options - Options for the feature
-     * @property {string} options.vendor - Cloud storage vendor.
-     * @property {object} options.options - Storage driver options.
+     * @property {string} options.taskProvider - Task provider.
+     * @property {object} options.stepLogger - Logger used during step.
      * @returns {Promise.<*>}
      *
      * @example
@@ -24,7 +24,7 @@ export default {
      * }
      */
     load_: async function (app, options, name) {
-        let { taskProvider } = app.featureConfig(
+        let { taskProvider, stepLogger } = app.featureConfig(
             options,
             {
                 schema: {
@@ -38,11 +38,11 @@ export default {
         app.requireServices([ taskProvider, stepLogger ]);
 
         const service = {
-            create(name, steps) {
+            create(name, steps, env) {
                 const _steps = normalizeSteps(steps)
 
                 return async (input) => {                    
-                    const pipeline = new Pipeline(app, name, _steps, { taskProvider, stepLogger });
+                    const pipeline = new Pipeline(app, name, _steps, { env, taskProvider, stepLogger });
                     return pipeline.run_(input);
                 };
             }

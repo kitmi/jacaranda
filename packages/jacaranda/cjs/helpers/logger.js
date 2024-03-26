@@ -9,6 +9,21 @@ function _export(target, all) {
     });
 }
 _export(exports, {
+    LOG_DEBUG: function() {
+        return LOG_DEBUG;
+    },
+    LOG_ERROR: function() {
+        return LOG_ERROR;
+    },
+    LOG_INFO: function() {
+        return LOG_INFO;
+    },
+    LOG_VERBOSE: function() {
+        return LOG_VERBOSE;
+    },
+    LOG_WARNING: function() {
+        return LOG_WARNING;
+    },
     consoleLogger: function() {
         return consoleLogger;
     },

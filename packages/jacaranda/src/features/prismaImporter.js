@@ -21,9 +21,20 @@ export default {
             },
 
             import_: async (prisma, dataset) => {
-                const { model, refs, data } = dataset;
+                const { model, refs, pre, data } = dataset;
 
-                for (const record of data) {
+                let pipeline_;
+
+                if (pre) {
+                    const pipelineService = app.getService('pipeline');
+                    pipeline_ = pipelineService.create(`${model} Pre-process`, pre, { modelName: model });
+                }
+
+                for (let record of data) {
+                    if (pipeline_) {
+                        record = await pipeline_(record);
+                    }
+
                     const refFields = _.pick(record, refs);
                     const updateFields = _.omit(record, refs);
 

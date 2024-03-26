@@ -52,7 +52,6 @@ const _default = {
                 throw new _types.InvalidConfiguration('Missing app name.', app, `appRouting.${baseRoute}.name`);
             }
             let options = {
-                env: server.env,
                 configType: server.options.configType,
                 logLevel: server.options.logLevel,
                 traceMiddlewares: server.options.traceMiddlewares,

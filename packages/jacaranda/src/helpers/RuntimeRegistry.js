@@ -7,12 +7,12 @@ class RuntimeRegistry {
     modulesRegistry = {};
 
     /**
-     * Require a runtime module.
+     * Get a runtime module.
      * @param {string} [ns] - The namespace of the module.
      * @param {string} moduleName
      * @returns {object}
      */
-    require(...args) {
+    get(...args) {
         let [ns, moduleName] = fxargs(args, ['string?', 'string']);
         if (ns != null) {
             moduleName = `${ns}:${moduleName}`;

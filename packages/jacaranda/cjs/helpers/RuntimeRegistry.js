@@ -26,11 +26,11 @@ function _define_property(obj, key, value) {
  * @class
  */ class RuntimeRegistry {
     /**
-     * Require a runtime module.
+     * Get a runtime module.
      * @param {string} [ns] - The namespace of the module.
      * @param {string} moduleName
      * @returns {object}
-     */ require(...args) {
+     */ get(...args) {
         let [ns, moduleName] = (0, _utils.fxargs)(args, [
             'string?',
             'string'

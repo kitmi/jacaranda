@@ -16,10 +16,11 @@
 import { InvalidConfiguration } from '@kitmi/types';
 import { _, isPlainObject } from '@kitmi/utils';
 import Feature from '../Feature';
+import runtime, { K_ENV } from '../runtime';
+import { getNodeEnv } from '../ServiceContainer';;
 
 const KEY_ENV = 'env:';
 const KEY_STAGE = 'stage:';
-const Stage = process.env.STAGE_ENV;
 
 export default {
     /**
@@ -35,6 +36,8 @@ export default {
      * @returns {Promise.<*>}
      */
     load_: function (app, settings) {
+        const Stage = runtime.get(K_ENV)?.STAGE;
+
         let result = {};
         let envSettings;
         let stageSettings;
@@ -42,7 +45,7 @@ export default {
         _.each(settings, (value, key) => {
             if (key.startsWith(KEY_ENV)) {
                 let envKey = key.substring(KEY_ENV.length);
-                if (envKey === app.env) {
+                if (envKey === getNodeEnv()) {
                     envSettings = value;
                     if (!isPlainObject(value)) {
                         throw new InvalidConfiguration('Invalid env settings', app, `settings.${key}`);

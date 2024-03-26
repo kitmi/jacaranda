@@ -61,8 +61,8 @@ const _default = {
      * Load the feature
      * @param {App} app - The app module object
      * @param {object} options - Options for the feature
-     * @property {string} options.vendor - Cloud storage vendor.
-     * @property {object} options.options - Storage driver options.
+     * @property {string} options.taskProvider - Task provider.
+     * @property {object} options.stepLogger - Logger used during step.
      * @returns {Promise.<*>}
      *
      * @example
@@ -72,7 +72,7 @@ const _default = {
      *
      * }
      */ load_: async function(app, options, name) {
-        let { taskProvider } = app.featureConfig(options, {
+        let { taskProvider, stepLogger } = app.featureConfig(options, {
             schema: {
                 taskProvider: {
                     type: 'text'
@@ -89,10 +89,11 @@ const _default = {
             stepLogger
         ]);
         const service = {
-            create (name, steps) {
+            create (name, steps, env) {
                 const _steps = (0, _Pipeline.normalizeSteps)(steps);
                 return async (input)=>{
                     const pipeline = new _Pipeline.default(app, name, _steps, {
+                        env,
                         taskProvider,
                         stepLogger
                     });

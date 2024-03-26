@@ -10,8 +10,8 @@ const Routable = (T) =>
         /**
          * @param {string} name - The name of the routable instance.
          * @param {object} [options] - Routable options
-         * @property {string} [options.backendPath='server'] - Relative path of back-end server source files
-         * @property {string} [options.clientPath='client'] - Relative path of front-end client source files
+         * @property {string} [options.controllersPath='actions'] - Relative path of controller source files
+         * @property {string} [options.middlewaresPath='middlewares'] - Relative path of middleware source files
          * @property {string} [options.publicPath='public'] - Relative path of front-end static files
          */
         constructor(name, options) {

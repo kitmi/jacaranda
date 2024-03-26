@@ -33,7 +33,7 @@ const Feature = {
      * @property {function} featureObject.load_ - Feature loading method
      * @returns {bool}
      */ validate (featureObject) {
-        return featureObject && (featureObject.stage == null || Stages.includes(featureObject.stage)) && typeof featureObject.load_ === 'function' && (featureObject.packages == null || Array.isArray(featureObject.packages)) && (featureObject.depends == null || Array.isArray(featureObject.depends)) && (featureObject.level == null || Array.isArray(featureObject.level) && featureObject.level.every((l)=>Levels.includes(l)));
+        return featureObject && typeof featureObject === 'object' && (featureObject.stage == null || Stages.includes(featureObject.stage)) && typeof featureObject.load_ === 'function' && (featureObject.packages == null || Array.isArray(featureObject.packages) || typeof featureObject.packages === 'function') && (featureObject.depends == null || Array.isArray(featureObject.depends)) && (featureObject.level == null || Array.isArray(featureObject.level) && featureObject.level.every((l)=>Levels.includes(l)));
     }
 };
 const Levels = [

@@ -38,7 +38,6 @@ export default {
     load_: async (app, entries) => {
         return batchAsync_(entries, async (config, name) => {
             let options = {
-                env: app.env,
                 configType: app.options.configType,
                 logLevel: app.options.logLevel,
                 ...config.options,

@@ -9,6 +9,7 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _sys = require("@kitmi/sys");
+const _allSync = require("@kitmi/validators/allSync");
 const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 const _mime = /*#__PURE__*/ _interop_require_default(require("mime"));
 function _interop_require_default(obj) {
@@ -17,20 +18,25 @@ function _interop_require_default(obj) {
     };
 }
 async function fileInfo(step, settings) {
-    if (!settings.file) {
-        throw new Error('Missing file setting.');
-    }
-    const filePath = step.getValue(settings.file);
+    let { file } = _allSync.Types.OBJECT.sanitize(settings, {
+        schema: {
+            file: {
+                type: 'text'
+            }
+        }
+    });
+    const filePath = step.getValue(file);
     const stat = await _sys.fs.stat(filePath);
     const ext = _nodepath.default.extname(filePath);
+    const baseName = _nodepath.default.basename(filePath, ext);
     const result = {
-        baseName: _nodepath.default.basename(filePath, ext),
+        baseName,
         extName: ext,
         fileName: baseName + ext,
         size: stat.size,
         mime: _mime.default.getType(ext)
     };
-    step.stepLog('info', `File info for "${filePath}".`, {
+    step.stepLog('info', `File info attained for "${filePath}".`, {
         result
     });
     return result;

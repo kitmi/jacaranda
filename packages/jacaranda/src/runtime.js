@@ -6,6 +6,8 @@ export const NS_FEAT = 'features';
 export const NS_MIDDLEWARE = 'middlewares';
 export const NS_ROUTER = 'routers';
 
+export const K_ENV = 'env';
+
 const runtime = new RuntimeRegistry();
 
 export default runtime;

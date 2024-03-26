@@ -1,7 +1,21 @@
 import path from 'node:path';
+import { Types } from '@kitmi/validators/allSync';
 
 export default function pathResolve(step, settings) {
-    const { path: _path, base } = settings;
+    let { path: _path, base } = Types.OBJECT.sanitize(settings, {
+        schema: {
+            path: { type: 'text' },
+            base: { type: 'text' },
+        },
+    });
+
     const _base = step.getValue(base);
-    return path.resolve(_base, step.getValue(_path));
-};
+
+    const result = path.resolve(_base, step.getValue(_path));
+
+    step.stepLog('info', `Resolved path: ${result}`, {
+        result
+    });
+
+    return result;
+}
