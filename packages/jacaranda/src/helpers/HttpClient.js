@@ -101,9 +101,27 @@ class HttpClient {
                     req.field(k, v);
                 });
             }
-            req.attach(_options.fileField ?? 'file', body, _options.fileName);
+            
+            let fileOpts = null;
+            if (_options.fileName) {
+                fileOpts = { filename: _options.fileName };
+            }
+
+            if (_options.contentType) {
+                fileOpts = { ...fileOpts, contentType: _options.contentType };
+            }
+
+            req.attach(_options.fileField ?? 'file', body, fileOpts);
         } else if (httpMethod !== 'get') {
-            req.send(body ?? _options.body);
+            if (_options.usePipe) {
+                req = new Promise((resolve, reject) => {                    
+                    req.on('response', resolve);
+                    req.on('error', reject);
+                    body.pipe(req);
+                });
+            } else {
+                req.send(body ?? _options.body);
+            }
         }
 
         if (_options.onProgress) {
@@ -125,18 +143,18 @@ class HttpClient {
             return result;
         } catch (error) {
             const onOtherError = _options.onOtherError ?? this.onOtherError;
-            const onReponseError = _options.onReponseError ?? this.onReponseError;
+            const onResponseError = _options.onResponseError ?? this.onResponseError;
 
-            if (error.response) {
-                if (onReponseError) {
+            if (error.response) {                
+                if (onResponseError) {
                     let body = error.response.body;
                     if (!body && error.response.type === 'application/json') {
                         try {
                             body = JSON.parse(error.response.text);
                         } catch (e) {}
-                    }
+                    }                    
 
-                    return onReponseError(body, error);
+                    return onResponseError(body, error);
                 }
 
                 throw error;

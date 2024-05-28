@@ -8,15 +8,9 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 const _utils = require("@kitmi/utils");
 const _types = require("@kitmi/types");
 const _helpers = require("../helpers");
-function _interop_require_default(obj) {
-    return obj && obj.__esModule ? obj : {
-        default: obj
-    };
-}
 /**
  * Module router for mounting a specific controller.
  * @module Router_Module
@@ -30,6 +24,7 @@ function _interop_require_default(obj) {
  *       module: {
  *           $controllerPath:
  *           $middlewares:
+ *           $urlDasherize: false
  *           '/': [ 'controller', ... ]
  *       }
  *   }
@@ -38,7 +33,6 @@ function _interop_require_default(obj) {
  *       module: "controller"
  *   }
  */ async function moduleRouter(app, baseRoute, options) {
-    let controllerPath = _nodepath.default.resolve(app.sourcePath, options.$controllerPath ?? 'controllers');
     if (typeof options === 'string') {
         // [ 'controllerName' ]
         options = {
@@ -47,6 +41,7 @@ function _interop_require_default(obj) {
             ]
         };
     }
+    let controllerPath = options.$controllerPath ?? 'modules';
     const kebabify = options.$urlDasherize;
     let router = app.router.createRouter(baseRoute);
     if (options.$middlewares) {
@@ -63,19 +58,12 @@ function _interop_require_default(obj) {
             ];
         }
         await (0, _utils.batchAsync_)(controllers, async (moduleController)=>{
-            let controllerFile = _nodepath.default.join(controllerPath, moduleController);
-            let controller;
-            try {
-                controller = (0, _utils.esmCheck)(require(controllerFile));
-            } catch (e) {
-                /*
-                if (e.code === 'MODULE_NOT_FOUND') {
-                    throw new InvalidConfiguration(
-                        `Failed to load controller '${moduleController}'. ${e.message}`,
-                        app,
-                        `routing.${baseRoute}.module`
-                    );
-                }*/ throw e;
+            let controller = (0, _utils.get)(app.registry.controllers, [
+                controllerPath,
+                moduleController
+            ]);
+            if (controller == null) {
+                throw new _types.InvalidConfiguration(`Module controller "${moduleController}" not found.`, app, `routing.${baseRoute}.module[${subBaseRoute}]`);
             }
             let isController = false;
             if (typeof controller === 'function') {

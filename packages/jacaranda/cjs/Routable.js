@@ -9,8 +9,6 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
-const _sys = require("@kitmi/sys");
-const _glob = require("glob");
 const _utils = require("@kitmi/utils");
 const _types = require("@kitmi/types");
 const _defaultServerOpts = require("./defaultServerOpts");
@@ -28,28 +26,13 @@ const Routable = (T)=>{
              */ this._middlewareFactories = {};
             await super.start_();
             if (this.options.logMiddlewareRegistry && (this.options.logLevel === 'verbose' || this.options.logLevel === 'debug')) {
-                this.log('verbose', 'Registered middlewares:', this._middlewareRegistry);
+                this.log('verbose', 'Registered middlewares:', this.registry.middlewares ? Object.keys(this.registry.middlewares) : []);
             }
             return this;
         }
         async stop_() {
             delete this._middlewareFactories;
             return super.stop_();
-        }
-        /**
-         * Load and regsiter middleware files from a specified path.
-         * @param dir
-         */ addMiddlewaresRegistryFrom(dir) {
-            let files = (0, _glob.globSync)(_nodepath.default.join(dir, '**/*.{js,ts,mjs,cjs}'), {
-                nodir: true
-            });
-            files.forEach((file)=>this._middlewareRegistry[_utils.text.baseName(file)] = file);
-        }
-        /**
-         * Register middleware files from a registry.
-         * @param {object} registry 
-         */ addMiddlewaresRegistry(registry) {
-            Object.assign(this._middlewareRegistry, registry);
         }
         /**
          * Register the factory method of a named middleware.
@@ -78,20 +61,10 @@ const Routable = (T)=>{
             if (factory != null) {
                 return factory;
             }
-            const registryEntry = this._middlewareRegistry[name];
+            const registryEntry = this.registry.middlewares?.[name];
             if (registryEntry != null) {
-                let file = registryEntry;
-                let exportName;
-                if (Array.isArray(registryEntry)) {
-                    file = registryEntry[0];
-                    exportName = registryEntry[1];
-                }
-                let middlewareFactory = this.tryRequire(file);
-                if (exportName) {
-                    middlewareFactory = _utils._.get(middlewareFactory, exportName);
-                }
-                this._middlewareFactories[name] = middlewareFactory;
-                return middlewareFactory;
+                this._middlewareFactories[name] = registryEntry;
+                return registryEntry;
             }
             if (this.server && !this.isServer) {
                 return this.server.getMiddlewareFactory(name);
@@ -231,12 +204,6 @@ const Routable = (T)=>{
                 throw new _types.InvalidConfiguration(`Middleware "${middleware}" requires "${hasNotEnabled}" feature to be enabled.`, this, `middlewares.${middleware}`);
             }
         }
-        requireServices(services, middleware) {
-            const notRegisterred = _utils._.find(_utils._.castArray(services), (service)=>!this.hasService(service));
-            if (notRegisterred) {
-                throw new _types.InvalidConfiguration(`Middleware "${middleware}" requires "${notRegisterred}" service to be registerred.`, this, `middlewares.${middleware}`);
-            }
-        }
         /**
          * Attach a router to this app module, skipped while the server running in deaf mode
          * @param {Router} nestedRouter
@@ -315,8 +282,7 @@ const Routable = (T)=>{
         /**
          * @param {string} name - The name of the routable instance.
          * @param {object} [options] - Routable options
-         * @property {string} [options.backendPath='server'] - Relative path of back-end server source files
-         * @property {string} [options.clientPath='client'] - Relative path of front-end client source files
+         * @property {string} [options.controllersPath='actions'] - Relative path of controller source files
          * @property {string} [options.publicPath='public'] - Relative path of front-end static files
          */ constructor(name, options){
             super(name, {
@@ -328,15 +294,7 @@ const Routable = (T)=>{
              * @member {string}
              **/ this.publicPath = this.toAbsolutePath(this.options.publicPath);
             this.controllersPath = _nodepath.default.resolve(this.sourcePath, this.options.controllersPath);
-            this.middlewaresPath = _nodepath.default.resolve(this.sourcePath, this.options.middlewaresPath);
             this.routable = true;
-            this._middlewareRegistry = {};
-            this.once('configLoaded', ()=>{
-                //load middlewares if exists in server or app path
-                if (_sys.fs.pathExistsSync(this.middlewaresPath) && (0, _sys.isDir)(this.middlewaresPath)) {
-                    this.addMiddlewaresRegistryFrom(this.middlewaresPath);
-                }
-            });
         }
     }
     return _class;

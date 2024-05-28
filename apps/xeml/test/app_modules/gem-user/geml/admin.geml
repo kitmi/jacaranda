@@ -1,0 +1,25 @@
+import 'commons:types'
+import 'geo:country'
+import 'cms:resource'
+import person
+import user
+
+//----------------------------------------------------------------------------------------------------     
+
+entity adminUser 
+  -- "Admin users" 
+  has
+    preferredName: name |=populate('user.name')
+  associations
+    refersTo user constraintOnDelete("CASCADE")
+    refersTo person |=populate('user.person')      
+  key user 
+  input
+    new      
+      preferredName optional
+      ':user' with new
+    edit
+      preferredName optional
+      ':user' with edit
+      ':person' with editTW    
+  

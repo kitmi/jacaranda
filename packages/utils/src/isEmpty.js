@@ -1,5 +1,18 @@
 import isTypedArray from './isTypedArray';
 
+/**
+ * Check whether a value is empty, or an object is empty. 
+ * Note: lodash's isEmpty does not check symbol properties.
+ *  const key = Symbol('key');
+ *  const obj = {
+ *      [key]: 'something'
+ *  };
+ *  _.isEmpty(obj).should.be.true;
+ *  isEmpty(obj).should.be.false;
+ * 
+ * @param {*} value 
+ * @returns {boolean}
+ */
 function isEmpty(value) {
     if (value == null) {
         return true;

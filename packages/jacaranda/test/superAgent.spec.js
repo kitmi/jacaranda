@@ -1,9 +1,10 @@
 import { HttpClient } from '../src';
-import { superagent } from '@kitmi/adapters';
+import { superagent as adapter } from '@kitmi/adapters';
+import superagent from 'superagent';
 
 describe('feature:superAgent', function () {
     it('get list with endpoint', async function () {
-        let httpClient = new HttpClient(superagent(), 'https://dummyjson.com');
+        let httpClient = new HttpClient(adapter(superagent), 'https://dummyjson.com');
 
         should.exist(httpClient);
 
@@ -16,7 +17,7 @@ describe('feature:superAgent', function () {
     });
 
     it('get one with endpoint', async function () {
-        let httpClient = new HttpClient(superagent(), 'https://dummyjson.com');
+        let httpClient = new HttpClient(adapter(superagent), 'https://dummyjson.com');
 
         should.exist(httpClient);
 
@@ -26,7 +27,7 @@ describe('feature:superAgent', function () {
     });
 
     it('post one with endpoint in options', async function () {
-        let httpClient = new HttpClient(superagent());
+        let httpClient = new HttpClient(adapter(superagent));
 
         should.exist(httpClient);
 

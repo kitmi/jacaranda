@@ -43,4 +43,9 @@ export default {
     camelCase: (value) => camelCase(value),
     kebabCase: (value) => kebabCase(value),
     snakeCase: (value) => snakeCase(value),
+
+    toLower: (value) => value.toLowerCase(),
+    toUpper: (value) => value.toUpperCase(),
+
+    type: (value, options, meta, context) => context.system.sanitize(value, options, context.i18n, context.path),
 };

@@ -26,12 +26,10 @@ const defaultServerOpts = {
     sourcePath: 'src'
 };
 const defaultRoutableOpts = {
-    engine: 'koa',
     traceMiddlewares: false,
     logMiddlewareRegistry: false,
     publicPath: 'public',
-    controllersPath: 'actions',
-    middlewaresPath: 'middlewares'
+    controllersPath: 'actions'
 };
 const defaultWebModuleOpts = {
     sourcePath: 'src'

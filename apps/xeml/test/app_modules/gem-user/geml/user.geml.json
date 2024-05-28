@@ -1,0 +1,534 @@
+{
+    "namespace": [
+        [
+            "/Users/rockie/Documents/GitHub/genx-suite/packages/model/node_modules/@genx/gem-commons/geml/types.geml",
+            "commons"
+        ],
+        [
+            "/Users/rockie/Documents/GitHub/genx-suite/packages/model/test/app_modules/gem-geo/geml/country.geml",
+            "geo"
+        ],
+        [
+            "/Users/rockie/Documents/GitHub/genx-suite/packages/model/test/app_modules/gem-cms/geml/resource.geml",
+            "cms"
+        ],
+        "/Users/rockie/Documents/GitHub/genx-suite/packages/model/test/app_modules/gem-user/geml/person.geml"
+    ],
+    "type": {
+        "password": {
+            "type": "text",
+            "maxLength": [
+                200
+            ]
+        },
+        "userStatus": {
+            "type": "enum",
+            "values": [
+                "unverified",
+                "active",
+                "suspended",
+                "deleted"
+            ]
+        },
+        "verifyType": {
+            "type": "enum",
+            "values": [
+                "email",
+                "mobile",
+                "none"
+            ]
+        }
+    },
+    "entity": {
+        "userRole": {
+            "base": [
+                "manyToMany"
+            ],
+            "comment": "User role",
+            "associations": [
+                {
+                    "type": "belongsTo",
+                    "destEntity": "user",
+                    "fieldProps": {}
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "userRoleType",
+                    "srcField": "role",
+                    "fieldProps": {}
+                }
+            ],
+            "indexes": [
+                {
+                    "fields": [
+                        "user",
+                        "role"
+                    ],
+                    "unique": true
+                }
+            ]
+        },
+        "userRoleType": {
+            "base": [
+                "dictionaryByCode"
+            ],
+            "comment": "User role type",
+            "fields": {
+                "usage": {
+                    "name": "usage",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "isSpecific": {
+                    "name": "isSpecific",
+                    "type": "boolean",
+                    "optional": true,
+                    "comment": "Specificially for sub-system"
+                }
+            }
+        },
+        "userRegistration": {
+            "base": [
+                "hyperIdIndexed"
+            ],
+            "comment": "User registration",
+            "features": [
+                "createTimestamp",
+                {
+                    "name": "atLeastOneNotNull",
+                    "args": [
+                        [
+                            "mobile",
+                            "email"
+                        ]
+                    ]
+                }
+            ],
+            "fields": {
+                "username": {
+                    "name": "username",
+                    "type": "name"
+                },
+                "mobile": {
+                    "name": "mobile",
+                    "type": "mobile",
+                    "optional": true
+                },
+                "email": {
+                    "name": "email",
+                    "type": "email",
+                    "optional": true
+                },
+                "password": {
+                    "name": "password",
+                    "type": "password",
+                    "modifiers": [
+                        {
+                            "oolType": "Validator",
+                            "name": "enforceStrongPassword"
+                        }
+                    ]
+                },
+                "firstName": {
+                    "name": "firstName",
+                    "type": "name",
+                    "optional": true
+                },
+                "lastName": {
+                    "name": "lastName",
+                    "type": "name",
+                    "optional": true
+                },
+                "companyName": {
+                    "name": "companyName",
+                    "type": "name",
+                    "optional": true
+                },
+                "gender": {
+                    "name": "gender",
+                    "type": "name",
+                    "optional": true
+                },
+                "avatar": {
+                    "name": "avatar",
+                    "type": "url",
+                    "optional": true
+                },
+                "code": {
+                    "name": "code",
+                    "type": "text",
+                    "maxLength": [
+                        8
+                    ],
+                    "auto": true,
+                    "modifiers": [
+                        {
+                            "oolType": "Activator",
+                            "name": "generator",
+                            "args": [
+                                "default",
+                                {
+                                    "type": "text",
+                                    "fixedLength": 6
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "verifyType": {
+                    "name": "verifyType",
+                    "type": "verifyType",
+                    "modifiers": [
+                        {
+                            "oolType": "Activator",
+                            "name": "determineVerifyType",
+                            "args": [
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.mobile"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.email"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "inputs": {
+                "new": [
+                    {
+                        "name": "username"
+                    },
+                    {
+                        "name": "mobile",
+                        "optional": true
+                    },
+                    {
+                        "name": "email",
+                        "optional": true
+                    },
+                    {
+                        "name": "password"
+                    },
+                    {
+                        "name": "firstName"
+                    },
+                    {
+                        "name": "lastName"
+                    },
+                    {
+                        "name": "avatar",
+                        "optional": true
+                    }
+                ],
+                "newHost": [
+                    {
+                        "name": "username"
+                    },
+                    {
+                        "name": "mobile",
+                        "optional": true
+                    },
+                    {
+                        "name": "email",
+                        "optional": true
+                    },
+                    {
+                        "name": "password"
+                    },
+                    {
+                        "name": "firstName"
+                    },
+                    {
+                        "name": "lastName"
+                    },
+                    {
+                        "name": "companyName"
+                    },
+                    {
+                        "name": "avatar",
+                        "optional": true
+                    }
+                ]
+            }
+        },
+        "userPreference": {
+            "comment": "User preference",
+            "features": [
+                "autoId"
+            ],
+            "fields": {
+                "key": {
+                    "name": "key",
+                    "type": "idString"
+                },
+                "value": {
+                    "name": "value",
+                    "type": "object",
+                    "optional": true
+                }
+            },
+            "associations": [
+                {
+                    "type": "belongsTo",
+                    "destEntity": "user",
+                    "fieldProps": {}
+                }
+            ],
+            "indexes": [
+                {
+                    "fields": [
+                        "user",
+                        "key"
+                    ],
+                    "unique": true
+                }
+            ]
+        },
+        "user": {
+            "base": [
+                "hyperIdIndexed"
+            ],
+            "comment": "User",
+            "features": [
+                "createTimestamp",
+                "updateTimestamp",
+                {
+                    "name": "logicalDeletion",
+                    "args": [
+                        {
+                            "status": "deleted"
+                        }
+                    ]
+                },
+                {
+                    "name": "stateTracking",
+                    "args": [
+                        "status"
+                    ]
+                }
+            ],
+            "fields": {
+                "username": {
+                    "name": "username",
+                    "type": "idString",
+                    "modifiers": [
+                        {
+                            "oolType": "Activator",
+                            "name": "defaultUsername"
+                        }
+                    ],
+                    "comment": "User name"
+                },
+                "mobile": {
+                    "name": "mobile",
+                    "type": "mobile",
+                    "optional": true,
+                    "comment": "User mobile"
+                },
+                "email": {
+                    "name": "email",
+                    "type": "email",
+                    "optional": true,
+                    "comment": "User email"
+                },
+                "name": {
+                    "name": "name",
+                    "type": "name",
+                    "modifiers": [
+                        {
+                            "oolType": "Activator",
+                            "name": "populate",
+                            "args": [
+                                "person.legalName"
+                            ]
+                        }
+                    ],
+                    "comment": "Nick name"
+                },
+                "password": {
+                    "name": "password",
+                    "type": "password",
+                    "modifiers": [
+                        {
+                            "oolType": "Validator",
+                            "name": "enforceStrongPassword"
+                        },
+                        {
+                            "oolType": "Processor",
+                            "name": "hashPassword",
+                            "args": [
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.passwordSalt"
+                                }
+                            ]
+                        }
+                    ],
+                    "comment": "User password"
+                },
+                "passwordSalt": {
+                    "name": "passwordSalt",
+                    "type": "text",
+                    "fixedLength": [
+                        8
+                    ],
+                    "auto": true,
+                    "comment": "User password salt"
+                },
+                "isEmailVerified": {
+                    "name": "isEmailVerified",
+                    "type": "boolean",
+                    "writeOnce": true,
+                    "optional": true,
+                    "comment": "Is user email verified?"
+                },
+                "emailVerifiedTime": {
+                    "name": "emailVerifiedTime",
+                    "type": "datetime",
+                    "writeOnce": true,
+                    "optional": true,
+                    "comment": "User email verified time"
+                },
+                "isMobileVerified": {
+                    "name": "isMobileVerified",
+                    "type": "boolean",
+                    "writeOnce": true,
+                    "optional": true,
+                    "comment": "Is user mobile verified?"
+                },
+                "mobileVerifiedTime": {
+                    "name": "mobileVerifiedTime",
+                    "type": "datetime",
+                    "writeOnce": true,
+                    "optional": true,
+                    "comment": "User mobile verified time"
+                },
+                "avatar": {
+                    "name": "avatar",
+                    "type": "url",
+                    "optional": true
+                },
+                "status": {
+                    "name": "status",
+                    "type": "userStatus",
+                    "default": [
+                        "unverified"
+                    ],
+                    "comment": "User status"
+                },
+                "lastLoginTime": {
+                    "name": "lastLoginTime",
+                    "type": "datetime",
+                    "optional": true,
+                    "comment": "Last login time"
+                },
+                "currentLoginTime": {
+                    "name": "currentLoginTime",
+                    "type": "datetime",
+                    "optional": true,
+                    "comment": "Current login time"
+                },
+                "isHidden": {
+                    "name": "isHidden",
+                    "type": "boolean",
+                    "optional": true,
+                    "comment": "Not allowed to login UI and be shown to other users"
+                }
+            },
+            "associations": [
+                {
+                    "type": "refersTo",
+                    "destEntity": "person",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "resourceGroup",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                },
+                {
+                    "type": "hasMany",
+                    "destEntity": "userRole",
+                    "srcField": "roles",
+                    "fieldProps": {}
+                },
+                {
+                    "type": "hasMany",
+                    "destEntity": "userPreference",
+                    "srcField": "preferences",
+                    "fieldProps": {}
+                }
+            ],
+            "indexes": [
+                {
+                    "fields": "username",
+                    "unique": true
+                },
+                {
+                    "fields": [
+                        "mobile",
+                        "status"
+                    ],
+                    "unique": true
+                },
+                {
+                    "fields": [
+                        "email",
+                        "status"
+                    ],
+                    "unique": true
+                },
+                {
+                    "fields": "resourceGroup",
+                    "unique": true
+                }
+            ],
+            "inputs": {
+                "new": [
+                    {
+                        "name": "username",
+                        "optional": true
+                    },
+                    {
+                        "name": "mobile",
+                        "optional": true
+                    },
+                    {
+                        "name": "email"
+                    },
+                    {
+                        "name": "password"
+                    },
+                    {
+                        "name": "avatar",
+                        "optional": true
+                    },
+                    {
+                        "name": ":person",
+                        "spec": "newTW"
+                    }
+                ],
+                "edit": [
+                    {
+                        "name": "avatar",
+                        "optional": true
+                    },
+                    {
+                        "name": ":person",
+                        "spec": "editTW"
+                    }
+                ]
+            }
+        }
+    },
+    "id": "./../app_modules/gem-user/geml/user.geml",
+    "packageName": "user",
+    "name": "user"
+}

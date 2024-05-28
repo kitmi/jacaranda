@@ -1,1 +1,1 @@
-{"version":3,"sources":["../../src/locale/en.js"],"sourcesContent":["export { default } from '@kitmi/jsonv/locale/en';\n"],"names":["default"],"mappings":";;;;+BAASA;;;eAAAA,WAAO;;;2DAAQ"}
+{"version":3,"sources":["../../src/locale/en.js"],"sourcesContent":["export { default } from '@kitmi/jsonv/locale/en';\n"],"names":["default"],"rangeMappings":";;;;;;;;;;","mappings":";;;;+BAASA;;;eAAAA,WAAO;;;2DAAQ"}

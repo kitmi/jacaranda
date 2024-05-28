@@ -1,0 +1,166 @@
+type
+  idString : text maxLength(64) emptyAsNull
+  uuid : text fixedLength(36) |~isUUID |=generator('uuid')
+  shortName : text maxLength(60) emptyAsNull
+  name : text maxLength(200) emptyAsNull
+  desc : text optional emptyAsNull
+  url : text maxLength(750) emptyAsNull |~isURL({require_tld: false})
+  path : text maxLength(750) emptyAsNull |~isURL({allow_protocol_relative_urls: true})  
+  ip : text maxLength(40) emptyAsNull |~isIP
+  phone : text maxLength(20) emptyAsNull |>normalizePhone('+886') |~isPhone
+  mobile : text maxLength(20) emptyAsNull |>normalizePhone('+886') |~isMobilePhone  
+  email : text maxLength(200) emptyAsNull |~isEmail
+  money : number exact totalDigits(16) decimalDigits(0)  
+  date : datetime dateOnly
+  time : datetime timeOnly
+  postcode : text maxLength(10) emptyAsNull
+  dataType: enum values('text', 'integer', 'number', 'boolean', 'csv', 'object', 'datetime', 'array')
+  formatterType: enum values('datetime', 'currency', 'dateOnly', 'timeOnly', 'bytes', 'number', 'percent')
+
+  requestStatus : enum values('pending', 'accepted', 'declined', 'cancelled')
+
+//----------------------------------------------------------------------------------------------------     
+
+entity dictionaryByAutoId            
+  with 
+    autoId
+    logicalDeletion
+    
+  has 
+    name
+    desc 
+  
+  index
+    name is unique
+
+//----------------------------------------------------------------------------------------------------     
+
+entity hyperIdIndexed            
+  with 
+    autoId({ type: 'hyperid' })
+
+//----------------------------------------------------------------------------------------------------     
+
+entity dictionaryByCode            
+  with 
+    logicalDeletion
+    
+  has     
+    code : idString
+    name
+    indexOrder : integer default(0)
+    desc 
+    isSystem: boolean optional
+    isActive: boolean default(true)
+
+  key code
+  
+  index
+    name is unique  
+
+//----------------------------------------------------------------------------------------------------     
+
+entity dataTypeDictionary is dictionaryByCode
+  has
+    dataType optional
+    values : array optional     
+    allowUserInput: boolean optional // when values exists, user input value (not one of values) is not allowed without setting this flag to true
+    formatter : formatterType optional // default formatter function   
+  associations
+    refersTo uomUnit as unit optional
+
+//----------------------------------------------------------------------------------------------------     
+
+entity manyToMany
+  with
+    autoId
+    createTimestamp 
+
+//----------------------------------------------------------------------------------------------------     
+
+entity closureTable
+  with
+    autoId
+  
+//----------------------------------------------------------------------------------------------------     
+
+entity uomTerm is dictionaryByCode   
+  -- "Unit of measure: term"
+  data [
+      { code: 'S', isActive: false, name: 'Second', desc: 'Secondly', isSystem: true, isActive: true },
+      { code: 'MIN', isActive: false, name: 'Minute', desc: 'Minutely', isSystem: true, isActive: true },
+      { code: 'H', isActive: false, name: 'Hour', desc: 'Hourly', isSystem: true, isActive: true },
+      { code: 'DAY', isActive: false, name: 'Day', desc: 'Daily', isSystem: true, isActive: true },
+      { code: 'WEEK', isActive: false, name: 'Week', desc: 'Weekly', isSystem: true, isActive: true },
+      { code: '2WEEK', isActive: false, name: 'Fortnight', desc: 'Fortnightly', isSystem: true, isActive: true },
+      { code: '4WEEK', isActive: false, name: 'Four-week', desc: 'Four-weekly', isSystem: true, isActive: true },
+      { code: 'MON', isActive: false, name: 'Month', desc: 'Monthly', isSystem: true, isActive: true },
+      { code: 'Q', isActive: false, name: 'Quarter', desc: 'Quarterly', isSystem: true, isActive: true },
+      { code: 'Y', isActive: false, name: 'Year', desc: 'Annually', isSystem: true, isActive: true }
+  ]
+
+//----------------------------------------------------------------------------------------------------     
+
+entity uomUnit is dictionaryByCode   
+  -- "Unit of measure: attribute"
+  data [
+      { code: 'PERCENT', name: 'Pencent', desc: 'Percentage', isSystem: true },
+      { code: 'SQRM', name: '㎡', desc: 'Square meter', isSystem: true },      
+      { code: 'PY', name: '坪', desc: '坪', isSystem: true },
+      { code: 'PERPY', name: '/坪', desc: '每坪', isSystem: true },
+      { code: 'PERQ', name: '/q', desc: 'Per quarter', isSystem: true },
+      { code: 'PERM', name: '/m', desc: 'Per month', isSystem: true },
+      { code: 'PERW', name: '/w', desc: 'Per week', isSystem: true },
+      { code: 'PERA', name: '/a', desc: 'Per annual', isSystem: true }      
+  ]     
+
+//----------------------------------------------------------------------------------------------------     
+
+// enabled by client system initial scripts
+entity uomCurrency is dictionaryByCode   
+  -- "Unit of measure: currency"
+  has
+    symbol: name optional
+    decimalPlaces : integer
+  data [
+    {code: 'AED', isActive: false, name: 'United Arab Emirates Dirham', decimalPlaces: 2  },
+    {code: 'AUD', isActive: false, name: 'Australian Dollar', symbol: 'AU$', decimalPlaces: 2  },
+    {code: 'BGN', isActive: false, name: 'Bulgarian Lev', decimalPlaces: 2  },
+    {code: 'BHD', isActive: false, name: 'Bahraini Dinar', decimalPlaces: 2  },
+    {code: 'CAD', isActive: false, name: 'Canadian Dollar', symbol: '$', decimalPlaces: 2 },
+    {code: 'CHF', isActive: false, name: 'Swiss Franc', symbol: 'CHF', decimalPlaces: 2 },
+    {code: 'CNY', isActive: false, name: 'Chinese Yuan', symbol: '¥',  decimalPlaces: 2 },
+    {code: 'CZK', isActive: false, name: 'Czech Koruna', decimalPlaces: 2  },
+    {code: 'DKK', isActive: false, name: 'Danish Krone', symbol: 'kr', decimalPlaces: 2  },
+    {code: 'EUR', isActive: false, name: 'Euro', symbol: '€', decimalPlaces: 2 },
+    {code: 'GBP', isActive: false, name: 'Pound Sterling', symbol: '£', decimalPlaces: 2 },
+    {code: 'HKD', isActive: false, name: 'Hong Kong Dollar', symbol: 'HK$', decimalPlaces: 2 },
+    {code: 'HRK', isActive: false, name: 'Croatian Kuna', decimalPlaces: 2  },
+    {code: 'HUF', isActive: false, name: 'Hungarian Forint', decimalPlaces: 2  },
+    {code: 'IDR', isActive: false, name: 'Indonesian Rupiah', decimalPlaces: 0  },
+    {code: 'ILS', isActive: false, name: 'New Israeli Sheqel', symbol: '₪', decimalPlaces: 2  },
+    {code: 'INR', isActive: false, name: 'Indian Rupee', decimalPlaces: 2  },
+    {code: 'JPY', isActive: false, name: 'Japanese Yen', symbol: '¥',  decimalPlaces: 0 },
+    {code: 'KES', isActive: false, name: 'Kenyan Shilling', decimalPlaces: 2  },
+    {code: 'KRW', isActive: false, name: 'South Korean Won', symbol: '₩', decimalPlaces: 2 },
+    {code: 'KWD', isActive: false, name: 'Kuwaiti Dinar', decimalPlaces: 2  },
+    {code: 'MXN', isActive: false, name: 'Mexican Peso', symbol: '$', decimalPlaces: 2  },
+    {code: 'MYR', isActive: false, name: 'Malaysian Ringgit', decimalPlaces: 2  },
+    {code: 'NOK', isActive: false, name: 'Norwegian Krone', symbol: 'kr', decimalPlaces: 2  },
+    {code: 'NZD', isActive: false, name: 'New Zealand Dollar', symbol: 'NZ$', decimalPlaces: 2  },
+    {code: 'OMR', isActive: false, name: 'Omani Rial', decimalPlaces: 2  },
+    {code: 'PHP', isActive: false, name: 'Philippine Peso', decimalPlaces: 2  },
+    {code: 'PLN', isActive: false, name: 'Polish Zloty', decimalPlaces: 2  },
+    {code: 'QAR', isActive: false, name: 'Qatari Rial', decimalPlaces: 2  },
+    {code: 'RON', isActive: false, name: 'Romanian New Leu', decimalPlaces: 2  },
+    {code: 'RUB', isActive: false, name: 'Russian Rouble', decimalPlaces: 2  },
+    {code: 'SAR', isActive: false, name: 'Saudi Riyal', decimalPlaces: 2  },
+    {code: 'SEK', isActive: false, name: 'Swedish Krona', symbol: 'kr', decimalPlaces: 2   },
+    {code: 'SGD', isActive: false, name: 'Singapore Dollar', symbol: '$', decimalPlaces: 2},
+    {code: 'THB', isActive: false, name: 'Thai Baht', decimalPlaces: 2  },
+    {code: 'TRY', isActive: false, name: 'Turkish Lira', decimalPlaces: 2  },
+    {code: 'TWD', isActive: false, name: 'New Taiwan Dollar', symbol: 'NT$', decimalPlaces: 2  },
+    {code: 'UGX', isActive: false, name: 'Ugandan Shilling', decimalPlaces: 0  },
+    {code: 'USD', isActive: false, name: 'United States Dollar', symbol: '$', decimalPlaces: 2 },
+    {code: 'ZAR', isActive: false, name: 'South African Rand', symbol: 'R',  decimalPlaces: 2}    
+  ]

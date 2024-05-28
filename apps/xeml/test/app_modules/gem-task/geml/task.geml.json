@@ -1,0 +1,138 @@
+{
+    "namespace": [
+        [
+            "/Users/rockie/Documents/GitHub/genx-suite/packages/model/node_modules/@genx/gem-commons/geml/types.geml",
+            "commons"
+        ],
+        [
+            "/Users/rockie/Documents/GitHub/genx-suite/packages/model/test/app_modules/gem-user/geml/user.geml",
+            "user"
+        ],
+        "/Users/rockie/Documents/GitHub/genx-suite/packages/model/test/app_modules/gem-task/geml/agenda.geml"
+    ],
+    "type": {
+        "taskStatus": {
+            "type": "enum",
+            "values": [
+                "new",
+                "pending",
+                "assigned",
+                "ongoing",
+                "done",
+                "expired",
+                "cancelled",
+                "rejected"
+            ]
+        }
+    },
+    "entity": {
+        "taskType": {
+            "base": [
+                "dictionaryByCode"
+            ],
+            "comment": "Task type",
+            "fields": {
+                "isAssignable": {
+                    "name": "isAssignable",
+                    "type": "boolean",
+                    "optional": true
+                },
+                "isApproval": {
+                    "name": "isApproval",
+                    "type": "boolean",
+                    "optional": true
+                }
+            }
+        },
+        "task": {
+            "base": [
+                "hyperIdIndexed"
+            ],
+            "features": [
+                "createTimestamp",
+                "updateTimestamp",
+                {
+                    "name": "stateTracking",
+                    "args": [
+                        "status"
+                    ]
+                }
+            ],
+            "fields": {
+                "dueDate": {
+                    "name": "dueDate",
+                    "type": "date",
+                    "dateOnly": true,
+                    "optional": true
+                },
+                "status": {
+                    "name": "status",
+                    "type": "taskStatus"
+                },
+                "isApproved": {
+                    "name": "isApproved",
+                    "type": "boolean",
+                    "optional": true
+                },
+                "declinedReason": {
+                    "name": "declinedReason",
+                    "type": "desc"
+                },
+                "name": {
+                    "name": "name",
+                    "type": "name"
+                },
+                "desc": {
+                    "name": "desc",
+                    "type": "desc"
+                },
+                "metadata": {
+                    "name": "metadata",
+                    "type": "object",
+                    "optional": true
+                }
+            },
+            "associations": [
+                {
+                    "type": "belongsTo",
+                    "destEntity": "user",
+                    "srcField": "owner",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                },
+                {
+                    "type": "belongsTo",
+                    "destEntity": "user",
+                    "srcField": "assignedTo",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "taskType",
+                    "srcField": "type",
+                    "fieldProps": {}
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "resourceGroup",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "agendaItem",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                }
+            ]
+        }
+    },
+    "id": "./../app_modules/gem-task/geml/task.geml",
+    "packageName": "task",
+    "name": "task"
+}

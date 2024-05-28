@@ -26,6 +26,9 @@ _export(exports, {
     },
     findKeyAsync_: function() {
         return _findKeyAsync_.default;
+    },
+    size: function() {
+        return _size.default;
     }
 });
 const _batchAsync_ = /*#__PURE__*/ _interop_require_default(require("./batchAsync_"));
@@ -34,6 +37,7 @@ const _findKey = /*#__PURE__*/ _interop_require_default(require("./findKey"));
 const _findKeyAsync_ = /*#__PURE__*/ _interop_require_default(require("./findKeyAsync_"));
 const _findAsync_ = /*#__PURE__*/ _interop_require_default(require("./findAsync_"));
 const _filterAsync_ = /*#__PURE__*/ _interop_require_default(require("./filterAsync_"));
+const _size = /*#__PURE__*/ _interop_require_default(require("./size"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj

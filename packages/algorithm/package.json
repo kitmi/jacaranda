@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/algo",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "description": "Common JavaScript algorithms",
     "main": "cjs/index.js",
     "module": "src/index.js",
@@ -51,8 +51,8 @@
         ]
     },
     "dependencies": {
-        "@kitmi/utils": "workspace:*",
-        "@kitmi/types": "workspace:*"
+        "@kitmi/types": "workspace:^",
+        "@kitmi/utils": "workspace:^"
     },
     "prettier": {
         "quoteProps": "consistent",

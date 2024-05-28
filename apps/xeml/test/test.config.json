@@ -1,0 +1,33 @@
+{
+    "skip": {
+        "suites": {            
+        }
+    },
+    "enableAsyncDump": false,
+    "enableAllure": true,
+    "servers": {
+        "server1": {
+            "configPath": "test/conf",
+            "controllersPath": "test/actions",
+            "sourcePath": "./",
+            "logLevel": "info"
+        }
+    },
+    "workers": {
+        "tester": { 
+            "configName": "test",
+            "configPath": "test/conf"
+        }
+    },
+    "authentications": {
+        "client1": {
+            "loginType": "password",
+            "accessType": "jwt",
+            "loginOptions": {
+                "endpoint": "/login",
+                "username": "user",
+                "password": "pass"
+            }
+        }
+    }
+}

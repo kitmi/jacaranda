@@ -1,0 +1,285 @@
+{
+    "namespace": [
+        [
+            "/Users/rockie/Documents/GitHub/genx-suite/packages/model/node_modules/@genx/gem-commons/geml/types.geml",
+            "commons"
+        ],
+        [
+            "/Users/rockie/Documents/GitHub/genx-suite/packages/model/test/app_modules/gem-geo/geml/country.geml",
+            "geo"
+        ],
+        "/Users/rockie/Documents/GitHub/genx-suite/packages/model/test/app_modules/gem-user/geml/contact.geml"
+    ],
+    "type": {
+        "maritalStatus": {
+            "type": "enum",
+            "values": [
+                "single",
+                "married",
+                "divorced",
+                "widowed",
+                "de facto"
+            ]
+        },
+        "genderType": {
+            "type": "enum",
+            "values": [
+                "male",
+                "female",
+                "non-disclosure"
+            ]
+        },
+        "residencyStatus": {
+            "type": "enum",
+            "values": [
+                "citizen",
+                "pr",
+                "overseas"
+            ]
+        }
+    },
+    "entity": {
+        "person": {
+            "base": [
+                "hyperIdIndexed"
+            ],
+            "features": [
+                "createTimestamp",
+                "updateTimestamp",
+                "logicalDeletion"
+            ],
+            "fields": {
+                "firstName": {
+                    "name": "firstName",
+                    "type": "name",
+                    "optional": true
+                },
+                "middleName": {
+                    "name": "middleName",
+                    "type": "name",
+                    "optional": true
+                },
+                "lastName": {
+                    "name": "lastName",
+                    "type": "name",
+                    "optional": true
+                },
+                "legalName": {
+                    "name": "legalName",
+                    "type": "name",
+                    "modifiers": [
+                        {
+                            "oolType": "Activator",
+                            "name": "combinePersonName",
+                            "args": [
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.firstName"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.middleName"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.lastName"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.locale"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "dob": {
+                    "name": "dob",
+                    "type": "datetime",
+                    "optional": true,
+                    "comment": "Date of birth"
+                },
+                "maritalStatus": {
+                    "name": "maritalStatus",
+                    "type": "maritalStatus",
+                    "optional": true
+                },
+                "gender": {
+                    "name": "gender",
+                    "type": "genderType",
+                    "optional": true
+                },
+                "residencyStatus": {
+                    "name": "residencyStatus",
+                    "type": "residencyStatus",
+                    "optional": true
+                }
+            },
+            "associations": [
+                {
+                    "type": "refersTo",
+                    "destEntity": "personTitle",
+                    "srcField": "title",
+                    "fieldProps": {
+                        "optional": true,
+                        "emptyAsNull": true
+                    }
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "locale",
+                    "fieldProps": {
+                        "optional": true,
+                        "default": [
+                            "zh-TW"
+                        ]
+                    }
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "contact",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                },
+                {
+                    "type": "hasOne",
+                    "destEntity": "user",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                }
+            ],
+            "indexes": [
+                {
+                    "fields": "lastName"
+                },
+                {
+                    "fields": "legalName"
+                }
+            ],
+            "inputs": {
+                "newTW": [
+                    {
+                        "name": "firstName"
+                    },
+                    {
+                        "name": "middleName",
+                        "optional": true
+                    },
+                    {
+                        "name": "lastName",
+                        "optional": true
+                    },
+                    {
+                        "name": "dob",
+                        "optional": true
+                    },
+                    {
+                        "name": "gender",
+                        "optional": true
+                    },
+                    {
+                        "name": "title",
+                        "optional": true
+                    },
+                    {
+                        "name": ":contact",
+                        "optional": true,
+                        "spec": "newTW"
+                    }
+                ],
+                "editTW": [
+                    {
+                        "name": "firstName",
+                        "optional": true
+                    },
+                    {
+                        "name": "middleName",
+                        "optional": true
+                    },
+                    {
+                        "name": "lastName",
+                        "optional": true
+                    },
+                    {
+                        "name": "dob",
+                        "optional": true
+                    },
+                    {
+                        "name": "gender",
+                        "optional": true
+                    },
+                    {
+                        "name": "title",
+                        "optional": true
+                    },
+                    {
+                        "name": ":contact",
+                        "optional": true,
+                        "spec": "editTW"
+                    }
+                ]
+            }
+        },
+        "personTitle": {
+            "base": [
+                "dictionaryByCode"
+            ],
+            "comment": "Person title",
+            "fields": {
+                "male": {
+                    "name": "male",
+                    "type": "boolean"
+                },
+                "female": {
+                    "name": "female",
+                    "type": "boolean"
+                }
+            },
+            "data": [
+                {
+                    "records": [
+                        {
+                            "code": "MR",
+                            "name": "Mr.",
+                            "male": true,
+                            "female": false,
+                            "isSystem": true
+                        },
+                        {
+                            "code": "MRS",
+                            "name": "Mrs.",
+                            "male": false,
+                            "female": true,
+                            "isSystem": true
+                        },
+                        {
+                            "code": "MS",
+                            "name": "Ms.",
+                            "male": false,
+                            "female": true,
+                            "isSystem": true
+                        },
+                        {
+                            "code": "MISS",
+                            "name": "Miss",
+                            "male": false,
+                            "female": true,
+                            "isSystem": true
+                        },
+                        {
+                            "code": "DR",
+                            "name": "Dr.",
+                            "male": true,
+                            "female": true,
+                            "isSystem": true
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "id": "./../app_modules/gem-user/geml/person.geml",
+    "packageName": "user",
+    "name": "person"
+}

@@ -1,0 +1,30 @@
+import 'commons:types'
+import 'geo:address'
+import person
+
+//----------------------------------------------------------------------------------------------------     
+
+entity contact is hyperIdIndexed
+  has
+    mobile optional
+    phone optional 
+    email optional
+  associations
+    refersTo address optional -- "Residential address"
+    refersTo address as postalAddress optional
+    refersTo address as billingAddress optional
+  input
+    newTW
+      mobile optional
+      phone optional
+      email optional
+      ':address' optional with newTW
+    editTW
+      mobile optional
+      phone optional
+      email optional
+      ':address' optional with editTW
+      ':postalAddress' optional with editTW
+      ':billingAddress' optional with editTW
+    
+

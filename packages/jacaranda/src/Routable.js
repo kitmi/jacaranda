@@ -1,6 +1,4 @@
 import path from 'node:path';
-import { fs, isDir } from '@kitmi/sys';
-import { globSync } from 'glob';
 import { _, url as urlUtil, text, isPlainObject, eachAsync_ } from '@kitmi/utils';
 import { ApplicationError, InvalidConfiguration, InvalidArgument } from '@kitmi/types';
 import { defaultRoutableOpts } from './defaultServerOpts';
@@ -10,8 +8,7 @@ const Routable = (T) =>
         /**
          * @param {string} name - The name of the routable instance.
          * @param {object} [options] - Routable options
-         * @property {string} [options.backendPath='server'] - Relative path of back-end server source files
-         * @property {string} [options.clientPath='client'] - Relative path of front-end client source files
+         * @property {string} [options.controllersPath='actions'] - Relative path of controller source files
          * @property {string} [options.publicPath='public'] - Relative path of front-end static files
          */
         constructor(name, options) {
@@ -25,18 +22,7 @@ const Routable = (T) =>
 
             this.controllersPath = path.resolve(this.sourcePath, this.options.controllersPath);
 
-            this.middlewaresPath = path.resolve(this.sourcePath, this.options.middlewaresPath);
-
             this.routable = true;
-
-            this._middlewareRegistry = {};
-
-            this.once('configLoaded', () => {
-                //load middlewares if exists in server or app path
-                if (fs.pathExistsSync(this.middlewaresPath) && isDir(this.middlewaresPath)) {
-                    this.addMiddlewaresRegistryFrom(this.middlewaresPath);
-                }
-            });            
         }
 
         async start_() {
@@ -52,7 +38,11 @@ const Routable = (T) =>
                 this.options.logMiddlewareRegistry &&
                 (this.options.logLevel === 'verbose' || this.options.logLevel === 'debug')
             ) {
-                this.log('verbose', 'Registered middlewares:', this._middlewareRegistry);
+                this.log(
+                    'verbose',
+                    'Registered middlewares:',
+                    this.registry.middlewares ? Object.keys(this.registry.middlewares) : []
+                );
             }
 
             return this;
@@ -62,23 +52,6 @@ const Routable = (T) =>
             delete this._middlewareFactories;
 
             return super.stop_();
-        }
-
-        /**
-         * Load and regsiter middleware files from a specified path.
-         * @param dir
-         */
-        addMiddlewaresRegistryFrom(dir) {
-            let files = globSync(path.join(dir, '**/*.{js,ts,mjs,cjs}'), { nodir: true });
-            files.forEach((file) => this._middlewareRegistry[text.baseName(file)] = file);
-        }
-
-        /**
-         * Register middleware files from a registry.
-         * @param {object} registry 
-         */
-        addMiddlewaresRegistry(registry) {
-            Object.assign(this._middlewareRegistry, registry);
         }
 
         /**
@@ -114,23 +87,10 @@ const Routable = (T) =>
                 return factory;
             }
 
-            const registryEntry = this._middlewareRegistry[name];
+            const registryEntry = this.registry.middlewares?.[name];
             if (registryEntry != null) {
-                let file = registryEntry;
-                let exportName;
-
-                if (Array.isArray(registryEntry)) {
-                    file = registryEntry[0];
-                    exportName = registryEntry[1];
-                }
-
-                let middlewareFactory = this.tryRequire(file);
-                if (exportName) {
-                    middlewareFactory = _.get(middlewareFactory, exportName);
-                }
-
-                this._middlewareFactories[name] = middlewareFactory;
-                return middlewareFactory;
+                this._middlewareFactories[name] = registryEntry;
+                return registryEntry;
             }
 
             if (this.server && !this.isServer) {
@@ -308,18 +268,6 @@ const Routable = (T) =>
             if (hasNotEnabled) {
                 throw new InvalidConfiguration(
                     `Middleware "${middleware}" requires "${hasNotEnabled}" feature to be enabled.`,
-                    this,
-                    `middlewares.${middleware}`
-                );
-            }
-        }
-
-        requireServices(services, middleware) {
-            const notRegisterred = _.find(_.castArray(services), (service) => !this.hasService(service));
-
-            if (notRegisterred) {
-                throw new InvalidConfiguration(
-                    `Middleware "${middleware}" requires "${notRegisterred}" service to be registerred.`,
                     this,
                     `middlewares.${middleware}`
                 );

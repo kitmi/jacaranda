@@ -1,0 +1,6 @@
+import 'entities/types'
+
+schema 'test'
+  entities
+    dictionaryByCode    
+    

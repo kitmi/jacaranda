@@ -1,23 +1,40 @@
 import Feature from '../Feature';
 import { isEmpty } from '@kitmi/utils';
 
-export default function (server, options) {
-    const { type, middlewares, ..._options } = options;
-    const Engine = server.tryRequire('@kitmi/adapters')[type];
+export default {
+    stage: Feature.INIT,
 
-    return {
-        stage: Feature.INIT,
+    packages: (server, { type }) => {
+        const Engine = server.tryRequire('@kitmi/adapters')[type];
+        return Engine.packages;
+    },
 
-        packages: Engine.packages,
+    load_: async function (server, options, name) {
+        const { type, middlewares, ..._options } = server.featureConfig(
+            options,
+            {
+                schema: {
+                    type: { type: 'text' },
+                    middlewares: [
+                        { type: 'text', optional: true },
+                        { type: 'array', optional: true },
+                        { type: 'object', optional: true },
+                    ],
+                },
+                keepUnsanitized: true,
+            },
+            name
+        );
 
-        load_: async function (server) {
-            server.engine = new Engine(server);
-            if (!isEmpty(middlewares)) {
-                server.once('before:Plugins', () => {                    
-                    server.useMiddlewares_(server.engine, middlewares);
-                });                
-            }
-            await server.engine.init_(_options);
-        },
-    };
-}
+        const Engine = server.tryRequire('@kitmi/adapters')[type];
+
+        server.engine = new Engine(server);
+        if (!isEmpty(middlewares)) {
+            server.once('before:Plugins', async () => {
+                await server.useMiddlewares_(server.engine, middlewares);
+            });
+        }
+
+        await server.engine.init_(_options);
+    },
+};

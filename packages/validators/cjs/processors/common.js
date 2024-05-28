@@ -27,7 +27,10 @@ const _default = {
     pascalCase: (value)=>(0, _utils.pascalCase)(value),
     camelCase: (value)=>(0, _utils.camelCase)(value),
     kebabCase: (value)=>(0, _utils.kebabCase)(value),
-    snakeCase: (value)=>(0, _utils.snakeCase)(value)
+    snakeCase: (value)=>(0, _utils.snakeCase)(value),
+    toLower: (value)=>value.toLowerCase(),
+    toUpper: (value)=>value.toUpperCase(),
+    type: (value, options, meta, context)=>context.system.sanitize(value, options, context.i18n, context.path)
 };
 
 //# sourceMappingURL=common.js.map

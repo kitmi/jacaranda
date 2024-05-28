@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/loaders/index.js"],"sourcesContent":["const ExcelLoader = require('./excel');\n\nmodule.exports = {\n    ExcelLoader\n};"],"names":["ExcelLoader","require","module","exports"],"rangeMappings":";;;;","mappings":";AAAA,MAAMA,cAAcC,QAAQ;AAE5BC,OAAOC,OAAO,GAAG;IACbH;AACJ"}

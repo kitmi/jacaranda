@@ -1,0 +1,31 @@
+{
+    "name": "@genx/gem-geo",
+    "version": "0.0.1",
+    "description": "Gen-X Entity Models (GEM) - Geo",
+    "private": true,
+    "dependencies": {
+        "@genx/app": "github:genx-tech/gx-app#v2",
+        "@genx/data": "github:genx-tech/gx-data#v2",
+        "@genx/jes": "*",
+        "@genx/july": "*",
+        "@genx/server": "github:genx-tech/gx-server#v2",
+        "@genx/sys": "*",
+        "hyperid": "^2.3.1",
+        "luxon": "^2.0.2",
+        "mysql2": "^2.3.0"
+    },
+    "scripts": {
+        "bulid:clean": "del lib",
+        "build:server": "npm run bulid:clean && NODE_ENV=production babel src -d lib --ignore \"**/__test__/*.js\" --source-maps --copy-files --no-copy-ignored",
+        "build": "npm run build:server"
+    },
+    "nyc": {
+        "exclude": [
+            ".mocharc.js",
+            "babel.config.js",
+            "test",
+            "lib",
+            "**/*.spec.js"
+        ]
+    }
+}

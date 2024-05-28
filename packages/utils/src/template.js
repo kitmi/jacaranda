@@ -12,4 +12,14 @@ function template(str, values, settings) {
     return compile(str, settings)(values);
 }
 
+const esTemplateSetting = {
+    escape: false,
+    evaluate: false,
+    imports: false,
+    interpolate: /\$\{([\s\S]+?)\}/g,
+    variable: false,
+};
+
+export const esTemplate = (str, values) => template(str, values, esTemplateSetting);
+
 export default template;

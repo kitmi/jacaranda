@@ -22,14 +22,15 @@ module.exports = {
      *
      * @example
      *
-     * serviceGroup: { 's3DigitalOcean': { '<instanceName>': {  } }   }
+     * // serviceName: s3DigitalOcean.instance1
+     * serviceGroup: { 's3DigitalOcean': { 'instance1': {  } }   }
      */
     load_: async function (app, services) {
         let features = [];
         const instancesMap = {};
 
-        _.each(services, (instances, serviceName) => {
-            let feature = app._loadFeature(serviceName);
+        await eachAsync_(services, async (instances, serviceName) => {
+            let feature = await app._loadFeature_(serviceName);
             if (!feature.groupable) {
                 throw new InvalidConfiguration(
                     `Feature [${serviceName}] is not groupable.`,
@@ -46,10 +47,10 @@ module.exports = {
 
         await eachAsync_(features, async ([feature]) => {
             const instances = instancesMap[feature.name];
-            await batchAsync_(instances, (serviceOptions, instanceName) => {
-                const fullName = `${feature.name}-${instanceName}`;
+            await batchAsync_(instances, async (serviceOptions, instanceName) => {
+                const fullName = `${feature.name}.${instanceName}`;                
                 const { load_, ...others } = feature;
-                load_(app, serviceOptions, `${feature.name}-${instanceName}`);
+                await load_(app, serviceOptions, fullName);
                 others.enabled = true;
                 app.features[fullName] = others;
             });

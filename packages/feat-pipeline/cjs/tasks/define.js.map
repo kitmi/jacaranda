@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/tasks/define.js"],"sourcesContent":["export default function defineValues(step, settings) {\n    return settings;\n};\n"],"names":["defineValues","step","settings"],"rangeMappings":";;;;;;;;;;;;","mappings":";;;;+BAAA;;;eAAwBA;;;AAAT,SAASA,aAAaC,IAAI,EAAEC,QAAQ;IAC/C,OAAOA;AACX"}

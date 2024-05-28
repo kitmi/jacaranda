@@ -3,14 +3,11 @@ import path from 'node:path';
 
 function tryRequireBy(packageName, mainModule, throwWhenNotFound) {
     try {
-        if (typeof mainModule === 'string') {
-            const require2 = createRequire(
-                mainModule.endsWith('/') || mainModule.endsWith('\\') ? mainModule : mainModule + path.sep
-            );
-            return require2(packageName);
-        }
+        const require2 = createRequire(
+            mainModule.endsWith('/') || mainModule.endsWith('\\') ? mainModule : mainModule + path.sep
+        );
 
-        return mainModule.require(packageName);
+        return require2(packageName);
     } catch (error) {
         if (error.code === 'MODULE_NOT_FOUND') {
             if (throwWhenNotFound) {
@@ -20,21 +17,6 @@ function tryRequireBy(packageName, mainModule, throwWhenNotFound) {
                 if (npmPkgName.startsWith('.')) {
                     //path
                     throw error;
-                }
-
-                if (npmPkgName.startsWith('@') && pkgPaths.length > 1) {
-                    npmPkgName += '/' + pkgPaths[1];
-                }
-
-                let pos1 = error.message.indexOf("'");
-                let realModuleName = error.message.substr(pos1 + 1);
-                let pos2 = realModuleName.indexOf("'");
-                realModuleName = realModuleName.substr(0, pos2);
-
-                if (realModuleName === packageName) {
-                    throw new Error(
-                        `Module "${packageName}" not found. Try run "npm install ${npmPkgName}" to install the dependency.`
-                    );
                 }
 
                 throw error;
@@ -55,24 +37,25 @@ function tryRequireBy(packageName, mainModule, throwWhenNotFound) {
  * @returns {Object}
  */
 function tryRequire(packageName, basePath) {
-    if (
-        packageName.startsWith('@') ||
-        path.isAbsolute(packageName) ||
-        // not a path
-        (packageName.indexOf(path.sep) === -1 && !packageName.startsWith('.'))
-    ) {
+    // relative path
+    const isRelative = packageName.indexOf(path.sep) > 0 && packageName.startsWith('.');
+    if (isRelative) {
+        packageName = path.resolve(basePath ?? '', packageName);
+    }
+
+    if (packageName.startsWith('@') || path.isAbsolute(packageName)) {
         try {
             return require(packageName);
         } catch (error) {
             if (error.code !== 'MODULE_NOT_FOUND') {
                 throw error;
-            }
+            }            
         }
     }
 
     basePath != null || (basePath = process.cwd());
 
-    return tryRequireBy(packageName, require.main, basePath == null) || tryRequireBy(packageName, basePath, true);
+    return tryRequireBy(packageName, basePath, true);
 }
 
 export default tryRequire;

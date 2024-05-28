@@ -4,3 +4,4 @@ export { default as findKey } from './findKey';
 export { default as findKeyAsync_ } from './findKeyAsync_';
 export { default as findAsync_ } from './findAsync_';
 export { default as filterAsync_ } from './filterAsync_';
+export { default as size } from './size';

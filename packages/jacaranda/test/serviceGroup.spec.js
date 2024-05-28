@@ -4,7 +4,7 @@ describe('feature:serviceGroup', function () {
     it('test1', async function () {
         await startWorker(
             async (app) => {
-                const test1 = app.getService('superAgent-test1');
+                const test1 = app.getService('superAgent.test1');
                 should.exist(test1);
 
                 const result = await test1.get('products');
@@ -21,7 +21,7 @@ describe('feature:serviceGroup', function () {
     it('test2', async function () {
         await startWorker(
             async (app) => {
-                const test2 = app.getService('superAgent-test2');
+                const test2 = app.getService('superAgent.test2');
                 should.exist(test2);
 
                 const result = await test2.get('/api/users', { page: 2 });

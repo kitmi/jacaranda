@@ -19,8 +19,10 @@ const common = {
     min: (0, _makeValidator.default)((value, minValue)=>value >= minValue, 'The value must be greater than or equal to the min value.'),
     length: (0, _makeValidator.default)((value, length)=>value.length === length, 'The length of the value must be equal to the specified length.'),
     maxLength: (0, _makeValidator.default)((value, maxLength)=>value.length <= maxLength, 'The length of the value must be less than or equal to the max length.'),
-    minLength: (0, _makeValidator.default)((value, minLength)=>value.length >= minLength, 'The length of the value must be greater than or equal to the min length.')
+    minLength: (0, _makeValidator.default)((value, minLength)=>value.length >= minLength, 'The length of the value must be greater than or equal to the min length.'),
+    exist: (0, _makeValidator.default)((value, required)=>!required || value != null, 'The value must not NULL.', true)
 };
+common.isRequired = common.exist;
 const _default = common;
 
 //# sourceMappingURL=common.js.map

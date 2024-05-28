@@ -5,6 +5,8 @@ import findAsync_ from '../src/findAsync_';
 import findKeyAsync_ from '../src/findKeyAsync_';
 import findKey from '../src/findKey';
 import sleep_ from '../src/sleep_';
+import size from '../src/size';
+import _ from 'lodash';
 
 describe('collection', () => {
     const array = [10, 20, 30, 40];
@@ -129,4 +131,21 @@ describe('collection', () => {
             k4: 500,
         });
     });
+
+    it('size', () => {
+        size(array).should.be.exactly(4);
+        size(obj).should.be.exactly(4);
+    });
+
+    it('size diff with lodash', () => {
+        const key = Symbol('key');
+        const obj = {
+            [key]: 'something',
+            a: 'others'
+        };
+
+        _.size(obj).should.be.exactly(1);
+        size(obj).should.be.exactly(2);
+    });
 });
+

@@ -27,7 +27,7 @@ function _interop_require_default(obj) {
         ...options
     };
     return (0, _worker.default)(async (app)=>{
-        process.on('SIGINT', ()=>{
+        process.once('SIGINT', ()=>{
             app.stop_().then(()=>{}).catch((error)=>console.error(error.message || error));
         });
         let lastResult;

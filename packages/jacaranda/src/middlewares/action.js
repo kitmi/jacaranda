@@ -3,9 +3,7 @@
  * @module Middleware_Action
  */
 
-import path from 'node:path';
 import { InvalidConfiguration } from '@kitmi/types';
-import { esmCheck } from '@kitmi/utils';
 
 /**
  * Action middleware creator
@@ -25,18 +23,10 @@ const action = (controllerAction, app) => {
     let controller = controllerAction.substring(0, pos);
     let action = controllerAction.substring(pos + 1);
 
-    let controllerPath = path.resolve(app.controllersPath, controller);
-    let ctrl;
+    let ctrl = app.registry.controllers?.actions?.[controller];
 
-    try {
-        ctrl = esmCheck(require(controllerPath));
-    } catch (err) {
-        if (err.code === 'MODULE_NOT_FOUND') {
-            throw new InvalidConfiguration(`Failed to load [${controller}] at ${controllerPath}. ${err.message}`, app, {
-                app: app.name,
-                controller,
-            });
-        }
+    if (ctrl == null) {
+        throw new InvalidConfiguration(`Action controller "${controller}" not found.`, app);
     }
 
     let actioner = ctrl[action];

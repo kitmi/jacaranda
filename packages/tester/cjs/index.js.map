@@ -1,1 +1,1 @@
-{"version":3,"sources":["../src/index.js"],"sourcesContent":["export * from './bootstrap';\nexport * from './tester';"],"names":[],"mappings":";;;;qBAAc;qBACA"}
+{"version":3,"sources":["../src/index.js"],"sourcesContent":["export * from './bootstrap';\nexport * from './tester';"],"names":[],"rangeMappings":";;;;;","mappings":";;;;qBAAc;qBACA"}

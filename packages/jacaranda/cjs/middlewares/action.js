@@ -11,14 +11,7 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 const _types = require("@kitmi/types");
-const _utils = require("@kitmi/utils");
-function _interop_require_default(obj) {
-    return obj && obj.__esModule ? obj : {
-        default: obj
-    };
-}
 /**
  * Action middleware creator
  * @param {string} controllerAction
@@ -33,17 +26,9 @@ function _interop_require_default(obj) {
     }
     let controller = controllerAction.substring(0, pos);
     let action = controllerAction.substring(pos + 1);
-    let controllerPath = _nodepath.default.resolve(app.controllersPath, controller);
-    let ctrl;
-    try {
-        ctrl = (0, _utils.esmCheck)(require(controllerPath));
-    } catch (err) {
-        if (err.code === 'MODULE_NOT_FOUND') {
-            throw new _types.InvalidConfiguration(`Failed to load [${controller}] at ${controllerPath}. ${err.message}`, app, {
-                app: app.name,
-                controller
-            });
-        }
+    let ctrl = app.registry.controllers?.actions?.[controller];
+    if (ctrl == null) {
+        throw new _types.InvalidConfiguration(`Action controller "${controller}" not found.`, app);
     }
     let actioner = ctrl[action];
     if (Array.isArray(actioner)) {

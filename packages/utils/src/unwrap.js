@@ -1,5 +1,3 @@
-import replaceAll from './replaceAll';
-
 const pairs = {
     '(': ')',
     '[': ']',

@@ -1,0 +1,5 @@
+import 'entities/*'
+
+schema '{{ schemaName }}'
+  entities
+    test

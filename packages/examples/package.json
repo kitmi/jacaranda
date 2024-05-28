@@ -1,6 +1,6 @@
 {
   "name": "@kitmi/examples",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Jacaranda example apps",
   "main": "cjs/index.js",
   "module": "src/index.js",
@@ -54,12 +54,12 @@
     ]
   },
   "dependencies": {
-    "@kitmi/jacaranda": "workspace:*",
-    "@kitmi/utils": "workspace:*",
+    "@kitmi/jacaranda": "workspace:^",
+    "@kitmi/utils": "workspace:^",
     "openai": "^4.20.1"
   },
   "devDependencies": {
-    "@kitmi/tester": "workspace:*",
+    "@kitmi/tester": "workspace:^",
     "@ladjs/koa-views": "^9.0.0",
     "swig-templates": "^2.0.3"
   },

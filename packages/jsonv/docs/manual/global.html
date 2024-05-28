@@ -160,7 +160,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="transform.js.html">transform.js</a>, <a href="transform.js.html#line24">line 24</a>
+        <a href="transform.js.html">transform.js</a>, <a href="transform.js.html#line35">line 35</a>
     </li></ul></dd>
     
 
@@ -394,7 +394,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="transform.js.html">transform.js</a>, <a href="transform.js.html#line59">line 59</a>
+        <a href="transform.js.html">transform.js</a>, <a href="transform.js.html#line70">line 70</a>
     </li></ul></dd>
     
 
@@ -628,7 +628,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="transform.js.html">transform.js</a>, <a href="transform.js.html#line41">line 41</a>
+        <a href="transform.js.html">transform.js</a>, <a href="transform.js.html#line52">line 52</a>
     </li></ul></dd>
     
 
@@ -1136,7 +1136,7 @@ $groupBy: 'key'
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="transform.js.html">transform.js</a>, <a href="transform.js.html#line123">line 123</a>
+        <a href="transform.js.html">transform.js</a>, <a href="transform.js.html#line134">line 134</a>
     </li></ul></dd>
     
 
@@ -1370,7 +1370,7 @@ $groupBy: 'key'
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="transform.js.html">transform.js</a>, <a href="transform.js.html#line76">line 76</a>
+        <a href="transform.js.html">transform.js</a>, <a href="transform.js.html#line87">line 87</a>
     </li></ul></dd>
     
 
@@ -1587,7 +1587,7 @@ $groupBy: 'key'
 
     
 
-    <h4 class="name" id="validate"><span class="type-signature"></span>validate<span class="signature">(actual, jsv, options, context)</span><span class="type-signature"> &rarr; {array}</span></h4>
+    <h4 class="name" id="validate"><span class="type-signature"></span>validate<span class="signature">(actual, jsv, options, context<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {array}</span></h4>
 
     
 
@@ -1597,6 +1597,335 @@ $groupBy: 'key'
     <p>Validate the given object with JSON Expression Syntax (JES)</p>
 </div>
 
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>context.config</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>Object</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The configuration object for the current validation context</p></td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>context.path</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The current path of the data structure being validated</p></td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>context.THIS</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>*</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The current value being validated</p></td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>context.ROOT</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>*</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The root of the data structure being validated</p></td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>context.PARENT</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>*</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The parent of the current field being validated</p></td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>context.KEY</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The key of the current field being validated</p></td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>context.ERROR</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+|
+
+<span class="param-type"><code>Array</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The error message to display if the validation fails</p></td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>context.mapOfNames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>Object</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>A map of field names to use for error messages</p></td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>context.name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The name of the current field being validated, provided by the user</p></td>
+        </tr>
+
+        
+
+    
+    </tbody>
+</table>
 
 
 
@@ -1630,7 +1959,7 @@ $groupBy: 'key'
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="validate.js.html">validate.js</a>, <a href="validate.js.html#line49">line 49</a>
+        <a href="validate.js.html">validate.js</a>, <a href="validate.js.html#line58">line 58</a>
     </li></ul></dd>
     
 
@@ -1662,6 +1991,8 @@ $groupBy: 'key'
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -1686,6 +2017,14 @@ $groupBy: 'key'
             
             </td>
 
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
             
 
             
@@ -1713,6 +2052,14 @@ $groupBy: 'key'
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
@@ -1739,6 +2086,14 @@ $groupBy: 'key'
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
@@ -1764,6 +2119,16 @@ $groupBy: 'key'
             
             </td>
 
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
             
 
             
@@ -1839,7 +2204,7 @@ $groupBy: 'key'
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Tue Jan 23 2024 09:02:02 GMT+0800 (Central Standard Time) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Wed Apr 10 2024 14:41:26 GMT+0800 (China Standard Time) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

@@ -1,0 +1,39 @@
+import 'commons:types'
+import 'user:user'
+import 'agenda'
+
+//----------------------------------------------------------------------------------------------------     
+
+type
+  taskStatus: enum values('new', 'pending', 'assigned', 'ongoing', 'done', 'expired', 'cancelled', 'rejected')
+
+//----------------------------------------------------------------------------------------------------     
+
+entity taskType is dictionaryByCode
+  -- "Task type"  
+  has
+    isAssignable: boolean optional
+    isApproval: boolean optional
+  
+//----------------------------------------------------------------------------------------------------     
+
+entity task is hyperIdIndexed
+  with
+    createTimestamp
+    updateTimestamp
+    stateTracking('status')
+  has
+    dueDate: date dateOnly optional
+    status: taskStatus
+    isApproved: boolean optional // for approval task
+    declinedReason: desc
+    name
+    desc
+    metadata: object optional
+  associations
+    belongsTo user as owner optional // null for system tasks
+    belongsTo user as assignedTo optional
+    refersTo taskType as type
+    refersTo resourceGroup optional
+    refersTo agendaItem optional
+  

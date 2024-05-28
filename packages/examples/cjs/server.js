@@ -23,7 +23,9 @@ const server = (0, _jacaranda.serve)({
     logLevel: 'verbose',
     logFeatures: true,
     logMiddlewareRegistry: true,
-    modulesRegistry
+    registry: {
+        apps: modulesRegistry
+    }
 });
 const _default = server;
 

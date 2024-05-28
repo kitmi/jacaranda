@@ -16,7 +16,7 @@ const _helpers = require("../helpers");
  * @module Router_Rule
  */ /**
  * Create a rule-based router.
- * @param {WebModule} app
+ * @param {Routable} app
  * @param {string} baseRoute
  * @param {object} options
  * @example

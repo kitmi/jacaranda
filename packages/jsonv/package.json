@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/jsonv",
-    "version": "1.0.0",
+    "version": "1.1.3",
     "description": "JSON Validation Syntax",
     "main": "cjs/index.js",
     "module": "src/index.js",
@@ -56,8 +56,8 @@
         ]
     },
     "dependencies": {
-        "@kitmi/types": "workspace:*",
-        "@kitmi/utils": "workspace:*",
+        "@kitmi/types": "workspace:^",
+        "@kitmi/utils": "workspace:^",
         "lodash": "^4.17.21"
     },
     "prettier": {

@@ -17,7 +17,6 @@ _export(exports, {
     }
 });
 const defaultOpts = {
-    env: process.env.NODE_ENV || 'development',
     configPath: 'conf',
     configName: 'app',
     configType: 'json',

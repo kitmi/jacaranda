@@ -1,0 +1,133 @@
+import 'commons:types'
+import 'geo:country'
+import 'cms:resource'
+import person
+
+//----------------------------------------------------------------------------------------------------     
+
+type
+  password : text maxLength(200)  
+  userStatus : enum values("unverified", "active", "suspended", "deleted")    
+  verifyType : enum values("email", "mobile", "none")    
+
+//----------------------------------------------------------------------------------------------------     
+
+entity userRole is manyToMany
+  -- "User role"
+  associations
+    belongsTo user
+    refersTo userRoleType as role
+  index
+    [ user, role ] is unique
+
+//----------------------------------------------------------------------------------------------------         
+
+entity userRoleType is dictionaryByCode   
+  -- "User role type"
+  has
+    usage: shortName optional
+    isSpecific: boolean optional -- "Specificially for sub-system"
+  
+//----------------------------------------------------------------------------------------------------     
+
+entity userRegistration is hyperIdIndexed
+  -- "User registration"  
+  with
+    createTimestamp
+    atLeastOneNotNull([ 'mobile', 'email' ])
+  has
+    username: name  
+    mobile optional
+    email optional
+    password |~enforceStrongPassword 
+    firstName : name optional
+    lastName : name optional
+    companyName: name optional
+    gender: name optional    
+    avatar: url optional
+    code : text maxLength(8) auto |=generator('default', { type: 'text', fixedLength: 6 })
+    verifyType |=determineVerifyType(@latest.mobile, @latest.email)   
+  input
+    new
+      username
+      mobile optional
+      email optional
+      password
+      firstName
+      lastName 
+      avatar optional
+    newHost
+      username
+      mobile optional
+      email optional
+      password
+      firstName
+      lastName 
+      companyName
+      avatar optional
+
+//----------------------------------------------------------------------------------------------------     
+
+
+entity userPreference
+  -- "User preference"
+  with
+    autoId
+  has
+    key : idString
+    value : object optional
+  associations
+    belongsTo user
+  index
+    [ user, key ] is unique    
+
+//----------------------------------------------------------------------------------------------------     
+
+entity user is hyperIdIndexed
+  -- "User"     
+  with
+    createTimestamp
+    updateTimestamp
+    logicalDeletion({ status: 'deleted' })
+    stateTracking("status")  
+  has    
+    username : idString |=defaultUsername -- "User name"
+    mobile optional -- "User mobile"
+    email optional -- "User email"
+    name |=populate('person.legalName') -- "Nick name"
+    password |~enforceStrongPassword |>hashPassword(@latest.passwordSalt) -- "User password"
+    passwordSalt : text fixedLength(8) auto -- "User password salt"    
+    isEmailVerified : boolean writeOnce optional -- "Is user email verified?"
+    emailVerifiedTime : datetime writeOnce optional -- "User email verified time"
+    isMobileVerified : boolean writeOnce optional -- "Is user mobile verified?"
+    mobileVerifiedTime : datetime writeOnce optional -- "User mobile verified time"    
+    avatar : url optional    
+    status : userStatus default("unverified") -- "User status"   
+    lastLoginTime : datetime optional -- "Last login time"
+    currentLoginTime : datetime optional -- "Current login time"
+    isHidden : boolean optional -- "Not allowed to login UI and be shown to other users"
+
+  associations
+    refersTo person optional    
+    refersTo resourceGroup optional
+    hasMany userRole as roles     
+    hasMany userPreference as preferences
+
+  index
+    username is unique
+    [mobile, status] is unique
+    [email, status] is unique
+    resourceGroup is unique
+
+  input
+    new
+      username optional
+      mobile optional
+      email 
+      password
+      avatar optional
+      ':person' with newTW
+    edit          
+      avatar optional
+      ':person' with editTW
+ 

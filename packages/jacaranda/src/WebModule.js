@@ -7,7 +7,7 @@ import { defaultWebModuleOpts } from './defaultServerOpts';
 /**
  * Web application module class.
  * @class
- * @extends Routable(LibModule)
+ * @extends ModuleBase(Routable(ServiceContainer))
  */
 class WebModule extends ModuleBase(Routable(ServiceContainer)) {
     /**
@@ -28,14 +28,6 @@ class WebModule extends ModuleBase(Routable(ServiceContainer)) {
          * @member {string}
          */
         this.route = text.ensureStartsWith(text.dropIfEndsWith(route, '/'), '/');        
-    }
-
-    /**
-     * Require a module from the source path of an app module
-     * @param {*} relativePath
-     */
-    requireFromApp(appName, relativePath) {
-        return this.server.requireFromApp(appName, relativePath);
     }
 }
 

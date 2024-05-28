@@ -6,7 +6,8 @@ describe('feature:customConfig', function () {
         await startWorker(
             async (app) => {
                 app.version.should.be.equal(pkg.version);
-                process.env.MY_VAR.should.be.equal('Hello');
+                
+                app.getRuntime('env').MY_VAR.should.be.equal('Hello');
             },
             { verbose: true, configPath: 'test/conf', configName: 'test-custom' }
         );

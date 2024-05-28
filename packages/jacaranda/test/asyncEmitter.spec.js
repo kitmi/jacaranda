@@ -106,7 +106,8 @@ describe('AsyncEmitter', () => {
             emitter.once('test', handler1);
             emitter.once('test', handler2);
             await emitter.emit_('test');
-            emitter._handlers.should.have.property('test').with.lengthOf(0);
+
+            emitter._handlers.should.be.eql({});
         });
 
         it('should return true if there are handlers for the specified event', async () => {

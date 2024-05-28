@@ -469,6 +469,8 @@ export default {
      *      silentModeDefault // {*} - default value when run in silient mode,
      *   } }
      *
+     * Note: If you need to override option value during parsing, you should call `updateOption(name, value)` to automatically update all alias as well
+     * 
      * @returns {Promise.<*>}
      */
     load_: async (app, options, name) => {

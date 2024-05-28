@@ -84,4 +84,11 @@ describe('all sync', function () {
         const obj1 = Types.OBJECT.sanitize(null, meta);
         obj1.should.be.eql({});
     });
+
+    it('type', function () {
+        const obj1 = Types.OBJECT.sanitize({
+            key: { type: 'text', post: [ [ ' ', '|type' ] ] }
+        }, meta);
+        obj1.should.be.eql({});
+    });
 });

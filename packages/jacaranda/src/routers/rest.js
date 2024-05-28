@@ -1,6 +1,4 @@
-import path from 'node:path';
-import { naming, text, hasMethod, esmCheck, batchAsync_ } from '@kitmi/utils';
-import { globSync } from 'glob';
+import { naming, text, hasMethod, batchAsync_ } from '@kitmi/utils';
 
 /**
  * Simple RESTful router.
@@ -9,7 +7,7 @@ import { globSync } from 'glob';
 
 /**
  * Create a RESTful router.
- * @param {*} app
+ * @param {Routable} app
  * @param {string} baseRoute
  * @param {object} options
  * @property {string} [options.$controllerPath]
@@ -34,7 +32,7 @@ import { globSync } from 'glob';
 const restRouter = async (app, baseRoute, options) => {
     let router = app.router.createRouter(baseRoute);
 
-    let resourcePath = path.resolve(app.sourcePath, options.$controllerPath ?? 'resources');
+    let resourcesPath = options.$controllerPath ?? 'resources';
     const kebabify = options.$urlDasherize;
 
     app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.$errorOptions, app), 'jsonError');
@@ -43,22 +41,17 @@ const restRouter = async (app, baseRoute, options) => {
         await app.useMiddlewares_(router, options.$middlewares);
     }
 
-    let resourcesPath = path.join(resourcePath, '**', '*.js');
-    let files = globSync(resourcesPath, { nodir: true });
+    const controllers = app.registry.controllers?.[resourcesPath] ?? [];
 
-    await batchAsync_(files, async (file) => {
-        let relPath = path.relative(resourcePath, file);
+    await batchAsync_(controllers, async (controller, relPath) => {
         let batchUrl = text.ensureStartsWith(
             relPath
-                .substring(0, relPath.length - 3)
-                .split(path.sep)
-                .map((p) => kebabify ? naming.kebabCase(p) : p)
+                .split('/')
+                .map((p) => (kebabify ? naming.kebabCase(p) : p))
                 .join('/'),
             '/'
         );
         let singleUrl = batchUrl + '/:id';
-
-        let controller = esmCheck(require(file));
 
         if (typeof controller === 'function') {
             controller = new controller(app);

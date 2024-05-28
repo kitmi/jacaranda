@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { fs } from '@kitmi/sys';
-import App from '../src';
+import { CliApp as App } from '../src';
 
 const WORKING_DIR = path.resolve(__dirname, './temp');
 

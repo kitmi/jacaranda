@@ -1,1 +1,1 @@
-{"version":3,"sources":["../src/index.js"],"sourcesContent":["export { default, Types } from './sync';\n"],"names":["Types","default"],"mappings":";;;;;;;;;;;IAAkBA,KAAK;eAALA,WAAK;;IAAdC,OAAO;eAAPA,aAAO;;;8DAAe"}
+{"version":3,"sources":["../src/index.js"],"sourcesContent":["export { default, Types } from './sync';\n"],"names":["Types","default"],"rangeMappings":";;;;;;;;;;;;;;;;;;","mappings":";;;;;;;;;;;IAAkBA,KAAK;eAALA,WAAK;;IAAdC,OAAO;eAAPA,aAAO;;;8DAAe"}

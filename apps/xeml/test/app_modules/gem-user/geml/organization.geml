@@ -1,0 +1,127 @@
+import 'commons:types'
+import 'geo:address'
+import contact
+import user
+
+//----------------------------------------------------------------------------------------------------      
+
+type
+  abn : text fixedLength(11) |>removeSpace |~isNumeric
+  acn : text fixedLength(9) |>removeSpace |~isNumeric  
+ 
+//----------------------------------------------------------------------------------------------------     
+
+entity companyRole is dictionaryByCode
+  -- "Company roles"
+  data [
+    {
+      code: 'party',
+      name: 'Party'
+    },
+    {
+      code: 'purchaser',
+      name: 'Purchaser'
+    },
+    {
+      code: 'customer',
+      name: 'Customer'
+    },
+    {
+      code: 'vendor',
+      name: 'Vendor'
+    }
+  ]
+
+//----------------------------------------------------------------------------------------------------     
+
+entity company is hyperIdIndexed
+  -- "Company"  
+  with
+    createTimestamp
+    updateTimestamp
+    logicalDeletion
+  has    
+    name
+    logo : url optional -- "Rectangle"
+    avatar : url optional -- "Square"
+    registrationNo : shortName optional
+    email optional
+    phone optional
+    mobile optional
+    fax : phone optional   
+    website : url optional     
+    abn optional -- "Australia Business Number"
+    acn optional -- "Australia Company Number"
+    taxIdNumber : shortName optional
+  associations    
+    refersTo companyRole as role
+    refersTo address optional -- "Business address"  
+    refersTo address as registeredAddress optional -- "Registered address"  
+    refersTo resourceGroup optional
+    
+  index
+    name 
+    registrationNo
+    resourceGroup is unique
+  
+  input
+    new
+      name
+      logo optional    
+      registrationNo optional
+      email optional
+      phone optional
+      mobile optional
+      fax optional   
+      website optional    
+    edit
+      name optional
+      logo optional    
+      registrationNo optional
+      email optional
+      phone optional
+      mobile optional
+      fax optional   
+      website optional 
+
+//----------------------------------------------------------------------------------------------------     
+entity companyContact 
+  -- "Company contact"
+  with
+    autoId
+  has
+    main: boolean default(false)
+  associations
+    belongsTo company
+    refersTo person 
+  index
+    [ company, person ] is unique
+  input
+    new 
+      ':person' optional with new
+    edit
+      ':person' optional with edit  
+
+//----------------------------------------------------------------------------------------------------       
+entity companyUser
+  -- "Company user"
+  with
+    autoId
+    createTimestamp
+  has
+    internalId: name optional
+  associations
+    belongsTo company 
+    refersTo user  
+  index
+    user is unique
+  input
+    new
+      internalId optional
+      ':user' with new   
+    edit
+      ':user' optional with edit  
+    adminEdit
+      ':user' optional with edit 
+      ':company' optional with edit   
+  

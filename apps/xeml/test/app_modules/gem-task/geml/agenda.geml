@@ -1,0 +1,56 @@
+import 'commons:types'
+import 'user:user'  
+import 'geo:address'
+
+//----------------------------------------------------------------------------------------------------     
+
+type
+  repeatTerm: enum values('none', 'daily', 'weekly', 'fortnightly', 'four-weekly', 'monthly', 'quarterly', 'annually')
+
+//----------------------------------------------------------------------------------------------------     
+
+entity agendaItem is hyperIdIndexed  
+  with
+    createTimestamp
+    updateTimestamp
+  has            
+    date 
+    startTime: datetime timeOnly    
+    endTime: datetime timeOnly
+    duration: integer // minutes
+    title: name 
+    note : desc    
+    desc
+    metadata: object optional
+  associations
+    belongsTo user 
+    belongsTo agendaSeries as series optional
+    belongsTo address as venue optional
+
+//----------------------------------------------------------------------------------------------------         
+
+entity timeSeries is hyperIdIndexed  
+  with
+    createTimestamp
+    updateTimestamp
+  has
+    startDate: date dateOnly optional
+    endDate: date dateOnly optional
+    dayOfWeek: array csv optional
+    repeatTerm 
+    repeatTimes : integer optional
+    startTime: datetime timeOnly
+    endTime: datetime timeOnly
+    duration: integer // minutes   
+    expired: boolean default(false)
+
+//----------------------------------------------------------------------------------------------------         
+
+entity agendaSeries is timeSeries    
+  associations
+    belongsTo user 
+    hasMany agendaItem items
+    refersTo agendaItem as firstItem
+    refersTo agendaItem as latestItem optional
+ 
+  

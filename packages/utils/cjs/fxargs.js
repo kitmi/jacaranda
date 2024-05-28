@@ -39,6 +39,7 @@ const _types = require("@kitmi/types");
  */ function fxargs(args, types) {
     const result = new Array(types.length).fill(undefined);
     let argIndex = 0, lt = types.length, la = args.length;
+    const optionalSpots = [];
     for(let i = 0; i < lt; i++){
         const type = types[i];
         const isOptional = type.endsWith('?');
@@ -52,15 +53,35 @@ const _types = require("@kitmi/types");
                 result[i] = value;
                 argIndex++;
                 matched = true;
+                if (isOptional) {
+                    optionalSpots.push(i);
+                } else {
+                    optionalSpots.length = 0;
+                }
             } else if (isOptional) {
                 break;
             } else {
+                // Try pop up an optional value
+                if (optionalSpots.length > 0 && lt - i >= la - argIndex + 1) {
+                    const optionalIndex = optionalSpots.pop();
+                    result[optionalIndex] = undefined;
+                    argIndex--;
+                    continue;
+                }
                 // No match found for a required type
                 throw new Error(`Missing or invalid argument at index ${i}, expected "${type}".`);
             }
         }
         if (!matched && !isOptional) {
-            throw new Error(`Missing argument at index ${i}, expected "${type}".`);
+            // Try pop up an optional value
+            if (optionalSpots.length > 0 && lt - i >= la - argIndex + 1) {
+                const optionalIndex = optionalSpots.pop();
+                result[optionalIndex] = undefined;
+                argIndex--;
+                i--;
+            } else {
+                throw new Error(`Missing argument at index ${i}, expected "${type}".`);
+            }
         }
     }
     return result;

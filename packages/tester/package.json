@@ -1,24 +1,10 @@
 {
     "name": "@kitmi/tester",
-    "version": "1.0.0",
+    "version": "1.0.4",
     "description": "JavaScript application unit test framework",
     "main": "cjs/index.js",
     "module": "src/index.js",
     "react-native": "src/index.js",
-    "exports": {
-        ".": {
-            "import": "./src/index.js",
-            "require": "./cjs/index.js"
-        },
-        "./*": {
-            "import": "./src/*.js",
-            "require": "./cjs/*.js"
-        },
-        "./**/*": {
-            "import": "./src/**/*.js",
-            "require": "./cjs/**/*.js"
-        }
-    },
     "publishConfig": {
         "access": "public"
     },
@@ -55,21 +41,25 @@
         ]
     },
     "dependencies": {
-        "@kitmi/adapters": "workspace:*",
-        "@kitmi/jacaranda": "workspace:*",
-        "@kitmi/jsonv": "workspace:*",
-        "@kitmi/sys": "workspace:*",
-        "@kitmi/types": "workspace:*",
-        "@kitmi/utils": "workspace:*",
+        "@kitmi/adapters": "workspace:^",
+        "@kitmi/jacaranda": "workspace:^",
+        "@kitmi/jsonv": "workspace:^",
+        "@kitmi/sys": "workspace:^",
+        "@kitmi/types": "workspace:^",
+        "@kitmi/utils": "workspace:^",
+        "@kitmi/validators": "workspace:^",
         "allure-commandline": "^2.22.0",
         "allure-js-commons": "^2.3.0",
         "allure-mocha": "^2.3.0",
         "benchmark": "^2.1.4",
         "microtime": "^3.1.1",
+        "chai": "^4",
         "mocha": "^10.0.0",
         "mocha-multi": "^1.1.7",
-        "serve": "^14.2.0",
-        "yaml": "^2.3.4"
+        "yaml": "^2.3.4",
+        "nyc": "^15.1.0",
+        "serve": "^14.2.3",
+        "superagent": "^9.0.2"
     },
     "devDependencies": {
         "@koa/router": "^12.0.0",
@@ -80,9 +70,15 @@
         "koa-mount": "^4.0.0",
         "koa-static": "^5.0.0",
         "pino": "^8.14.1",
-        "pino-pretty": "^10.0.0",
         "pino-http": "^8.3.3",
+        "pino-pretty": "^10.0.0",
         "request-ip": "^3.3.0"
+    },
+    "peerDependencies": {
+        "@swc-node/register": "^1.6",
+        "mocha": "^10.0.0",
+        "nyc": "^15.1.0",
+        "serve": "^14.2.3"
     },
     "prettier": {
         "quoteProps": "consistent",

@@ -1,1 +1,1 @@
-{"version":3,"sources":["../src/toNumber.js"],"sourcesContent":["export { default } from \"lodash/toNumber\";"],"names":["default"],"mappings":";;;;+BAASA;;;eAAAA,iBAAO;;;iEAAQ"}
+{"version":3,"sources":["../src/toNumber.js"],"sourcesContent":["export { default } from \"lodash/toNumber\";"],"names":["default"],"rangeMappings":";;;;;;;;;;","mappings":";;;;+BAASA;;;eAAAA,iBAAO;;;iEAAQ"}

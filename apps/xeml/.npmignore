@@ -1,0 +1,20 @@
+# .npmignore 
+
+.babelrc
+.gitignore
+.gitattributes
+.travis.yml
+.mocharc.js
+jsdoc.json
+babel.config.js
+*.log
+*.md
+src
+test
+examples
+docs
+coverage
+.nyc_output
+/geml-grammar-debugger
+/scripts
+lib/**/unitSpecs

@@ -1,0 +1,422 @@
+{
+    "namespace": [
+        [
+            "/Users/rockie/Documents/GitHub/genx-suite/packages/model/node_modules/@genx/gem-commons/geml/types.geml",
+            "commons"
+        ],
+        "/Users/rockie/Documents/GitHub/genx-suite/packages/model/test/app_modules/gem-geo/geml/country.geml"
+    ],
+    "entity": {
+        "address": {
+            "base": [
+                "hyperIdIndexed"
+            ],
+            "comment": "Address information",
+            "fields": {
+                "unitNo": {
+                    "name": "unitNo",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "lotNo": {
+                    "name": "lotNo",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "level": {
+                    "name": "level",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "buildingNo": {
+                    "name": "buildingNo",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "building": {
+                    "name": "building",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "streetNo": {
+                    "name": "streetNo",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "alley": {
+                    "name": "alley",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "lane": {
+                    "name": "lane",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "section": {
+                    "name": "section",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "streetName": {
+                    "name": "streetName",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "streetType": {
+                    "name": "streetType",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "neighborhood": {
+                    "name": "neighborhood",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "village": {
+                    "name": "village",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "city": {
+                    "name": "city",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "postcode": {
+                    "name": "postcode",
+                    "type": "text",
+                    "maxLength": [
+                        6
+                    ],
+                    "optional": true
+                },
+                "line1": {
+                    "name": "line1",
+                    "type": "name",
+                    "forceUpdate": true,
+                    "modifiers": [
+                        {
+                            "oolType": "Activator",
+                            "name": "buildLine1",
+                            "args": [
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.village"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.neighborhood"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.streetType"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.streetName"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.section"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.lane"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.alley"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.streetNo"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.building"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.buildingNo"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.level"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.unitNo"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.locale"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "line2": {
+                    "name": "line2",
+                    "type": "name",
+                    "optional": true,
+                    "forceUpdate": true,
+                    "modifiers": [
+                        {
+                            "oolType": "Activator",
+                            "name": "buildLine2",
+                            "args": [
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.line1"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.localityLine"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.locale"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "localityLine": {
+                    "name": "localityLine",
+                    "type": "name",
+                    "optional": true,
+                    "forceUpdate": true,
+                    "modifiers": [
+                        {
+                            "oolType": "Activator",
+                            "name": "buildLocalityLine",
+                            "args": [
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.city"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.state"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.postcode"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.locale"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "state": {
+                    "name": "state",
+                    "type": "shortName",
+                    "optional": true,
+                    "forceUpdate": true,
+                    "modifiers": [
+                        {
+                            "oolType": "Activator",
+                            "name": "fromStateCode",
+                            "args": [
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.stateCode"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "fullText": {
+                    "name": "fullText",
+                    "type": "name",
+                    "forceUpdate": true,
+                    "modifiers": [
+                        {
+                            "oolType": "Activator",
+                            "name": "buildFullAddress",
+                            "args": [
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.line1"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.line2"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.localityLine"
+                                },
+                                {
+                                    "oolType": "ObjectReference",
+                                    "name": "latest.locale"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "latitude": {
+                    "name": "latitude",
+                    "type": "number",
+                    "optional": true
+                },
+                "longitude": {
+                    "name": "longitude",
+                    "type": "number",
+                    "optional": true
+                },
+                "approximate": {
+                    "name": "approximate",
+                    "type": "boolean",
+                    "optional": true
+                },
+                "requireGeocode": {
+                    "name": "requireGeocode",
+                    "type": "boolean",
+                    "optional": true
+                },
+                "altCountryName": {
+                    "name": "altCountryName",
+                    "type": "shortName",
+                    "optional": true
+                }
+            },
+            "associations": [
+                {
+                    "type": "refersTo",
+                    "destEntity": "state",
+                    "srcField": "stateCode",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "country",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "locale",
+                    "fieldProps": {
+                        "optional": true,
+                        "default": [
+                            "zh-TW"
+                        ]
+                    }
+                }
+            ],
+            "indexes": [
+                {
+                    "fields": "fullText"
+                }
+            ],
+            "inputs": {
+                "newTW": [
+                    {
+                        "name": "unitNo",
+                        "optional": true
+                    },
+                    {
+                        "name": "level",
+                        "optional": true
+                    },
+                    {
+                        "name": "streetNo",
+                        "optional": true
+                    },
+                    {
+                        "name": "alley",
+                        "optional": true
+                    },
+                    {
+                        "name": "lane",
+                        "optional": true
+                    },
+                    {
+                        "name": "section",
+                        "optional": true
+                    },
+                    {
+                        "name": "streetName",
+                        "optional": true
+                    },
+                    {
+                        "name": "neighborhood",
+                        "optional": true
+                    },
+                    {
+                        "name": "village",
+                        "optional": true
+                    },
+                    {
+                        "name": "city"
+                    },
+                    {
+                        "name": "stateCode"
+                    }
+                ],
+                "editTW": [
+                    {
+                        "name": "unitNo",
+                        "optional": true
+                    },
+                    {
+                        "name": "level",
+                        "optional": true
+                    },
+                    {
+                        "name": "streetNo",
+                        "optional": true
+                    },
+                    {
+                        "name": "alley",
+                        "optional": true
+                    },
+                    {
+                        "name": "lane",
+                        "optional": true
+                    },
+                    {
+                        "name": "section",
+                        "optional": true
+                    },
+                    {
+                        "name": "streetName",
+                        "optional": true
+                    },
+                    {
+                        "name": "neighborhood",
+                        "optional": true
+                    },
+                    {
+                        "name": "village",
+                        "optional": true
+                    },
+                    {
+                        "name": "city",
+                        "optional": true
+                    },
+                    {
+                        "name": "stateCode",
+                        "optional": true
+                    }
+                ],
+                "oneLine": [
+                    {
+                        "name": "fullText"
+                    }
+                ]
+            }
+        }
+    },
+    "id": "./../app_modules/gem-geo/geml/address.geml",
+    "packageName": "geo",
+    "name": "address"
+}

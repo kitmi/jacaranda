@@ -30,11 +30,6 @@ function _interop_require_default(obj) {
 }
 class KoaEngine {
     async init_(config) {
-        this.app.addMiddlewaresRegistry({
-            body: 'koa-body',
-            compress: 'koa-compress',
-            etag: 'koa-etag'
-        });
         const options = this.app.featureConfig(config, {
             schema: {
                 trustProxy: {
@@ -175,11 +170,7 @@ class KoaEngine {
 _define_property(KoaEngine, "packages", [
     'koa',
     'koa-mount',
-    '@koa/router',
-    'koa-body',
-    'koa-compress',
-    'koa-etag',
-    'koa-static'
+    '@koa/router'
 ]);
 const _default = KoaEngine;
 

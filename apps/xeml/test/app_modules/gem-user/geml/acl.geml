@@ -1,0 +1,31 @@
+import 'commons:types'
+import user
+
+//----------------------------------------------------------------------------------------------------     
+
+entity aclResource is dictionaryByCode
+  -- "ACL resources"  
+  with
+    createTimestamp
+    updateTimestamp  
+  has
+    isApi: boolean default(false)
+  data [
+    { code: "user", name: "User" } // entity, or api:/pathname
+  ]
+
+//----------------------------------------------------------------------------------------------------     
+
+entity aclPermission is dictionaryByCode
+  -- "ACL permissions"  
+  with
+    createTimestamp
+    updateTimestamp  
+  data [
+    { code: "list", name: "List" },    
+    { code: "read", name: "Read" },
+    { code: "write", name: "Write" },    
+    { code: "create", name: "Create" },       
+    { code: "delete", name: "Delete" }          
+  ]
+

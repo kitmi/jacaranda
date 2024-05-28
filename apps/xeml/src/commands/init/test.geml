@@ -1,0 +1,17 @@
+type
+  name : text maxLength(200) emptyAsNull
+  desc : text optional emptyAsNull  
+
+//----------------------------------------------------------------------------------------------------     
+
+entity test
+  with 
+    autoId
+    logicalDeletion
+    
+  has 
+    name
+    desc 
+  
+  index
+    name is unique

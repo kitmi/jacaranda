@@ -52,7 +52,6 @@ const _default = {
                 throw new _types.InvalidConfiguration('Missing app name.', app, `appRouting.${baseRoute}.name`);
             }
             let options = {
-                env: server.env,
                 configType: server.options.configType,
                 logLevel: server.options.logLevel,
                 traceMiddlewares: server.options.traceMiddlewares,
@@ -61,11 +60,12 @@ const _default = {
                 ...config.options
             };
             let appPath;
-            const moduleMeta = server.modulesRegistry[config.name];
+            let moduleMeta = server.registry?.apps?.[config.name];
             if (moduleMeta != null) {
                 appPath = moduleMeta.appPath;
             } else if (config.npmModule) {
-                appPath = server.toAbsolutePath('node_modules', config.name);
+                moduleMeta = await server.tryRequire_(config.name, true);
+                appPath = moduleMeta.appPath;
             } else {
                 appPath = _nodepath.default.join(server.appModulesPath, config.name);
             }
@@ -73,7 +73,10 @@ const _default = {
             if (!exists) {
                 throw new _types.InvalidConfiguration(`App [${config.name}] not found at ${appPath}`, server, `appRouting[${baseRoute}].name`);
             }
-            let app = new _WebModule.default(server, config.name, baseRoute, appPath, options);
+            let app = new _WebModule.default(server, config.name, baseRoute, appPath, {
+                registry: moduleMeta?.registry,
+                ...options
+            });
             app.now = server.now;
             app.once('configLoaded', ()=>{
                 if (!_utils._.isEmpty(config.overrides)) {

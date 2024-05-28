@@ -16,3 +16,4 @@ export { default as hasMethod } from './hasMethod';
 export { default as keyAt } from './keyAt';
 
 export * from './objectPathUtils';
+export * from './objectKeyUtils';

@@ -61,23 +61,6 @@ const ModuleBase = (Base) =>
         enabled(feature, currentModuleOnly) {
             return super.enabled(feature) || (!currentModuleOnly && this.host.enabled(feature));
         }
-
-        /**
-         * Require a js module from backend path
-         * @param {*} relativePath
-         */
-        require(relativePath) {
-            let modPath = path.join(this.sourcePath, relativePath);
-            return require(modPath);
-        }
-
-        /**
-         * Require a module from the source path of a library module
-         * @param {*} relativePath
-         */
-        requireFromLib(libName, relativePath) {
-            return this.host.requireFromLib(libName, relativePath);
-        }
     };
 
 export default ModuleBase;

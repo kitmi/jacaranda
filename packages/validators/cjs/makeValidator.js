@@ -8,8 +8,9 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const makeValidator = (validateFunc, message)=>(value, options, meta, context)=>{
-        const validated = validateFunc(value, options);
+const makeValidator = (validateFunc, message, checkNull)=>{
+    const functor = (value, options, meta, context)=>{
+        const validated = validateFunc(value, options, context);
         if (!validated) {
             return [
                 false,
@@ -23,6 +24,11 @@ const makeValidator = (validateFunc, message)=>(value, options, meta, context)=>
             true
         ];
     };
+    if (checkNull) {
+        functor.__metaCheckNull = true;
+    }
+    return functor;
+};
 const _default = makeValidator;
 
 //# sourceMappingURL=makeValidator.js.map

@@ -21,14 +21,8 @@ function _interop_require_default(obj) {
 /**
  * Web application module class.
  * @class
- * @extends Routable(LibModule)
+ * @extends ModuleBase(Routable(ServiceContainer))
  */ class WebModule extends (0, _ModuleBase.default)((0, _Routable.default)(_ServiceContainer.default)) {
-    /**
-     * Require a module from the source path of an app module
-     * @param {*} relativePath
-     */ requireFromApp(appName, relativePath) {
-        return this.server.requireFromApp(appName, relativePath);
-    }
     /**
      * @param {WebServer} server
      * @param {string} name - The name of the app module.

@@ -10,7 +10,7 @@ describe('unit:tryRequire', function() {
     it('require a non-exist module',async function () {        
         (() => {
             tryRequire('non-exist');
-        }).should.throws(/Module "non-exist" not found. Try run "npm install non-exist" to install the dependency./);        
+        }).should.throws(/Cannot find module/);        
     });  
 
     it('require a local non-exist module',async function () {

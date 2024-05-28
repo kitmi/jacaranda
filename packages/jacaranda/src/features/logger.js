@@ -30,7 +30,7 @@ export default {
 
     groupable: true,
 
-    packages: ['pino', 'pino-pretty', 'pino-http'],
+    packages: ['pino', 'pino-pretty'],
 
     /**
      * Load the feature
@@ -69,7 +69,7 @@ export default {
             ...config,
         };
 
-        const names = name.split('-', 2);
+        const names = name.split('.', 2);
         let isAppLogger = true;
 
         if (names.length > 1) {
@@ -82,9 +82,10 @@ export default {
             ...options,
         });
 
-        if (isAppLogger) {
-            logger.verbose = logger.debug.bind(logger);
+        logger.verbose = logger.debug.bind(logger);
+        logger.log = (level, message, info) => logger[level](info, message);
 
+        if (isAppLogger) {
             if (app._logCache.length > 0) {
                 app._logCache.forEach(([level, message, obj]) => logger[level](obj, message));
                 app._logCache.length = 0;
@@ -92,16 +93,19 @@ export default {
 
             const makeLogger = (logger) => ({
                 log: (level, message, info) => logger[level](info, message),
-                child: (arg1, arg2) => {                    
-                    const _logger = logger.child(arg1, arg2?.level ? { ...arg2, level: arg2.level === 'verbose' ? 'debug' : arg2.level } : arg2);
+                child: (arg1, arg2) => {
+                    const _logger = logger.child(
+                        arg1,
+                        arg2?.level ? { ...arg2, level: arg2.level === 'verbose' ? 'debug' : arg2.level } : arg2
+                    );
                     _logger.verbose = _logger.debug.bind(_logger);
                     return makeLogger(_logger);
                 },
-            }) 
+            });
 
             app.logger = makeLogger(logger);
             app.log = app._loggerLog;
-        }
+        } 
 
         app.registerService(name, logger);
     },

@@ -1,0 +1,62 @@
+{
+    "name": "@kitmi/xeml",
+    "version": "0.0.1",
+    "description": "Jacaranda data entity modeling tool.",
+    "main": "lib/index.js",
+    "bin": {
+        "xeml": "bin/xeml.js"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "test": "mocha --recursive test/**/*.spec.js",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && bun x prepack",
+        "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
+        "prettier": "prettier --write .",
+        "lint": "eslint \"**/*.js\"",
+        "lint-fix": "eslint \"**/*.js\" --fix",
+        "clean": "shx rm -rf cjs coverage .nyc_output",
+        "build": "echo ok",
+        "start": "node ./src/cli/index --config=test/xeml.json",
+        "jison": "./scripts/build-grammar.sh",
+        "debug": "./scripts/debug-grammar.sh",
+        "unit": "mocha --recursive src/**/*.spec.js",
+        "smoke": "cd test && node ../bin/xeml.js -c ./conf/test.yaml"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kitmi/jacaranda.git",
+        "directory": "apps/xeml"
+    },
+    "bugs": {
+        "url": "https://github.com/kitmi/jacaranda/issues"
+    },
+    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "license": "MIT",
+    "nyc": {
+        "exclude": [
+            "babel.config.js",
+            "test",
+            "lib",
+            "**/*.spec.js",
+            "src/lang/grammar"
+        ]
+    },
+    "devDependencies": {
+        "@kitmi/tester": "workspace:*",
+        "jison": "0.4.18",
+        "mongodb": "6.6.2",
+        "mysql2": "3.9.7",
+        "pg": "8.11.5"
+    },
+    "dependencies": {
+        "@kitmi/sys": "workspace:*",
+        "@kitmi/utils": "workspace:*",
+        "@kitmi/feat-db": "workspace:*",
+        "escodegen": "2.1.0",
+        "esprima": "4.0.1",
+        "figlet": "^1.7.0",
+        "glob": "^10.3.10"
+    }
+}

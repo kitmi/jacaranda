@@ -46,7 +46,6 @@ export default {
             }
 
             let options = {
-                env: server.env,
                 configType: server.options.configType,
                 logLevel: server.options.logLevel,
                 traceMiddlewares: server.options.traceMiddlewares,   
@@ -56,13 +55,13 @@ export default {
             };            
 
             let appPath;
-
-            const moduleMeta = server.modulesRegistry[config.name];
+            let moduleMeta = server.registry?.apps?.[config.name];
 
             if (moduleMeta != null) {
                 appPath = moduleMeta.appPath;
             } else if (config.npmModule) {
-                appPath = server.toAbsolutePath('node_modules', config.name);
+                moduleMeta = await server.tryRequire_(config.name, true); 
+                appPath = moduleMeta.appPath;
             } else {
                 appPath = path.join(server.appModulesPath, config.name);
             }
@@ -76,8 +75,8 @@ export default {
                 );
             }
 
-            let app = new WebModule(server, config.name, baseRoute, appPath, options);
-            app.now = server.now;
+            let app = new WebModule(server, config.name, baseRoute, appPath, { registry: moduleMeta?.registry, ...options });
+            app.now = server.now;            
 
             app.once('configLoaded', () => {
                 if (!_.isEmpty(config.overrides)) {

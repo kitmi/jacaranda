@@ -8,20 +8,13 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
 const _utils = require("@kitmi/utils");
-const _glob = require("glob");
-function _interop_require_default(obj) {
-    return obj && obj.__esModule ? obj : {
-        default: obj
-    };
-}
 /**
  * Simple RESTful router.
  * @module Router_REST
  */ /**
  * Create a RESTful router.
- * @param {*} app
+ * @param {Routable} app
  * @param {string} baseRoute
  * @param {object} options
  * @property {string} [options.$controllerPath]
@@ -44,21 +37,16 @@ function _interop_require_default(obj) {
  *  /:resource/:id                 delete         remove
  */ const restRouter = async (app, baseRoute, options)=>{
     let router = app.router.createRouter(baseRoute);
-    let resourcePath = _nodepath.default.resolve(app.sourcePath, options.$controllerPath ?? 'resources');
+    let resourcesPath = options.$controllerPath ?? 'resources';
     const kebabify = options.$urlDasherize;
     app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.$errorOptions, app), 'jsonError');
     if (options.$middlewares) {
         await app.useMiddlewares_(router, options.$middlewares);
     }
-    let resourcesPath = _nodepath.default.join(resourcePath, '**', '*.js');
-    let files = (0, _glob.globSync)(resourcesPath, {
-        nodir: true
-    });
-    await (0, _utils.batchAsync_)(files, async (file)=>{
-        let relPath = _nodepath.default.relative(resourcePath, file);
-        let batchUrl = _utils.text.ensureStartsWith(relPath.substring(0, relPath.length - 3).split(_nodepath.default.sep).map((p)=>kebabify ? _utils.naming.kebabCase(p) : p).join('/'), '/');
+    const controllers = app.registry.controllers?.[resourcesPath] ?? [];
+    await (0, _utils.batchAsync_)(controllers, async (controller, relPath)=>{
+        let batchUrl = _utils.text.ensureStartsWith(relPath.split('/').map((p)=>kebabify ? _utils.naming.kebabCase(p) : p).join('/'), '/');
         let singleUrl = batchUrl + '/:id';
-        let controller = (0, _utils.esmCheck)(require(file));
         if (typeof controller === 'function') {
             controller = new controller(app);
         }

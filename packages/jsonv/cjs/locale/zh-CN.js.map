@@ -1,1 +1,1 @@
-{"version":3,"sources":["../../src/locale/zh-CN.js"],"sourcesContent":["export { default } from './zh-Hans';"],"names":["default"],"mappings":";;;;+BAASA;;;eAAAA,eAAO;;;+DAAQ"}
+{"version":3,"sources":["../../src/locale/zh-CN.js"],"sourcesContent":["export { default } from './zh-Hans';"],"names":["default"],"rangeMappings":";;;;;;;;;;","mappings":";;;;+BAASA;;;eAAAA,eAAO;;;+DAAQ"}

@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/validators",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "description": "Dynamic validators to be used with @kitmi/types based on @kitmi/jsonv and @kitmi/jsonx",
     "main": "cjs/index",
     "module": "src/index.js",
@@ -54,10 +54,10 @@
         "processing"
     ],
     "dependencies": {
-        "@kitmi/jsonv": "workspace:*",
-        "@kitmi/jsonx": "workspace:*",
-        "@kitmi/types": "workspace:*",
-        "@kitmi/utils": "workspace:*",
+        "@kitmi/jsonv": "workspace:^",
+        "@kitmi/jsonx": "workspace:^",
+        "@kitmi/types": "workspace:^",
+        "@kitmi/utils": "workspace:^",
         "validator": "^13.11.0"
     },
     "prettier": {

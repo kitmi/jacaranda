@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/utils",
-    "version": "1.0.0",
+    "version": "1.1.3",
     "description": "A JavaScript utility library for both server and browser",
     "main": "cjs/index",
     "module": "src/index.js",
@@ -50,14 +50,13 @@
         "utility",
         "lodash"
     ],
-    "devDependencies": {
-        "@kitmi/types": "workspace:*",
+    "devDependencies": {        
         "benchmark": "^2.1.4",
         "csv-parse": "^5.0.4",
-        "mobx": "^6.9.0",
-        "jacaranda": "link:jacaranda"
+        "mobx": "^6.9.0"
     },
     "dependencies": {
+        "@kitmi/types": "workspace:^",
         "lodash": "^4.17.21"
     },
     "prettier": {

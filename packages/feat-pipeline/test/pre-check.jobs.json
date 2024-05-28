@@ -1,0 +1,59 @@
+{
+    "jobs": {
+        "default": {
+            "dependsOn": ["job2"],
+            "picks": {
+                "$last": ["var3"]
+            },
+            "steps": [
+                {
+                    "task": "exec",
+                    "command": "echo ${var3}"
+                }
+            ],
+            "emits": [
+                {
+                    "from": "var3",
+                    "to": "var5"
+                }
+            ]
+        },
+        "job1": {
+            "steps": [
+                {
+                    "task": "init"
+                },
+                {
+                    "task": "add"
+                },
+                {
+                    "task": "subtract"
+                }
+            ]
+        },
+        "job2": {
+            "dependsOn": ["job1"],
+            "picks": {
+                "job1": ["var3"]
+            },
+            "onlyWhen": {
+                "var3": {
+                    "$gt": 100
+                }
+            },
+            "steps": [                                
+                {
+                    "task": "subtract"
+                },
+                {
+                    "task": "add",
+                    "onlyWhen": {
+                        "var3": {
+                            "$lte": 100
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

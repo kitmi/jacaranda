@@ -18,6 +18,9 @@ _export(exports, {
     HttpClient: function() {
         return _HttpClient.default;
     },
+    RuntimeRegistry: function() {
+        return _RuntimeRegistry.default;
+    },
     httpMethod: function() {
         return _httpMethod.default;
     },
@@ -32,10 +35,12 @@ _export(exports, {
     }
 });
 const _AsyncEmitter = /*#__PURE__*/ _interop_require_default(require("./AsyncEmitter"));
+const _RuntimeRegistry = /*#__PURE__*/ _interop_require_default(require("./RuntimeRegistry"));
 const _HttpClient = /*#__PURE__*/ _interop_require_default(require("./HttpClient"));
 const _Controller = /*#__PURE__*/ _interop_require_default(require("./Controller"));
 const _httpMethod = /*#__PURE__*/ _interop_require_default(_export_star(require("./httpMethod"), exports));
 const _middleware = /*#__PURE__*/ _interop_require_default(require("./middleware"));
+_export_star(require("./logger"), exports);
 const _supportedMethods = /*#__PURE__*/ _interop_require_default(require("./supportedMethods"));
 const _serve = /*#__PURE__*/ _interop_require_default(require("./serve"));
 function _export_star(from, to) {

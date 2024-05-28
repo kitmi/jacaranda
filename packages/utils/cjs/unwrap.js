@@ -8,12 +8,6 @@ Object.defineProperty(exports, "default", {
         return _default;
     }
 });
-const _replaceAll = /*#__PURE__*/ _interop_require_default(require("./replaceAll"));
-function _interop_require_default(obj) {
-    return obj && obj.__esModule ? obj : {
-        default: obj
-    };
-}
 const pairs = {
     '(': ')',
     '[': ']',

@@ -11,7 +11,7 @@ export { default as bin2Hex } from './bin2Hex';
 export { default as base64Encode } from './base64Encode';
 export { default as base64Decode } from './base64Decode';
 export { default as compile } from './compile';
-export { default as template } from './template';
+export { default as template, esTemplate } from './template';
 export { default as replaceAll } from './replaceAll';
 export { default as dropIfEndsWith } from './dropIfEndsWith';
 export { default as dropIfStartsWith } from './dropIfStartsWith';

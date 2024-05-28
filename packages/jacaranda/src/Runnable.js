@@ -1,6 +1,8 @@
 import { _, sleep_, batchAsync_ } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
 import { defaultRunnableOpts } from './defaultOpts';
+import path from 'node:path';
+import minimist from 'minimist';
 
 /**
  * Runnable app mixin.
@@ -44,10 +46,15 @@ const Runnable = (T) =>
          * @constructs Runnable
          */
         constructor(name, options) {
+            if (process.argv.length > 2) {
+                const { _, ...cliOptions } = minimist(process.argv.slice(2));
+                options = { ...cliOptions, ...options };
+            }            
+
             super(name, {
                 ...defaultRunnableOpts,
                 ...options,
-            });
+            });            
 
             this.runnable = true;
 
@@ -146,16 +153,6 @@ const Runnable = (T) =>
         }
 
         /**
-         * Require a module from the source path of a library module
-         * @param {*} relativePath
-         * @memberof Runnable
-         */
-        requireFromLib(libName, relativePath) {
-            let libModule = this.getLib(libName);
-            return libModule.require(relativePath);
-        }
-
-        /**
          * Register a loaded lib module
          * @param {LibModule} lib
          * @memberof Runnable
@@ -231,6 +228,13 @@ const Runnable = (T) =>
             }
 
             process.on('warning', this._onWarning);
+        }
+
+        _getFeatureFallbackPath() {
+            let pathArray = super._getFeatureFallbackPath();
+            pathArray.splice(1, 0, path.resolve(__dirname, 'appFeatures'));
+    
+            return pathArray;
         }
     };
 

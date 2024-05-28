@@ -24,28 +24,32 @@ function _interop_require_default(obj) {
         const npm = _adapters.packageManagers[this.options.packageManager];
         featureGroup = this._sortFeatures(featureGroup);
         await this.emit_('before:' + groupStage);
-        this.log('verbose', `Installing dependencies for "${groupStage}" feature group ...`);
+        this.log('info', `Installing dependencies for "${groupStage}" feature group ...`);
         let counter = 0;
-        await (0, _utils.eachAsync_)(featureGroup, async ([feature])=>{
+        await (0, _utils.eachAsync_)(featureGroup, async ([feature, options])=>{
             const { name, depends } = feature;
             await this.emit_('before:load:' + name);
-            this.log('verbose', `Installing dependencies for feature "${name}" ...`);
+            this.log('info', `Installing dependencies for feature "${name}" ...`);
             depends && this._dependsOn(depends, name);
-            const requiredPackages = feature.packages ?? [];
-            await (0, _utils.eachAsync_)(requiredPackages, (pkg)=>npm.addPackage_(pkg));
+            const requiredPackages = feature.packages ? typeof feature.packages === 'function' ? feature.packages(options) : feature.packages : [];
+            if (this.options.dryRun) {
+                this.log('info', `Detected dependencies: [${requiredPackages.join(', ')}]`);
+            } else {
+                await (0, _utils.eachAsync_)(requiredPackages, (pkg)=>npm.addPackage_(pkg));
+            }
             this.features[name].enabled = true;
             if (requiredPackages.length > 0) {
-                this.log('verbose', `Dependencies of feature "${name}" are installed. [${requiredPackages.length}]`);
+                this.log('info', `Dependencies of feature "${name}" are installed. [${requiredPackages.length}]`);
             } else {
-                this.log('verbose', `No dependencies found for feature "${name}". [SKIP]`);
+                this.log('info', `No dependencies found for feature "${name}". [SKIP]`);
             }
             await this.emit_('after:load:' + name);
             counter += requiredPackages.length;
         });
         if (counter > 0) {
-            this.log('verbose', `Finished installation of dependencies for "${groupStage}" feature group. [${counter}]`);
+            this.log('info', `Finished installation of dependencies for "${groupStage}" feature group. [${counter}]`);
         } else {
-            this.log('verbose', `No dependencies found for "${groupStage}" feature group. [SKIP]`);
+            this.log('info', `No dependencies found for "${groupStage}" feature group. [SKIP]`);
         }
         await this.emit_('after:' + groupStage);
     }

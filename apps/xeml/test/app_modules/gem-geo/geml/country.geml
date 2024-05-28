@@ -1,0 +1,60 @@
+import 'commons:types'
+
+//----------------------------------------------------------------------------------------------------     
+
+const
+  COUNTRY_AUSTRALIA = 'AU'  // ISO code 
+  COUNTRY_CHINA = 'CN'  // ISO code 
+
+//----------------------------------------------------------------------------------------------------       
+
+entity country is dictionaryByCode
+  -- "Country"    
+  has
+    union: boolean default(false)    
+
+//----------------------------------------------------------------------------------------------------        
+
+// Second level of adminstration area of a country
+entity state is dictionaryByCode 
+  has
+    shortName : text maxLength(10)
+  associations
+    belongsTo country
+  index
+    [ country, shortName ] is unique
+  // The code is ISO code
+  data [
+    { country: COUNTRY_AUSTRALIA, code: 'AU-NSW', name: 'New South Wales', shortName: 'NSW' },
+    { country: COUNTRY_AUSTRALIA, code: 'AU-VIC', name: 'Victoria', shortName: 'VIC' },
+    { country: COUNTRY_AUSTRALIA, code: 'AU-QLD', name: 'Queensland', shortName: 'QLD' },
+    { country: COUNTRY_AUSTRALIA, code: 'AU-ACT', name: 'Australian Capital Territory', shortName: 'ACT' },
+    { country: COUNTRY_AUSTRALIA, code: 'AU-WA', name: 'Western Australia', shortName: 'WA' },
+    { country: COUNTRY_AUSTRALIA, code: 'AU-SA', name: 'South Australia', shortName: 'SA' },
+    { country: COUNTRY_AUSTRALIA, code: 'AU-TAS', name: 'Tasmania', shortName: 'TAS' },
+    { country: COUNTRY_AUSTRALIA, code: 'AU-NT', name: 'Northern Territory', shortName: 'NT' }    
+  ]
+
+//----------------------------------------------------------------------------------------------------     
+
+entity phoneAreaCode 
+  -- "Phone area code"
+  has
+    code : name |=concat('_', @latest.country, @latest.dial)
+    dial : text maxLength(6) -- "e.g. 61"        
+    name
+  key code  
+  associations
+    belongsTo country optional
+
+//----------------------------------------------------------------------------------------------------     
+
+entity locale is dictionaryByCode
+  -- "Regional locale information"
+  associations
+    belongsTo country optional
+  data [
+    { code: 'en-AU', name: 'English (Australia)', country: COUNTRY_AUSTRALIA },
+    { code: 'zh-CN', name: 'Chinese (Simplified)', country: COUNTRY_CHINA }
+  ]
+    

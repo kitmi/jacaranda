@@ -1,0 +1,385 @@
+{
+    "namespace": [
+        [
+            "/Users/rockie/Documents/GitHub/genx-suite/packages/model/node_modules/@genx/gem-commons/geml/types.geml",
+            "commons"
+        ],
+        [
+            "/Users/rockie/Documents/GitHub/genx-suite/packages/model/test/app_modules/gem-geo/geml/address.geml",
+            "geo"
+        ],
+        "/Users/rockie/Documents/GitHub/genx-suite/packages/model/test/app_modules/gem-user/geml/contact.geml",
+        "/Users/rockie/Documents/GitHub/genx-suite/packages/model/test/app_modules/gem-user/geml/user.geml"
+    ],
+    "type": {
+        "abn": {
+            "type": "text",
+            "fixedLength": [
+                11
+            ],
+            "modifiers": [
+                {
+                    "oolType": "Processor",
+                    "name": "removeSpace"
+                },
+                {
+                    "oolType": "Validator",
+                    "name": "isNumeric"
+                }
+            ]
+        },
+        "acn": {
+            "type": "text",
+            "fixedLength": [
+                9
+            ],
+            "modifiers": [
+                {
+                    "oolType": "Processor",
+                    "name": "removeSpace"
+                },
+                {
+                    "oolType": "Validator",
+                    "name": "isNumeric"
+                }
+            ]
+        }
+    },
+    "entity": {
+        "companyRole": {
+            "base": [
+                "dictionaryByCode"
+            ],
+            "comment": "Company roles",
+            "data": [
+                {
+                    "records": [
+                        {
+                            "code": "party",
+                            "name": "Party"
+                        },
+                        {
+                            "code": "purchaser",
+                            "name": "Purchaser"
+                        },
+                        {
+                            "code": "customer",
+                            "name": "Customer"
+                        },
+                        {
+                            "code": "vendor",
+                            "name": "Vendor"
+                        }
+                    ]
+                }
+            ]
+        },
+        "company": {
+            "base": [
+                "hyperIdIndexed"
+            ],
+            "comment": "Company",
+            "features": [
+                "createTimestamp",
+                "updateTimestamp",
+                "logicalDeletion"
+            ],
+            "fields": {
+                "name": {
+                    "name": "name",
+                    "type": "name"
+                },
+                "logo": {
+                    "name": "logo",
+                    "type": "url",
+                    "optional": true,
+                    "comment": "Rectangle"
+                },
+                "avatar": {
+                    "name": "avatar",
+                    "type": "url",
+                    "optional": true,
+                    "comment": "Square"
+                },
+                "registrationNo": {
+                    "name": "registrationNo",
+                    "type": "shortName",
+                    "optional": true
+                },
+                "email": {
+                    "name": "email",
+                    "type": "email",
+                    "optional": true
+                },
+                "phone": {
+                    "name": "phone",
+                    "type": "phone",
+                    "optional": true
+                },
+                "mobile": {
+                    "name": "mobile",
+                    "type": "mobile",
+                    "optional": true
+                },
+                "fax": {
+                    "name": "fax",
+                    "type": "phone",
+                    "optional": true
+                },
+                "website": {
+                    "name": "website",
+                    "type": "url",
+                    "optional": true
+                },
+                "abn": {
+                    "name": "abn",
+                    "type": "abn",
+                    "optional": true,
+                    "comment": "Australia Business Number"
+                },
+                "acn": {
+                    "name": "acn",
+                    "type": "acn",
+                    "optional": true,
+                    "comment": "Australia Company Number"
+                },
+                "taxIdNumber": {
+                    "name": "taxIdNumber",
+                    "type": "shortName",
+                    "optional": true
+                }
+            },
+            "associations": [
+                {
+                    "type": "refersTo",
+                    "destEntity": "companyRole",
+                    "srcField": "role",
+                    "fieldProps": {}
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "address",
+                    "fieldProps": {
+                        "optional": true,
+                        "comment": "Business address"
+                    }
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "address",
+                    "srcField": "registeredAddress",
+                    "fieldProps": {
+                        "optional": true,
+                        "comment": "Registered address"
+                    }
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "resourceGroup",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                }
+            ],
+            "indexes": [
+                {
+                    "fields": "name"
+                },
+                {
+                    "fields": "registrationNo"
+                },
+                {
+                    "fields": "resourceGroup",
+                    "unique": true
+                }
+            ],
+            "inputs": {
+                "new": [
+                    {
+                        "name": "name"
+                    },
+                    {
+                        "name": "logo",
+                        "optional": true
+                    },
+                    {
+                        "name": "registrationNo",
+                        "optional": true
+                    },
+                    {
+                        "name": "email",
+                        "optional": true
+                    },
+                    {
+                        "name": "phone",
+                        "optional": true
+                    },
+                    {
+                        "name": "mobile",
+                        "optional": true
+                    },
+                    {
+                        "name": "fax",
+                        "optional": true
+                    },
+                    {
+                        "name": "website",
+                        "optional": true
+                    }
+                ],
+                "edit": [
+                    {
+                        "name": "name",
+                        "optional": true
+                    },
+                    {
+                        "name": "logo",
+                        "optional": true
+                    },
+                    {
+                        "name": "registrationNo",
+                        "optional": true
+                    },
+                    {
+                        "name": "email",
+                        "optional": true
+                    },
+                    {
+                        "name": "phone",
+                        "optional": true
+                    },
+                    {
+                        "name": "mobile",
+                        "optional": true
+                    },
+                    {
+                        "name": "fax",
+                        "optional": true
+                    },
+                    {
+                        "name": "website",
+                        "optional": true
+                    }
+                ]
+            }
+        },
+        "companyContact": {
+            "comment": "Company contact",
+            "features": [
+                "autoId"
+            ],
+            "fields": {
+                "main": {
+                    "name": "main",
+                    "type": "boolean",
+                    "default": [
+                        false
+                    ]
+                }
+            },
+            "associations": [
+                {
+                    "type": "belongsTo",
+                    "destEntity": "company",
+                    "fieldProps": {}
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "person",
+                    "fieldProps": {}
+                }
+            ],
+            "indexes": [
+                {
+                    "fields": [
+                        "company",
+                        "person"
+                    ],
+                    "unique": true
+                }
+            ],
+            "inputs": {
+                "new": [
+                    {
+                        "name": ":person",
+                        "optional": true,
+                        "spec": "new"
+                    }
+                ],
+                "edit": [
+                    {
+                        "name": ":person",
+                        "optional": true,
+                        "spec": "edit"
+                    }
+                ]
+            }
+        },
+        "companyUser": {
+            "comment": "Company user",
+            "features": [
+                "autoId",
+                "createTimestamp"
+            ],
+            "fields": {
+                "internalId": {
+                    "name": "internalId",
+                    "type": "name",
+                    "optional": true
+                }
+            },
+            "associations": [
+                {
+                    "type": "belongsTo",
+                    "destEntity": "company",
+                    "fieldProps": {}
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "user",
+                    "fieldProps": {}
+                }
+            ],
+            "indexes": [
+                {
+                    "fields": "user",
+                    "unique": true
+                }
+            ],
+            "inputs": {
+                "new": [
+                    {
+                        "name": "internalId",
+                        "optional": true
+                    },
+                    {
+                        "name": ":user",
+                        "spec": "new"
+                    }
+                ],
+                "edit": [
+                    {
+                        "name": ":user",
+                        "optional": true,
+                        "spec": "edit"
+                    }
+                ],
+                "adminEdit": [
+                    {
+                        "name": ":user",
+                        "optional": true,
+                        "spec": "edit"
+                    },
+                    {
+                        "name": ":company",
+                        "optional": true,
+                        "spec": "edit"
+                    }
+                ]
+            }
+        }
+    },
+    "id": "./../app_modules/gem-user/geml/organization.geml",
+    "packageName": "user",
+    "name": "organization"
+}

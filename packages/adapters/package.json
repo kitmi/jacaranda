@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/adapters",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "description": "Jacaranda feature adapters",
     "main": "cjs/index.js",
     "module": "src/index.js",
@@ -53,13 +53,13 @@
         ]
     },
     "devDependencies": {
-        "@kitmi/jacaranda": "workspace:*",
-        "@kitmi/sys": "workspace:*",
+        "@kitmi/jacaranda": "workspace:^",
+        "@kitmi/sys": "workspace:^",
         "superagent": "^8.0.9",
         "supertest": "^6.3.3"
     },
     "dependencies": {
-        "@kitmi/utils": "workspace:*"
+        "@kitmi/utils": "workspace:^"
     },
     "prettier": {
         "quoteProps": "consistent",

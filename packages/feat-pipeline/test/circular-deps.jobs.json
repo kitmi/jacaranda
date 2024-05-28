@@ -1,0 +1,52 @@
+{
+    "jobs": {
+        "default": {
+            "dependsOn": ["job4"],
+            "steps": [
+                {
+                    "task": "exec",
+                    "command": "echo default-step1"
+                }
+            ]
+        },
+        "job1": {
+            "dependsOn": ["default"],
+            "steps": [
+                {
+                    "task": "exec",
+                    "command": "echo job1-step1"
+                }
+            ]
+        },
+        "job2": {
+            "steps": [
+                {
+                    "task": "exec",
+                    "command": "echo job2-step1"
+                }
+            ]
+        },
+        "job3": {
+            "dependsOn": ["job1", "job2"],
+            "steps": [
+                {
+                    "task": "exec",
+                    "command": "echo job3-step1"
+                }
+            ]
+        },
+        "job4": {
+            "dependsOn": ["job1", "job3"],
+            "steps": [
+                {
+                    "task": "exec",
+                    "commands": ["echo ${$env.var1}", "echo ${$env.var2}"]
+                },
+                {
+                    "task": "exec",
+                    "commands": ["echo job4-step2"]
+                }
+            ]
+        }
+    }
+}

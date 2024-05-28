@@ -1,0 +1,70 @@
+import 'commons:types'
+import 'geo:country'
+import contact
+
+//----------------------------------------------------------------------------------------------------     
+
+type  
+  maritalStatus: enum values('single', 'married', 'divorced', 'widowed', 'de facto')
+  genderType: enum values('male', 'female', 'non-disclosure')
+  residencyStatus: enum values("citizen", "pr", "overseas")
+
+//----------------------------------------------------------------------------------------------------     
+
+entity person is hyperIdIndexed
+  with   
+    createTimestamp
+    updateTimestamp
+    logicalDeletion
+  has
+    firstName : name optional 
+    middleName : name optional
+    lastName : name optional
+    legalName : name |=combinePersonName(@latest.firstName, @latest.middleName, @latest.lastName, @latest.locale)
+    dob : datetime optional -- 'Date of birth'
+    maritalStatus optional       
+    gender: genderType optional
+    residencyStatus optional
+    
+  associations  
+    refersTo personTitle as title optional emptyAsNull 
+    refersTo locale optional default('zh-TW')
+    refersTo contact optional    
+    hasOne user optional
+
+  index       
+    lastName    
+    legalName
+
+  input
+    newTW 
+      firstName
+      middleName optional
+      lastName optional
+      dob optional
+      gender optional
+      title optional
+      ':contact' optional with newTW
+    editTW
+      firstName optional
+      middleName optional
+      lastName optional
+      dob optional
+      gender optional
+      title optional
+      ':contact' optional with editTW
+
+//----------------------------------------------------------------------------------------------------     
+
+entity personTitle is dictionaryByCode   
+  -- "Person title"
+  has
+    male : boolean
+    female : boolean
+  data [
+    { code: 'MR', name: 'Mr.', male: true, female: false, isSystem: true },
+    { code: 'MRS', name: 'Mrs.', male: false, female: true, isSystem: true },
+    { code: 'MS', name: 'Ms.', male: false, female: true, isSystem: true },
+    { code: 'MISS', name: 'Miss', male: false, female: true, isSystem: true },
+    { code: 'DR', name: 'Dr.', male: true, female: true, isSystem: true }
+  ]

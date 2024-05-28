@@ -1,0 +1,140 @@
+import 'commons:types'
+
+//----------------------------------------------------------------------------------------------------     
+
+type
+  mediaType : enum values('text', 'image', 'video', 'audio', 'document')
+  resourceSource : enum values('upload', 'generated', 'camera', 'external', 'copied', 'preset')
+ 
+//----------------------------------------------------------------------------------------------------     
+
+entity mimeType is dictionaryByCode  
+  -- "MIME type"
+  has
+    mime: name
+    subType : shortName
+    extName : array optional
+    mediaType  
+  index
+    mediaType
+  data [
+      { code: 'TXT', mime: 'text/plain', name: 'Plain text', mediaType: 'text', subType: 'plain', isSystem: true, isActive: true },
+      { code: 'HTM', mime: 'text/html', name: 'HTML text', mediaType: 'text', subType: 'html', isSystem: true, isActive: true },
+      { code: 'PNG', mime: 'image/png', name: 'PNG image', mediaType: 'image', subType: 'png', extName: [ '.png' ], isSystem: true, isActive: true },
+      { code: 'JPG', mime: 'image/jpeg', name: 'JPEG image', mediaType: 'image', subType: 'jpeg', extName: [ '.jpg', '.jpeg' ], isSystem: true, isActive: true },
+      { code: 'SVG', mime: 'image/svg', name: 'SVG image', mediaType: 'image', subType: 'svg', extName: [ '.svg' ], isSystem: true, isActive: true },
+      { code: 'MP4', mime: 'video/mp4', name: 'MPEG-4 video', mediaType: 'video', subType: 'mp4', extName: [ '.mp4' ], isSystem: true, isActive: true },
+      { code: 'AVI', mime: 'video/x-msvideo', name: 'A/V interleave video', mediaType: 'video', subType: 'avi', extName: [ '.avi' ], isSystem: true, isActive: true },
+      { code: 'PDF', mime: 'application/pdf', name: 'PDF document', mediaType: 'document', subType: 'pdf', extName: [ '.pdf' ], isSystem: true, isActive: true },
+      { code: 'DOC', mime: 'application/msword', name: 'Microsoft Word', mediaType: 'document', subType: 'doc', extName: [ '.doc' ], isSystem: true, isActive: true },
+      { code: 'DOCX', mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', name: 'Microsoft Word (OpenXML)', mediaType: 'document', subType: 'docx', extName: [ '.docx' ], isSystem: true, isActive: true }
+  ]   
+
+//----------------------------------------------------------------------------------------------------     
+
+entity resourceSource is dictionaryByCode  
+  -- "Resource source"   
+  data [
+    { code: 'UPLOAD', name: 'Uploaded by user', isSystem: true, isActive: true },
+    { code: 'GENERATED', name: 'System generated', isSystem: true, isActive: true },
+    { code: 'CAMERA', name: 'Taken by camera', isSystem: true, isActive: true },
+    { code: 'EXTERNAL', name: 'External reference', isSystem: true, isActive: true },
+    { code: 'COPY', name: 'Copied from external', isSystem: true, isActive: true },
+    { code: 'PRESET', name: 'System preset', isSystem: true, isActive: true }
+  ]
+
+//----------------------------------------------------------------------------------------------------     
+
+entity resourceCategory is dictionaryByCode  
+  -- "Resource category"   
+  data [
+    { code: 'PHOTO', name: 'Photos' }
+  ]
+
+//----------------------------------------------------------------------------------------------------     
+
+entity resourceGroup is hyperIdIndexed  
+  has
+    entityName: name
+    entityId: name optional
+  associations          
+    hasMany resource    
+  index
+    [ entityName, entityId ] is unique
+  input
+    ensure
+      entityName
+      entityId optional
+  
+//----------------------------------------------------------------------------------------------------     
+
+entity resource is hyperIdIndexed
+  with
+    createTimestamp
+    updateTimestamp
+  has
+    url optional
+    urlMobile : url optional
+    thumbnail : url optional
+    title : name optional
+    content : text optional    
+    fileName : name optional
+    fileSize : integer optional
+    hash : text maxLength(256) optional
+    external : boolean optional
+    indexOrder : integer default(0)
+    source: resourceSource optional
+    accessFlag: shortName optional
+  associations      
+    belongsTo resourceGroup as group optional
+    belongsTo user as createdBy optional
+    refersTo mimeType optional
+    refersTo resourceCategory as category
+    hasMany resourceTag connectedBy resourceTagging as tags 
+  index
+    url
+    [ group, category, indexOrder ] is unique
+  input
+    userUpload
+      url optional
+      title optional
+      content optional
+      fileName optional
+      fileSize optional      
+      hash optional
+      external optional
+      category optional
+      source optional      
+      group optional
+      mimeType optional      
+    edit
+      url optional
+      title optional
+      content optional
+      fileName optional
+      fileSize optional      
+      hash optional
+      external optional
+      category optional
+      source optional      
+      group optional
+      mimeType optional
+      accessFlag optional
+            
+  
+//----------------------------------------------------------------------------------------------------       
+
+entity resourceTag is dictionaryByCode
+  -- "Resource tags"
+  associations
+    hasMany resource connectedBy resourceTagging.tag
+
+//----------------------------------------------------------------------------------------------------       
+
+entity resourceTagging is manyToMany
+  -- "Resource tagging"
+  associations
+    refersTo resource
+    refersTo resourceTag as tag
+  index
+    [ resource, tag ] is unique

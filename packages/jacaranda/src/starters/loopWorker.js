@@ -11,7 +11,7 @@ async function startLoopWorker(worker, options) {
     let { interval, ...workerOptions } = { interval: 1000, throwOnError: true, ...options };
 
     return startWorker(async (app) => {
-        process.on('SIGINT', () => {
+        process.once('SIGINT', () => {
             app.stop_()
                 .then(() => {})
                 .catch((error) => console.error(error.message || error));

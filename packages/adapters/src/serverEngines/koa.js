@@ -2,19 +2,13 @@ import http from 'node:http';
 import { _, toBoolean, text } from '@kitmi/utils';
 
 class KoaEngine {
-    static packages = ['koa', 'koa-mount', '@koa/router', 'koa-body', 'koa-compress', 'koa-etag', 'koa-static'];
+    static packages = ['koa', 'koa-mount', '@koa/router'];
 
     constructor(appModule) {
         this.app = appModule;
     }
 
     async init_(config) {
-        this.app.addMiddlewaresRegistry({
-            body: 'koa-body',
-            compress: 'koa-compress',
-            etag: 'koa-etag',
-        });
-
         const options = this.app.featureConfig(
             config,
             {

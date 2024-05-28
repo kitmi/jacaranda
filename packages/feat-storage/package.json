@@ -1,0 +1,70 @@
+{
+    "name": "@kitmi/feat-storage",
+    "version": "1.0.3",
+    "description": "Jacaranda cloud storage features",
+    "publishConfig": {
+        "access": "public"
+    },
+    "main": "cjs/index.js",
+    "module": "src/index.js",
+    "react-native": "src/index.js",
+    "exports": {
+        ".": {
+            "import": "./src/index.js",
+            "require": "./cjs/index.js"
+        },
+        "./*": {
+            "import": "./src/*.js",
+            "require": "./cjs/*.js"
+        },
+        "./**/*": {
+            "import": "./src/**/*.js",
+            "require": "./cjs/**/*.js"
+        }
+    },
+    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kitmi/jacaranda.git"
+    },
+    "license": "MIT",
+    "scripts": {
+        "test": "mocha --recursive test/**/*.spec.js",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && bun x prepack",
+        "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
+        "prettier": "prettier --write .",
+        "lint": "eslint \"**/*.js\"",
+        "lint-fix": "eslint \"**/*.js\" --fix",
+        "clean": "shx rm -rf cjs coverage .nyc_output",
+        "build": "bun run clean && swc ./src -d ./cjs"
+    },
+    "keywords": [
+        "kitmi",
+        "jacaranda",
+        "adapters",
+        "lib"
+    ],
+    "nyc": {
+        "exclude": [
+            ".*",
+            "cjs",
+            "test",
+            "**/*.spec.js"
+        ]
+    },
+    "devDependencies": {
+        "@kitmi/jacaranda": "workspace:^",
+        "@kitmi/sys": "workspace:^"
+    },
+    "dependencies": {
+        "@kitmi/utils": "workspace:^"
+    },
+    "prettier": {
+        "quoteProps": "consistent",
+        "printWidth": 120,
+        "singleQuote": true,
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "useTabs": false
+    }
+}

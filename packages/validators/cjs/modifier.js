@@ -48,7 +48,7 @@ function getHandler(modifier, handlers) {
 }
 function validatorWrapper(validator) {
     return (value, options, meta, context)=>{
-        if (value == null) return value;
+        if (!validator.__metaCheckNull && value == null) return value;
         const [validated, reason] = validator(value, options, meta, context);
         if (!validated) {
             throw new _types.ValidationError(reason, {
@@ -84,7 +84,7 @@ function createModifier(modifierItem, handlers) {
     } else if (type === 'object') {
         modifier = modifierItem.name;
         options = modifierItem.options;
-    }
+    } else if (type === 'function') {}
     if (!modifier) {
         throw new _types.InvalidArgument(`Invalid modifier syntax: ${JSON.stringify(modifierItem)}`);
     }
@@ -107,7 +107,7 @@ function createModifier(modifierItem, handlers) {
  * @property {Function} context.i18n.t - The i18n translate function
  * @property {string} context.path - The current field path
  * @property {*} context.rawValue - The raw value
- * @returns
+ * @returns {*}
  */ const applyModifiers = (value, meta, context)=>meta.post.reduce((_value, modifier)=>{
         const [handler, options] = createModifier(modifier, context.system.handlers);
         return handler(_value, options, meta, context);

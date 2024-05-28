@@ -1,5 +1,4 @@
-import path from 'node:path';
-import { url as urlUtil, naming, text, esmCheck, eachAsync_, batchAsync_ } from '@kitmi/utils';
+import { url as urlUtil, naming, text, eachAsync_, batchAsync_, get as _get } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
 import { supportedMethods } from '../helpers';
 
@@ -18,6 +17,7 @@ import { supportedMethods } from '../helpers';
  *       module: {
  *           $controllerPath:
  *           $middlewares:
+ *           $urlDasherize: false
  *           '/': [ 'controller', ... ]
  *       }
  *   }
@@ -27,14 +27,14 @@ import { supportedMethods } from '../helpers';
  *   }
  */
 async function moduleRouter(app, baseRoute, options) {
-    let controllerPath = path.resolve(app.sourcePath, options.$controllerPath ?? 'controllers');
-
     if (typeof options === 'string') {
         // [ 'controllerName' ]
         options = {
             '/': [options],
         };
     }
+
+    let controllerPath = options.$controllerPath ?? 'modules';
 
     const kebabify = options.$urlDasherize;
 
@@ -55,22 +55,14 @@ async function moduleRouter(app, baseRoute, options) {
         }
 
         await batchAsync_(controllers, async (moduleController) => {
-            let controllerFile = path.join(controllerPath, moduleController);
-            let controller;
+            let controller = _get(app.registry.controllers, [controllerPath, moduleController]);
 
-            try {
-                controller = esmCheck(require(controllerFile));
-            } catch (e) {
-                /*
-                if (e.code === 'MODULE_NOT_FOUND') {
-                    throw new InvalidConfiguration(
-                        `Failed to load controller '${moduleController}'. ${e.message}`,
-                        app,
-                        `routing.${baseRoute}.module`
-                    );
-                }*/
-
-                throw e;
+            if (controller == null) {
+                throw new InvalidConfiguration(
+                    `Module controller "${moduleController}" not found.`,
+                    app,
+                    `routing.${baseRoute}.module[${subBaseRoute}]`
+                );
             }
 
             let isController = false;
@@ -85,7 +77,13 @@ async function moduleRouter(app, baseRoute, options) {
                 if (typeof action !== 'function' || !action.__metaHttpMethod) continue; // only marked httpMethod should be mounted
 
                 const method = action.__metaHttpMethod;
-                const subRoute = urlUtil.join(subBaseRoute, text.dropIfStartsWith(action.__metaRoute || (kebabify ? naming.kebabCase(actionName) : actionName), '/'));
+                const subRoute = urlUtil.join(
+                    subBaseRoute,
+                    text.dropIfStartsWith(
+                        action.__metaRoute || (kebabify ? naming.kebabCase(actionName) : actionName),
+                        '/'
+                    )
+                );
 
                 let bindAction;
 

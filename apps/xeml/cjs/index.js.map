@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/index.js"],"sourcesContent":["const AppInitiator = require('./AppInitiator');\n\nmodule.exports = AppInitiator;"],"names":["AppInitiator","require","module","exports"],"rangeMappings":";;","mappings":";AAAA,MAAMA,eAAeC,QAAQ;AAE7BC,OAAOC,OAAO,GAAGH"}

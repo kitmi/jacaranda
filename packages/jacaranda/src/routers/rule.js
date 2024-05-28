@@ -9,7 +9,7 @@ import { supportedMethods } from '../helpers';
 
 /**
  * Create a rule-based router.
- * @param {WebModule} app
+ * @param {Routable} app
  * @param {string} baseRoute
  * @param {object} options
  * @example

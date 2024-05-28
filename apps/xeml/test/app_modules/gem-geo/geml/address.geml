@@ -1,0 +1,70 @@
+import 'commons:types'
+import country
+
+//----------------------------------------------------------------------------------------------------     
+
+entity address is hyperIdIndexed
+  -- "Address information"
+  has    
+    unitNo : shortName optional
+    lotNo : shortName optional
+    level : shortName optional
+    buildingNo : shortName optional // A座
+    building : shortName optional // 大厦
+    streetNo : shortName optional // 门牌号    
+    alley : shortName optional // 弄|胡同 
+    lane : shortName optional // 巷   
+    section : shortName optional // 路段    
+    streetName : shortName optional 
+    streetType : shortName optional      
+    neighborhood : shortName optional      
+    village: shortName optional // 村里
+    city : shortName optional 
+    postcode : text maxLength(6) optional     
+    line1 : name forceUpdate |=buildLine1(@latest.village, @latest.neighborhood, @latest.streetType, @latest.streetName, @latest.section, @latest.lane, @latest.alley, @latest.streetNo, @latest.building, @latest.buildingNo, @latest.level, @latest.unitNo, @latest.locale) 
+    line2 : name optional forceUpdate |=buildLine2(@latest.line1, @latest.localityLine, @latest.locale)
+    localityLine : name optional forceUpdate |=buildLocalityLine(@latest.city, @latest.state, @latest.postcode, @latest.locale)
+    state : shortName optional forceUpdate |=fromStateCode(@latest.stateCode)
+    fullText : name forceUpdate |=buildFullAddress(@latest.line1, @latest.line2, @latest.localityLine, @latest.locale)
+    latitude : number optional
+    longitude : number optional
+    approximate : boolean optional
+    requireGeocode: boolean optional
+    altCountryName : shortName optional // those not found in country table   
+  associations
+    refersTo state as stateCode optional
+    refersTo country optional
+    refersTo locale optional default('zh-TW')
+  index
+    fullText 
+  input
+    newTW
+      unitNo optional
+      level optional
+      streetNo optional
+      alley optional
+      lane optional
+      section optional
+      streetName optional
+      neighborhood optional
+      village optional
+      city
+      stateCode
+    editTW
+      unitNo optional
+      level optional
+      streetNo optional
+      alley optional
+      lane optional
+      section optional
+      streetName optional
+      neighborhood optional
+      village optional
+      city optional
+      stateCode optional
+    oneLine
+      fullText
+     
+    
+       
+      

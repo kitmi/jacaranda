@@ -11,6 +11,8 @@ Object.defineProperty(exports, "default", {
 const _utils = require("@kitmi/utils");
 const _types = require("@kitmi/types");
 const _defaultOpts = require("./defaultOpts");
+const _nodepath = /*#__PURE__*/ _interop_require_default(require("node:path"));
+const _minimist = /*#__PURE__*/ _interop_require_default(require("minimist"));
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -23,6 +25,11 @@ function _define_property(obj, key, value) {
         obj[key] = value;
     }
     return obj;
+}
+function _interop_require_default(obj) {
+    return obj && obj.__esModule ? obj : {
+        default: obj
+    };
 }
 /**
  * Runnable app mixin.
@@ -98,14 +105,6 @@ function _define_property(obj, key, value) {
             return libModule;
         }
         /**
-         * Require a module from the source path of a library module
-         * @param {*} relativePath
-         * @memberof Runnable
-         */ requireFromLib(libName, relativePath) {
-            let libModule = this.getLib(libName);
-            return libModule.require(relativePath);
-        }
-        /**
          * Register a loaded lib module
          * @param {LibModule} lib
          * @memberof Runnable
@@ -167,6 +166,11 @@ function _define_property(obj, key, value) {
             }
             process.on('warning', this._onWarning);
         }
+        _getFeatureFallbackPath() {
+            let pathArray = super._getFeatureFallbackPath();
+            pathArray.splice(1, 0, _nodepath.default.resolve(__dirname, 'appFeatures'));
+            return pathArray;
+        }
         /**
          * @param {string} name - The name of the application.
          * @param {object} [options] - Application options
@@ -177,6 +181,13 @@ function _define_property(obj, key, value) {
          * @property {object} [options.logConfig=false] - Log finalized config
          * @constructs Runnable
          */ constructor(name, options){
+            if (process.argv.length > 2) {
+                const { _, ...cliOptions } = (0, _minimist.default)(process.argv.slice(2));
+                options = {
+                    ...cliOptions,
+                    ...options
+                };
+            }
             super(name, {
                 ..._defaultOpts.defaultRunnableOpts,
                 ...options
