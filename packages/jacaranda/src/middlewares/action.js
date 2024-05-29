@@ -5,6 +5,8 @@
 
 import { InvalidConfiguration } from '@kitmi/types';
 
+const controllerCache = {};
+
 /**
  * Action middleware creator
  * @param {string} controllerAction
@@ -28,6 +30,16 @@ const action = (controllerAction, app) => {
     if (ctrl == null) {
         throw new InvalidConfiguration(`Action controller "${controller}" not found.`, app);
     }
+
+    if (typeof ctrl === 'function') {        
+        if (!controllerCache[controller]){
+            controllerCache[controller] = new ctrl(app);
+        }
+
+        ctrl = controllerCache[controller];
+    }
+
+    // todo: path support
 
     let actioner = ctrl[action];
 

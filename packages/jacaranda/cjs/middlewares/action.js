@@ -12,6 +12,7 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _types = require("@kitmi/types");
+const controllerCache = {};
 /**
  * Action middleware creator
  * @param {string} controllerAction
@@ -30,6 +31,13 @@ const _types = require("@kitmi/types");
     if (ctrl == null) {
         throw new _types.InvalidConfiguration(`Action controller "${controller}" not found.`, app);
     }
+    if (typeof ctrl === 'function') {
+        if (!controllerCache[controller]) {
+            controllerCache[controller] = new ctrl(app);
+        }
+        ctrl = controllerCache[controller];
+    }
+    // todo: path support
     let actioner = ctrl[action];
     if (Array.isArray(actioner)) {
         let actionFunction = actioner.concat().pop();

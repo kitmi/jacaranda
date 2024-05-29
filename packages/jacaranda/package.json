@@ -66,6 +66,14 @@
     "glob": "^10.3.10",
     "minimist": "^1.2.8"
   },
+  "peerDependencies": {
+    "@kitmi/algo": "workspace:^",
+    "@kitmi/config": "workspace:^",
+    "@kitmi/sys": "workspace:^",
+    "@kitmi/types": "workspace:^",
+    "@kitmi/utils": "workspace:^",
+    "@kitmi/validators": "workspace:^"
+  },
   "devDependencies": {
     "capture-console": "^1.0.1",
     "inquirer": "^8.2.6",

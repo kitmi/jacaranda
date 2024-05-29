@@ -50,7 +50,10 @@
     ]
   },
   "dependencies": {
-    "@kitmi/jacaranda": "workspace:^"
+  },
+  "peerDependencies": {
+    "@kitmi/jacaranda": "workspace:^",
+    "@kitmi/types": "workspace:^"
   },
   "devDependencies": {
     "@kitmi/tester": "workspace:^"
