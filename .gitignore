@@ -37,3 +37,4 @@ packages/jacaranda/test/test.log
 .env
 **/prisma/client
 pnpm-lock.yaml
+cjs
