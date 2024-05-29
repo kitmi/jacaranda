@@ -31,8 +31,12 @@ const action = (controllerAction, app) => {
         throw new InvalidConfiguration(`Action controller "${controller}" not found.`, app);
     }
 
-    if (typeof ctrl === 'function') {        
-        if (!controllerCache[controller]){
+    let isController = false;
+
+    if (typeof ctrl === 'function') {    
+        isController = true;
+
+        if (!controllerCache[controller]){            
             controllerCache[controller] = new ctrl(app);
         }
 
@@ -42,6 +46,9 @@ const action = (controllerAction, app) => {
     // todo: path support
 
     let actioner = ctrl[action];
+    if (isController) {
+        actioner = actioner.bind(ctrl);
+    }
 
     if (Array.isArray(actioner)) {
         let actionFunction = actioner.concat().pop();
