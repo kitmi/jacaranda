@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../src/commands/index.js"],"sourcesContent":["module.exports = (cli) => {\n    require('./general')(cli);\n\n};\n"],"names":["module","exports","cli","require"],"rangeMappings":";;;","mappings":";AAAAA,OAAOC,OAAO,GAAG,CAACC;IACdC,QAAQ,aAAaD;AAEzB"}

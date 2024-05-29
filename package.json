@@ -5,14 +5,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npm run build --workspaces",
-    "doc": "npm run doc --workspaces",
-    "prettier": "npm run prettier --workspaces",
-    "lint": "npm run lint --workspaces",
-    "lint-fix": "npm run lint-fix --workspaces",
+    "build": "pnpm -r build",
+    "clean": "pnpm -r clean",
+    "doc": "pnpm -r doc",
+    "prettier": "pnpm -r prettier",
+    "lint": "pnpm -r lint",
+    "lint-fix": "pnpm -r lint-fix",
     "bump": "changeset version",
     "release-all": "changeset publish && pnpm -r publish",
-    "test": "npm run test --workspaces"
+    "test": "pnpm -r test"
   },
   "keywords": [],
   "author": "Rockie Guo <rockie@kitmi.com.au>",

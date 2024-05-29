@@ -30,13 +30,13 @@
     "license": "MIT",
     "scripts": {
         "test": "mocha --recursive test/**/*.spec.js",
-        "doc": "jsdoc --configure .jsdoc.json --verbose && bun x prepack",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && pnpm prepack",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
         "prettier": "prettier --write .",
         "lint": "eslint \"**/*.js\"",
         "lint-fix": "eslint \"**/*.js\" --fix",
         "clean": "shx rm -rf cjs coverage .nyc_output",
-        "build": "bun run clean && swc ./src -d ./cjs  --strip-leading-paths"
+        "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
     },
     "keywords": [
         "kitmi",

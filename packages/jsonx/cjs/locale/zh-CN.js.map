@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../src/locale/zh-CN.js"],"sourcesContent":["export { default } from '@kitmi/jsonv/locale/zh-CN';\n"],"names":["default"],"rangeMappings":";;;;;;;;;;","mappings":";;;;+BAASA;;;eAAAA,aAAO;;;6DAAQ"}

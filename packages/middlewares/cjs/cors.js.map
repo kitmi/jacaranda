@@ -1,1 +1,0 @@
-{"version":3,"sources":["../src/cors.js"],"sourcesContent":["export { default } from '@koa/cors';"],"names":["default"],"rangeMappings":";;;;;;;;;;","mappings":";;;;+BAASA;;;eAAAA,aAAO;;;6DAAQ"}

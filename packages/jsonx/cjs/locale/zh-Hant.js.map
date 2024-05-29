@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../src/locale/zh-Hant.js"],"sourcesContent":["export { default } from '@kitmi/jsonv/locale/zh-Hant';\n"],"names":["default"],"rangeMappings":";;;;;;;;;;","mappings":";;;;+BAASA;;;eAAAA,eAAO;;;+DAAQ"}

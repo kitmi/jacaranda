@@ -35,7 +35,7 @@
     "lint": "eslint \"**/*.js\"",
     "lint-fix": "eslint \"**/*.js\" --fix",
     "clean": "shx rm -rf cjs coverage .nyc_output",
-    "build": "bun run clean && swc ./src -d ./cjs  --strip-leading-paths",
+    "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths",
     "start": "bun run ./cjs/server.js",
     "node": "SWCRC=true node -r @swc-node/register ./src/server.js"
   },

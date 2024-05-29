@@ -1,1 +1,0 @@
-{"version":3,"sources":["../src/etag.js"],"sourcesContent":["export { default } from 'koa-etag';"],"names":["default"],"rangeMappings":";;;;;;;;;;","mappings":";;;;+BAASA;;;eAAAA,gBAAO;;;gEAAQ"}

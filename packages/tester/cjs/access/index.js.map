@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../src/access/index.js"],"sourcesContent":["export { default as jwt } from './jwt';\n"],"names":["jwt"],"rangeMappings":";;;;;;;;;;","mappings":";;;;+BAAoBA;;;eAAAA,YAAG;;;4DAAQ"}
