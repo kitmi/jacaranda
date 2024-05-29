@@ -1,5 +1,6 @@
 export { default as Connector } from './Connector';
 export { default as DbModel } from './DbModel';
+export * from './features';
 
 
 //const Loaders = require('./loaders');

@@ -4,7 +4,3 @@ dataSource:
       connection: 'postgresql://postgres:postgres@localhost:5432/wj-dev?schema=public'
       logStatement: true
 
-model:
-  schemaSet:
-    test:
-      dataSource: postgres.test
