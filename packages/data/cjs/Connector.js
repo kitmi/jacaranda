@@ -53,10 +53,11 @@ function connectionStringToObject(str, driver) {
  */ class Connector {
     /**
      * Create a connector.
+     * @param {App} app - The Jacaranda app object
      * @param {*} driver
      * @param {*} connectionString
      * @param {*} options
-     */ static createConnector(driver, connectionString, options) {
+     */ static createConnector(app, driver, connectionString, options) {
         if (!(driver in _drivers.default)) {
             throw new Error(`Unsupported connector driver: "${driver}"!`);
         }
@@ -64,7 +65,7 @@ function connectionStringToObject(str, driver) {
             throw new Error(`Missing required connection string`);
         }
         const ConnectorClass = _drivers.default[driver].Connector;
-        return new ConnectorClass(connectionString, options);
+        return new ConnectorClass(app, connectionString, options);
     }
     /**
      * Make a new connection components from current connection string and given components.

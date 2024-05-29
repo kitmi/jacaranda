@@ -5,7 +5,7 @@ export default {
     stage: Feature.INIT,
 
     packages: (server, { type }) => {
-        const Engine = server.tryRequire('@kitmi/adapters')[type];
+        const Engine = server.requireModule(`@kitmi/adapters::${type}`);
         return Engine.packages;
     },
 
@@ -26,7 +26,7 @@ export default {
             name
         );
 
-        const Engine = server.tryRequire('@kitmi/adapters')[type];
+        const Engine = server.requireModule(`@kitmi/adapters::${type}`);
 
         server.engine = new Engine(server);
         if (!isEmpty(middlewares)) {

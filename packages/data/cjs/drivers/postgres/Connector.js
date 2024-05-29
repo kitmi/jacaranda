@@ -9,12 +9,10 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _utils = require("@kitmi/utils");
+const _types = require("@kitmi/types");
+const _jacaranda = require("@kitmi/jacaranda");
 const _Connector = require("../../Connector");
 const _Connector1 = /*#__PURE__*/ _interop_require_default(require("../relational/Connector"));
-const _Errors = require("../../utils/Errors");
-const _lang = require("../../utils/lang");
-const _jacaranda = require("@kitmi/jacaranda");
-const _Validators = /*#__PURE__*/ _interop_require_default(require("../../Validators"));
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -226,7 +224,7 @@ const tranSym = Symbol.for('tran');
             }
             if (usePrepared) {
                 if (typeof usePrepared !== 'string') {
-                    throw new _Errors.InvalidArgument('The `postgres` connector requires `usePrepared` to be a string as a unique name of the query.');
+                    throw new _types.InvalidArgument('The `postgres` connector requires `usePrepared` to be a string as a unique name of the query.');
                 }
                 query.name = usePrepared;
                 if (rowsAsArray) {
@@ -256,68 +254,6 @@ const tranSym = Symbol.for('tran');
         return res && res.rows[0] === 1;
     }
     /**
-     * Run aggregate pipeline
-     * @param {string} model
-     * @param {array} pipeline
-     * @param {object} [connOptions]
-     * @returns {*}
-     */ async aggregate_(model, pipeline, connOptions) {
-        if (!Array.isArray(pipeline) || pipeline.length === 0) {
-            throw new _Errors.InvalidArgument('"pipeline" should be an unempty array.');
-        }
-        const [startingQuery, ..._pipeline] = pipeline;
-        let query = this.buildQuery(model, startingQuery);
-        _pipeline.forEach((stage, i)=>{
-            let _params = query.params;
-            query = this.buildQuery({
-                sql: query.sql,
-                alias: `_STAGE_${i}`
-            }, stage);
-            query.params = _params.concat(query.params);
-        });
-        return this._executeQuery_(query, null, connOptions);
-    }
-    async _executeQuery_(query, queryOptions, connOptions) {
-        let result, totalCount;
-        if (query.countSql) {
-            const [countResult] = await this.execute_(query.countSql, query.countParams, connOptions);
-            totalCount = countResult.count;
-        }
-        if (query.hasJoining) {
-            connOptions = {
-                ...connOptions,
-                rowsAsArray: true
-            };
-            result = await this.execute_(query.sql, query.params, connOptions);
-            const reverseAliasMap = _utils._.reduce(query.aliasMap, (result, alias, nodePath)=>{
-                result[alias] = nodePath.split('.').slice(1) /* .map(n => ':' + n) changed to be padding by orm and can be customized with other key getter */ ;
-                return result;
-            }, {});
-            if (query.countSql) {
-                return result.concat([
-                    reverseAliasMap,
-                    totalCount
-                ]);
-            }
-            return result.concat([
-                reverseAliasMap
-            ]);
-        } else if (queryOptions?.$skipOrm) {
-            connOptions = {
-                ...connOptions,
-                rowsAsArray: true
-            };
-        }
-        result = await this.execute_(query.sql, query.params, connOptions);
-        if (query.countSql) {
-            return [
-                result,
-                totalCount
-            ];
-        }
-        return result;
-    }
-    /**
      * Create a new instance of the connector.
      * @param {App} app
      * @param {string} connectionString
@@ -326,39 +262,6 @@ const tranSym = Symbol.for('tran');
         super(app, 'postgres', connectionString, options);
         _define_property(this, "escapeValue", escapeLiteral);
         _define_property(this, "escapeId", escapeIdentifier);
-        _define_property(this, "queryCount", (alias, fieldName)=>({
-                type: 'function',
-                name: 'COUNT',
-                args: [
-                    fieldName || '*'
-                ],
-                alias: alias || 'count'
-            }));
-        _define_property(this, "$call", (name, alias, args, extra)=>({
-                ...extra,
-                type: 'function',
-                name,
-                alias,
-                args
-            }));
-        _define_property(this, "$as", (name, alias)=>({
-                type: 'column',
-                name,
-                alias
-            }));
-        // in mysql, null value comparison will never return true, even null != 1
-        _define_property(this, "nullOrIs", (fieldName, value)=>[
-                {
-                    [fieldName]: {
-                        $exists: false
-                    }
-                },
-                {
-                    [fieldName]: {
-                        $eq: value
-                    }
-                }
-            ]);
         this.acitveClients = new WeakSet();
         this.executedCount = 0;
         this.transactionId = 0;

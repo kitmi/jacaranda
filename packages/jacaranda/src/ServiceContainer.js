@@ -82,6 +82,7 @@ class ServiceContainer extends AsyncEmitter {
      * @property {array} [options.allowedFeatures] - A list of enabled feature names
      * @property {boolean} [options.loadConfigFromOptions=false] - Whether to load config from passed-in options
      * @property {object} [options.config] - Config in options, used only when loadConfigFromOptions
+     * @property {object} [options.registry] - Preloaded modules
      */
     constructor(name, options) {
         super();
@@ -292,6 +293,19 @@ class ServiceContainer extends AsyncEmitter {
         return path.resolve(this.workingPath, ...args);
     }
 
+    /**
+     * Require a module from the runtime registry
+     * @param {*} moduleName 
+     * @returns {*}
+     */
+    requireModule(moduleName) {
+        const m = runtime.get(NS_MODULE, moduleName);
+        if (m == null) {
+            throw new ApplicationError(`Module "${moduleName}" not found in runtime registry.`);
+        }
+        return m;
+    }
+
     tryRequire(pkgName, local) {
         return esmCheck(local ? require(pkgName) : _tryRequire(pkgName, this.workingPath));
     }
@@ -430,8 +444,6 @@ class ServiceContainer extends AsyncEmitter {
             return Types.OBJECT.sanitize(config, { type: 'object', ...typeInfo }, this.i18n, name);
         } catch (err) {
             let message;
-
-            console.log(err);
 
             if (err instanceof ValidationError) {
                 message = ValidationError.formatError(err);

@@ -18,7 +18,7 @@ function _interop_require_default(obj) {
 const _default = {
     stage: _Feature.default.INIT,
     packages: (server, { type })=>{
-        const Engine = server.tryRequire('@kitmi/adapters')[type];
+        const Engine = server.requireModule(`@kitmi/adapters::${type}`);
         return Engine.packages;
     },
     load_: async function(server, options, name) {
@@ -44,7 +44,7 @@ const _default = {
             },
             keepUnsanitized: true
         }, name);
-        const Engine = server.tryRequire('@kitmi/adapters')[type];
+        const Engine = server.requireModule(`@kitmi/adapters::${type}`);
         server.engine = new Engine(server);
         if (!(0, _utils.isEmpty)(middlewares)) {
             server.once('before:Plugins', async ()=>{

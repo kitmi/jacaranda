@@ -10,5 +10,6 @@ export const NS_MODULE = 'modules';
 export const K_ENV = 'env';
 
 const runtime = new RuntimeRegistry();
+runtime.loadModule = (name, m) => runtime.register(NS_MODULE, name, m);
 
 export default runtime;

@@ -55,7 +55,7 @@ const _default = {
      *  // with serviceGroup
      *  let logger1 = app.getService('logger-category1');
      */ load_: function(app, config, name) {
-        const pino = app.tryRequire('pino');
+        const pino = app.requireModule('pino');
         config = app.featureConfig(config ?? {}, {
             schema: {
                 transport: {
@@ -69,7 +69,9 @@ const _default = {
             transport: {
                 target: 'pino-pretty',
                 options: {
-                    colorize: true
+                    levelFirst: true,
+                    colorize: true,
+                    ignore: "time,hostname,pid"
                 }
             },
             ...config

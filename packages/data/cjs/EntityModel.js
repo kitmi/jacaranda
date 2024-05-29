@@ -1,31 +1,42 @@
 "use strict";
-const { HttpCode, UnexpectedState, ValidationError, DatabaseError, InvalidArgument } = require('@genx/error');
-const { _, eachAsync_ } = require('@genx/july');
-const Generators = require('./Generators');
-const Convertors = require('./Convertors');
-const Types = require('./types');
-const Features = require('./entityFeatures');
-const Rules = require('./enum/Rules');
-const { excludeColumn } = require('./drivers/mysql/mixin/excludeColumn');
-const { isNothing, hasValueIn } = require('./utils/lang');
-const JES = require('@genx/jes');
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "default", {
+    enumerable: true,
+    get: function() {
+        return _default;
+    }
+});
+const _types = require("@kitmi/types");
+const _utils = require("@kitmi/utils");
+const _allSync = require("@kitmi/validators/allSync");
+const _entityFeatures = /*#__PURE__*/ _interop_require_default(require("./entityFeatures"));
+const _Rules = /*#__PURE__*/ _interop_require_default(require("./enum/Rules"));
+function _interop_require_default(obj) {
+    return obj && obj.__esModule ? obj : {
+        default: obj
+    };
+}
 const NEED_OVERRIDE = 'Should be overrided by driver-specific subclass.';
 function minifyAssocs(assocs) {
-    const sorted = _.uniq(assocs).sort().reverse();
-    const minified = _.take(sorted, 1);
+    const sorted = _utils._.uniq(assocs).sort().reverse();
+    const minified = _utils._.take(sorted, 1);
     const l = sorted.length - 1;
     for(let i = 1; i < l; i++){
         const k = sorted[i] + '.';
-        if (!_.find(minified, (a)=>a.startsWith(k))) {
+        if (!_utils._.find(minified, (a)=>a.startsWith(k))) {
             minified.push(sorted[i]);
         }
     }
     return minified;
 }
 const $xrsToBypass = new Set([
-    'ColumnReference',
+    'Column',
     'Function',
-    'BinaryExpression',
+    'BinExpr',
+    'Query',
+    'Raw',
     'DataSet',
     'SQL'
 ]);
@@ -34,11 +45,7 @@ const $xrsToBypass = new Set([
  * @class
  */ class EntityModel {
     static valueOfKey(data) {
-        return data[this.meta.keyField];
-    }
-    // alias of fieldSchema, backward compatible with v1
-    static feildMeta(...args) {
-        return this.fieldSchema(...args);
+        return data[this._meta.keyField];
     }
     /**
      * Get a field schema based on the metadata of the field.
@@ -46,11 +53,11 @@ const $xrsToBypass = new Set([
      * @param {object} [extra] - Extra schema options
      * @return {object|array} Schema object
      */ static fieldSchema(name, extra) {
-        const meta = this.meta.fields[name];
+        const meta = this._meta.fields[name];
         if (!meta) {
-            throw new InvalidArgument(`Unknown field "${name}" of entity "${this.meta.name}".`);
+            throw new _types.InvalidArgument(`Unknown field "${name}" of entity "${this._meta.name}".`);
         }
-        const schema = _.omit(meta, [
+        const schema = _utils._.omit(meta, [
             'default',
             'optional'
         ]);
@@ -63,7 +70,7 @@ const $xrsToBypass = new Set([
                     ...others
                 };
             }
-            if (meta.type === Types.ENUM.name && $addEnumValues) {
+            if (meta.type === _allSync.Types.ENUM.name && $addEnumValues) {
                 schema.values = schema.values.concat($addEnumValues);
             }
             Object.assign(schema, others);
@@ -94,7 +101,7 @@ const $xrsToBypass = new Set([
         } else {
             this._cachedSchema = {};
         }
-        const schemaGenerator = this.db.require(`inputs/${this.meta.name}-${inputSetName}`);
+        const schemaGenerator = this._db.require(`inputs/${this._meta.name}-${inputSetName}`);
         return this._cachedSchema[key] = schemaGenerator(options);
     }
     /**
@@ -119,14 +126,14 @@ const $xrsToBypass = new Set([
      * Get field names array of a unique key from input data.
      * @param {object} data - Input data.
      */ static getUniqueKeyFieldsFrom(data) {
-        return _.find(this.meta.uniqueKeys, (fields)=>_.every(fields, (f)=>!_.isNil(data[f])));
+        return _utils._.find(this._meta.uniqueKeys, (fields)=>_utils._.every(fields, (f)=>!_utils._.isNil(data[f])));
     }
     /**
      * Get key-value pairs of a unique key from input data.
      * @param {object} data - Input data.
      */ static getUniqueKeyValuePairsFrom(data) {
         const ukFields = this.getUniqueKeyFieldsFrom(data);
-        return _.pick(data, ukFields);
+        return _utils._.pick(data, ukFields);
     }
     /**
      * Get nested object of an entity.
@@ -134,7 +141,7 @@ const $xrsToBypass = new Set([
      * @param {*} keyPath
      */ static getNestedObject(entityObj, keyPath, defaultValue) {
         const nodes = (Array.isArray(keyPath) ? keyPath : keyPath.split('.')).map((key)=>key[0] === ':' ? key : ':' + key);
-        return _.get(entityObj, nodes, defaultValue);
+        return _utils._.get(entityObj, nodes, defaultValue);
     }
     /**
      * Ensure the entity object containing required fields, if not, it will automatically fetched from db and return.
@@ -143,13 +150,13 @@ const $xrsToBypass = new Set([
      * @param {*} connOpts 
      * @returns {Object}
      */ static async ensureFields_(entityObj, fields, connOpts) {
-        if (_.find(fields, (field)=>!_.has(entityObj, field))) {
+        if (_utils._.find(fields, (field)=>!_utils._.has(entityObj, field))) {
             const uk = this.getUniqueKeyValuePairsFrom(entityObj);
-            if (_.isEmpty(uk)) {
+            if ((0, _utils.isEmpty)(uk)) {
                 throw new UnexpectedState('None of the unique keys found from the data set.');
             }
             const findOptions = {
-                $query: uk,
+                $where: uk,
                 /* $projection: fields,*/ $association: this.assocFrom(null, fields)
             };
             return this.findOne_(findOptions, connOpts);
@@ -189,7 +196,7 @@ const $xrsToBypass = new Set([
      */ static async ensureTransaction_(context) {
         if (!context.connOptions || !context.connOptions.connection) {
             context.connOptions || (context.connOptions = {});
-            context.connOptions.connection = await this.db.connector.beginTransaction_();
+            context.connOptions.connection = await this._db.connector.beginTransaction_();
         }
     }
     /**
@@ -198,17 +205,17 @@ const $xrsToBypass = new Set([
      * @param {string} key
      * @returns {*}
      */ static getValueFromContext(context, key) {
-        return _.get(context, 'options.$variables.' + key);
+        return _utils._.get(context, 'options.$variables.' + key);
     }
     /**
      * Get a pk-indexed hashtable with all undeleted data
      * {string} [key] - The key field to used by the hashtable.
      * {array} [associations] - With an array of associations.
      * {object} [connOptions] - Connection options, e.g. transaction handle
-     */ static async cached_(key, associations, connOptions) {
+     */ static async cached_(key, associations, connOptions1) {
         if (key) {
             let combinedKey = key;
-            if (!_.isEmpty(associations)) {
+            if (!(0, _utils.isEmpty)(associations)) {
                 combinedKey += '/' + minifyAssocs(associations).join('&');
             }
             let cachedData;
@@ -221,14 +228,14 @@ const $xrsToBypass = new Set([
                 cachedData = this._cachedData[combinedKey] = await this.findAll_({
                     $association: associations,
                     $toDictionary: key
-                }, connOptions);
+                }, connOptions1);
             }
             return cachedData;
         }
-        return this.cached_(this.meta.keyField, associations, connOptions);
+        return this.cached_(this._meta.keyField, associations, connOptions1);
     }
     static toDictionary(entityCollection, key, transformer) {
-        key || (key = this.meta.keyField);
+        key || (key = this._meta.keyField);
         return Convertors.toKVPairs(entityCollection, key, transformer);
     }
     /**
@@ -236,26 +243,25 @@ const $xrsToBypass = new Set([
      * @param {array} pipeline
      * @param {object} [connOptions]
      * @returns {*}
-     */ static async aggregate_(pipeline, connOptions) {
+     */ static async aggregate_(pipeline, connOptions1) {
         const _pipeline = pipeline.map((q)=>this._prepareQueries(q));
-        return this.db.connector.aggregate_(this.meta.name, _pipeline, connOptions);
+        return this._db.connector.aggregate_(this._meta.name, _pipeline, connOptions1);
     }
     /**
-     * Find one record, returns a model object containing the record or undefined if nothing found.     
+     * Find a record by unique keys, returns a model object containing the record or undefined if nothing found.     
      * @param {object} [findOptions] - findOptions
      * @property {object} [findOptions.$association] - Joinings
-     * @property {object} [findOptions.$projection] - Selected fields
+     * @property {object} [findOptions.$select] - Selected fields
      * @property {object} [findOptions.$transformer] - Transform fields before returning
-     * @property {object} [findOptions.$query] - Extra condition
+     * @property {object} [findOptions.$where] - Extra condition
      * @property {object} [findOptions.$groupBy] - Group by fields
      * @property {object} [findOptions.$orderBy] - Order by fields
      * @property {number} [findOptions.$offset] - Offset
      * @property {number} [findOptions.$limit] - Limit
-     * @property {bool} [findOptions.$includeDeleted=false] - Include those marked as logical deleted.
-     * @param {object} [connOptions]
-     * @property {object} [connOptions.connection]
+     * @property {bool} [findOptions.$includeDeleted=false] - Include those marked as logical deleted.     
+     * @property {bool} [findOptions.$skipOrm=false] - Skip ORM mapping
      * @returns {*}
-     */ static async findOne_(findOptions, connOptions) {
+     */ async findOne_(findOptions) {
         const rawOptions = findOptions;
         findOptions = this._prepareQueries(findOptions, true);
         const context = {
@@ -263,10 +269,10 @@ const $xrsToBypass = new Set([
             options: findOptions,
             connOptions
         };
-        await Features.applyRules_(Rules.RULE_BEFORE_FIND, this, context);
+        await _entityFeatures.default.applyRules_(_Rules.default.RULE_BEFORE_FIND, this, context);
         const result = await this._safeExecute_(async (context)=>{
-            let records = await this.db.connector.find_(this.meta.name, context.options, context.connOptions);
-            if (!records) throw new DatabaseError('connector.find_() returns undefined data record.');
+            let records = await this._db.connector.find_(this._meta.name, context.options, context.connOptions);
+            if (!records) throw new _types.DatabaseError('connector.find_() returns undefined data record.');
             if (rawOptions && rawOptions.$retrieveDbResult) {
                 rawOptions.$result = records.slice(1);
             }
@@ -278,8 +284,8 @@ const $xrsToBypass = new Set([
                 return undefined;
             }
             if (records.length !== 1) {
-                this.db.connector.log('error', `findOne() returns more than one record.`, {
-                    entity: this.meta.name,
+                this._db.connector.log('error', `findOne() returns more than one record.`, {
+                    entity: this._meta.name,
                     options: context.options
                 });
             }
@@ -297,7 +303,7 @@ const $xrsToBypass = new Set([
      * @property {object} [findOptions.$association] - Joinings
      * @property {object} [findOptions.$projection] - Selected fields
      * @property {object} [findOptions.$transformer] - Transform fields before returning
-     * @property {object} [findOptions.$query] - Extra condition
+     * @property {object} [findOptions.$where] - Extra condition
      * @property {object} [findOptions.$groupBy] - Group by fields
      * @property {object} [findOptions.$orderBy] - Order by fields
      * @property {number} [findOptions.$offset] - Offset
@@ -307,19 +313,19 @@ const $xrsToBypass = new Set([
      * @param {object} [connOptions]
      * @property {object} [connOptions.connection]
      * @returns {array}
-     */ static async findAll_(findOptions, connOptions) {
+     */ async findMany_(findOptions, connOptions1) {
         const rawOptions = findOptions;
         findOptions = this._prepareQueries(findOptions);
         const context = {
             op: 'find',
             options: findOptions,
-            connOptions
+            connOptions: connOptions1
         };
-        await Features.applyRules_(Rules.RULE_BEFORE_FIND, this, context);
+        await _entityFeatures.default.applyRules_(_Rules.default.RULE_BEFORE_FIND, this, context);
         let totalCount;
         let rows = await this._safeExecute_(async (context)=>{
-            let records = await this.db.connector.find_(this.meta.name, context.options, context.connOptions);
-            if (!records) throw new DatabaseError('connector.find_() returns undefined data record.');
+            let records = await this._db.connector.find_(this._meta.name, context.options, context.connOptions);
+            if (!records) throw new _types.DatabaseError('connector.find_() returns undefined data record.');
             if (rawOptions && rawOptions.$retrieveDbResult) {
                 rawOptions.$result = records.slice(1);
             }
@@ -364,14 +370,14 @@ const $xrsToBypass = new Set([
      * Regenerate creation data and try again if duplicate record exists
      * @param {Function} dataGenerator_
      * @param {Object} connOptions
-     */ static async retryCreateOnDuplicate_(dataGenerator_, maxRery, createOptions, connOptions) {
+     */ async retryCreateOnDuplicate_(dataGenerator_, maxRery, createOptions, connOptions1) {
         let counter = 0;
         let errorRet;
         maxRery || (maxRery = 10);
         while(counter++ < maxRery){
             const data = await dataGenerator_();
             try {
-                return await this.create_(data, createOptions, connOptions);
+                return await this.create_(data, createOptions, connOptions1);
             } catch (error) {
                 if (error.code !== 'E_DUPLICATE') {
                     throw error;
@@ -390,7 +396,7 @@ const $xrsToBypass = new Set([
      * @param {object} [connOptions]
      * @property {object} [connOptions.connection]
      * @returns {EntityModel}
-     */ static async create_(data, createOptions, connOptions) {
+     */ async create_(data, createOptions, connOptions1) {
         const rawOptions = createOptions;
         if (!createOptions) {
             createOptions = {};
@@ -401,25 +407,25 @@ const $xrsToBypass = new Set([
             raw,
             rawOptions,
             options: createOptions,
-            connOptions
+            connOptions: connOptions1
         };
         if (!await this.beforeCreate_(context)) {
             return context.return;
         }
         const success = await this._safeExecute_(async (context)=>{
-            if (!_.isEmpty(references)) {
+            if (!(0, _utils.isEmpty)(references)) {
                 await this.ensureTransaction_(context);
                 await this._populateReferences_(context, references);
             }
-            let needCreateAssocs = !_.isEmpty(associations);
+            let needCreateAssocs = !(0, _utils.isEmpty)(associations);
             if (needCreateAssocs) {
                 await this.ensureTransaction_(context);
                 associations = await this._createAssocs_(context, associations, true);
                 // check any other associations left
-                needCreateAssocs = !_.isEmpty(associations);
+                needCreateAssocs = !(0, _utils.isEmpty)(associations);
             }
             await this._prepareEntityData_(context);
-            if (!await Features.applyRules_(Rules.RULE_BEFORE_CREATE, this, context)) {
+            if (!await _entityFeatures.default.applyRules_(_Rules.default.RULE_BEFORE_CREATE, this, context)) {
                 return false;
             }
             if (!await this._internalBeforeCreate_(context)) {
@@ -427,16 +433,16 @@ const $xrsToBypass = new Set([
             }
             if (!context.options.$dryRun) {
                 if (context.options.$upsert) {
-                    const dataForUpdating = _.pick(context.latest, Object.keys(context.raw)); // only update the raw part    
-                    context.result = await this.db.connector.upsertOne_(this.meta.name, dataForUpdating, this.getUniqueKeyFieldsFrom(context.latest), context.connOptions, context.latest);
+                    const dataForUpdating = _utils._.pick(context.latest, Object.keys(context.raw)); // only update the raw part    
+                    context.result = await this._db.connector.upsertOne_(this._meta.name, dataForUpdating, this.getUniqueKeyFieldsFrom(context.latest), context.connOptions, context.latest);
                 } else {
-                    context.result = await this.db.connector.create_(this.meta.name, context.latest, context.connOptions);
+                    context.result = await this._db.connector.create_(this._meta.name, context.latest, context.connOptions);
                 }
                 this._fillResult(context);
             } else {
                 context.return = context.latest;
                 context.result = {
-                    insertId: context.latest[this.meta.keyField],
+                    insertId: context.latest[this._meta.keyField],
                     affectedRows: 1
                 };
             }
@@ -447,7 +453,7 @@ const $xrsToBypass = new Set([
             if (!context.queryKey) {
                 context.queryKey = this.getUniqueKeyValuePairsFrom(context.latest);
             }
-            await Features.applyRules_(Rules.RULE_AFTER_CREATE, this, context);
+            await _entityFeatures.default.applyRules_(_Rules.default.RULE_AFTER_CREATE, this, context);
             return true;
         }, context);
         if (success && !context.options.$dryRun) {
@@ -459,37 +465,37 @@ const $xrsToBypass = new Set([
      * Update an existing entity with given data.
      * @param {object} data - Entity data with at least one unique key (pair) given
      * @param {object} [updateOptions] - Update options
-     * @property {object} [updateOptions.$query] - Extra condition
+     * @property {object} [updateOptions.$where] - Extra condition
      * @property {bool} [updateOptions.$retrieveUpdated=false] - Retrieve the updated entity from database
      * @param {object} [connOptions]
      * @property {object} [connOptions.connection]
      * @returns {object}
-     */ static async updateOne_(data, updateOptions, connOptions) {
-        return this._update_(data, updateOptions, connOptions, true);
+     */ async updateOne_(data, updateOptions, connOptions1) {
+        return this._update_(data, updateOptions, connOptions1, true);
     }
     /**
      * Update many existing entites with given data.
      * @param {*} data
      * @param {*} updateOptions
      * @param {*} connOptions
-     */ static async updateMany_(data, updateOptions, connOptions) {
-        return this._update_(data, updateOptions, connOptions, false);
+     */ async updateMany_(data, updateOptions, connOptions1) {
+        return this._update_(data, updateOptions, connOptions1, false);
     }
-    static async _update_(data, updateOptions, connOptions, forSingleRecord) {
+    async _update_(data, updateOptions, connOptions1, forSingleRecord) {
         const rawOptions = updateOptions;
         if (!updateOptions) {
             // if no condition given, extract from data
             const conditionFields = this.getUniqueKeyFieldsFrom(data);
-            if (_.isEmpty(conditionFields)) {
-                throw new InvalidArgument('Primary key value(s) or at least one group of unique key value(s) is required for updating an entity.', {
-                    entity: this.meta.name,
+            if ((0, _utils.isEmpty)(conditionFields)) {
+                throw new _types.InvalidArgument('Primary key value(s) or at least one group of unique key value(s) is required for updating an entity.', {
+                    entity: this._meta.name,
                     data
                 });
             }
             updateOptions = {
-                $query: _.pick(data, conditionFields)
+                $where: _utils._.pick(data, conditionFields)
             };
-            data = _.omit(data, conditionFields);
+            data = _utils._.omit(data, conditionFields);
         }
         // see if there is associated entity data provided together
         let [raw, associations, references] = this._extractAssociations(data);
@@ -498,7 +504,7 @@ const $xrsToBypass = new Set([
             raw,
             rawOptions,
             options: this._prepareQueries(updateOptions, forSingleRecord /* for single record */ ),
-            connOptions,
+            connOptions: connOptions1,
             forSingleRecord
         };
         // see if there is any runtime feature stopping the update
@@ -512,20 +518,20 @@ const $xrsToBypass = new Set([
             return context.return;
         }
         const success = await this._safeExecute_(async (context)=>{
-            if (!_.isEmpty(references)) {
+            if (!(0, _utils.isEmpty)(references)) {
                 await this.ensureTransaction_(context);
                 await this._populateReferences_(context, references);
             }
-            let needUpdateAssocs = !_.isEmpty(associations);
+            let needUpdateAssocs = !(0, _utils.isEmpty)(associations);
             let doneUpdateAssocs;
             if (needUpdateAssocs) {
                 await this.ensureTransaction_(context);
                 associations = await this._updateAssocs_(context, associations, true, forSingleRecord);
-                needUpdateAssocs = !_.isEmpty(associations);
+                needUpdateAssocs = !(0, _utils.isEmpty)(associations);
                 doneUpdateAssocs = true;
             }
             await this._prepareEntityData_(context, true, forSingleRecord);
-            if (!await Features.applyRules_(Rules.RULE_BEFORE_UPDATE, this, context)) {
+            if (!await _entityFeatures.default.applyRules_(_Rules.default.RULE_BEFORE_UPDATE, this, context)) {
                 return false;
             }
             if (forSingleRecord) {
@@ -536,16 +542,16 @@ const $xrsToBypass = new Set([
             if (!toUpdate) {
                 return false;
             }
-            const { $query, ...otherOptions } = context.options;
-            if (_.isEmpty(context.latest)) {
+            const { $where, ...otherOptions } = context.options;
+            if ((0, _utils.isEmpty)(context.latest)) {
                 if (!doneUpdateAssocs && !needUpdateAssocs) {
-                    throw new InvalidArgument('Cannot do the update with empty record. Entity: ' + this.meta.name);
+                    throw new _types.InvalidArgument('Cannot do the update with empty record. Entity: ' + this._meta.name);
                 }
             } else {
                 if (needUpdateAssocs && !hasValueIn([
-                    $query,
+                    $where,
                     context.latest
-                ], this.meta.keyField) && !otherOptions.$retrieveUpdated) {
+                ], this._meta.keyField) && !otherOptions.$retrieveUpdated) {
                     // has associated data depending on this record
                     // should ensure the latest result will contain the key of this record
                     otherOptions.$retrieveUpdated = true;
@@ -553,18 +559,18 @@ const $xrsToBypass = new Set([
                 if (forSingleRecord && !otherOptions.$limit) {
                     otherOptions.$limit = 1;
                 }
-                context.result = await this.db.connector.update_(this.meta.name, context.latest, $query, otherOptions, context.connOptions);
+                context.result = await this._db.connector.update_(this._meta.name, context.latest, $where, otherOptions, context.connOptions);
                 context.return = context.latest;
             }
             if (forSingleRecord) {
                 await this._internalAfterUpdate_(context);
                 if (!context.queryKey) {
-                    context.queryKey = this.getUniqueKeyValuePairsFrom($query);
+                    context.queryKey = this.getUniqueKeyValuePairsFrom($where);
                 }
             } else {
                 await this._internalAfterUpdateMany_(context);
             }
-            await Features.applyRules_(Rules.RULE_AFTER_UPDATE, this, context);
+            await _entityFeatures.default.applyRules_(_Rules.default.RULE_AFTER_UPDATE, this, context);
             if (needUpdateAssocs) {
                 await this._updateAssocs_(context, associations, false, forSingleRecord);
             }
@@ -584,19 +590,19 @@ const $xrsToBypass = new Set([
      * @param {*} data
      * @param {*} updateOptions
      * @param {*} connOptions
-     */ static async replaceOne_(data, updateOptions, connOptions) {
+     */ async replaceOne_(data, updateOptions, connOptions1) {
         const rawOptions = updateOptions;
         if (!updateOptions) {
             const conditionFields = this.getUniqueKeyFieldsFrom(data);
-            if (_.isEmpty(conditionFields)) {
-                throw new InvalidArgument('Primary key value(s) or at least one group of unique key value(s) is required for replacing an entity.', {
-                    entity: this.meta.name,
+            if ((0, _utils.isEmpty)(conditionFields)) {
+                throw new _types.InvalidArgument('Primary key value(s) or at least one group of unique key value(s) is required for replacing an entity.', {
+                    entity: this._meta.name,
                     data
                 });
             }
             updateOptions = {
                 ...updateOptions,
-                $query: _.pick(data, conditionFields)
+                $where: _utils._.pick(data, conditionFields)
             };
         } else {
             updateOptions = this._prepareQueries(updateOptions, true);
@@ -606,7 +612,7 @@ const $xrsToBypass = new Set([
             raw: data,
             rawOptions,
             options: updateOptions,
-            connOptions
+            connOptions: connOptions1
         };
         return this._safeExecute_(async (context)=>{
             return this._doReplaceOne_(context); // different dbms has different replacing strategy
@@ -615,45 +621,45 @@ const $xrsToBypass = new Set([
     /**
      * Remove an existing entity with given data.
      * @param {object} [deleteOptions] - Update options
-     * @property {object} [deleteOptions.$query] - Extra condition
+     * @property {object} [deleteOptions.$where] - Extra condition
      * @property {bool} [deleteOptions.$retrieveDeleted=false] - Retrieve the deleted entity from database
      * @property {bool} [deleteOptions.$physicalDeletion=false] - When $physicalDeletion = true, deletetion will not take into account logicaldeletion feature
      * @param {object} [connOptions]
      * @property {object} [connOptions.connection]
-     */ static async deleteOne_(deleteOptions, connOptions) {
-        return this._delete_(deleteOptions, connOptions, true);
+     */ async deleteOne_(deleteOptions, connOptions1) {
+        return this._delete_(deleteOptions, connOptions1, true);
     }
     /**
      * Remove an existing entity with given data.
      * @param {object} [deleteOptions] - Update options
-     * @property {object} [deleteOptions.$query] - Extra condition
+     * @property {object} [deleteOptions.$where] - Extra condition
      * @property {bool} [deleteOptions.$retrieveDeleted=false] - Retrieve the deleted entity from database
      * @property {bool} [deleteOptions.$physicalDeletion=false] - When $physicalDeletion = true, deletetion will not take into account logicaldeletion feature
      * @property {bool} [deleteOptions.$deleteAll=false] - When $deleteAll = true, the operation will proceed even empty condition is given
      * @param {object} [connOptions]
      * @property {object} [connOptions.connection]
-     */ static async deleteMany_(deleteOptions, connOptions) {
-        return this._delete_(deleteOptions, connOptions, false);
+     */ async deleteMany_(deleteOptions, connOptions1) {
+        return this._delete_(deleteOptions, connOptions1, false);
     }
-    static async deleteAll_(connOptions) {
+    async deleteAll_(connOptions1) {
         return this.deleteMany_({
             $deleteAll: true
-        }, connOptions);
+        }, connOptions1);
     }
     /**
      * Remove an existing entity with given data.
      * @param {object} [deleteOptions] - Update options
-     * @property {object} [deleteOptions.$query] - Extra condition
+     * @property {object} [deleteOptions.$where] - Extra condition
      * @property {bool} [deleteOptions.$retrieveDeleted=false] - Retrieve the deleted entity from database
      * @property {bool} [deleteOptions.$physicalDeletion=false] - When $physicalDeletion = true, deletetion will not take into account logicaldeletion feature
      * @param {object} [connOptions]
      * @property {object} [connOptions.connection]
-     */ static async _delete_(deleteOptions, connOptions, forSingleRecord) {
+     */ async _delete_(deleteOptions, connOptions1, forSingleRecord) {
         const rawOptions = deleteOptions;
         deleteOptions = this._prepareQueries(deleteOptions, forSingleRecord /* for single record */ );
-        if (_.isEmpty(deleteOptions.$query) && (forSingleRecord || !deleteOptions.$deleteAll)) {
-            throw new InvalidArgument('Empty condition is not allowed for deleting or add { $deleteAll: true } to delete all records.', {
-                entity: this.meta.name,
+        if ((0, _utils.isEmpty)(deleteOptions.$where) && (forSingleRecord || !deleteOptions.$deleteAll)) {
+            throw new _types.InvalidArgument('Empty condition is not allowed for deleting or add { $deleteAll: true } to delete all records.', {
+                entity: this._meta.name,
                 deleteOptions
             });
         }
@@ -661,7 +667,7 @@ const $xrsToBypass = new Set([
             op: 'delete',
             rawOptions,
             options: deleteOptions,
-            connOptions,
+            connOptions: connOptions1,
             forSingleRecord
         };
         let toDelete;
@@ -674,7 +680,7 @@ const $xrsToBypass = new Set([
             return context.return;
         }
         const deletedCount = await this._safeExecute_(async (context)=>{
-            if (!await Features.applyRules_(Rules.RULE_BEFORE_DELETE, this, context)) {
+            if (!await _entityFeatures.default.applyRules_(_Rules.default.RULE_BEFORE_DELETE, this, context)) {
                 return false;
             }
             if (forSingleRecord) {
@@ -685,8 +691,8 @@ const $xrsToBypass = new Set([
             if (!toDelete) {
                 return false;
             }
-            const { $query, ...otherOptions } = context.options;
-            context.result = await this.db.connector.delete_(this.meta.name, $query, otherOptions, context.connOptions);
+            const { $where, ...otherOptions } = context.options;
+            context.result = await this._db.connector.delete_(this._meta.name, $where, otherOptions, context.connOptions);
             if (forSingleRecord) {
                 await this._internalAfterDelete_(context);
             } else {
@@ -694,13 +700,13 @@ const $xrsToBypass = new Set([
             }
             if (!context.queryKey) {
                 if (forSingleRecord) {
-                    context.queryKey = this.getUniqueKeyValuePairsFrom(context.options.$query);
+                    context.queryKey = this.getUniqueKeyValuePairsFrom(context.options.$where);
                 } else {
-                    context.queryKey = context.options.$query;
+                    context.queryKey = context.options.$where;
                 }
             }
-            await Features.applyRules_(Rules.RULE_AFTER_DELETE, this, context);
-            return this.db.connector.deletedCount(context);
+            await _entityFeatures.default.applyRules_(_Rules.default.RULE_AFTER_DELETE, this, context);
+            return this._db.connector.deletedCount(context);
         }, context);
         if (deletedCount && !context.options.$dryRun) {
             if (forSingleRecord) {
@@ -714,29 +720,29 @@ const $xrsToBypass = new Set([
     /**
      * Check whether a data record contains primary key or at least one unique key pair.
      * @param {object} data
-     */ static _containsUniqueKey(data) {
-        let hasKeyNameOnly = false;
-        const hasNotNullKey = _.find(this.meta.uniqueKeys, (fields)=>{
-            const hasKeys = _.every(fields, (f)=>f in data);
-            hasKeyNameOnly = hasKeyNameOnly || hasKeys;
-            return _.every(fields, (f)=>!_.isNil(data[f]));
+     */ _containsUniqueKey(data) {
+        let hasKeyName = false;
+        const hasNotNullKey = _utils._.find(this._meta.uniqueKeys, (fields)=>{
+            const hasKeys = _utils._.every(fields, (f)=>f in data);
+            hasKeyName = hasKeyName || hasKeys;
+            return _utils._.every(fields, (f)=>data[f] != null);
         });
         return [
             hasNotNullKey,
-            hasKeyNameOnly
+            hasKeyName
         ];
     }
     /**
      * Ensure the condition contains one of the unique keys.
      * @param {*} condition
-     */ static _ensureContainsUniqueKey(condition) {
-        const [containsUniqueKeyAndValue, containsUniqueKeyOnly] = this._containsUniqueKey(condition);
+     */ _ensureContainsUniqueKey(condition) {
+        const [containsUniqueKeyAndValue, containsUniqueKeyName] = this._containsUniqueKey(condition);
         if (!containsUniqueKeyAndValue) {
-            if (containsUniqueKeyOnly) {
+            if (containsUniqueKeyName) {
                 throw new ValidationError('One of the unique key field as query condition is null. Condition: ' + JSON.stringify(condition));
             }
-            throw new InvalidArgument('Single record operation requires at least one unique key value pair in the query condition.', {
-                entity: this.meta.name,
+            throw new _types.InvalidArgument('Single record operation requires at least one unique key value pair in the query condition.', {
+                entity: this._meta.name,
                 condition
             });
         }
@@ -747,8 +753,8 @@ const $xrsToBypass = new Set([
      * @property {object} context.raw - Raw input data.
      * @property {object} [context.connOptions]
      * @param {bool} isUpdating - Flag for updating existing entity.
-     */ static async _prepareEntityData_(context, isUpdating = false, forSingleRecord = true) {
-        const meta = this.meta;
+     */ async _prepareEntityData_(context, isUpdating = false, forSingleRecord = true) {
+        const meta = this._meta;
         const i18n = this.i18n;
         const { name, fields } = meta;
         let { raw } = context;
@@ -766,15 +772,15 @@ const $xrsToBypass = new Set([
                 ...opOptions.$upsert
             };
         }
-        if (isUpdating && _.isEmpty(existing) && (this._dependsOnExistingData(raw) || opOptions.$retrieveExisting)) {
+        if (isUpdating && (0, _utils.isEmpty)(existing) && (this._dependsOnExistingData(raw) || opOptions.$retrieveExisting)) {
             await this.ensureTransaction_(context);
             if (forSingleRecord) {
                 existing = await this.findOne_({
-                    $query: opOptions.$query
+                    $where: opOptions.$where
                 }, context.connOptions);
             } else {
                 existing = await this.findAll_({
-                    $query: opOptions.$query
+                    $where: opOptions.$where
                 }, context.connOptions);
             }
             context.existing = existing;
@@ -782,8 +788,8 @@ const $xrsToBypass = new Set([
         if (opOptions.$retrieveExisting && !context.rawOptions.$existing) {
             context.rawOptions.$existing = existing;
         }
-        await Features.applyRules_(Rules.RULE_BEFORE_VALIDATION, this, context);
-        await eachAsync_(fields, async (fieldInfo, fieldName)=>{
+        await _entityFeatures.default.applyRules_(_Rules.default.RULE_BEFORE_VALIDATION, this, context);
+        await (0, _utils.eachAsync_)(fields, async (fieldInfo, fieldName)=>{
             let value;
             let useRaw = false;
             if (fieldName in raw) {
@@ -838,12 +844,12 @@ const $xrsToBypass = new Set([
                         latest[fieldName] = null;
                     }
                 } else {
-                    if (_.isPlainObject(value) && value.$xr) {
+                    if ((0, _utils.isPlainObject)(value) && value.$xr) {
                         latest[fieldName] = value;
                         return;
                     }
                     try {
-                        latest[fieldName] = Types.sanitize(value, fieldInfo, i18n);
+                        latest[fieldName] = _allSync.Types.sanitize(value, fieldInfo, i18n);
                     } catch (error) {
                         throw new ValidationError(`Invalid "${fieldName}" value of "${name}" entity.`, {
                             entity: name,
@@ -895,14 +901,14 @@ const $xrsToBypass = new Set([
             } // else default value set by database or by rules
         });
         latest = context.latest = this._translateValue(latest, opOptions.$variables, true);
-        await Features.applyRules_(Rules.RULE_AFTER_VALIDATION, this, context);
+        await _entityFeatures.default.applyRules_(_Rules.default.RULE_AFTER_VALIDATION, this, context);
         if (!opOptions.$skipModifiers) {
             await this.applyModifiers_(context, isUpdating);
         }
         // final round process before entering database
-        context.latest = _.mapValues(latest, (value, key)=>{
+        context.latest = _utils._.mapValues(latest, (value, key)=>{
             if (value == null) return value;
-            if (_.isPlainObject(value) && value.$xr) {
+            if ((0, _utils.isPlainObject)(value) && value.$xr) {
                 // there is special input column which maybe a function or an expression
                 opOptions.$requireSplitColumns = true;
                 return value;
@@ -916,7 +922,7 @@ const $xrsToBypass = new Set([
      * Ensure commit or rollback is called if transaction is created within the executor.
      * @param {*} executor
      * @param {*} context
-     */ static async _safeExecute_(executor, context) {
+     */ async _safeExecute_(executor, context) {
         executor = executor.bind(this);
         if (context.connOptions && context.connOptions.connection) {
             return executor(context);
@@ -925,49 +931,49 @@ const $xrsToBypass = new Set([
             const result = await executor(context);
             // if the executor have initiated a transaction
             if (context.connOptions && context.connOptions.connection) {
-                await this.db.connector.commit_(context.connOptions.connection);
+                await this._db.connector.commit_(context.connOptions.connection);
                 delete context.connOptions.connection;
             }
             return result;
         } catch (error) {
             // we have to rollback if error occurred in a transaction
             if (context.connOptions && context.connOptions.connection) {
-                this.db.connector.log('error', `Rollbacked, reason: ${error.message}`, {
-                    entity: this.meta.name,
+                this._db.connector.log('error', `Rollbacked, reason: ${error.message}`, {
+                    entity: this._meta.name,
                     context: context.options,
                     rawData: context.raw,
                     latestData: context.latest
                 });
-                await this.db.connector.rollback_(context.connOptions.connection);
+                await this._db.connector.rollback_(context.connOptions.connection);
                 delete context.connOptions.connection;
             }
             throw error;
         }
     }
-    static _dependencyChanged(fieldName, context) {
-        if (this.meta.fieldDependencies) {
-            const deps = this.meta.fieldDependencies[fieldName];
-            return _.find(deps, (d)=>_.isPlainObject(d) ? d.reference !== fieldName && _.hasIn(context, d.reference) : _.hasIn(context, d));
+    _dependencyChanged(fieldName, context) {
+        if (this._meta.fieldDependencies) {
+            const deps = this._meta.fieldDependencies[fieldName];
+            return _utils._.find(deps, (d)=>(0, _utils.isPlainObject)(d) ? d.reference !== fieldName && _utils._.hasIn(context, d.reference) : _utils._.hasIn(context, d));
         }
         return false;
     }
-    static _referenceExist(input, ref) {
+    _referenceExist(input, ref) {
         const pos = ref.indexOf('.');
         if (pos > 0) {
             return ref.substr(pos + 1) in input;
         }
         return ref in input;
     }
-    static _dependsOnExistingData(input) {
+    _dependsOnExistingData(input) {
         // check modifier dependencies
-        const deps = this.meta.fieldDependencies;
+        const deps = this._meta.fieldDependencies;
         let hasDepends = false;
         if (deps) {
             const nullDepends = new Set();
-            hasDepends = _.find(deps, (dep, fieldName)=>_.find(dep, (d)=>{
-                    if (_.isPlainObject(d)) {
+            hasDepends = _utils._.find(deps, (dep, fieldName)=>_utils._.find(dep, (d)=>{
+                    if ((0, _utils.isPlainObject)(d)) {
                         if (d.whenNull) {
-                            if (_.isNil(input[fieldName])) {
+                            if (_utils._.isNil(input[fieldName])) {
                                 nullDepends.add(dep);
                             }
                             return false;
@@ -981,74 +987,81 @@ const $xrsToBypass = new Set([
                 return true;
             }
             for (const dep of nullDepends){
-                if (_.find(dep, (d)=>!this._referenceExist(input, d.reference))) {
+                if (_utils._.find(dep, (d)=>!this._referenceExist(input, d.reference))) {
                     return true;
                 }
             }
         }
         // check by special rules
-        const atLeastOneNotNull = this.meta.features.atLeastOneNotNull;
+        const atLeastOneNotNull = this._meta.features.atLeastOneNotNull;
         if (atLeastOneNotNull) {
-            hasDepends = _.find(atLeastOneNotNull, (fields)=>_.find(fields, (field)=>field in input && _.isNil(input[field])));
+            hasDepends = _utils._.find(atLeastOneNotNull, (fields)=>_utils._.find(fields, (field)=>field in input && _utils._.isNil(input[field])));
             if (hasDepends) {
                 return true;
             }
         }
         return false;
     }
-    static _hasReservedKeys(obj) {
-        return _.find(obj, (v, k)=>k[0] === '$');
+    _hasReservedKeys(obj) {
+        return _utils._.find(obj, (v, k)=>k[0] === '$');
     }
     /**
-     * Normalize options including moving entries with key not starting with '$' into $query, interpolating variables and building relationship structure.
+     * Normalize options including moving entries with key not starting with '$' into $where, interpolating variables and building relationship structure.
      * @param {object} options 
      * @param {boolean} [forSingleRecord=false]
      * @returns {object}
-     */ static _prepareQueries(options, forSingleRecord = false) {
-        excludeColumn(this, this.meta, options);
-        if (!_.isPlainObject(options)) {
-            if (forSingleRecord && Array.isArray(this.meta.keyField)) {
-                throw new InvalidArgument('Cannot use a singular value as condition to query against an entity with combined primary key.', {
-                    entity: this.meta.name,
-                    keyFields: this.meta.keyField
+     */ _prepareQueries(options, forSingleRecord = false) {
+        if (!(0, _utils.isPlainObject)(options)) {
+            if (forSingleRecord && options == null) {
+                throw new _types.InvalidArgument('Primary key value or at least one unique key value pair is required for single record operation.', {
+                    entity: this._meta.name
                 });
             }
-            return options ? {
-                $query: {
-                    [this.meta.keyField]: this._translateValue(options)
+            // in this case, options is the value of primary key, check for combined primary key
+            if (Array.isArray(this._meta.keyField)) {
+                throw new _types.InvalidArgument('Cannot use a singular value as condition to query against an entity with combined primary key.', {
+                    entity: this._meta.name,
+                    keyFields: this._meta.keyField
+                });
+            }
+            // single key
+            return options != null ? {
+                $where: {
+                    [this._meta.keyField]: this._translateValue(options)
                 }
             } : {};
         }
         const normalizedOptions = {
-            $key: this.meta.keyField
+            $key: this._meta.keyField
         };
         const query = {};
-        _.forOwn(options, (v, k)=>{
+        // move non-reserved keys to $where
+        _utils._.forOwn(options, (v, k)=>{
             if (k[0] === '$') {
                 normalizedOptions[k] = v;
             } else {
                 query[k] = v;
             }
         });
-        normalizedOptions.$query = {
+        normalizedOptions.$where = {
             ...query,
-            ...normalizedOptions.$query
+            ...normalizedOptions.$where
         };
-        if (forSingleRecord && !options.$bypassEnsureUnique) {
-            this._ensureContainsUniqueKey(normalizedOptions.$query);
+        if (forSingleRecord && !options.$skipUniqueCheck) {
+            this._ensureContainsUniqueKey(normalizedOptions.$where);
         }
-        normalizedOptions.$query = this._translateValue(normalizedOptions.$query, normalizedOptions.$variables, null, true);
+        normalizedOptions.$where = this._translateValue(normalizedOptions.$where, normalizedOptions.$variables, null, true);
         if (normalizedOptions.$groupBy) {
-            if (_.isPlainObject(normalizedOptions.$groupBy)) {
+            if ((0, _utils.isPlainObject)(normalizedOptions.$groupBy)) {
                 if (normalizedOptions.$groupBy.having) {
-                    normalizedOptions.$groupBy.having = this._translateValue(normalizedOptions.$groupBy.having, normalizedOptions.$variables);
+                    normalizedOptions.$groupBy.having = this._translateValue(normalizedOptions.$groupBy.having, normalizedOptions.$variables, null, true);
                 }
             }
         }
-        if (normalizedOptions.$projection) {
-            normalizedOptions.$projection = this._translateValue(normalizedOptions.$projection, normalizedOptions.$variables);
+        if (normalizedOptions.$select) {
+            normalizedOptions.$select = this._translateValue(normalizedOptions.$select, normalizedOptions.$variables);
         }
-        if (normalizedOptions.$association && !normalizedOptions.$relationships) {
+        if (normalizedOptions.$relation && !normalizedOptions.$relationships) {
             normalizedOptions.$relationships = this._prepareAssociations(normalizedOptions);
         }
         return normalizedOptions;
@@ -1109,12 +1122,12 @@ const $xrsToBypass = new Set([
      * @param {*} records
      */ static async afterFindAll_(context, records) {
         if (context.options.$toDictionary) {
-            let keyField = this.meta.keyField;
+            let keyField = this._meta.keyField;
             if (typeof context.options.$toDictionary === 'string') {
                 keyField = context.options.$toDictionary;
-                if (!(keyField in this.meta.fields)) {
-                    throw new InvalidArgument(`The key field "${keyField}" provided to index the cached dictionary is not a field of entity "${this.meta.name}".`, {
-                        entity: this.meta.name,
+                if (!(keyField in this._meta.fields)) {
+                    throw new _types.InvalidArgument(`The key field "${keyField}" provided to index the cached dictionary is not a field of entity "${this._meta.name}".`, {
+                        entity: this._meta.name,
                         inputKeyField: keyField
                     });
                 }
@@ -1123,40 +1136,47 @@ const $xrsToBypass = new Set([
         }
         return records;
     }
-    static _prepareAssociations() {
+    _prepareAssociations() {
         throw new Error(NEED_OVERRIDE);
     }
-    static _mapRecordsToObjects() {
+    _mapRecordsToObjects() {
         throw new Error(NEED_OVERRIDE);
     }
-    static _extractAssociations(data) {
-        throw new Error(NEED_OVERRIDE);
-    }
-    // will update context.raw if applicable
-    static async _populateReferences_(context, references) {
+    _extractAssociations(data) {
         throw new Error(NEED_OVERRIDE);
     }
     // will update context.raw if applicable
-    static async _createAssocs_(context, assocs) {
+    async _populateReferences_(context, references) {
         throw new Error(NEED_OVERRIDE);
     }
-    static async _updateAssocs_(context, assocs) {
+    // will update context.raw if applicable
+    async _createAssocs_(context, assocs) {
         throw new Error(NEED_OVERRIDE);
     }
-    static _translateSymbolToken(name) {
+    async _updateAssocs_(context, assocs) {
         throw new Error(NEED_OVERRIDE);
     }
-    static _serializeByTypeInfo(value, info) {
+    _translateSymbolToken(name) {
         throw new Error(NEED_OVERRIDE);
     }
-    static _translateValue(value, variables, skipTypeCast, arrayToInOperator) {
-        if (_.isPlainObject(value)) {
+    _serializeByTypeInfo(value, info) {
+        throw new Error(NEED_OVERRIDE);
+    }
+    /**
+     * Automatically fetch variables by $xr
+     * @param {*} value 
+     * @param {*} variables 
+     * @param {*} skipTypeCast 
+     * @param {*} arrayToInOperator - Convert an array value to { $in: array }
+     * @returns 
+     */ _translateValue(value, variables, skipTypeCast, arrayToInOperator) {
+        if ((0, _utils.isPlainObject)(value)) {
             if (value.$xr) {
                 if ($xrsToBypass.has(value.$xr)) return value;
                 if (value.$xr === 'SessionVariable') {
                     if (!variables) {
-                        throw new InvalidArgument('Variables context missing.', {
-                            entity: this.meta.name
+                        throw new _types.InvalidArgument('Variables context missing.', {
+                            entity: this._meta.name
                         });
                     }
                     if ((!variables.session || !(value.name in variables.session)) && !value.optional) {
@@ -1172,13 +1192,13 @@ const $xrsToBypass = new Set([
                     return variables.session[value.name];
                 } else if (value.$xr === 'QueryVariable') {
                     if (!variables) {
-                        throw new InvalidArgument('Variables context missing.', {
-                            entity: this.meta.name
+                        throw new _types.InvalidArgument('Variables context missing.', {
+                            entity: this._meta.name
                         });
                     }
                     if (!variables.query || !(value.name in variables.query)) {
-                        throw new InvalidArgument(`Query parameter "${value.name}" in configuration not found.`, {
-                            entity: this.meta.name
+                        throw new _types.InvalidArgument(`Query parameter "${value.name}" in configuration not found.`, {
+                            entity: this._meta.name
                         });
                     }
                     return variables.query[value.name];
@@ -1187,7 +1207,7 @@ const $xrsToBypass = new Set([
                 }
                 throw new Error('Not implemented yet. ' + value.$xr);
             }
-            return _.mapValues(value, (v, k)=>this._translateValue(v, variables, skipTypeCast, arrayToInOperator && k[0] !== '$'));
+            return _utils._.mapValues(value, (v, k)=>this._translateValue(v, variables, skipTypeCast, arrayToInOperator && k[0] !== '$'));
         }
         if (Array.isArray(value)) {
             const ret = value.map((v)=>this._translateValue(v, variables, skipTypeCast, arrayToInOperator));
@@ -1196,17 +1216,15 @@ const $xrsToBypass = new Set([
             } : ret;
         }
         if (skipTypeCast) return value;
-        return this.db.connector.typeCast(value);
+        return this._db.connector.typeCast(value);
     }
     /**
      * @param {Object} [rawData] - Raw data object
-     */ constructor(rawData){
-        if (rawData) {
-            // only pick those that are fields of this entity
-            Object.assign(this, rawData);
-        }
+     */ constructor(db){
+        this._db = db;
+        this._meta = this.constructor.meta;
     }
 }
-module.exports = EntityModel;
+const _default = EntityModel;
 
 //# sourceMappingURL=EntityModel.js.map

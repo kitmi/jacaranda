@@ -36,7 +36,7 @@ exports.extractDriverAndConnectorName = (id)=>id.split('.');
 exports.mergeCondition = mergeCondition;
 exports.SupportedDrivers = Object.freeze(SupportedDrivers);
 const $col = (name)=>({
-        $xr: 'ColumnReference',
+        $xr: 'Column',
         name
     });
 const $expr = (left, op, right)=>({

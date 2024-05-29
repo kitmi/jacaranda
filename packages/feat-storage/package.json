@@ -36,7 +36,7 @@
         "lint": "eslint \"**/*.js\"",
         "lint-fix": "eslint \"**/*.js\" --fix",
         "clean": "shx rm -rf cjs coverage .nyc_output",
-        "build": "bun run clean && swc ./src -d ./cjs"
+        "build": "bun run clean && swc ./src -d ./cjs  --strip-leading-paths"
     },
     "keywords": [
         "kitmi",

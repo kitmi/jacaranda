@@ -26,7 +26,9 @@ const Routable = (T)=>{
              */ this._middlewareFactories = {};
             await super.start_();
             if (this.options.logMiddlewareRegistry && (this.options.logLevel === 'verbose' || this.options.logLevel === 'debug')) {
-                this.log('verbose', 'Registered middlewares:', this.registry.middlewares ? Object.keys(this.registry.middlewares) : []);
+                this.log('verbose', 'Registered middlewares:', {
+                    middlewares: this.registry.middlewares ? Object.keys(this.registry.middlewares) : []
+                });
             }
             return this;
         }

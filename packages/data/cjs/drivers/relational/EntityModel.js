@@ -9,7 +9,7 @@ Object.defineProperty(exports, "default", {
     }
 });
 const _july = require("@kitmi/july");
-const _EntityModel = /*#__PURE__*/ _interop_require_default(require("../relational/EntityModel"));
+const _EntityModel = /*#__PURE__*/ _interop_require_default(require("../../EntityModel"));
 const _types = require("@kitmi/types");
 const _allSync = require("@kitmi/validators/allSync");
 function _interop_require_default(obj) {
@@ -19,20 +19,13 @@ function _interop_require_default(obj) {
 }
 const defaultNestedKeyGetter = (anchor)=>':' + anchor;
 /**
- * PostgresEntityModel entity model class.
- */ class PostgresEntityModel extends _EntityModel.default {
+ * Relational entity model class.
+ */ class RelationalEntityModel extends _EntityModel.default {
     /**
      * [specific] Check if this entity has auto increment feature.
-     */ static get hasAutoIncrement() {
-        const autoId = this.meta.features.autoId;
-        return autoId && this.meta.fields[autoId.field].autoIncrementId;
-    }
-    /**
-     * [override]
-     * @param {*} entityObj
-     * @param {*} keyPath
-     */ static getNestedObject(entityObj, keyPath) {
-        return _july._.get(entityObj, keyPath.split('.').map((p)=>':' + p).join('.'));
+     */ get hasAutoIncrement() {
+        const autoId = this._meta.features.autoId;
+        return autoId && this._meta.fields[autoId.field].autoIncrementId;
     }
     /**
      * [override] Serialize value into database acceptable format.
@@ -41,13 +34,13 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
         if (name === 'NOW') {
             return this.db.connector.raw('NOW()');
         }
-        throw new Error('not support: ' + name);
+        throw new Error('Unsupported symbol token: ' + name);
     }
     /**
      * [override]
      * @param {*} value
      * @param {*} info
-     */ static _serializeByTypeInfo(value, info) {
+     */ _serializeByTypeInfo(value, info) {
         if (info.type === 'boolean') {
             return value ? 1 : 0;
         }
@@ -66,33 +59,7 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
         }
         return value;
     }
-    static async create_(...args) {
-        try {
-            return await super.create_(...args);
-        } catch (error) {
-            const errorCode = error.code;
-            if (errorCode === 'ER_NO_REFERENCED_ROW_2') {
-                throw new _types.ReferencedNotExistError('The new entity is referencing to an unexisting entity. Detail: ' + error.message, error.info);
-            } else if (errorCode === 'ER_DUP_ENTRY') {
-                throw new _types.DuplicateError(error.message + ` while creating a new "${this.meta.name}".`, error.info);
-            }
-            throw error;
-        }
-    }
-    static async updateOne_(...args) {
-        try {
-            return await super.updateOne_(...args);
-        } catch (error) {
-            const errorCode = error.code;
-            if (errorCode === 'ER_NO_REFERENCED_ROW_2') {
-                throw new _types.ReferencedNotExistError('The entity to be updated is referencing to an unexisting entity. Detail: ' + error.message, error.info);
-            } else if (errorCode === 'ER_DUP_ENTRY') {
-                throw new _types.DuplicateError(error.message + ` while updating an existing "${this.meta.name}".`, error.info);
-            }
-            throw error;
-        }
-    }
-    static async _doReplaceOne_(context) {
+    async _doReplaceOne_(context) {
         await this.ensureTransaction_(context);
         const entity = await this.findOne_({
             $query: context.options.$query
@@ -105,7 +72,7 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
             options = {
                 ...context.options,
                 $query: {
-                    [this.meta.keyField]: super.valueOfKey(entity)
+                    [this._meta.keyField]: super.valueOfKey(entity)
                 },
                 $existing: entity
             };
@@ -128,24 +95,24 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
         }
         return ret;
     }
-    static _internalBeforeCreate_(context) {
+    _internalBeforeCreate_(context) {
         return true;
     }
-    static _fillResult(context) {
+    _fillResult(context) {
         if (this.hasAutoIncrement && context.result.affectedRows > 0) {
             const { insertId } = context.result;
             if (insertId > 0) {
                 context.latest = {
                     ...context.latest,
-                    [this.meta.features.autoId.field]: insertId
+                    [this._meta.features.autoId.field]: insertId
                 };
             } else if (context.result.upsert) {
                 // the key is not correct 
-                delete context.latest[this.meta.features.autoId.field];
+                delete context.latest[this._meta.features.autoId.field];
             }
         } else if (context.result.upsert) {
             // the key is not used 
-            delete context.latest[this.meta.keyField];
+            delete context.latest[this._meta.keyField];
         }
         context.return = context.latest;
     }
@@ -154,7 +121,7 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
      * @param {*} context
      * @property {object} [context.options] - Create options
      * @property {bool} [options.$retrieveCreated] - Retrieve the newly created record from db.
-     */ static async _internalAfterCreate_(context) {
+     */ async _internalAfterCreate_(context) {
         if (context.options.$retrieveDbResult) {
             context.rawOptions.$result = context.result;
         }
@@ -165,20 +132,20 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
                     context.queryKey = this.getUniqueKeyValuePairsFrom(context.latest);
                     if (_july._.isEmpty(context.queryKey)) {
                         throw new _types.ApplicationError('Cannot extract unique keys from input data.', {
-                            entity: this.meta.name
+                            entity: this._meta.name
                         });
                     }
                 } else {
                     const { insertId } = context.result;
                     context.queryKey = {
-                        [this.meta.features.autoId.field]: insertId
+                        [this._meta.features.autoId.field]: insertId
                     };
                 }
             } else {
                 context.queryKey = this.getUniqueKeyValuePairsFrom(context.latest);
                 if (_july._.isEmpty(context.queryKey)) {
                     throw new _types.ApplicationError('Cannot extract unique keys from input data.', {
-                        entity: this.meta.name
+                        entity: this._meta.name
                     });
                 }
             }
@@ -194,7 +161,7 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
                 } else {
                     const { insertId } = context.result;
                     context.queryKey = {
-                        [this.meta.features.autoId.field]: insertId
+                        [this._meta.features.autoId.field]: insertId
                     };
                 }
             }
@@ -388,10 +355,10 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
         if (lastPos === -1) {
             // direct association
             const assocInfo = {
-                ...this.meta.associations[assoc]
+                ...this._meta.associations[assoc]
             };
             if (_july._.isEmpty(assocInfo)) {
-                throw new _types.InvalidArgument(`Entity "${this.meta.name}" does not have the association "${assoc}".`);
+                throw new _types.InvalidArgument(`Entity "${this._meta.name}" does not have the association "${assoc}".`);
             }
             result = cache[assoc] = assocTable[assoc] = {
                 ...this._translateSchemaNameToDb(assocInfo)
@@ -639,17 +606,17 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
         const raw = {};
         const assocs = {};
         const refs = {};
-        const meta = this.meta.associations;
+        const meta = this._meta.associations;
         _july._.forOwn(data, (v, k)=>{
             if (k[0] === ':') {
                 // cascade update
                 const anchor = k.substr(1);
                 const assocMeta = meta[anchor];
                 if (!assocMeta) {
-                    throw new _types.ValidationError(`Unknown association "${anchor}" of entity "${this.meta.name}".`);
+                    throw new _types.ValidationError(`Unknown association "${anchor}" of entity "${this._meta.name}".`);
                 }
                 if (isNew && (assocMeta.type === 'refersTo' || assocMeta.type === 'belongsTo') && anchor in data) {
-                    throw new _types.ValidationError(`Association data ":${anchor}" of entity "${this.meta.name}" conflicts with input value of field "${anchor}".`);
+                    throw new _types.ValidationError(`Association data ":${anchor}" of entity "${this._meta.name}" conflicts with input value of field "${anchor}".`);
                 }
                 assocs[anchor] = v;
             } else if (k[0] === '@') {
@@ -657,20 +624,20 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
                 const anchor = k.substr(1);
                 const assocMeta = meta[anchor];
                 if (!assocMeta) {
-                    throw new _types.ValidationError(`Unknown association "${anchor}" of entity "${this.meta.name}".`);
+                    throw new _types.ValidationError(`Unknown association "${anchor}" of entity "${this._meta.name}".`);
                 }
                 if (assocMeta.type !== 'refersTo' && assocMeta.type !== 'belongsTo') {
                     throw new _types.ValidationError(`Association type "${assocMeta.type}" cannot be used for update by reference.`, {
-                        entity: this.meta.name,
+                        entity: this._meta.name,
                         data
                     });
                 }
                 if (isNew && anchor in data) {
-                    throw new _types.ValidationError(`Association reference "@${anchor}" of entity "${this.meta.name}" conflicts with input value of field "${anchor}".`);
+                    throw new _types.ValidationError(`Association reference "@${anchor}" of entity "${this._meta.name}" conflicts with input value of field "${anchor}".`);
                 }
                 const assocAnchor = ':' + anchor;
                 if (assocAnchor in data) {
-                    throw new _types.ValidationError(`Association reference "@${anchor}" of entity "${this.meta.name}" conflicts with association data "${assocAnchor}".`);
+                    throw new _types.ValidationError(`Association reference "@${anchor}" of entity "${this._meta.name}" conflicts with association data "${assocAnchor}".`);
                 }
                 if (v == null) {
                     raw[anchor] = null;
@@ -688,7 +655,7 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
         ];
     }
     static async _populateReferences_(context, references) {
-        const meta = this.meta.associations;
+        const meta = this._meta.associations;
         await (0, _july.eachAsync_)(references, async (refQuery, anchor)=>{
             const assocMeta = meta[anchor];
             const ReferencedEntity = this.db.model(assocMeta.entity);
@@ -700,10 +667,10 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
         });
     }
     static async _createAssocs_(context, assocs, beforeEntityCreate) {
-        const meta = this.meta.associations;
+        const meta = this._meta.associations;
         let keyValue;
         if (!beforeEntityCreate) {
-            keyValue = context.return[this.meta.keyField];
+            keyValue = context.return[this._meta.keyField];
             if (_july._.isNil(keyValue)) {
                 if (context.result.affectedRows === 0) {
                     // insert ignored
@@ -719,9 +686,9 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
                         });
                     }
                 }
-                keyValue = context.return[this.meta.keyField];
+                keyValue = context.return[this._meta.keyField];
                 if (_july._.isNil(keyValue)) {
-                    throw new _types.ApplicationError('Missing required primary key field value. Entity: ' + this.meta.name, {
+                    throw new _types.ApplicationError('Missing required primary key field value. Entity: ' + this._meta.name, {
                         data: context.return,
                         associations: assocs
                     });
@@ -748,7 +715,7 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
             if (assocMeta.list) {
                 data = _july._.castArray(data);
                 if (!assocMeta.field) {
-                    throw new _types.ApplicationError(`Missing "field" property in the metadata of association "${anchor}" of entity "${this.meta.name}".`);
+                    throw new _types.ApplicationError(`Missing "field" property in the metadata of association "${anchor}" of entity "${this._meta.name}".`);
                 }
                 return (0, _july.eachAsync_)(data, (item)=>assocModel.create_({
                         ...item,
@@ -756,7 +723,7 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
                     }, passOnOptions, context.connOptions));
             } else if (!_july._.isPlainObject(data)) {
                 if (Array.isArray(data)) {
-                    throw new _types.ApplicationError(`Invalid type of associated entity (${assocMeta.entity}) data triggered from "${this.meta.name}" entity. Singular value expected (${anchor}), but an array is given instead.`);
+                    throw new _types.ApplicationError(`Invalid type of associated entity (${assocMeta.entity}) data triggered from "${this._meta.name}" entity. Singular value expected (${anchor}), but an array is given instead.`);
                 }
                 if (!assocMeta.assoc) {
                     throw new _types.ApplicationError(`The associated field of relation "${anchor}" does not exist in the entity meta data.`);
@@ -797,16 +764,16 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
         return pendingAssocs;
     }
     static async _updateAssocs_(context, assocs, beforeEntityUpdate, forSingleRecord) {
-        const meta = this.meta.associations;
+        const meta = this._meta.associations;
         let currentKeyValue;
         if (!beforeEntityUpdate) {
             currentKeyValue = getValueFrom([
                 context.options.$query,
                 context.return
-            ], this.meta.keyField);
+            ], this._meta.keyField);
             if (_july._.isNil(currentKeyValue)) {
                 // should have in updating
-                throw new _types.ApplicationError('Missing required primary key field value. Entity: ' + this.meta.name);
+                throw new _types.ApplicationError('Missing required primary key field value. Entity: ' + this._meta.name);
             }
         }
         const pendingAssocs = {};
@@ -827,7 +794,7 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
             if (assocMeta.list) {
                 data = _july._.castArray(data);
                 if (!assocMeta.field) {
-                    throw new _types.ApplicationError(`Missing "field" property in the metadata of association "${anchor}" of entity "${this.meta.name}".`);
+                    throw new _types.ApplicationError(`Missing "field" property in the metadata of association "${anchor}" of entity "${this._meta.name}".`);
                 }
                 const assocKeys = mapFilter(data, (record)=>record[assocMeta.key] != null, (record)=>record[assocMeta.key]);
                 const assocRecordsToRemove = {
@@ -855,7 +822,7 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
                     }, passOnOptions, context.connOptions));
             } else if (!_july._.isPlainObject(data)) {
                 if (Array.isArray(data)) {
-                    throw new _types.ApplicationError(`Invalid type of associated entity (${assocMeta.entity}) data triggered from "${this.meta.name}" entity. Singular value expected (${anchor}), but an array is given instead.`);
+                    throw new _types.ApplicationError(`Invalid type of associated entity (${assocMeta.entity}) data triggered from "${this._meta.name}" entity. Singular value expected (${anchor}), but an array is given instead.`);
                 }
                 if (!assocMeta.assoc) {
                     throw new _types.ApplicationError(`The associated field of relation "${anchor}" does not exist in the entity meta data.`);
@@ -877,7 +844,7 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
                     if (_july._.isEmpty(context.existing)) {
                         context.existing = await this.findOne_(context.options.$query, context.connOptions);
                         if (!context.existing) {
-                            throw new _types.ValidationError(`Specified "${this.meta.name}" not found.`, {
+                            throw new _types.ValidationError(`Specified "${this._meta.name}" not found.`, {
                                 query: context.options.$query
                             });
                         }
@@ -937,6 +904,6 @@ const defaultNestedKeyGetter = (anchor)=>':' + anchor;
         return pendingAssocs;
     }
 }
-const _default = PostgresEntityModel;
+const _default = RelationalEntityModel;
 
 //# sourceMappingURL=EntityModel.js.map

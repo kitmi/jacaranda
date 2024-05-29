@@ -46,7 +46,7 @@ export default {
      *  let logger1 = app.getService('logger-category1');
      */
     load_: function (app, config, name) {
-        const pino = app.tryRequire('pino');
+        const pino = app.requireModule('pino');
 
         config = app.featureConfig(
             config ?? {},
@@ -63,7 +63,9 @@ export default {
             transport: {
                 target: 'pino-pretty',
                 options: {
+                    levelFirst: true,
                     colorize: true,
+                    ignore: "time,hostname,pid",
                 },
             },
             ...config,

@@ -48,6 +48,7 @@ const NS_ROUTER = 'routers';
 const NS_MODULE = 'modules';
 const K_ENV = 'env';
 const runtime = new _RuntimeRegistry.default();
+runtime.loadModule = (name, m)=>runtime.register(NS_MODULE, name, m);
 const _default = runtime;
 
 //# sourceMappingURL=runtime.js.map

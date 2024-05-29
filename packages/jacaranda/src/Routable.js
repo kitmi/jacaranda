@@ -41,7 +41,7 @@ const Routable = (T) =>
                 this.log(
                     'verbose',
                     'Registered middlewares:',
-                    this.registry.middlewares ? Object.keys(this.registry.middlewares) : []
+                    { middlewares: this.registry.middlewares ? Object.keys(this.registry.middlewares) : [] }
                 );
             }
 
