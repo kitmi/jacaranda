@@ -43,6 +43,7 @@ class KoaEngine {
             if (!isServerDefault) {
                 koa.use((ctx, next) => {
                     ctx.module = engine.app;
+                    ctx.getService = (name) => engine.app.getService(name);
                     return next();
                 });
             }
