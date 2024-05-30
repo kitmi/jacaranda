@@ -1,4 +1,4 @@
-import { _, batchAsync_, Box, fxargs } from '@kitmi/utils';
+import { _, batchAsync_, Box, fxargs, esmCheck } from '@kitmi/utils';
 import { fs } from '@kitmi/sys';
 import path from 'node:path';
 import testShouldThrow_ from '@kitmi/utils/testShouldThrow_';
@@ -10,7 +10,7 @@ import { superagent } from '@kitmi/adapters';
 import microtime from 'microtime';
 
 import createAuth from './createAuth';
-import readTestData from './readTestData'
+import readTestData from './readTestData';
 
 function serialize(obj, replacer, space) {
     let content;
@@ -34,11 +34,11 @@ export const setJacat = _setJacat;
 
 /**
  * Jacaranda tester.
- * @class 
+ * @class
  */
 class JacaTester {
     /**
-     * Test if an async function throws an error     
+     * Test if an async function throws an error
      * @param {Function} fn - Function (async) that should throw an error
      * @param {*} error
      */
@@ -50,14 +50,14 @@ class JacaTester {
     }
 
     /**
-     * Load fixtures and declare test case with `it`.     
+     * Load fixtures and declare test case with `it`.
      * @param {Function} [testCase] - Test case to run after loading fixtures. async (data) => {}
      */
     loadFixtures(testCase) {
         let fixturePath = this.config.fixturePath || './test/fixtures';
         const fixtureType = this.config.fixtureType || 'json';
 
-        const callerFileName = dbgGetCallerFile();        
+        const callerFileName = dbgGetCallerFile();
         const baseName = path.basename(callerFileName, '.spec.js');
         const testCaseDir = path.resolve(fixturePath, baseName);
 
@@ -66,11 +66,11 @@ class JacaTester {
         }
 
         const files = fs.readdirSync(testCaseDir);
-        files.forEach((fixtureFile) => {            
+        files.forEach((fixtureFile) => {
             const fixtureFilePath = path.join(testCaseDir, fixtureFile);
             const testCaseName = path.basename(fixtureFilePath, '.' + fixtureType);
             const testCaseData = readTestData(fixtureFilePath, fixtureType);
-            
+
             it(testCaseName, async () => {
                 jacat.param('fixturePath', fixtureFilePath);
                 jacat.param('data', testCaseData);
@@ -153,8 +153,18 @@ class JacaTester {
             throw new Error(`Server options for "${name}" not found.`);
         }
 
-        const server = new WebServer(name, { ...serverOptions, ...options });
-        await server.start_();
+        let server;
+
+        if (typeof serverOptions === 'string') {
+            server = esmCheck(require(path.resolve(serverOptions)));            
+
+            await new Promise((resolve) => {
+                server.on('ready', resolve);
+            });
+        } else {
+            server = new WebServer(name, { ...serverOptions, ...options });
+            await server.start_();
+        }
 
         if (name) {
             this.startedServers[name] = server;
@@ -258,9 +268,9 @@ class JacaTester {
         }
 
         const authConfig = authenticator ? this.config.authentications?.[authenticator] : null;
-        authenticator &&= createAuth(authenticator /** authticationKey */, authConfig ?? {});
+        authenticator = authConfig ? createAuth(authenticator /** authticationKey */, authConfig) : null;
 
-        const client = new HttpClient(superagent(_superagent), { endpoint: server.host, ...options });
+        const client = new HttpClient(superagent(_superagent), { endpoint: `http://${server.httpHost}`, ...options });
 
         client.onResponse = (result, req, res) => {
             this.attach(`${req.method} ${req.url}`, { headers: res.header, response: result });
@@ -298,7 +308,6 @@ class JacaTester {
             suite
                 .on('cycle', function (event) {
                     const cycleMessage = String(event.target);
-                    console.log(cycleMessage);
                     self.attach('cycle', cycleMessage);
                 })
                 .on('complete', function () {

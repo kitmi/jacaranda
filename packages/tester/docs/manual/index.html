@@ -24,7 +24,7 @@
 <label for="nav-trigger" class="overlay"></label>
 
 <nav>
-    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="JacaTester.html">JacaTester</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#attach">attach</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#benchmark_">benchmark_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#closeAllServers_">closeAllServers_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#loadFixtures">loadFixtures</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#param">param</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#startServer_">startServer_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#startWorker_">startWorker_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#step_">step_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#stopServer_">stopServer_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#withClient_">withClient_</a></span></li>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="JacaTester.html">JacaTester</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#attach">attach</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#benchmark_">benchmark_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#closeAllServers_">closeAllServers_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#loadFixtures">loadFixtures</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#param">param</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#startServer_">startServer_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#startWorker_">startWorker_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#step_">step_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#stopServer_">stopServer_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="JacaTester.html#withClient_">withClient_</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#passwordAuth">passwordAuth</a></span></li>
 </nav>
 
 <div id="main">
@@ -57,6 +57,7 @@
 <li>[x] Support allure report</li>
 <li>[x] Support async dump for debugging application hanging issue caused by pending async event</li>
 <li>[x] Support @kitmi/jacaranda worker</li>
+<li>[x] Support authencation protected api test</li>
 <li>[x] Support JSON Validation Syntax</li>
 <li>[x] Support configurable test case on/off switches</li>
 <li>[x] Support profiling</li>
@@ -191,6 +192,44 @@ module.exports = {
 <h3>7. run code coverage test and report</h3>
 <pre class="prettyprint source lang-bash"><code>nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html
 </code></pre>
+<h2>API test</h2>
+<h3>Authentication</h3>
+<ul>
+<li>loginType
+<ul>
+<li>password</li>
+</ul>
+</li>
+<li>accessType
+<ul>
+<li>jwt</li>
+</ul>
+</li>
+<li>
+<h2>loginOptions:</h2>
+</li>
+</ul>
+<pre class="prettyprint source lang-json"><code>{
+    &quot;authentications&quot;: {
+        &quot;client1&quot;: {
+            &quot;loginType&quot;: &quot;password&quot;,
+            &quot;accessType&quot;: &quot;jwt&quot;,
+            &quot;loginOptions&quot;: {
+                &quot;endpoint&quot;: &quot;/login&quot;,
+                &quot;username&quot;: &quot;user&quot;,
+                &quot;password&quot;: &quot;pass&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<pre class="prettyprint source lang-js"><code>it('/test/protected ok', async function () {
+    await jacat.withClient_('server1', 'client1', async (client, server) => {
+        const res = await client.get('/test/protected');
+        expect(res).to.deep.equal({ status: 'ok' });
+    });
+});
+</code></pre>
 <h2>License</h2>
 <p>This project is licensed under the MIT License.</p>
 <p>Copyright (c) 2023 KITMI PTY LTD</p></article>
@@ -206,7 +245,7 @@ module.exports = {
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Mon May 27 2024 10:08:07 GMT+0800 (China Standard Time) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Thu May 30 2024 23:15:22 GMT+0800 (China Standard Time) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

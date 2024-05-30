@@ -10,6 +10,7 @@
 * [x] Support allure report
 * [x] Support async dump for debugging application hanging issue caused by pending async event
 * [x] Support @kitmi/jacaranda worker 
+* [x] Support authencation protected api test
 * [x] Support JSON Validation Syntax
 * [x] Support configurable test case on/off switches
 * [x] Support profiling 
@@ -157,6 +158,42 @@ allure generate allure-results --clean -o allure-report && serve ./allure-report
 
 ```bash
 nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html
+```
+
+## API test
+
+### Authentication
+
+- loginType
+  - password
+- accessType
+  - jwt
+- loginOptions:
+  - 
+
+```json
+{
+    "authentications": {
+        "client1": {
+            "loginType": "password",
+            "accessType": "jwt",
+            "loginOptions": {
+                "endpoint": "/login",
+                "username": "user",
+                "password": "pass"
+            }
+        }
+    }
+}
+```
+
+```js
+it('/test/protected ok', async function () {
+    await jacat.withClient_('server1', 'client1', async (client, server) => {
+        const res = await client.get('/test/protected');
+        expect(res).to.deep.equal({ status: 'ok' });
+    });
+});
 ```
 
 ## License

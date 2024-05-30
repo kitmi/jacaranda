@@ -111,7 +111,7 @@ class KoaEngine {
 
         let port = options.port;
 
-        server.once('ready', async () => {
+        server.once('after:Final', async () => {
             return new Promise((resolve, reject) => {
                 server.httpServer.listen(port, function (err) {
                     if (err) {
@@ -127,8 +127,8 @@ class KoaEngine {
                         host = address.address;
                     }
 
-                    server.host = `${host}:${address.port}`;
-                    server.port = address.port;
+                    server.httpHost = `${host}:${address.port}`;
+                    server.httpPort = address.port;                    
 
                     server.log('info', `A koa http service is listening on port [${address.port}] ...`);
                     resolve();

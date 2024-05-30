@@ -1,5 +1,13 @@
 # @kitmi/jacaranda
 
+## 2.0.1
+
+### Patch Changes
+
+-   Remove dead code.
+-   Updated dependencies
+    -   @kitmi/adapters@1.1.1
+
 ## 2.0.0
 
 ### Minor Changes

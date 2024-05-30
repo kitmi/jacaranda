@@ -1,5 +1,14 @@
 # @kitmi/tester
 
+## 1.1.1
+
+### Patch Changes
+
+-   Fix tester for doing api-test and code coverage test against jacaranda server instance.
+-   Updated dependencies
+    -   @kitmi/jacaranda@2.0.1
+    -   @kitmi/adapters@1.1.1
+
 ## 1.1.0
 
 ### Minor Changes

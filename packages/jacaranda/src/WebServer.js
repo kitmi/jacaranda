@@ -113,10 +113,6 @@ export function createWebServer(Base) {
             }
         }
 
-        getExports() {
-            return this._stuffToExport;
-        }
-
         /**
          * Mount an app at specified route.
          * @param {WebModule} app

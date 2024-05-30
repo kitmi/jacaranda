@@ -1,5 +1,11 @@
 # @kitmi/adapters
 
+## 1.1.1
+
+### Patch Changes
+
+-   Change server engine listen timing for tester to wait for doing api-test and code coverage test against jacaranda server instance.
+
 ## 1.1.0
 
 ### Minor Changes
