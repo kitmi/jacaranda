@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/feat-storage",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "description": "Jacaranda cloud storage features",
     "publishConfig": {
         "access": "public"

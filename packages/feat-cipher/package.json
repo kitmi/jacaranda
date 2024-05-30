@@ -1,6 +1,6 @@
 {
   "name": "@kitmi/feat-cipher",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Cipher & hash related utilities",
   "publishConfig": {
     "access": "public"
@@ -49,8 +49,7 @@
       "**/*.spec.js"
     ]
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "peerDependencies": {
     "@kitmi/jacaranda": "workspace:^",
     "@kitmi/types": "workspace:^"

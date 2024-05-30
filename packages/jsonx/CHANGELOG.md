@@ -1,5 +1,18 @@
 # @kitmi/jsonx
 
+## 1.2.0
+
+### Minor Changes
+
+-   Split features from server package into separate packages
+
+### Patch Changes
+
+-   Updated dependencies
+    -   @kitmi/jsonv@1.2.0
+    -   @kitmi/types@1.2.0
+    -   @kitmi/utils@1.2.0
+
 ## 1.1.3
 
 ### Patch Changes

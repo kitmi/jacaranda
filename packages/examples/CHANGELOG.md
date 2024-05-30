@@ -1,5 +1,13 @@
 # @kitmi/examples
 
+## 1.0.4
+
+### Patch Changes
+
+-   Updated dependencies
+    -   @kitmi/jacaranda@2.0.0
+    -   @kitmi/utils@1.2.0
+
 ## 1.0.3
 
 ### Patch Changes

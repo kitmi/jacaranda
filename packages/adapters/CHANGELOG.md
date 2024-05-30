@@ -1,5 +1,16 @@
 # @kitmi/adapters
 
+## 1.1.0
+
+### Minor Changes
+
+-   Split features from server package into separate packages
+
+### Patch Changes
+
+-   Updated dependencies
+    -   @kitmi/utils@1.2.0
+
 ## 1.0.3
 
 ### Patch Changes

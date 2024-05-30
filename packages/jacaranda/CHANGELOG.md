@@ -1,5 +1,22 @@
 # @kitmi/jacaranda
 
+## 2.0.0
+
+### Minor Changes
+
+-   Split features from server package into separate packages
+
+### Patch Changes
+
+-   Updated dependencies
+    -   @kitmi/adapters@1.1.0
+    -   @kitmi/algo@1.1.0
+    -   @kitmi/config@1.2.0
+    -   @kitmi/sys@1.2.0
+    -   @kitmi/types@1.2.0
+    -   @kitmi/utils@1.2.0
+    -   @kitmi/validators@1.1.0
+
 ## 1.0.3
 
 ### Patch Changes

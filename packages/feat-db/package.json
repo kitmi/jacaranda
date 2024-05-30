@@ -1,6 +1,6 @@
 {
   "name": "@kitmi/feat-db",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Database related utilities",
   "publishConfig": {
     "access": "public"

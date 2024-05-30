@@ -1,6 +1,6 @@
 {
   "name": "@kitmi/feat-ai-kits",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "AI related utilities",
   "publishConfig": {
     "access": "public"

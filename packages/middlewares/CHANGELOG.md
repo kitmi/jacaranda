@@ -1,5 +1,11 @@
 # @kitmi/middlewares
 
+## 0.1.0
+
+### Minor Changes
+
+-   Split features from server package into separate packages
+
 ## 0.0.4
 
 ### Patch Changes

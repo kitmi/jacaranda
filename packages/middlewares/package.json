@@ -1,6 +1,6 @@
 {
   "name": "@kitmi/middlewares",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Jacaranda framework common middlewares",
   "publishConfig": {
     "access": "public"
