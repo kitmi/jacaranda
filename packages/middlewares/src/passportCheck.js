@@ -5,28 +5,28 @@
 
 import { HttpCode } from '@kitmi/types';
 
-const middlewareName = 'passportCheck';
-
 /**
  * Initialize ensureLoggedIn middleware
- * @param {object} options
- * @property {string} [options.loginUrl] - If given, will redirect to loginUrl if not loggedIn
- * @property {boolean} [options.successReturnToOrRedirect] - If given, will redirect to loginUrl if not loggedIn
+ * @param {object} opt
+ * @property {string} [opt.passportService] - Passport service name
+ * @property {string} [opt.loginUrl] - If given, will redirect to loginUrl if not loggedIn
+ * @property {boolean} [opt.successReturnToOrRedirect] - If given, will redirect to loginUrl if not loggedIn
  * @param {Routable} app
  */
-const passportCheck = (options, app) => {
-    const { successReturnToOrRedirect, loginUrl } = app.middlewareConfig(
+const passportCheck = (opt, app) => {
+    const { passportService, successReturnToOrRedirect, loginUrl } = app.middlewareConfig(
         opt,
         {
             schema: {
+                passportService: { type: 'text', optional: true, default: 'passport' },
                 successReturnToOrRedirect: { type: 'boolean', default: false },
                 loginUrl: { type: 'type', optional: true },
             },
         },
-        middlewareName
+        'passportCheck'
     );
 
-    app.requireServices(['passport']);
+    app.requireServices([passportService]);
 
     return async (ctx, next) => {
         if (ctx.isAuthenticated()) {

@@ -1,3 +1,5 @@
-const AppInitiator = require('./AppInitiator');
+const Xeml = require('./lang/grammar/xeml');
 
-module.exports = AppInitiator;
+module.exports = {
+    XemlParser: Xeml.parser,
+};

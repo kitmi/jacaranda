@@ -1,11 +1,13 @@
 import path from 'node:path';
-import { _, batchAsync_, isPlainObject } from '@kitmi/utils';
+import { _, batchAsync_, isPlainObject, isRunAsEsm } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
 import Runnable from './Runnable';
 import Routable from './Routable';
 import ServiceContainer from './ServiceContainer';
 import defaultServerOpts from './defaultServerOpts';
 import * as builtinMiddlewares from './middlewares';
+
+const isEsm = isRunAsEsm();
 
 export function createWebServer(Base) {
     /**
@@ -22,7 +24,7 @@ export function createWebServer(Base) {
          * @property {string} [options.workingPath] - App's working path, default to process.cwd()
          * @property {string} [options.configPath] - App's config path, default to "conf" under workingPath
          * @property {string} [options.configName] - App's config basename, default to "app"
-         * @property {string} [options.sourcePath='server'] - Relative path of back-end server source files
+         * @property {string} [options.sourcePath='./src'] - Relative path of back-end server source files
          * @property {string} [options.appModulesPath=app_modules] - Relative path of child modules
          */
         constructor(name, options) {
@@ -33,8 +35,15 @@ export function createWebServer(Base) {
 
             super(name || 'server', {
                 ...defaultServerOpts,
+                sourcePath: isEsm ? './src' : './cjs',
                 ...options,
             });
+
+            /**
+             * Whether it is running as ESM.
+             * @member {boolean}
+             */
+            this.isEsm = isEsm;
 
             /**
              * Hosting server.

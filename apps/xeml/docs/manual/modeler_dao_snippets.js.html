@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>modeler/dao/snippets.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="DaoModeler.html">DaoModeler</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Dataset.html">Dataset</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dataset.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dataset.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dataset.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Entity.html">Entity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addAssocField">addAssocField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addAssociation">addAssociation</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addFeature">addFeature</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addField">addField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addIndex">addIndex</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addIndexes">addIndexes</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#getEntityAttribute">getEntityAttribute</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#getKeyField">getKeyField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#getReferenceTo">getReferenceTo</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#hasField">hasField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#hasIndexOn">hasIndexOn</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#once">once</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#setKey">setKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Field.html">Field</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Field.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Field.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Field.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="GraphQLModeler.html">GraphQLModeler</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Linker.html">Linker</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#getElementUniqueId">getElementUniqueId</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#getModuleById">getModuleById</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#getModuleIdByPath">getModuleIdByPath</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#isModuleLoaded">isModuleLoaded</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#loadElement">loadElement</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#loadModule">loadModule</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#log">log</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#trackBackType">trackBackType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#translateXemlValue">translateXemlValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#.buildSchemaObjects">buildSchemaObjects</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#.getXemlFiles">getXemlFiles</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="MongoDbMigration.html">MongoDbMigration</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="MongoDbModeler.html">MongoDbModeler</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="MySQLMigration.html">MySQLMigration</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="MySQLModeler.html">MySQLModeler</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="MySQLModeler.html#_processAssociation">_processAssociation</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="MySQLModeler.html#_updateRelationEntity">_updateRelationEntity</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="PostgresMigration.html">PostgresMigration</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="PostgresModeler.html">PostgresModeler</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresModeler.html#_processAssociation">_processAssociation</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresModeler.html#_updateRelationEntity">_updateRelationEntity</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Schema.html">Schema</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#addEntity">addEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#addType">addType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#addView">addView</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#ensureGetEntity">ensureGetEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#getDocumentHierachy">getDocumentHierachy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#getReferencedEntity">getReferencedEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#hasEntity">hasEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#hasView">hasView</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="View.html">View</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="View.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="View.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="View.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="XemlLinker.html">XemlLinker</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_AtLeastOneNotNull.html">EntityFeature_AtLeastOneNotNull</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_AtLeastOneNotNull.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_AutoId.html">EntityFeature_AutoId</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_AutoId.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_ChangeLog.html">EntityFeature_ChangeLog</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_ChangeLog.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_CreateTimestamp.html">EntityFeature_CreateTimestamp</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_CreateTimestamp.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_I18n.html">EntityFeature_I18n</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_I18n.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_LogicalDeletion.html">EntityFeature_LogicalDeletion</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_LogicalDeletion.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_StateTracking.html">EntityFeature_StateTracking</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_StateTracking.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_UpdateTimestamp.html">EntityFeature_UpdateTimestamp</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_UpdateTimestamp.html#~initialize">initialize</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_UserEditTracking.html">EntityFeature_UserEditTracking</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_UserEditTracking.html#~feature">feature</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#_fieldRequirementCheck">_fieldRequirementCheck</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getCommandOptions">getCommandOptions</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getDateNamedDir">getDateNamedDir</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#mergeCondition">mergeCondition</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">modeler/dao/snippets.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const { _, quote } = require("@kitmi/utils");
+const { extractDotSeparateName } = require("../../lang/XemlUtils");
+const JsLang = require("../util/ast");
+
+const _applyModifiersHeader = [
+    {
+        type: "VariableDeclaration",
+        declarations: [
+            {
+                type: "VariableDeclarator",
+                id: {
+                    type: "ObjectPattern",
+                    properties: [
+                        {
+                            type: "Property",
+                            key: {
+                                type: "Identifier",
+                                name: "raw",
+                            },
+                            computed: false,
+                            value: {
+                                type: "Identifier",
+                                name: "raw",
+                            },
+                            kind: "init",
+                            method: false,
+                            shorthand: true,
+                        },
+                        {
+                            type: "Property",
+                            key: {
+                                type: "Identifier",
+                                name: "latest",
+                            },
+                            computed: false,
+                            value: {
+                                type: "Identifier",
+                                name: "latest",
+                            },
+                            kind: "init",
+                            method: false,
+                            shorthand: true,
+                        },
+                        {
+                            type: "Property",
+                            key: {
+                                type: "Identifier",
+                                name: "existing",
+                            },
+                            computed: false,
+                            value: {
+                                type: "Identifier",
+                                name: "existing",
+                            },
+                            kind: "init",
+                            method: false,
+                            shorthand: true,
+                        },
+                        {
+                            type: "Property",
+                            key: {
+                                type: "Identifier",
+                                name: "i18n",
+                            },
+                            computed: false,
+                            value: {
+                                type: "Identifier",
+                                name: "i18n",
+                            },
+                            kind: "init",
+                            method: false,
+                            shorthand: true,
+                        },
+                    ],
+                },
+                init: {
+                    type: "Identifier",
+                    name: "context",
+                },
+            },
+        ],
+        kind: "let",
+    },
+    {
+        type: "ExpressionStatement",
+        expression: {
+            type: "LogicalExpression",
+            operator: "||",
+            left: {
+                type: "Identifier",
+                name: "existing",
+            },
+            right: {
+                type: "AssignmentExpression",
+                operator: "=",
+                left: {
+                    type: "Identifier",
+                    name: "existing",
+                },
+                right: {
+                    type: "ObjectExpression",
+                    properties: [],
+                },
+            },
+        },
+    },
+];
+
+const _checkAndAssign = (astBlock, assignTo, comment) => {
+    return [
+        JsLang.astVarDeclare("activated", astBlock, false, false, comment),
+        {
+            type: "IfStatement",
+            test: {
+                type: "BinaryExpression",
+                operator: "!==",
+                left: {
+                    type: "UnaryExpression",
+                    operator: "typeof",
+                    argument: {
+                        type: "Identifier",
+                        name: "activated",
+                    },
+                    prefix: true,
+                },
+                right: {
+                    type: "Literal",
+                    value: "undefined",
+                    raw: "'undefined'",
+                },
+            },
+            consequent: {
+                type: "BlockStatement",
+                body: [
+                    {
+                        type: "ExpressionStatement",
+                        expression: {
+                            type: "AssignmentExpression",
+                            operator: "=",
+                            left: assignTo,
+                            right: {
+                                type: "Identifier",
+                                name: "activated",
+                            },
+                        },
+                    },
+                ],
+            },
+            alternate: null,
+        },
+    ];
+};
+
+const _validateCheck = (fieldName, validatingCall) => {
+    let comment = `Validating "${fieldName}"`;
+
+    return {
+        type: "IfStatement",
+        test: {
+            type: "UnaryExpression",
+            operator: "!",
+            argument: validatingCall,
+            prefix: true,
+        },
+        consequent: {
+            type: "BlockStatement",
+            body: [
+                {
+                    type: "ThrowStatement",
+                    argument: {
+                        type: "NewExpression",
+                        callee: {
+                            type: "Identifier",
+                            name: "ValidationError",
+                        },
+                        arguments: [
+                            {
+                                type: "Literal",
+                                value: `Invalid "${fieldName}".`,
+                                raw: `'Invalid "${fieldName}".'`,
+                            },
+                            {
+                                type: "ObjectExpression",
+                                properties: [
+                                    {
+                                        type: "Property",
+                                        key: {
+                                            type: "Identifier",
+                                            name: "entity",
+                                        },
+                                        computed: false,
+                                        value: {
+                                            type: "MemberExpression",
+                                            computed: false,
+                                            object: {
+                                                type: "MemberExpression",
+                                                computed: false,
+                                                object: {
+                                                    type: "ThisExpression",
+                                                },
+                                                property: {
+                                                    type: "Identifier",
+                                                    name: "meta",
+                                                },
+                                            },
+                                            property: {
+                                                type: "Identifier",
+                                                name: "name",
+                                            },
+                                        },
+                                        kind: "init",
+                                        method: false,
+                                        shorthand: false,
+                                    },
+                                    {
+                                        type: "Property",
+                                        key: {
+                                            type: "Identifier",
+                                            name: "field",
+                                        },
+                                        computed: false,
+                                        value: JsLang.astValue(fieldName),
+                                        kind: "init",
+                                        method: false,
+                                        shorthand: false,
+                                    },
+                                    {
+                                        type: "Property",
+                                        key: {
+                                            type: "Identifier",
+                                            name: "value",
+                                        },
+                                        computed: false,
+                                        value: {
+                                            type: "MemberExpression",
+                                            computed: true,
+                                            object: {
+                                                type: "Identifier",
+                                                name: "latest",
+                                            },
+                                            property: {
+                                                type: "Literal",
+                                                value: fieldName,
+                                                raw: quote(fieldName, "'"),
+                                            },
+                                        },
+                                        kind: "init",
+                                        method: false,
+                                        shorthand: false,
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            ],
+        },
+        alternate: null,
+        leadingComments: [
+            {
+                type: "Line",
+                value: comment,
+                range: [1, comment.length + 1],
+            },
+        ],
+    };
+};
+
+/**
+ * Check existence of all required fields
+ * @param {string} fieldName - Target field name
+ * @param {*} references - All references to other fields
+ * @param {*} content - Content code block
+ * @param {bool} requireTargetField - Whether the function requires target field as input
+ */
+const _fieldRequirementCheck = (fieldName, references, content, requireTargetField) => {
+    if (!references) references = [];
+
+    references = references.map((ref) => extractDotSeparateName(ref).pop());
+
+    let throwMessage = `"${fieldName}" is required due to change of its dependencies. (e.g: ${references.join(
+        " or "
+    )})`;
+
+    let checks =
+        requireTargetField &amp;&amp; references.length > 0
+            ? [
+                  {
+                      type: "IfStatement",
+                      test: {
+                          type: "LogicalExpression",
+                          operator: "&amp;&amp;",
+                          left: {
+                              type: "Identifier",
+                              name: "isUpdating",
+                          },
+                          right: {
+                              type: "CallExpression",
+                              callee: {
+                                  type: "Identifier",
+                                  name: "isNothing",
+                              },
+                              arguments: [
+                                  {
+                                      type: "MemberExpression",
+                                      computed: true,
+                                      object: {
+                                          type: "Identifier",
+                                          name: "latest",
+                                      },
+                                      property: {
+                                          type: "Literal",
+                                          value: fieldName,
+                                          raw: quote(fieldName, "'"),
+                                      },
+                                  },
+                              ],
+                          },
+                      },
+                      consequent: {
+                          type: "BlockStatement",
+                          body: [
+                              {
+                                  type: "ThrowStatement",
+                                  argument: {
+                                      type: "NewExpression",
+                                      callee: {
+                                          type: "Identifier",
+                                          name: "ValidationError",
+                                      },
+                                      arguments: [
+                                          {
+                                              type: "Literal",
+                                              value: throwMessage,
+                                              raw: quote(throwMessage, "'"),
+                                          },
+                                      ],
+                                  },
+                              },
+                          ],
+                      },
+                      alternate: null,
+                  },
+              ]
+            : [];
+
+    /*
+    references.forEach(ref => {
+        let refThrowMessage = `Missing "${ref}" value, which is a dependency of "${fieldName}".`;
+
+        checks.push({
+            "type": "IfStatement",
+            "test": {
+                "type": "LogicalExpression",
+                "operator": "&amp;&amp;",
+                "left": {
+                    "type": "UnaryExpression",
+                    "operator": "!",
+                    "argument": {
+                        "type": "BinaryExpression",
+                        "operator": "in",
+                        "left": {
+                            "type": "Literal",
+                            "value": ref,
+                            "raw": quote(ref, "'")
+                        },
+                        "right": {
+                            "type": "Identifier",
+                            "name": "latest"
+                        }
+                    },
+                    "prefix": true
+                },
+                "right": {
+                    "type": "UnaryExpression",
+                    "operator": "!",
+                    "argument": {
+                        "type": "BinaryExpression",
+                        "operator": "in",
+                        "left": {
+                            "type": "Literal",
+                            "value": ref,
+                            "raw": quote(ref, "'")
+                        },
+                        "right": {
+                            "type": "Identifier",
+                            "name": "existing"
+                        }
+                    },
+                    "prefix": true
+                }                    
+            },
+            "consequent": {
+                "type": "BlockStatement",
+                "body": [
+                    {
+                        "type": "ThrowStatement",
+                        "argument": {
+                            "type": "NewExpression",
+                            "callee": {
+                                "type": "Identifier",
+                                "name": "ValidationError"
+                            },
+                            "arguments": [
+                                {
+                                    "type": "Literal",
+                                    "value": refThrowMessage,
+                                    "raw": quote(refThrowMessage, "'")
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "alternate": null
+        });
+    });
+    */
+
+    return requireTargetField
+        ? {
+              type: "IfStatement",
+              test: {
+                  type: "LogicalExpression",
+                  operator: "&amp;&amp;",
+                  left: {
+                      type: "UnaryExpression",
+                      operator: "!",
+                      argument: {
+                          type: "CallExpression",
+                          callee: {
+                              type: "Identifier",
+                              name: "isNothing",
+                          },
+                          arguments: [
+                              {
+                                  type: "MemberExpression",
+                                  computed: true,
+                                  object: {
+                                      type: "Identifier",
+                                      name: "latest",
+                                  },
+                                  property: {
+                                      type: "Literal",
+                                      value: fieldName,
+                                      raw: quote(fieldName, "'"),
+                                  },
+                              },
+                          ],
+                      },
+                      prefix: true,
+                  },
+                  right: {
+                      type: "UnaryExpression",
+                      operator: "!",
+                      argument: {
+                          type: "MemberExpression",
+                          computed: false,
+                          object: {
+                              type: "MemberExpression",
+                              computed: true,
+                              object: {
+                                  type: "Identifier",
+                                  name: "latest",
+                              },
+                              property: {
+                                  type: "Literal",
+                                  value: fieldName,
+                                  raw: quote(fieldName, "'"),
+                              },
+                          },
+                          property: {
+                              type: "Identifier",
+                              name: "$xr",
+                          },
+                      },
+                      prefix: true,
+                  },
+              },
+              consequent: {
+                  type: "BlockStatement",
+                  body: checks.concat(content),
+              },
+              alternate: null,
+          }
+        : {
+              // for activator
+              type: "IfStatement",
+              test: {
+                  type: "LogicalExpression",
+                  operator: "&amp;&amp;",
+                  left: {
+                      type: "LogicalExpression",
+                      operator: "||",
+                      left: {
+                          type: "CallExpression",
+                          callee: {
+                              type: "Identifier",
+                              name: "isNothing",
+                          },
+                          arguments: [
+                              {
+                                  type: "MemberExpression",
+                                  computed: true,
+                                  object: {
+                                      type: "Identifier",
+                                      name: "latest",
+                                  },
+                                  property: {
+                                      type: "Literal",
+                                      value: fieldName,
+                                      raw: quote(fieldName, "'"),
+                                  },
+                              },
+                          ],
+                      },
+                      right: {
+                          type: "MemberExpression",
+                          computed: false,
+                          object: {
+                              type: "MemberExpression",
+                              computed: true,
+                              object: {
+                                  type: "MemberExpression",
+                                  computed: false,
+                                  object: {
+                                      type: "MemberExpression",
+                                      computed: false,
+                                      object: {
+                                          type: "ThisExpression",
+                                      },
+                                      property: {
+                                          type: "Identifier",
+                                          name: "meta",
+                                      },
+                                  },
+                                  property: {
+                                      type: "Identifier",
+                                      name: "fields",
+                                  },
+                              },
+                              property: {
+                                  type: "Literal",
+                                  value: fieldName,
+                                  raw: quote(fieldName, "'"),
+                              },
+                          },
+                          property: {
+                              type: "Identifier",
+                              name: "forceUpdate",
+                          },
+                      },
+                  },
+                  right: {
+                      type: "LogicalExpression",
+                      operator: "||",
+                      left: {
+                          type: "UnaryExpression",
+                          operator: "!",
+                          argument: {
+                              type: "Identifier",
+                              name: "isUpdating",
+                          },
+                          prefix: true,
+                      },
+                      right: {
+                          type: "CallExpression",
+                          callee: {
+                              type: "MemberExpression",
+                              computed: false,
+                              object: {
+                                  type: "ThisExpression",
+                              },
+                              property: {
+                                  type: "Identifier",
+                                  name: "_dependencyChanged",
+                              },
+                          },
+                          arguments: [
+                              {
+                                  type: "Literal",
+                                  value: fieldName,
+                                  raw: quote(fieldName, "'"),
+                              },
+                              {
+                                  type: "Identifier",
+                                  name: "context",
+                              },
+                          ],
+                      },
+                  },
+              },
+              consequent: {
+                  type: "BlockStatement",
+                  body: checks.concat(content),
+              },
+              alternate: null,
+          };
+};
+
+const restMethods = (serviceId, entityName, className) => ({
+    type: "Program",
+    body: [
+        {
+            type: "ExpressionStatement",
+            expression: {
+                type: "Literal",
+                value: "use strict",
+                raw: '"use strict"',
+            },
+            directive: "use strict",
+        },
+        {
+            type: "VariableDeclaration",
+            declarations: [
+                {
+                    type: "VariableDeclarator",
+                    id: {
+                        type: "Identifier",
+                        name: "Mowa",
+                    },
+                    init: {
+                        type: "CallExpression",
+                        callee: {
+                            type: "Identifier",
+                            name: "require",
+                        },
+                        arguments: [
+                            {
+                                type: "Literal",
+                                value: "mowa",
+                                raw: "'mowa'",
+                            },
+                        ],
+                    },
+                },
+            ],
+            kind: "const",
+        },
+        {
+            type: "VariableDeclaration",
+            declarations: [
+                {
+                    type: "VariableDeclarator",
+                    id: {
+                        type: "Identifier",
+                        name: "dbId",
+                    },
+                    init: {
+                        type: "Literal",
+                        value: serviceId,
+                        raw: `'${serviceId}'`,
+                    },
+                },
+            ],
+            kind: "const",
+        },
+        {
+            type: "VariableDeclaration",
+            declarations: [
+                {
+                    type: "VariableDeclarator",
+                    id: {
+                        type: "Identifier",
+                        name: "modelName",
+                    },
+                    init: {
+                        type: "Literal",
+                        value: entityName,
+                        raw: `'${entityName}'`,
+                    },
+                },
+            ],
+            kind: "const",
+        },
+        {
+            type: "VariableDeclaration",
+            declarations: [
+                {
+                    type: "VariableDeclarator",
+                    id: {
+                        type: "Identifier",
+                        name: "query",
+                    },
+                    init: {
+                        type: "ArrowFunctionExpression",
+                        id: null,
+                        params: [
+                            {
+                                type: "Identifier",
+                                name: "ctx",
+                            },
+                        ],
+                        body: {
+                            type: "BlockStatement",
+                            body: [
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: "db",
+                                            },
+                                            init: {
+                                                type: "CallExpression",
+                                                callee: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "MemberExpression",
+                                                        computed: false,
+                                                        object: {
+                                                            type: "Identifier",
+                                                            name: "ctx",
+                                                        },
+                                                        property: {
+                                                            type: "Identifier",
+                                                            name: "appModule",
+                                                        },
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "db",
+                                                    },
+                                                },
+                                                arguments: [
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "dbId",
+                                                    },
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "ctx",
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: className,
+                                            },
+                                            init: {
+                                                type: "CallExpression",
+                                                callee: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "Identifier",
+                                                        name: "db",
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "model",
+                                                    },
+                                                },
+                                                arguments: [
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "modelName",
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "ReturnStatement",
+                                    argument: {
+                                        type: "CallExpression",
+                                        callee: {
+                                            type: "MemberExpression",
+                                            computed: false,
+                                            object: {
+                                                type: "Identifier",
+                                                name: className,
+                                            },
+                                            property: {
+                                                type: "Identifier",
+                                                name: "find",
+                                            },
+                                        },
+                                        arguments: [
+                                            {
+                                                type: "MemberExpression",
+                                                computed: false,
+                                                object: {
+                                                    type: "Identifier",
+                                                    name: "ctx",
+                                                },
+                                                property: {
+                                                    type: "Identifier",
+                                                    name: "query",
+                                                },
+                                            },
+                                            {
+                                                type: "Literal",
+                                                value: true,
+                                                raw: "true",
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        },
+                        generator: false,
+                        expression: false,
+                        async: true,
+                    },
+                },
+            ],
+            kind: "const",
+        },
+        {
+            type: "VariableDeclaration",
+            declarations: [
+                {
+                    type: "VariableDeclarator",
+                    id: {
+                        type: "Identifier",
+                        name: "detail",
+                    },
+                    init: {
+                        type: "ArrowFunctionExpression",
+                        id: null,
+                        params: [
+                            {
+                                type: "Identifier",
+                                name: "ctx",
+                            },
+                        ],
+                        body: {
+                            type: "BlockStatement",
+                            body: [
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: "id",
+                                            },
+                                            init: {
+                                                type: "MemberExpression",
+                                                computed: false,
+                                                object: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "Identifier",
+                                                        name: "ctx",
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "params",
+                                                    },
+                                                },
+                                                property: {
+                                                    type: "Identifier",
+                                                    name: "id",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: "db",
+                                            },
+                                            init: {
+                                                type: "CallExpression",
+                                                callee: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "MemberExpression",
+                                                        computed: false,
+                                                        object: {
+                                                            type: "Identifier",
+                                                            name: "ctx",
+                                                        },
+                                                        property: {
+                                                            type: "Identifier",
+                                                            name: "appModule",
+                                                        },
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "db",
+                                                    },
+                                                },
+                                                arguments: [
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "dbId",
+                                                    },
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "ctx",
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: className,
+                                            },
+                                            init: {
+                                                type: "CallExpression",
+                                                callee: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "Identifier",
+                                                        name: "db",
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "model",
+                                                    },
+                                                },
+                                                arguments: [
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "modelName",
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: entityName,
+                                            },
+                                            init: {
+                                                type: "AwaitExpression",
+                                                argument: {
+                                                    type: "CallExpression",
+                                                    callee: {
+                                                        type: "MemberExpression",
+                                                        computed: false,
+                                                        object: {
+                                                            type: "Identifier",
+                                                            name: className,
+                                                        },
+                                                        property: {
+                                                            type: "Identifier",
+                                                            name: "findOne",
+                                                        },
+                                                    },
+                                                    arguments: [
+                                                        {
+                                                            type: "Identifier",
+                                                            name: "id",
+                                                        },
+                                                    ],
+                                                },
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "IfStatement",
+                                    test: {
+                                        type: "UnaryExpression",
+                                        operator: "!",
+                                        argument: {
+                                            type: "Identifier",
+                                            name: entityName,
+                                        },
+                                        prefix: true,
+                                    },
+                                    consequent: {
+                                        type: "BlockStatement",
+                                        body: [
+                                            {
+                                                type: "ReturnStatement",
+                                                argument: {
+                                                    type: "ObjectExpression",
+                                                    properties: [
+                                                        {
+                                                            type: "Property",
+                                                            key: {
+                                                                type: "Identifier",
+                                                                name: "error",
+                                                            },
+                                                            computed: false,
+                                                            value: {
+                                                                type: "Literal",
+                                                                value: "record_not_found",
+                                                                raw: "'record_not_found'",
+                                                            },
+                                                            kind: "init",
+                                                            method: false,
+                                                            shorthand: false,
+                                                        },
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    alternate: null,
+                                },
+                                {
+                                    type: "ReturnStatement",
+                                    argument: {
+                                        type: "MemberExpression",
+                                        computed: false,
+                                        object: {
+                                            type: "Identifier",
+                                            name: entityName,
+                                        },
+                                        property: {
+                                            type: "Identifier",
+                                            name: "data",
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                        generator: false,
+                        expression: false,
+                        async: true,
+                    },
+                },
+            ],
+            kind: "const",
+        },
+        {
+            type: "VariableDeclaration",
+            declarations: [
+                {
+                    type: "VariableDeclarator",
+                    id: {
+                        type: "Identifier",
+                        name: "create",
+                    },
+                    init: {
+                        type: "ArrowFunctionExpression",
+                        id: null,
+                        params: [
+                            {
+                                type: "Identifier",
+                                name: "ctx",
+                            },
+                        ],
+                        body: {
+                            type: "BlockStatement",
+                            body: [
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: "db",
+                                            },
+                                            init: {
+                                                type: "CallExpression",
+                                                callee: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "MemberExpression",
+                                                        computed: false,
+                                                        object: {
+                                                            type: "Identifier",
+                                                            name: "ctx",
+                                                        },
+                                                        property: {
+                                                            type: "Identifier",
+                                                            name: "appModule",
+                                                        },
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "db",
+                                                    },
+                                                },
+                                                arguments: [
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "dbId",
+                                                    },
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "ctx",
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: className,
+                                            },
+                                            init: {
+                                                type: "CallExpression",
+                                                callee: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "Identifier",
+                                                        name: "db",
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "model",
+                                                    },
+                                                },
+                                                arguments: [
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "modelName",
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: entityName,
+                                            },
+                                            init: {
+                                                type: "NewExpression",
+                                                callee: {
+                                                    type: "Identifier",
+                                                    name: className,
+                                                },
+                                                arguments: [
+                                                    {
+                                                        type: "MemberExpression",
+                                                        computed: false,
+                                                        object: {
+                                                            type: "MemberExpression",
+                                                            computed: false,
+                                                            object: {
+                                                                type: "Identifier",
+                                                                name: "ctx",
+                                                            },
+                                                            property: {
+                                                                type: "Identifier",
+                                                                name: "request",
+                                                            },
+                                                        },
+                                                        property: {
+                                                            type: "Identifier",
+                                                            name: "fields",
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "ReturnStatement",
+                                    argument: {
+                                        type: "MemberExpression",
+                                        computed: false,
+                                        object: {
+                                            type: "AwaitExpression",
+                                            argument: {
+                                                type: "CallExpression",
+                                                callee: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "Identifier",
+                                                        name: entityName,
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "save",
+                                                    },
+                                                },
+                                                arguments: [],
+                                            },
+                                        },
+                                        property: {
+                                            type: "Identifier",
+                                            name: "data",
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                        generator: false,
+                        expression: false,
+                        async: true,
+                    },
+                },
+            ],
+            kind: "const",
+        },
+        {
+            type: "VariableDeclaration",
+            declarations: [
+                {
+                    type: "VariableDeclarator",
+                    id: {
+                        type: "Identifier",
+                        name: "update",
+                    },
+                    init: {
+                        type: "ArrowFunctionExpression",
+                        id: null,
+                        params: [
+                            {
+                                type: "Identifier",
+                                name: "ctx",
+                            },
+                        ],
+                        body: {
+                            type: "BlockStatement",
+                            body: [
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: "id",
+                                            },
+                                            init: {
+                                                type: "MemberExpression",
+                                                computed: false,
+                                                object: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "Identifier",
+                                                        name: "ctx",
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "params",
+                                                    },
+                                                },
+                                                property: {
+                                                    type: "Identifier",
+                                                    name: "id",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: "db",
+                                            },
+                                            init: {
+                                                type: "CallExpression",
+                                                callee: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "MemberExpression",
+                                                        computed: false,
+                                                        object: {
+                                                            type: "Identifier",
+                                                            name: "ctx",
+                                                        },
+                                                        property: {
+                                                            type: "Identifier",
+                                                            name: "appModule",
+                                                        },
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "db",
+                                                    },
+                                                },
+                                                arguments: [
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "dbId",
+                                                    },
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "ctx",
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: className,
+                                            },
+                                            init: {
+                                                type: "CallExpression",
+                                                callee: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "Identifier",
+                                                        name: "db",
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "model",
+                                                    },
+                                                },
+                                                arguments: [
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "modelName",
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: entityName,
+                                            },
+                                            init: {
+                                                type: "AwaitExpression",
+                                                argument: {
+                                                    type: "CallExpression",
+                                                    callee: {
+                                                        type: "MemberExpression",
+                                                        computed: false,
+                                                        object: {
+                                                            type: "Identifier",
+                                                            name: className,
+                                                        },
+                                                        property: {
+                                                            type: "Identifier",
+                                                            name: "findOne",
+                                                        },
+                                                    },
+                                                    arguments: [
+                                                        {
+                                                            type: "Identifier",
+                                                            name: "id",
+                                                        },
+                                                    ],
+                                                },
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "IfStatement",
+                                    test: {
+                                        type: "Identifier",
+                                        name: entityName,
+                                    },
+                                    consequent: {
+                                        type: "BlockStatement",
+                                        body: [
+                                            {
+                                                type: "ExpressionStatement",
+                                                expression: {
+                                                    type: "CallExpression",
+                                                    callee: {
+                                                        type: "MemberExpression",
+                                                        computed: false,
+                                                        object: {
+                                                            type: "Identifier",
+                                                            name: "Object",
+                                                        },
+                                                        property: {
+                                                            type: "Identifier",
+                                                            name: "assign",
+                                                        },
+                                                    },
+                                                    arguments: [
+                                                        {
+                                                            type: "MemberExpression",
+                                                            computed: false,
+                                                            object: {
+                                                                type: "Identifier",
+                                                                name: entityName,
+                                                            },
+                                                            property: {
+                                                                type: "Identifier",
+                                                                name: "data",
+                                                            },
+                                                        },
+                                                        {
+                                                            type: "MemberExpression",
+                                                            computed: false,
+                                                            object: {
+                                                                type: "MemberExpression",
+                                                                computed: false,
+                                                                object: {
+                                                                    type: "Identifier",
+                                                                    name: "ctx",
+                                                                },
+                                                                property: {
+                                                                    type: "Identifier",
+                                                                    name: "request",
+                                                                },
+                                                            },
+                                                            property: {
+                                                                type: "Identifier",
+                                                                name: "fields",
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                type: "ReturnStatement",
+                                                argument: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "AwaitExpression",
+                                                        argument: {
+                                                            type: "CallExpression",
+                                                            callee: {
+                                                                type: "MemberExpression",
+                                                                computed: false,
+                                                                object: {
+                                                                    type: "Identifier",
+                                                                    name: entityName,
+                                                                },
+                                                                property: {
+                                                                    type: "Identifier",
+                                                                    name: "save",
+                                                                },
+                                                            },
+                                                            arguments: [],
+                                                        },
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "data",
+                                                    },
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    alternate: null,
+                                },
+                                {
+                                    type: "ReturnStatement",
+                                    argument: {
+                                        type: "ObjectExpression",
+                                        properties: [
+                                            {
+                                                type: "Property",
+                                                key: {
+                                                    type: "Identifier",
+                                                    name: "error",
+                                                },
+                                                computed: false,
+                                                value: {
+                                                    type: "Literal",
+                                                    value: "record_not_found",
+                                                    raw: "'record_not_found'",
+                                                },
+                                                kind: "init",
+                                                method: false,
+                                                shorthand: false,
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        },
+                        generator: false,
+                        expression: false,
+                        async: true,
+                    },
+                },
+            ],
+            kind: "const",
+        },
+        {
+            type: "VariableDeclaration",
+            declarations: [
+                {
+                    type: "VariableDeclarator",
+                    id: {
+                        type: "Identifier",
+                        name: "remove",
+                    },
+                    init: {
+                        type: "ArrowFunctionExpression",
+                        id: null,
+                        params: [
+                            {
+                                type: "Identifier",
+                                name: "ctx",
+                            },
+                        ],
+                        body: {
+                            type: "BlockStatement",
+                            body: [
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: "id",
+                                            },
+                                            init: {
+                                                type: "MemberExpression",
+                                                computed: false,
+                                                object: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "Identifier",
+                                                        name: "ctx",
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "params",
+                                                    },
+                                                },
+                                                property: {
+                                                    type: "Identifier",
+                                                    name: "id",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: "db",
+                                            },
+                                            init: {
+                                                type: "CallExpression",
+                                                callee: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "MemberExpression",
+                                                        computed: false,
+                                                        object: {
+                                                            type: "Identifier",
+                                                            name: "ctx",
+                                                        },
+                                                        property: {
+                                                            type: "Identifier",
+                                                            name: "appModule",
+                                                        },
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "db",
+                                                    },
+                                                },
+                                                arguments: [
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "dbId",
+                                                    },
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "ctx",
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "VariableDeclaration",
+                                    declarations: [
+                                        {
+                                            type: "VariableDeclarator",
+                                            id: {
+                                                type: "Identifier",
+                                                name: className,
+                                            },
+                                            init: {
+                                                type: "CallExpression",
+                                                callee: {
+                                                    type: "MemberExpression",
+                                                    computed: false,
+                                                    object: {
+                                                        type: "Identifier",
+                                                        name: "db",
+                                                    },
+                                                    property: {
+                                                        type: "Identifier",
+                                                        name: "model",
+                                                    },
+                                                },
+                                                arguments: [
+                                                    {
+                                                        type: "Identifier",
+                                                        name: "modelName",
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    kind: "let",
+                                },
+                                {
+                                    type: "ExpressionStatement",
+                                    expression: {
+                                        type: "AwaitExpression",
+                                        argument: {
+                                            type: "CallExpression",
+                                            callee: {
+                                                type: "MemberExpression",
+                                                computed: false,
+                                                object: {
+                                                    type: "Identifier",
+                                                    name: className,
+                                                },
+                                                property: {
+                                                    type: "Identifier",
+                                                    name: "removeOne",
+                                                },
+                                            },
+                                            arguments: [
+                                                {
+                                                    type: "Identifier",
+                                                    name: "id",
+                                                },
+                                            ],
+                                        },
+                                    },
+                                },
+                                {
+                                    type: "ReturnStatement",
+                                    argument: {
+                                        type: "ObjectExpression",
+                                        properties: [
+                                            {
+                                                type: "Property",
+                                                key: {
+                                                    type: "Identifier",
+                                                    name: "status",
+                                                },
+                                                computed: false,
+                                                value: {
+                                                    type: "Literal",
+                                                    value: "ok",
+                                                    raw: "'ok'",
+                                                },
+                                                kind: "init",
+                                                method: false,
+                                                shorthand: false,
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        },
+                        generator: false,
+                        expression: false,
+                        async: true,
+                    },
+                },
+            ],
+            kind: "const",
+        },
+        {
+            type: "ExpressionStatement",
+            expression: {
+                type: "AssignmentExpression",
+                operator: "=",
+                left: {
+                    type: "MemberExpression",
+                    computed: false,
+                    object: {
+                        type: "Identifier",
+                        name: "module",
+                    },
+                    property: {
+                        type: "Identifier",
+                        name: "exports",
+                    },
+                },
+                right: {
+                    type: "ObjectExpression",
+                    properties: [
+                        {
+                            type: "Property",
+                            key: {
+                                type: "Identifier",
+                                name: "query",
+                            },
+                            computed: false,
+                            value: {
+                                type: "Identifier",
+                                name: "query",
+                            },
+                            kind: "init",
+                            method: false,
+                            shorthand: true,
+                        },
+                        {
+                            type: "Property",
+                            key: {
+                                type: "Identifier",
+                                name: "detail",
+                            },
+                            computed: false,
+                            value: {
+                                type: "Identifier",
+                                name: "detail",
+                            },
+                            kind: "init",
+                            method: false,
+                            shorthand: true,
+                        },
+                        {
+                            type: "Property",
+                            key: {
+                                type: "Identifier",
+                                name: "create",
+                            },
+                            computed: false,
+                            value: {
+                                type: "Identifier",
+                                name: "create",
+                            },
+                            kind: "init",
+                            method: false,
+                            shorthand: true,
+                        },
+                        {
+                            type: "Property",
+                            key: {
+                                type: "Identifier",
+                                name: "update",
+                            },
+                            computed: false,
+                            value: {
+                                type: "Identifier",
+                                name: "update",
+                            },
+                            kind: "init",
+                            method: false,
+                            shorthand: true,
+                        },
+                        {
+                            type: "Property",
+                            key: {
+                                type: "Identifier",
+                                name: "remove",
+                            },
+                            computed: false,
+                            value: {
+                                type: "Identifier",
+                                name: "remove",
+                            },
+                            kind: "init",
+                            method: false,
+                            shorthand: true,
+                        },
+                    ],
+                },
+            },
+        },
+    ],
+    sourceType: "script",
+});
+
+module.exports = {
+    _checkAndAssign,
+    _applyModifiersHeader,
+    _validateCheck,
+    _fieldRequirementCheck,
+    restMethods,
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Tue Jun 04 2024 14:45:44 GMT+1000 (Australian Eastern Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
-const Rules = require('../enum/Rules');
-const Generators = require('../Generators');
-const { isPlainObject } = require('@genx/july');
+import { isPlainObject } from "@kitmi/utils";
+import Rules from "../Rules";
+import defaultGenerator from "../TypeGenerators";
 
 /**
  * A rule specifies the change of state will be tracked automatically.
@@ -17,16 +17,16 @@ module.exports = {
                     return;
                 }
 
-                const timestampFieldName = featureItem.stateMapping[targetState];
-                if (!timestampFieldName) {
+                const timestampField = featureItem.stateMapping[targetState];
+                if (!timestampField) {
                     throw new Error(
                         `State "${targetState}" is not one of the pre-defined states of field "${featureItem.field}" of entity "${entityModel.meta.name}".`
                     );
                 }
 
-                if (context.latest[timestampFieldName] == null) {
-                    context.latest[timestampFieldName] = Generators.default(
-                        entityModel.meta.fields[timestampFieldName],
+                if (context.latest[timestampField] == null) {
+                    context.latest[timestampField] = defaultGenerator(
+                        entityModel.meta.fields[timestampField],
                         context.i18n
                     );
                 }

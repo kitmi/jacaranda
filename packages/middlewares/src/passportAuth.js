@@ -3,33 +3,33 @@
  * @module Middleware_PassportAuth
  */
 
-const middlewareName = 'passportAuth';
-
 /**
  * Create a passport authentication middleware.
  * @param {object} opt - Passport options
+ * @property {string} [opt.passportService] - Passport service name
  * @property {string} opt.strategy - Passport strategy
  * @property {object} [opt.options] - Passport strategy options
  * @param {Routable} app
  * @returns {KoaActionFunction}
  */
 const passportAuth = (opt, app) => {
-    const { strategy, options } = app.middlewareConfig(
+    const { passportService, strategy, options } = app.middlewareConfig(
         opt,
         {
             schema: {
+                passportService: { type: 'text', optional: true, default: 'passport' },
                 strategy: { type: 'text' },
                 options: { type: 'object', optional: true },
             },
         },
-        middlewareName
+        'passportAuth'
     );
 
-    app.requireServices(['passport']);
+    app.requireServices([passportService]);
 
-    const passportService = app.getService('passport');
+    const service = app.getService(passportService);
 
-    return passportService.authenticate(strategy, options);
+    return service.authenticate(strategy, options);
 };
 
 export default passportAuth;

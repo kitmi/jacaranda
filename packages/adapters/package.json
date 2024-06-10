@@ -54,9 +54,7 @@
     },
     "devDependencies": {
         "@kitmi/jacaranda": "workspace:*",
-        "@kitmi/sys": "workspace:*",
-        "superagent": "^8.0.9",
-        "supertest": "^6.3.3"
+        "@kitmi/sys": "workspace:*"
     },
     "dependencies": {
         "@kitmi/utils": "workspace:*"

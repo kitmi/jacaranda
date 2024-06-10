@@ -2,7 +2,7 @@
 
 ## Basic Usage
 
-```javascript
+```js
     const db = app.db('db name'); // or app.db() for default db configured in app's settings
     // ctx.db is a shorthand of ctx.module.db, ctx.module is the app instance serving the request
 
@@ -35,6 +35,12 @@
     - Ensure the entity object containing required fields, if not, it will automatically fetched from db and return.
 
 ## Operation options
+
+### common options
+
+#### $fullResult
+
+Return full db operation result which may includes fields & and operation status.
 
 ### findOptions
 
@@ -77,12 +83,17 @@ Variables to interpolate into query condition, will be passed on to associated o
 - session
 - query
 
+#### $features
 
+Custom feature options override
 
+#### $orderBy
 
--   $features - Custom feature options override
--   $orderBy - Order by condition, map of column to ascend?
--   $groupBy - Group by condition
+Order by condition
+
+#### $groupBy
+
+Group by condition
 
 ```javascript
 const numDeals = await this.findAll_({
@@ -128,13 +139,13 @@ const numDeals = await this.findAll_({
 -   $skipOrm - {boolean}
 -   $objectMapper - {string} Object mapper , flat or hiarachy (not used yet)
 -   $custom - User defined operation control data, used by user program only and will be passed on to associated operation
--   $retrieveCreated - {findOptions|boolean}
--   $retrieveUpdated - {findOptions|boolean}
+
 -   $retrieveActualUpdated - {findOptions|boolean}, for updateOne_ only, retrieve only when the row is actually updated
 -   $retrieveNotUpdate - {findOptions|boolean}, for updateOne_ only, retrieve only when the row is not actually updated
--   $retrieveDeleted - {findOptions|boolean}
+-   
+
 -   $retrieveExisting
--   $retrieveDbResult - return the original db result through options.$result
+
 -   $bypassReadOnly - Internal option, cannot be set by user
 -   $physicalDeletion - {boolean}
 -   $existing
@@ -150,18 +161,47 @@ To skip unique check for $where object when performing `xxxOne_` operation.
 -   $nestedKeyGetter - a getter function to transform the key of nested object, default as ':'+anchor for mysql
 -   $skipFeatures - an array of features to skip
 -   $skipModifiers - Skip field modifiers, usually set upon importing backup data which are exported from db and already been processed by modifiers before
--   $transformer - Transform results before returning
+   
 
-```javascript
-$transformer: {
+#### $jsx - Transform results with jsx syntax before returning
+
+```js
+$jsx: {
     user: [ '$$CURRENT.:user', { $pick: [ 'email' ] } ],
     agency: [ '$$CURRENT.:agency', { $pick: [ 'name' ] } ]
 }
 ```
 
--   $dryRun - for create only, just do the preparation check and skip the actual db creation call
+-   $dryRun - for create only, 
 -   $key - specify the primary key field of and main query table for complex SQL situation, e.g. pagination
+#### $asArray
 
+Return result as array, i.e. array mode.
+
+#### $getFields
+
+To return a fields array.
+
+### createOptions
+
+#### $ignore
+
+If already exist (unique key conclicts), just ignore the operation.     
+
+#### $upsert
+
+If already exist (unique key conclicts), just update the record.     
+
+#### $getCreated
+
+### createOptions & updateOptions
+
+#### $skipModifiers
+
+
+#### $dryRun
+
+Just do the entity pre-process and skip the actual db creation call.
 
 
 ## Static members

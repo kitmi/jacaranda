@@ -4,7 +4,7 @@ import JsonConfigProvider from './JsonConfigProvider.js';
 import YamlConfigProvider from './YamlConfigProvider.js';
 import EnvAwareConfigProviderF from './EnvAwareConfigProviderF.js';
 
-import defaultSyntax from './defaultSyntax.js';
+import defaultSyntax, { ES6_TEMPLATE_TOKEN } from './defaultSyntax.js';
 
 export const EnvAwareJsonConfigProvider = EnvAwareConfigProviderF('.json', JsonConfigProvider);
 export const EnvAwareYamlConfigProvider = EnvAwareConfigProviderF('.yaml', YamlConfigProvider);
@@ -177,13 +177,16 @@ class ConfigLoader {
                 const token = strVal.substring(this._l, colonPos);
                 const operator = this.postProcessors.processors[token];
                 if (operator) {
-                    return operator(strVal.substr(colonPos + 1), variables);
+                    return operator(strVal.substring(colonPos + 1), variables);
                 }
 
                 throw new Error('Unsupported post processor: ' + token);
             }
 
             throw new Error('Invalid post processor syntax: ' + strVal);
+        } else if (strVal.startsWith('${') && strVal.endsWith('}')) {
+            const operator = this.postProcessors.processors[ES6_TEMPLATE_TOKEN];            
+            return operator(strVal.substring(2, strVal.length-1), variables);
         }
 
         return strVal;

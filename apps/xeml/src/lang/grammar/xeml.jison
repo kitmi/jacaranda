@@ -328,7 +328,7 @@ Keyword by state
         }
 
         normalizeSymbol(ref) {
-            return { $xr: 'SymbolToken', name: ref.substr(2).toUpperCase() };
+            return { $xt: 'SymbolToken', name: ref.substr(2).toUpperCase() };
         }                
         
         normalizeReference(ref) {
@@ -447,7 +447,11 @@ Keyword by state
         }
         
         defineEntity(name, value, line) {
-            this.define('entity', name, value, line);
+            if (typeof name === 'object') {                
+                this.define('entityTemplate', name.name, { ...value, templateArgs: name.args }, line);
+            } else {
+                this.define('entity', name, value, line);
+            }
         }
 
         defineEntityOverride(name, value, line) {
@@ -1196,6 +1200,7 @@ entity_base_keywords
 
 entity_statement_header0
     : "entity" identifier_or_string -> $2
+    | "entity" narrow_function_call -> $2
     ;
 
 entity_statement_block

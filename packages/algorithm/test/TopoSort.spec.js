@@ -82,4 +82,17 @@ describe('unit:TopoSort', function () {
 
         sorted.should.be.eql(['step1', 'step2', 'step3', 'step4', 'step5']);
     });
+
+    it('issue 1', function () {
+        let topoSort = new TopoSort();
+
+        topoSort.add('step1', []);
+        topoSort.depends('step2', []);
+        topoSort.depends('step3', []);
+        topoSort.depends('step4', ['step3']);        
+
+        let sorted = topoSort.sort();
+
+        sorted.should.be.eql(['step1', 'step2', 'step3', 'step4']);
+    });
 });

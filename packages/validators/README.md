@@ -2,7 +2,7 @@
 
 ## Dynamic Validator
 
-`@kitmi/validators` is a comprehensive validation library designed to validate objects using a declarative syntax known as Jacaranda Object Modifiers Syntax (JOMS). It allows for dynamic validation strategies by using various types of modifiers that can be combined to form complex validation rules.
+`@kitmi/validators` is a comprehensive validation library designed to validate objects using a declarative syntax known as Js Type Modifiers Syntax (JTMS). It allows for dynamic validation strategies by using various types of modifiers that can be combined to form complex validation rules.
 
 ## Installation
 
@@ -22,7 +22,7 @@ npm install @kitmi/validators
 
 ## Modifier Syntax
 
-Modifiers in JOMS can be expressed in different formats, depending on whether they require arguments:
+Modifiers in JTMS can be expressed in different formats, depending on whether they require arguments:
 
 - Standalone Modifiers: These are simply strings that consist of a modifier prefix followed by the modifier's name.
   
@@ -39,7 +39,7 @@ Modifiers in JOMS can be expressed in different formats, depending on whether th
 Modifiers are categorized based on their prefix:
 
 - Validator (`~`): Validates the value.
-- Processor (`|`): Transforms the value.
+- Processor (`>`): Transforms the value.
 - Activator (`=`): Provides a default value if the current value is null.
 
 ## Modifier Handlers
@@ -90,7 +90,7 @@ const result = validator.sanitize(obj, {
             },
         },
         [
-            '|jsx',
+            '>jsx',
             {
                 $toArray: { name: '$$KEY', value: '$$CURRENT' },
             },

@@ -57,8 +57,8 @@ describe('all sync', function () {
                 },
             },
             [
-                // after passing the validation above, the object will be transformed by the below jsonx expression, |jsx === |jsonx
-                '|jsx',
+                // after passing the validation above, the object will be transformed by the below jsonx expression, >jsx === >jsonx
+                '>jsx',
                 {
                     // transform from object to an array
                     $toArray: { name: '$$KEY', value: '$$CURRENT' },
@@ -86,9 +86,11 @@ describe('all sync', function () {
     });
 
     it('type', function () {
-        const obj1 = Types.OBJECT.sanitize({
-            key: { type: 'text', post: [ [ ' ', '|type' ] ] }
-        }, meta);
-        obj1.should.be.eql({});
+        const obj1 = Types.OBJECT.sanitize({ key: 20 }, {
+            schema: {
+                key: { type: 'integer', post: [ '>typeOf' ] }
+            }
+        });
+        obj1.should.be.eql({ key: 'integer' });
     });
 });

@@ -68,6 +68,10 @@ jobs:
           cp -R ./packages/utils/docs/manual/* ./docs/book/@kitmi/utils
           mkdir -p ./docs/book/@kitmi/validators
           cp -R ./packages/validators/docs/manual/* ./docs/book/@kitmi/validators
+          mkdir -p ./docs/book/@kitmi/data
+          cp -R ./packages/data/docs/manual/* ./docs/book/@kitmi/data
+          mkdir -p ./docs/book/@kitmi/xeml
+          cp -R ./apps/xeml/docs/manual/* ./docs/book/@kitmi/xeml
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2

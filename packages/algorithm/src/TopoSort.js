@@ -75,6 +75,11 @@ class TopoSort {
                 this.mapOfDependents[dependency] = new Set([node]);
             }
         });
+
+        // Ensure node is in mapOfDependents with an empty set if it has no dependents
+        if (!this.mapOfDependents[node]) {
+            this.mapOfDependents[node] = new Set();
+        }
     }
 
     hasDependency(node) {
@@ -95,12 +100,19 @@ class TopoSort {
         // The list contains the final sorted nodes.
         const l = [];
 
-        // Find all the initial 0 incoming edge nodes. If not found, this is is a circular graph, cannot be sorted.
+        // Find all the initial 0 incoming edge nodes. If not found, this is a circular graph, cannot be sorted.
         const nodesWithDependents = Object.keys(this.mapOfDependents);
         const nodesWithDependencies = Object.keys(this.mapOfDependencies);
 
         const initialNodes = new Set(nodesWithDependents);
         nodesWithDependencies.forEach((nodeHasDependency) => initialNodes.delete(nodeHasDependency));
+
+        // Add nodes with no dependencies to initialNodes
+        nodesWithDependencies.forEach((node) => {
+            if (this.mapOfDependencies[node].size === 0) {
+                initialNodes.add(node);
+            }
+        });
 
         // List of nodes with no unsorted dependencies
         const s = [...initialNodes];

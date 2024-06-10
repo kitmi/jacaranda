@@ -1,5 +1,5 @@
 /**
- * Enable model feature
+ * Enable dataModel feature
  * @module Feature_DataModel
  */
 
@@ -9,39 +9,48 @@ import { _ } from '@kitmi/utils';
 export default {
     stage: Feature.SERVICE,
 
+    depends: ['dataSource'],
+
     load_: async function (app, options, name) {
-        const config = app.featureConfig(options, {
-            schema: {
-                schemaPath: { type: 'text', optional: true, default: 'schema' },
-                modelPath: { type: 'text', optional: true, default: 'src/models' },
-                migrationPath: { type: 'text', optional: true, default: 'src/migrations' },
-                schemaSet: {
-                    type: 'object',
-                    valueSchema: {
+        const config = app.featureConfig(
+            options,
+            {
+                schema: {
+                    schemaPath: { type: 'text', optional: true, default: 'xeml' },
+                    modelPath: { type: 'text', optional: true, default: 'src/models' },
+                    migrationPath: { type: 'text', optional: true, default: './migrations' },
+                    manifestPath: { type: 'text', optional: true, default: './manifests' },
+                    schemaSet: {
                         type: 'object',
-                        schema: {
-                            dataSource: { type: 'text' },
+                        valueSchema: {
+                            type: 'object',
+                            schema: {
+                                dataSource: { type: 'text' },
+                                options: { type: 'object', optional: true },
+                            },
                         },
                     },
-                },
-                dependencies: {
-                    type: 'object',
-                    optional: true,
+                    dependencies: {
+                        type: 'object',
+                        optional: true,
+                    },
                 },
             },
-        }, name);
+            name
+        );
+
+        const connectors = _.mapValues(config.schemaSet, (repoConfig, name) => {
+            let connector = app.getService(repoConfig.dataSource);
+            if (!connector) {
+                throw new Error(`Data source connector [${repoConfig.dataSource}] not found for schema "${name}".`);
+            }
+            return connector;
+        });
 
         const service = {
             config,
-            getConnectors: () => {
-                return _.mapValues(config.schemaSet, (repoConfig, name) => {
-                    let connector = app.getService(repoConfig.dataSource);
-                    if (!connector) {
-                        throw new Error(`Data source connector [${repoConfig.dataSource}] not found for schema "${name}".`);
-                    } 
-                    return connector;
-                });
-            }
+            getConnectors: () => connectors,
+            getConnector: (schemaName) => connectors[schemaName],
         };
 
         app.registerService(name, service);

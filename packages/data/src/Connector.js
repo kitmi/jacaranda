@@ -1,7 +1,6 @@
 import { URL } from 'node:url';
 import { _, isEmpty } from '@kitmi/utils';
 import { Types } from '@kitmi/validators/allSync';
-import drivers from './drivers';
 
 export function connectionObjectToString(obj, withoutCredential = false) {
     const { driver, user, password, host, database, ...options } = obj;
@@ -42,27 +41,6 @@ class Connector {
     /**
      * Create a connector.
      * @param {App} app - The Jacaranda app object
-     * @param {*} driver
-     * @param {*} connectionString
-     * @param {*} options
-     */
-    static createConnector(app, driver, connectionString, options) {
-        if (!(driver in drivers)) {
-            throw new Error(`Unsupported connector driver: "${driver}"!`);
-        }
-
-        if (!connectionString) {
-            throw new Error(`Missing required connection string`);
-        }
-
-        const ConnectorClass = drivers[driver].Connector;
-
-        return new ConnectorClass(app, connectionString, options);
-    }
-
-    /**
-     * Create a connector.
-     * @param {App} app - The Jacaranda app object
      * @param {string} driver - Data storage type
      * @param {string} connectionString - The connection string or object
      * @param {object} [options] - Connector options
@@ -71,25 +49,22 @@ class Connector {
         const { connection: connectionString } = Types.OBJECT.sanitize(
             { connection: _connectionString },
             {
-                schema: [
-                    {
-                        connection: [
-                            { type: 'text' },
-                            {
-                                type: 'object',
-                                schema: {
-                                    driver: { type: 'text', optional: true },
-                                    user: { type: 'text' },
-                                    password: { type: 'text' },
-                                    host: { type: 'text' },
-                                    database: { type: 'text', optional: true },
-                                    port: { type: 'integer', optional: true },
-                                },
+                schema: {
+                    connection: [
+                        { type: 'text' },
+                        {
+                            type: 'object',
+                            schema: {
+                                driver: { type: 'text', optional: true },
+                                user: { type: 'text' },
+                                password: { type: 'text' },
+                                host: { type: 'text' },
+                                database: { type: 'text', optional: true },
+                                port: { type: 'integer', optional: true },
                             },
-                        ],
-                    },
-                    ,
-                ],
+                        },
+                    ],                    
+                }
             }
         );
 
@@ -221,4 +196,4 @@ class Connector {
     */
 }
 
-module.exports = Connector;
+export default Connector;

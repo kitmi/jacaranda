@@ -33,9 +33,9 @@ describe("text", () => {
             result.should.equal(value);
         });
 
-        it("should return null for empty string input with meta.nonEmpty", () => {
+        it("should return null for empty string input with meta.emptyAsNull", () => {
             const value = "";
-            should.throws(() => text.sanitize(value, { nonEmpty: true }, {}, ""), 'Missing a required value.');
+            should.throws(() => text.sanitize(value, { emptyAsNull: true }, {}, ""), 'Missing a required value.');
         });
 
         it("should return string for numbers", () => {

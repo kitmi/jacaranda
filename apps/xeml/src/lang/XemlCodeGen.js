@@ -1,8 +1,5 @@
-"use strict";
-
-const { _, quote } = require('@genx/july');
+const { _, quote, isWrappedWith } = require('@kitmi/utils');
 const { generateDisplayName } = require('./XemlUtils');
-const { isNothing, isQuotedWith } = require('../utils/lang');
 
 const KW_NAMESPACE = 'import';
 const KW_SCHEMA = 'schema';
@@ -18,7 +15,7 @@ const KW_ASSOCIATIONS = 'associations';
 const KW_KEY = 'key';
 const KW_INDEXES = 'index';
 
-const { Types } = require('@genx/data');
+const Types = require("./Types");
 const GemlTypes = require('./XemlTypes');
 
 class GemlCodeGen {
@@ -292,7 +289,7 @@ class GemlCodeGen {
             //}
             if (k === 'comment') return;
 
-            if (typeof v === 'boolean' || isNothing(v)) {
+            if (typeof v === 'boolean' || v == null) {
                 if (v) {
                     lineInfo.push(k);
                 }
@@ -365,7 +362,7 @@ class GemlCodeGen {
             }
         } 
 
-        if (typeof a === 'string' && isQuotedWith(a, '/')) return a;
+        if (typeof a === 'string' && isWrappedWith(a, '/')) return a;
         
         return JSON.stringify(a);
     }

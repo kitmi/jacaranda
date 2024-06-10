@@ -51,11 +51,11 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "@kitmi/jacaranda": "workspace:^",
-    "@kitmi/types": "workspace:^"
+    "@kitmi/jacaranda": "workspace:*",
+    "@kitmi/types": "workspace:*"
   },
   "devDependencies": {
-    "@kitmi/tester": "workspace:^"
+    "@kitmi/tester": "workspace:*"
   },
   "prettier": {
     "quoteProps": "consistent",

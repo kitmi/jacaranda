@@ -1,6 +1,4 @@
-"use strict";
-
-const { _ } = require('@genx/july');
+const { _ } = require('@kitmi/utils');
 const { generateDisplayName, deepCloneField, Clonable } = require('./XemlUtils');
 
 const Dataset = require('./Dataset');

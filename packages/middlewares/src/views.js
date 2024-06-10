@@ -1,4 +1,4 @@
-import _views from '@ladjs/koa-views';
+import koaViews from '@ladjs/koa-views';
 
 /**
  * Template views middleware.
@@ -17,10 +17,10 @@ const views = async (options, app) => {
                 options: { type: 'object', optional: true },
             },
         },
-        'accessLog'
+        'views'
     );
 
-    return _views(app.toAbsolutePath(viewPath), opts);
+    return koaViews(app.toAbsolutePath(viewPath), opts);
 };
 
 export default views;

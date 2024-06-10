@@ -1,7 +1,8 @@
-const Rules = require('../enum/Rules');
-const { mergeCondition } = require('../utils/lang');
-const Generators = require('../Generators');
-const { _ } = require('@genx/july');
+import { _ } from "@kitmi/utils";
+
+import Rules from "../Rules";
+import { mergeWhere } from "../helpers";
+import defaultGenerator from "../TypeGenerators";
 
 /**
  * A rule specifies the entity will not be deleted physically.
@@ -12,7 +13,7 @@ module.exports = {
     [Rules.RULE_BEFORE_FIND]: (feature, entityModel, context) => {
         const findOptions = context.options;
         if (!findOptions.$includeDeleted) {
-            findOptions.$query = mergeCondition(findOptions.$query, {
+            findOptions.$query = mergeWhere(findOptions.$query, {
                 [feature.field]: { $ne: feature.value },
             });
         }
@@ -28,7 +29,7 @@ module.exports = {
             };
 
             if (timestampField) {
-                updateTo[timestampField] = Generators.default(
+                updateTo[timestampField] = defaultGenerator(
                     entityModel.meta.fields[timestampField],
                     context.i18n
                 );
@@ -36,9 +37,9 @@ module.exports = {
 
             const updateOpts = {
                 $query: options.$query,
-                $retrieveUpdated: options.$retrieveDeleted,
+                $getUpdated: options.$getDeleted,
                 $bypassReadOnly: new Set([field, timestampField]),
-                ..._.pick(options, ['$retrieveDeleted', '$retrieveDbResult']),
+                ..._.pick(options, ['$getDeleted', '$fullResult']),
             };
 
             context.return = await entityModel._update_(
@@ -48,7 +49,7 @@ module.exports = {
                 context.forSingleRecord
             );
 
-            if (options.$retrieveDbResult) {
+            if (options.$fullResult) {
                 context.rawOptions.$result = updateOpts.$result;
             }
 

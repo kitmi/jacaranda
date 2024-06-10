@@ -1,8 +1,8 @@
 import ntol from 'number-to-letter';
-import { isPlainObject, isEmpty, snakeCase, isInteger, _ } from '@kimit/utils';
+import { isPlainObject, isEmpty, snakeCase, isInteger, _ } from '@kitmi/utils';
 
 import Connector from '../../Connector';
-import { isRawSql, extractRawSql } from '../../utils/Rules';
+import { isRawSql, extractRawSql } from '../../helpers';
 
 class RelationalConnector extends Connector {
     /**
@@ -50,7 +50,7 @@ class RelationalConnector extends Connector {
             query.params = _params.concat(query.params);
         });
 
-        return this._executeQuery_(query, null, options, connection);
+        return this._executeQuery_(query, options, connection);
     }
 
     /**
@@ -61,16 +61,18 @@ class RelationalConnector extends Connector {
      * @param {*} connection 
      * @returns 
      */
-    async _executeQuery_(query, queryOptions, options, connection) {
+    async _executeQuery_(query, queryOptions, connection) {
         let result, totalCount;
 
         if (query.countSql) {
-            const res = await this.execute_(query.countSql, query.countParams, options, connection);
-            totalCount = res.rows[0].count;
+            const res = await this.execute_(query.countSql, query.countParams, queryOptions, connection);
+            totalCount = res.data[0].count;
         }
 
+        let options;
+
         if (query.hasJoining) {
-            options = { ...options, rowsAsArray: true };
+            options = { ...queryOptions, $asArray: true };
             result = await this.execute_(query.sql, query.params, options, connection);
 
             const reverseAliasMap = _.reduce(
@@ -92,11 +94,11 @@ class RelationalConnector extends Connector {
 
             return  { ...result, reverseAliasMap };
 
-        } else if (queryOptions?.$skipOrm) {
-            options = { ...options, rowsAsArray: true };
+        } else if (queryOptions.$skipOrm) {
+            options = { ...queryOptions, $asArray: true };
         }
 
-        result = await this.execute_(query.sql, query.params, options);
+        result = await this.execute_(query.sql, query.params, options, connection);
 
         if (query.countSql) {
             return { ...result, totalCount };

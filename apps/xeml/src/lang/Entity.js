@@ -1,13 +1,10 @@
-"use strict";
+const EventEmitter = require("node:events");
+const path = require("node:path");
 
-const EventEmitter = require('events');
-const path = require('path');
-
-const { _ } = require('@genx/july');
-const { generateDisplayName, deepCloneField, Clonable, entityNaming } = require('./XemlUtils');
-
-const Field = require('./Field');
-const { Types: { FunctionalQualifiers } } = require('@genx/data');
+const { _ } = require("@kitmi/utils");
+const { generateDisplayName, deepCloneField, Clonable, entityNaming } = require("./XemlUtils");
+const { FunctionalQualifiers } = require('./Rules');
+const Field = require("./Field");
 
 /**
  * Entity event listener
@@ -130,7 +127,7 @@ class Entity extends Clonable {
             this.code = this.info.code || this.name;
         }
 
-        if (this.info.base) {
+        if (this.info.base) {            
             //inherit fields, processed features, key and indexes
             let baseClasses = _.castArray(this.info.base);
             baseClasses.reverse().forEach(base => {

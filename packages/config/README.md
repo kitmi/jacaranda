@@ -39,6 +39,24 @@ const configLoader = ConfigLoader.createEnvAwareJsonLoader(<config path>, 'confi
 await configLoader.load_();
 ```
 
+3. Variables referenced in config
+
+- Reference to `settings.jwtSecret` node in the same config file.
+```json
+{
+    "jwt": "#!jsv: $this.settings.jwtSecret"
+}
+```
+
+- Reference to a env variable using ES string template.
+```yaml
+dataSource:
+  postgres:
+    wisley:
+      connection: "${env.WISLEY_DB_URL}"
+      logStatement: true
+```
+
 ## License
 - MIT
 - Copyright (c) 2023 KITMI PTY LTD

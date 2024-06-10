@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>lang/Entity.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="DaoModeler.html">DaoModeler</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Dataset.html">Dataset</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dataset.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dataset.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dataset.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Entity.html">Entity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addAssocField">addAssocField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addAssociation">addAssociation</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addFeature">addFeature</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addField">addField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addIndex">addIndex</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addIndexes">addIndexes</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#getEntityAttribute">getEntityAttribute</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#getKeyField">getKeyField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#getReferenceTo">getReferenceTo</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#hasField">hasField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#hasIndexOn">hasIndexOn</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#once">once</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#setKey">setKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Field.html">Field</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Field.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Field.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Field.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="GraphQLModeler.html">GraphQLModeler</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Linker.html">Linker</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#getElementUniqueId">getElementUniqueId</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#getModuleById">getModuleById</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#getModuleIdByPath">getModuleIdByPath</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#isModuleLoaded">isModuleLoaded</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#loadElement">loadElement</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#loadModule">loadModule</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#log">log</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#trackBackType">trackBackType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#translateXemlValue">translateXemlValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#.buildSchemaObjects">buildSchemaObjects</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#.getXemlFiles">getXemlFiles</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="MongoDbMigration.html">MongoDbMigration</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="MongoDbModeler.html">MongoDbModeler</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="MySQLMigration.html">MySQLMigration</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="MySQLModeler.html">MySQLModeler</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="MySQLModeler.html#_processAssociation">_processAssociation</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="MySQLModeler.html#_updateRelationEntity">_updateRelationEntity</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="PostgresMigration.html">PostgresMigration</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="PostgresModeler.html">PostgresModeler</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresModeler.html#_processAssociation">_processAssociation</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresModeler.html#_updateRelationEntity">_updateRelationEntity</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Schema.html">Schema</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#addEntity">addEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#addType">addType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#addView">addView</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#ensureGetEntity">ensureGetEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#getDocumentHierachy">getDocumentHierachy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#getReferencedEntity">getReferencedEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#hasEntity">hasEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#hasView">hasView</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="View.html">View</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="View.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="View.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="View.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="XemlLinker.html">XemlLinker</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_AtLeastOneNotNull.html">EntityFeature_AtLeastOneNotNull</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_AtLeastOneNotNull.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_AutoId.html">EntityFeature_AutoId</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_AutoId.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_ChangeLog.html">EntityFeature_ChangeLog</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_ChangeLog.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_CreateTimestamp.html">EntityFeature_CreateTimestamp</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_CreateTimestamp.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_I18n.html">EntityFeature_I18n</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_I18n.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_LogicalDeletion.html">EntityFeature_LogicalDeletion</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_LogicalDeletion.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_StateTracking.html">EntityFeature_StateTracking</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_StateTracking.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_UpdateTimestamp.html">EntityFeature_UpdateTimestamp</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_UpdateTimestamp.html#~initialize">initialize</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_UserEditTracking.html">EntityFeature_UserEditTracking</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_UserEditTracking.html#~feature">feature</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#_fieldRequirementCheck">_fieldRequirementCheck</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getCommandOptions">getCommandOptions</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getDateNamedDir">getDateNamedDir</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#mergeCondition">mergeCondition</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">lang/Entity.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const EventEmitter = require("node:events");
+const path = require("node:path");
+
+const { _ } = require("@kitmi/utils");
+const { generateDisplayName, deepCloneField, Clonable, entityNaming } = require("./XemlUtils");
+const { FunctionalQualifiers } = require('./Rules');
+const Field = require("./Field");
+
+/**
+ * Entity event listener
+ * @callback Entity.eventListener
+ * returns {*}
+ */
+
+/**
+ * Geml entity
+ * @class Entity
+ */
+class Entity extends Clonable {
+    static overrideEntityMeta(sourceInfo, overrideInfo) {
+        if (overrideInfo.features) {
+            sourceInfo.features = [
+                ...(sourceInfo.features ?? []),
+                ...overrideInfo.features
+            ];
+        }
+
+        if (overrideInfo.fields) {
+            sourceInfo.fields = {
+                ...sourceInfo.fields,
+                ...overrideInfo.fields
+            };
+        }        
+
+        if (overrideInfo.associations) {
+            sourceInfo.associations = [...(sourceInfo.associations ?? []), ...overrideInfo.associations ];
+        }
+
+        if (overrideInfo.indexes) {
+            sourceInfo.indexes = [...(sourceInfo.indexes ?? []), ...overrideInfo.indexes ];
+        }
+
+        if (overrideInfo.inputs) {
+            sourceInfo.inputs = {
+                ...sourceInfo.inputs,
+                ...overrideInfo.inputs
+            };
+        }  
+    }
+
+
+    /**
+     * Fields of the entity, map of &lt;fieldName, fieldObject>
+     * @member {object.&lt;string, Field>}
+     */
+    fields = {};
+
+    /**
+     * Referenced types
+     */
+    types = {};
+
+    /**     
+     * @param {Linker} linker
+     * @param {string} name
+     * @param {*} xemlModule
+     * @param {object} info
+     */
+    constructor(linker, name, xemlModule, info) {
+        super();
+
+
+        this._events = new EventEmitter();
+
+        /**
+         * Linker to process this entity
+         * @member {Linker}
+         */
+        this.linker = linker;
+
+        /**
+         * Name of this entity
+         * @member {string}
+         */
+        this.name = entityNaming(name);
+
+        /**
+         * Owner geml module
+         * @member {object}
+         */
+        this.xemlModule = xemlModule;
+
+        /**
+         * Raw metadata
+         * @member {Object}
+         */
+        this.info = info;        
+    }
+
+    /**
+     * Listen on an event
+     * @param {string} eventName
+     * @param {Entity.eventListener} listener
+     * @returns {EventEmitter}
+     */
+    once(eventName, listener) {
+        return this._events.once(eventName, listener);
+    }
+
+    /**
+     * Start linking this entity
+     * @returns {Entity}
+     */
+    link() {
+        pre: !this.linked;
+
+        //1.inherit from base entity if any
+        //2.initialize features
+        //3.add fields        
+        //4.api
+
+        //indexes will processed after processing foreign relationship
+
+        this.linker.log('debug', 'Linking entity [' + this.name + '] ...');
+
+        if (this.info.code) {
+            this.code = this.info.code || this.name;
+        }
+
+        if (this.info.base) {
+            console.log(this.info.base);
+            //inherit fields, processed features, key and indexes
+            let baseClasses = _.castArray(this.info.base);
+            baseClasses.reverse().forEach(base => {
+                let baseEntity = this.linker.loadEntity(this.xemlModule, base);
+                assert: baseEntity.linked;
+
+                this._inherit(baseEntity);
+            });            
+
+            this.baseClasses = baseClasses;
+        }
+
+        if (this.info.comment) {
+            /**
+             * @member {string}
+             */
+            this.comment = this.info.comment;
+        }
+
+        /**
+         * @member {string}
+         */
+        this.displayName = generateDisplayName(this.name);
+
+        /**
+         * @fires Entity#featuresMixingIn
+         */
+        this._events.emit('featuresMixingIn');
+
+        // load features
+        if (this.info.features) {
+            this.info.features.forEach(feature => {
+                let featureName;
+
+                if (typeof feature === 'string') {
+                    featureName = feature;
+                } else {
+                    featureName = feature.name;
+                }
+
+                let fn;
+                
+                try {
+                    fn = require(path.resolve(__dirname, `./entityFeatures/${featureName}.js`));
+                } catch (err) {
+                    if (err.code === 'MODULE_NOT_FOUND') {
+                        throw new Error(`Unknown feature "${featureName}" reference in entity "${this.name}"`);
+                    }
+                }
+                fn(this, this.linker.translateXemlValue(this.xemlModule, feature.args));
+            });
+        }
+
+        /**
+         * @fires Entity#beforeAddingFields
+         */
+        this._events.emit('beforeAddingFields');
+
+        // process fields
+        if (this.info.fields) {
+            _.each(this.info.fields, (fieldInfo, fieldName) => this.addField(fieldName, fieldInfo));
+        }
+
+        /**
+         * @fires Entity#afterAddingFields
+         */
+        this._events.emit('afterAddingFields');   
+
+        if (this.info.key) {
+            this.key = this.info.key;
+
+            if (Array.isArray(this.key) &amp;&amp; this.key.length === 1) {
+                this.key = this.key[0];
+            }
+        }
+
+        if (this.info.inputs) {
+            this.inputs = this.info.inputs;
+        }
+
+        /**
+         * @fires Entity#beforeAddingInterfaces
+         */
+        this._events.emit('beforeAddingInterfaces');        
+        
+        if (!_.isEmpty(this.info.interfaces)) {
+            this.interfaces = _.cloneDeep(this.info.interfaces);
+
+            _.forOwn(this.interfaces, (intf) => {
+                if (!_.isEmpty(intf.accept)) {
+                    intf.accept = _.map(intf.accept, param => {                        
+                        const [ typeInfo, baseInfo ] = this.linker.trackBackType(this.xemlModule, param);
+                        if (baseInfo != null) {
+                            this.addUsedType(param.type, baseInfo.xemlModule.id);
+                        }                        
+                        return typeInfo;
+
+                    });
+                }
+            });
+        }
+
+        /**
+         * @fires Entity#afterAddingInterfaces
+         */
+        this._events.emit('afterAddingInterfaces');        
+
+        this.linked = true;
+
+        return this;
+    }
+
+    addUsedType(type, typeLocation) {
+        const existing = this.types[type];
+        if (existing == null) {
+            this.types[type] = typeLocation;
+        } else {
+            if (existing !== typeLocation) {
+                //should never happen
+                throw new Error('Different used types appear in the same entity!');
+            }
+        }
+    }
+
+    /**
+     * Check whether the entity has an index on the given fields
+     * @param {array} fields
+     * @returns {boolean}
+     */
+    hasIndexOn(fields) {
+        fields = fields.concat();
+        fields.sort();
+
+        return _.findIndex(this.indexes, index => {
+                return _.findIndex(index.fields, (f, idx) => (fields.length &lt;= idx || fields[idx] !== f)) === -1;
+            }) != -1;
+    }
+
+    /**
+     * Add all indexes
+     */
+    addIndexes() {
+        if (this.info.indexes) {
+            _.each(this.info.indexes, index => {
+                this.addIndex(index);
+            });
+        }
+    }
+
+    /**
+     * Add an index
+     * @param {object} index
+     * @property {array} index.fields - Fields of the index
+     * @property {bool} index.unique - Flag of uniqueness of the index
+     * @returns {Entity}
+     */
+    addIndex(index) {
+        if (!this.indexes) {
+            this.indexes = [];
+        }
+
+        index = _.cloneDeep(index);
+
+        assert: index.fields;
+
+        if (!_.isArray(index.fields)) {
+            index.fields = [ index.fields ];
+        }
+
+        let fields = index.fields; 
+
+        index.fields = _.map(fields, field => {
+
+            let normalizedField = field;//_.camelCase(field);
+
+            if (!this.hasField(normalizedField)) {
+
+                throw new Error(`Index references non-exist field: ${field}, entity: ${this.name}.`);
+            }
+
+            return normalizedField;
+        });
+
+        index.fields.sort();
+
+        if (this.hasIndexOn(index.fields)) {
+            throw new Error(`Index on [${index.fields.join(', ')}] already exist in entity [${this.name}].`);
+        }
+
+        this.indexes.push(index);
+
+        return this;
+    }
+
+    /**
+     * Get a field object by field name or entity meta accesor (e.g. $key, $feature).
+     * @param fieldId
+     * @returns {Field}
+     */
+    getEntityAttribute(fieldId) {
+        if (fieldId[0] === '$') {
+            let token = fieldId.substr(1);
+
+            switch (token) {
+                case "key":
+                    if (Array.isArray(this.key)) {
+                        throw new Error('Combination key not support for accesor "$key".');
+                    }
+                    return this.fields[this.key];
+
+                case 'feature':
+                    return this.features;
+
+                default:
+                    throw new Error(`Filed accessor "${token}" not supported!`);
+            }
+        } else {
+            if (!this.hasField(fieldId)) {
+                throw new Error(`Field "${fieldId}" not exists in entity "${this.name}".`)
+            }
+
+            return this.fields[fieldId];
+        }
+    }
+
+    /**
+     * Check whether the entity has a field with given name
+     * @param {string} name
+     * @returns {boolean}
+     */
+    hasField(name) {
+        if (Array.isArray(name)) {
+            return _.every(name, fn => this.hasField(fn));
+        }
+
+        return name in this.fields;
+    }
+
+    /**
+     * Add association, dbms-specific
+     * @param {*} name 
+     * @param {*} props 
+     * @example
+     * e.g. mysql
+     *  entity - Associated entity name
+     *  join - Join type, e.g. INNER, LEFT, RIGHT, OUTER
+     *  exclude - Exclude in output columns
+     *  alias - Alias 
+     *  on - On conditions
+     *  dataset - Sub query
+     *  assocs - Child associations
+     *  optional - Optional
+     *  'default' - Default value
+     *  list - Is a list
+     */
+    addAssociation(name, props) {
+        if (!this.associations) {
+            this.associations = {};
+        }    
+
+        if (name in this.associations) {
+            throw new Error(`Association "${name}" already exists in entity "${this.name}". Props: ` + JSON.stringify(props));
+        }
+
+        this.associations[name] = props;
+    }
+
+    /**
+     * Add a association field.
+     * @param {string} name
+     * @param {Entity} destEntity
+     * @param {Field} destField
+     */
+    addAssocField(name, destEntity, destField, extraProps) {
+        let localField = this.fields[name];
+
+        if (localField) {            
+            throw new Error(`Field "${name}" already exists in entity "${this.name}".`);
+        }
+
+        let destFieldInfo = _.omit(destField.toJSON(), FunctionalQualifiers);
+        Object.assign(destFieldInfo, extraProps);       
+
+        this.addField(name, destFieldInfo);    
+        //this.fields[name].displayName = fieldNaming(prefixNaming(destEntity.name, destField.name));   
+    }
+
+    /**
+     * Add a field into the entity
+     * @param {string} name
+     * @param {object} rawInfo
+     * @returns {Entity}
+     */
+    addField(name, rawInfo) {        
+        if (this.hasField(name)) {
+            throw new Error(`Field name [${name}] conflicts in entity [${this.name}].`);
+        }
+
+        assert: rawInfo.type;
+
+        let field;
+
+        if (rawInfo instanceof Field) {
+            field = rawInfo.clone();
+            field.name = name; // todo: displayName
+        } else {            
+            let [ fullRawInfo, baseInfo ] = this.linker.trackBackType(this.xemlModule, rawInfo);      
+            if (baseInfo != null) {      
+                this.addUsedType(rawInfo.type, baseInfo.xemlModule.id);
+            }
+
+            field = new Field(name, fullRawInfo);
+            field.link();
+        }                
+        
+        this.fields[name] = field;
+
+        if (!this.key) {
+            //make the first field as the default key
+            this.key = name;
+        }
+
+        return this;
+    }
+
+    /**
+     * Add a feature into the entity, e.g. auto increment id
+     * @param {string} name
+     * @param {*} feature
+     * @param {bool} [allowMultiple=false] - Allow multiple occurrence
+     * @returns {Entity}
+     */
+    addFeature(name, feature, allowMultiple) {
+        if (!this.features) {
+            this.features = {};
+        }
+
+        if (allowMultiple) {
+            if (!this.features[name]) {
+                this.features[name] = [];
+            }
+
+            this.features[name].push(feature);
+        } else {
+            if (name in this.features) {
+                throw new Error(`Duplicate feature found: ${name}. An entity can only have one "${name}" feature only. Entity: ${this.name}`);
+            }
+
+            this.features[name] = feature;
+        }
+
+        return this;
+    }
+
+    hasFeature(name) {
+        return this.features &amp;&amp; (name in this.features);
+    }
+
+    /**
+     * Set key name
+     * @param {string|array.&lt;string>} name - Field name to be used as the key
+     * @returns {Entity}
+     */
+    setKey(name) {
+        this.key = name;
+        return this;
+    }
+
+    getReferencedEntity(entityName) {
+        return this.linker.loadEntity(this.xemlModule, entityName);    
+    }
+
+    /**
+     * Returns the association info if there is connection to the given destination entity.
+     */
+    getReferenceTo(entityName, includes, excludes) {
+        return this.info.associations &amp;&amp; _.find(
+            this.info.associations, assoc => {
+                if (includes) {
+                    if (_.find(includes, (value, prop) => typeof value === 'function' ? !value(assoc[prop]) : !_.isEqual(assoc[prop], value))) return false;
+                }
+
+                if (excludes) {
+                    if (excludes.association &amp;&amp; assoc === excludes.association) return false;
+                    if (excludes.type &amp;&amp; assoc.type === excludes.type) return false;
+                    if (excludes.associations &amp;&amp; excludes.associations.indexOf(assoc) > -1) return false;
+                    if (excludes.types &amp;&amp; excludes.types.indexOf(assoc.type) > -1) return false;
+                    if (excludes.props &amp;&amp; _.find(excludes.props, prop => assoc[prop])) return false;
+                }
+
+                return assoc.destEntity === entityName;
+            }
+        );
+    }
+
+    /**
+     * Get key field 
+     * @returns {*}
+     */
+    getKeyField() {
+        return Array.isArray(this.key) ? this.key.map(kf => this.fields[kf]) : this.fields[this.key];
+    }
+
+    /**
+     * Clone the entity
+     * @param {Map} [stack] - Reference stack to avoid recurrence copy
+     * @returns {Entity}
+     */
+    clone() {        
+        super.clone();
+
+        let entity = new Entity(this.linker, this.name, this.xemlModule, this.info);        
+
+        deepCloneField(this, entity, 'code');
+        deepCloneField(this, entity, 'displayName');
+        deepCloneField(this, entity, 'comment');
+        deepCloneField(this, entity, 'features');
+        deepCloneField(this, entity, 'fields');
+        deepCloneField(this, entity, 'types');    
+        deepCloneField(this, entity, 'associations');        
+        deepCloneField(this, entity, 'key');        
+        deepCloneField(this, entity, 'indexes');    
+        deepCloneField(this, entity, 'inputs');        
+        deepCloneField(this, entity, 'interfaces');
+
+        entity.linked = true;
+
+        return entity;
+    }
+ 
+    /**
+     * Translate the entity into a plain JSON object
+     * @returns {object}
+     */
+    toJSON() {
+        return {            
+            name: this.name,     
+            code: this.code,            
+            displayName: this.displayName,
+            comment: this.comment,            
+            ...(this.baseClasses ? { baseClasses: this.baseClasses } : {}),
+            features: this.features,            
+            types: this.types,  
+            fields: _.mapValues(this.fields, field => field.toJSON()),
+            associations: this.associations,
+            key: this.key,
+            indexes: this.indexes
+        };
+    }
+
+    _inherit(baseEntity) {  
+        let overrideInfo = {};
+
+        if (baseEntity.baseClasses) {
+            let baseClasses = baseEntity.baseClasses;
+
+            if (this.baseClasses) {
+                this.baseClasses = _.uniq(baseClasses.concat(this.baseClasses));
+            } else {
+                this.baseClasses = baseClasses.concat();
+            }
+        }
+
+        if (!_.isEmpty(baseEntity.info.features)) {
+            let baseFeatures = _.cloneDeep(baseEntity.info.features);          
+            
+            if (this.info.features) {
+                overrideInfo.features = baseFeatures.concat(this.info.features);
+            } else {
+                overrideInfo.features = baseFeatures;
+            }
+        }        
+        
+        if (!_.isEmpty(baseEntity.info.fields)) {
+            let fields = _.cloneDeep(baseEntity.info.fields);
+            overrideInfo.fields = { ...fields, ...this.info.fields };
+        }
+        
+        if (baseEntity.info.key) {
+            overrideInfo.key = baseEntity.info.key;
+        }         
+        
+        if (baseEntity.info.indexes) {
+            let indexes = _.cloneDeep(baseEntity.info.indexes);
+            let uniqueIndexes = indexes.filter(index => index.unique);
+
+            if (this.info.indexes) {
+                this.info.indexes.forEach(index => {
+                    //if unique scope changed
+                    if (index.unique) {
+                        uniqueIndexes.forEach(inheritedIndex => {                            
+                            const fields1 = _.castArray(index.fields);
+                            const fields2 = _.castArray(inheritedIndex.fields);
+
+                            if (_.intersection(fields1, fields2).length === fields2.length) {
+                                //fully included
+                                const pos = indexes.indexOf(inheritedIndex);
+                                if (pos !== -1) {
+                                    indexes.splice(pos, 1);
+                                }                                
+                            }
+                        });
+                    }
+                })
+
+                indexes = indexes.concat(this.info.indexes);
+            }
+
+            overrideInfo.indexes = indexes;
+        }        
+
+        if (baseEntity.info.associations) {
+            let assocs = _.cloneDeep(baseEntity.info.associations);
+
+            assocs = assocs.map(assoc => {
+                if (assoc.destEntity === baseEntity.name) {
+                    return {
+                        ...assoc,
+                        destEntity: this.name
+                    };
+                }
+
+                return assoc;
+            });        
+
+            if (this.info.associations) {
+                assocs = assocs.concat(this.info.associations);
+            }       
+            
+            overrideInfo.associations = assocs;
+        }     
+
+        if (baseEntity.inputs) {
+            overrideInfo.inputs = { ...baseEntity.inputs, ...this.info.inputs };
+        }
+
+        if (!_.isEmpty(overrideInfo)) {                    
+            this.info = { ...this.info, ...overrideInfo };
+        }
+    }
+}
+
+module.exports = Entity;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Tue Jun 04 2024 14:45:44 GMT+1000 (Australian Eastern Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

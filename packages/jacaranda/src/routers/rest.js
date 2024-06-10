@@ -1,4 +1,4 @@
-import { naming, text, hasMethod, batchAsync_ } from '@kitmi/utils';
+import { naming, text, hasMethod, batchAsync_, get as _get, set as _set } from '@kitmi/utils';
 
 /**
  * Simple RESTful router.
@@ -41,7 +41,7 @@ const restRouter = async (app, baseRoute, options) => {
         await app.useMiddlewares_(router, options.$middlewares);
     }
 
-    const controllers = app.registry.controllers?.[resourcesPath] ?? [];
+    const controllers = _get(app.registry.controllers, resourcesPath, []);
 
     await batchAsync_(controllers, async (controller, relPath) => {
         let batchUrl = text.ensureStartsWith(

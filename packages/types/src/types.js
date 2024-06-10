@@ -10,10 +10,10 @@ export class TypeSystem {
     scalarTypes = new Set();
     plugins = {};
     types = {};
-    sanitize = this.callType('sanitize');
-    sanitize_ = this.callType('sanitize_');
-    serialize = this.callType('serialize');
-    validate = this.callType('validate');
+    sanitize = this.callByType('sanitize');
+    sanitize_ = this.callByType('sanitize_');
+    serialize = this.callByType('serialize');
+    validate = this.callByType('validate');
 
     constructor() {
         this._counter = counter++;
@@ -88,7 +88,7 @@ export class TypeSystem {
         });
     }
 
-    callType(method) {
+    callByType(method) {
         return (value, typeInfo, i18n, fieldPath) => {
             if (typeInfo.type == null) {
                 throw new InvalidArgument(`Missing type info: ${JSON.stringify(typeInfo)}`);

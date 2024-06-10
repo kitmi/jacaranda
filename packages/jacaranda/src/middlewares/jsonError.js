@@ -5,6 +5,12 @@
 
 import http from 'node:http';
 
+/**
+ * Wrap the error response into json format and with the apiWrapper service if exists.
+ * @param {*} opt 
+ * @param {*} app 
+ * @returns {Function} Middleware function
+ */
 const jsonError = (opt, app) => {
     const apiWrapper = app.getService(app.settings?.apiWrapperService || 'apiWrapper');
     const handler = apiWrapper && apiWrapper.wrapError;

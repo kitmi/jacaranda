@@ -1,19 +1,14 @@
 const defaultServerOpts = {
     configName: 'server',
     appModulesPath: 'apps',
-    packageManager: 'bun',
-    sourcePath: 'src',
+    packageManager: 'pnpm',
 };
 
 export const defaultRoutableOpts = {
     traceMiddlewares: false,
     logMiddlewareRegistry: false,
     publicPath: 'public',
-    controllersPath: 'actions'
-};
-
-export const defaultWebModuleOpts = {
-    sourcePath: 'src',
+    controllersPath: 'actions',
 };
 
 export default defaultServerOpts;

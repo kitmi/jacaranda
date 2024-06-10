@@ -21,6 +21,7 @@ import isStrongPassword from 'validator/lib/isStrongPassword';
 import isTime from 'validator/lib/isTime';
 import isUpperCase from 'validator/lib/isUppercase';
 import isURL from 'validator/lib/isURL';
+import isUUID from 'validator/lib/isUUID';
 
 import makeValidator from '../makeValidator';
 
@@ -44,10 +45,11 @@ const semanticText = {
     mimeType: makeValidator(isMimeType, 'The value is not a valid MIME type.'),
     mobilePhone: makeValidator(isMobilePhone, 'The value is not a valid mobile phone number.'),
     numeric: makeValidator(isNumeric, 'The value is not a valid numeric string.'),
-    password: makeValidator(isStrongPassword, 'The value is not a strong password.'),
+    strongPassword: makeValidator(isStrongPassword, 'The value is not a strong password.'),
     time: makeValidator(isTime, 'The value is not a valid time string.'),
     uppercase: makeValidator(isUpperCase, 'The value is not an uppercase string.'),
     url: makeValidator(isURL, 'The value is not a valid URL.'),
+    uuid: makeValidator(isUUID, 'The value is not a valid UUID.'),
 };
 
 semanticText['alphanum'] = semanticText['alphanumeric'];

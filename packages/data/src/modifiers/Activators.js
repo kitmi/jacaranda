@@ -1,0 +1,114 @@
+import typeSystem from '@kitmi/validators/allSync';
+import { _ } from '@kitmi/utils';
+import { ApplicationError } from '@kitmi/types';
+
+import { v4 } from "@napi-rs/uuid";
+
+// Activator will only be called when the field value is null
+// Activator signature: (entity, field, context, ...args) => value
+
+const Activators = _.mapValues(typeSystem.handlers.activator, (activator) => (entity, field, context, options) => activator(options, field, context));
+
+Activators.isEqual = (entity, field, context, arg1, arg2) => arg1 === arg2;
+Activators.setValueWhen = (entity, field, context, value, condition) => condition ? value : null;
+Activators.timeByDuration = (entity, field, context, startTime, duration) => startTime.plus(duration);
+Activators.concat = (entity, field, context, sep = '', ...strs) => strs.join(sep);
+Activators.sum = (entity, field, context, ...args) => args.reduce((sum, v) => (sum += v), 0);
+Activators.multiply = (entity, field, context, multiplier, multiplicand) => multiplier * multiplicand;
+Activators.uuid = () => v4();
+Activators.timeOfValueSet = (value) => value != null ? new Date() : null;
+Activators.fetch_ = async (entity, field, context, assoc, options) => {
+    const parts = assoc.split('.');
+
+    const selectedField = parts.pop();
+    const remoteAssoc = parts.join('.');
+    const localAssoc = parts.shift();
+    let interAssoc;
+
+    if (parts.length > 0) {
+        interAssoc = parts.join('.');
+    }
+
+    if (!(localAssoc in context.latest)) {
+        return undefined;
+    }
+
+    const assocValue = context.latest[localAssoc];
+    if (assocValue == null) {
+        throw new ApplicationError(
+            `The value of referenced association "${localAssoc}" of entity "${entity.meta.name}" should not be null.`
+        );
+    }
+
+    const assocMeta = entity.meta.associations[localAssoc];
+    if (!assocMeta) {
+        throw new ApplicationError(
+            `"${localAssoc}" is not an association field of entity "${entity.meta.name}".`
+        );
+    }
+
+    if (assocMeta.list) {
+        throw new ApplicationError(
+            `"${localAssoc}" entity "${entity.meta.name}" is a list-style association which is not supported by the built-in fetch_ Activators.`
+        );
+    }
+
+    // local cache in context, shared by other fields if any
+    let remoteEntity = context.populated && context.populated[remoteAssoc];
+    if (!remoteEntity) {
+        if (options && options.useCache) {
+            remoteEntity = (
+                await entity.db
+                    .entity(assocMeta.entity)
+                    .cached_(
+                        assocMeta.key,
+                        interAssoc ? [interAssoc] : null
+                    )
+            )[assocValue];
+        } else {
+            const findOptions = { $where: { [assocMeta.key]: assocValue } };
+
+            if (interAssoc) {
+                findOptions.$relations = [interAssoc];
+            }
+
+            await entity.ensureTransaction_(context);
+
+            remoteEntity = await entity.db
+                .entity(assocMeta.entity)
+                .findOne_(findOptions);
+        }
+
+        if (!remoteEntity) {
+            throw new ApplicationError(
+                `Unable to find the "${assocMeta.entity}" with [${assocMeta.key}=${assocValue}]. Entity: ${entity.meta.name}`
+            );
+        }
+
+        context.populated || (context.populated = {});
+        context.populated[localAssoc] = remoteEntity;
+
+        let currentAssoc = localAssoc;
+        while (parts.length > 0) {
+            const nextAssoc = parts.shift();
+            // todo: nested accessor
+            remoteEntity = remoteEntity[':' + nextAssoc];
+            if (Array.isArray(remoteEntity)) {
+                throw new Error('Remote entity should not be an array.');
+            }
+
+            currentAssoc = currentAssoc + '.' + nextAssoc;
+            context.populated[currentAssoc] = remoteEntity;
+        }
+    }
+
+    if (!(selectedField in remoteEntity)) {
+        throw new ApplicationError(
+            `"${selectedField}" is not a field of remote association "${remoteAssoc}" of entity "${entity.meta.name}".`
+        );
+    }
+
+    return remoteEntity[selectedField];
+};
+
+export default Activators;

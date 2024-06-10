@@ -55,7 +55,7 @@ async function moduleRouter(app, baseRoute, options) {
         }
 
         await batchAsync_(controllers, async (moduleController) => {
-            let controller = _get(app.registry.controllers, [controllerPath, moduleController]);
+            let controller = _get(app.registry.controllers, `${controllerPath}.${moduleController}`);
 
             if (controller == null) {
                 throw new InvalidConfiguration(

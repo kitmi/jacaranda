@@ -10,7 +10,7 @@ function getHandler(modifier, handlers) {
     if (modifier.startsWith('~')) {
         handlerType = handlers.validator;
         isValidator = true;
-    } else if (modifier.startsWith('|')) {
+    } else if (modifier.startsWith('>')) {
         handlerType = handlers.processor;
     } else if (modifier.startsWith('=')) {
         handlerType = handlers.activator;

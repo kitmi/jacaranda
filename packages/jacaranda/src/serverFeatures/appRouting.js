@@ -55,11 +55,9 @@ export default {
             };            
 
             let appPath;
-            let moduleMeta = server.registry?.apps?.[config.name];
-
-            if (moduleMeta != null) {
-                appPath = moduleMeta.appPath;
-            } else if (config.npmModule) {
+            let moduleMeta; 
+            
+            if (config.npmModule) {
                 moduleMeta = await server.requireModule(config.name); 
                 appPath = moduleMeta.appPath;
             } else {
@@ -75,7 +73,7 @@ export default {
                 );
             }
 
-            let app = new WebModule(server, config.name, baseRoute, appPath, { registry: moduleMeta?.registry, ...options });
+            let app = new WebModule(server, config.name, baseRoute, appPath, { ...moduleMeta?.options, registry: moduleMeta?.registry, ...options });
             app.now = server.now;            
 
             app.once('configLoaded', () => {

@@ -2,7 +2,6 @@ import { _, text } from '@kitmi/utils';
 import ServiceContainer from './ServiceContainer';
 import ModuleBase from './ModuleBase';
 import Routable from './Routable';
-import { defaultWebModuleOpts } from './defaultServerOpts';
 
 /**
  * Web application module class.
@@ -18,7 +17,7 @@ class WebModule extends ModuleBase(Routable(ServiceContainer)) {
      * @param {object} [options] - The app module's extra options defined in its parent's configuration.
      */
     constructor(server, name, route, appPath, options) {
-        super(server, name, appPath, { ...defaultWebModuleOpts, ...options });
+        super(server, name, appPath, options);
 
         this.server = this.host;
         this.router = this.server.engine.createModuleRouter(this);

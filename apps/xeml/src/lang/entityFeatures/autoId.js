@@ -1,6 +1,4 @@
-"use strict";
-
-const { _ } = require('@genx/july');
+const { _ } = require('@kitmi/utils');
 
 const FEATURE_NAME = 'autoId';
 
@@ -35,6 +33,7 @@ function feature(entity, args = []) {
 
         if (options.type) {
             switch (options.type) {
+                case 'bigint':
                 case 'integer':
                     if (options.startFrom) {
                         featureExtra.startFrom = options.startFrom;

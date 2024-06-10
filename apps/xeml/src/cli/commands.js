@@ -1,5 +1,6 @@
 exports.Commands = {   
     'clean': 'Remove auto-generated files.',
+    'list-modifiers': 'List built-in modifiers.',
     'build': 'Generate database scripts and entity models.',
     'migrate': 'Create database structure.',            
     'import': 'Import data set.',

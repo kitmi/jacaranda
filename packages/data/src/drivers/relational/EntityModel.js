@@ -1,13 +1,8 @@
-import { _, eachAsync_ } from '@kitmi/july';
+import { _, eachAsync_, isPlainObject, isEmpty } from '@kitmi/utils';
 import EntityModel from '../../EntityModel';
-import {
-    ApplicationError,
-    ReferencedNotExistError,
-    DuplicateError,
-    ValidationError,
-    InvalidArgument,
-} from '@kitmi/types';
-import { Types } from '@kitmi/validators/allSync';
+import { ApplicationError, ReferencedNotExistError, ValidationError, InvalidArgument } from '@kitmi/types';
+
+import { getValueFromAny } from '../../helpers';
 
 const defaultNestedKeyGetter = (anchor) => ':' + anchor;
 
@@ -19,416 +14,24 @@ class RelationalEntityModel extends EntityModel {
      * [specific] Check if this entity has auto increment feature.
      */
     get hasAutoIncrement() {
-        const autoId = this._meta.features.autoId;
-        return autoId && this._meta.fields[autoId.field].autoIncrementId;
-    }
-
-    /**
-     * [override] Serialize value into database acceptable format.
-     * @param {object} name - Name of the symbol token
-     */
-    _translateSymbolToken(name) {
-        if (name === 'NOW') {
-            return this.db.connector.raw('NOW()');
-        }
-
-        throw new Error('Unsupported symbol token: ' + name);
-    }
-
-    /**
-     * [override]
-     * @param {*} value
-     * @param {*} info
-     */
-    _serializeByTypeInfo(value, info) {
-        if (info.type === 'boolean') {
-            return value ? 1 : 0;
-        }
-
-        if (info.type === 'datetime') {
-            return Types.DATETIME.serialize(value);
-        }
-
-        if (info.type === 'array' && Array.isArray(value)) {
-            if (info.csv) {
-                return Types.ARRAY.toCsv(value);
-            } else {
-                return Types.ARRAY.serialize(value);
-            }
-        }
-
-        if (info.type === 'object') {
-            return Types.OBJECT.serialize(value);
-        }
-
-        return value;
-    }
-
-    async _doReplaceOne_(context) {
-        await this.ensureTransaction_(context);
-
-        const entity = await this.findOne_(
-            { $query: context.options.$query },
-            context.connOptions
-        );
-
-        let ret, options;
-
-        if (entity) {
-            if (context.options.$retrieveExisting) {
-                context.rawOptions.$existing = entity;
-            }
-
-            options = {
-                ...context.options,
-                $query: { [this._meta.keyField]: super.valueOfKey(entity) },
-                $existing: entity,
-            };
-
-            ret = await this.updateOne_(
-                context.raw,
-                options,
-                context.connOptions
-            );
-        } else {
-            options = {
-                ..._.omit(context.options, [
-                    '$retrieveUpdated',
-                    '$skipUniqueCheck',
-                ]),
-                $retrieveCreated: context.options.$retrieveUpdated,
-            };
-
-            ret = await this.create_(context.raw, options, context.connOptions);
-        }
-
-        if (options.$existing) {
-            context.rawOptions.$existing = options.$existing;
-        }
-
-        if (options.$result) {
-            context.rawOptions.$result = options.$result;
-        }
-
-        return ret;
-    }
-
-    _internalBeforeCreate_(context) {
-        return true;
-    }
-
-    _fillResult(context) {
-        if (this.hasAutoIncrement && context.result.affectedRows > 0) {
-            const { insertId } = context.result;
-            if (insertId > 0) {
-                context.latest = {
-                    ...context.latest,
-                    [this._meta.features.autoId.field]: insertId,
-                };
-            } else if (context.result.upsert) {
-                // the key is not correct 
-                delete context.latest[this._meta.features.autoId.field];
-            }
-        } else if (context.result.upsert) {
-            // the key is not used 
-            delete context.latest[this._meta.keyField];
-        }
-
-        context.return = context.latest;
-    }
-
-    /**
-     * Post create processing.
-     * @param {*} context
-     * @property {object} [context.options] - Create options
-     * @property {bool} [options.$retrieveCreated] - Retrieve the newly created record from db.
-     */
-    async _internalAfterCreate_(context) {
-        if (context.options.$retrieveDbResult) {
-            context.rawOptions.$result = context.result;
-        }
-
-        if (context.options.$retrieveCreated) {
-            if (this.hasAutoIncrement) {
-                if (context.result.affectedRows === 0) {
-                    // insert ignored
-                    context.queryKey = this.getUniqueKeyValuePairsFrom(
-                        context.latest
-                    );
-
-                    if (_.isEmpty(context.queryKey)) {
-                        throw new ApplicationError(
-                            'Cannot extract unique keys from input data.',
-                            {
-                                entity: this._meta.name,
-                            }
-                        );
-                    }
-                } else {
-                    const { insertId } = context.result;
-                    context.queryKey = {
-                        [this._meta.features.autoId.field]: insertId,
-                    };
-                }
-            } else {
-                context.queryKey = this.getUniqueKeyValuePairsFrom(
-                    context.latest
-                );
-
-                if (_.isEmpty(context.queryKey)) {
-                    throw new ApplicationError(
-                        'Cannot extract unique keys from input data.',
-                        {
-                            entity: this._meta.name,
-                        }
-                    );
-                }
-            }
-
-            const retrieveOptions = _.isPlainObject(
-                context.options.$retrieveCreated
-            )
-                ? context.options.$retrieveCreated
-                : {};
-            context.return = await this.findOne_(
-                { ...retrieveOptions, $query: context.queryKey },
-                context.connOptions
-            );
-        } else {
-            if (this.hasAutoIncrement) {
-                if (context.result.affectedRows === 0) {
-                    context.queryKey = this.getUniqueKeyValuePairsFrom(
-                        context.latest
-                    );
-                } else {
-                    const { insertId } = context.result;
-                    context.queryKey = {
-                        [this._meta.features.autoId.field]: insertId,
-                    };
-                }
-            }
-        }
-    }
-
-    static _internalBeforeUpdate_(context) {
-        return true;
-    }
-
-    static _internalBeforeUpdateMany_(context) {
-        return true;
-    }
-
-    /**
-     * Post update processing.
-     * @param {*} context
-     * @property {object} [context.options] - Update options
-     * @property {bool} [context.options.$retrieveUpdated] - Retrieve the newly updated record from db.
-     */
-    static async _internalAfterUpdate_(context) {
-        const options = context.options;
-
-        if (options.$retrieveDbResult) {
-            context.rawOptions.$result = context.result || {
-                affectedRows: 0,
-                changedRows: 0,
-            };
-        }
-
-        let retrieveUpdated = options.$retrieveUpdated;
-
-        if (!retrieveUpdated) {
-            if (
-                options.$retrieveActualUpdated &&
-                context.result.affectedRows > 0
-            ) {
-                retrieveUpdated = options.$retrieveActualUpdated;
-            } else if (
-                options.$retrieveNotUpdate &&
-                context.result.affectedRows === 0
-            ) {
-                retrieveUpdated = options.$retrieveNotUpdate;
-            }
-        }
-
-        if (retrieveUpdated) {
-            const condition = {
-                $query: this.getUniqueKeyValuePairsFrom(options.$query),
-            };
-            if (options.$skipUniqueCheck) {
-                condition.$skipUniqueCheck = options.$skipUniqueCheck;
-            }
-
-            let retrieveOptions = {};
-
-            if (_.isPlainObject(retrieveUpdated)) {
-                retrieveOptions = retrieveUpdated;
-            } else if (options.$relationships) {
-                retrieveOptions.$relationships = options.$relationships;
-            }
-
-            context.return = await this.findOne_(
-                {
-                    ...condition,
-                    $includeDeleted: options.$retrieveDeleted,
-                    ...retrieveOptions,
-                },
-                context.connOptions
-            );
-
-            if (context.return) {
-                context.queryKey = this.getUniqueKeyValuePairsFrom(
-                    context.return
-                );
-            } else {
-                context.queryKey = condition.$query;
-            }
-        }
-    }
-
-    /**
-     * Post update processing.
-     * @param {*} context
-     * @param {object} [options] - Update options
-     * @property {bool} [options.$retrieveUpdated] - Retrieve the newly updated record from db.
-     */
-    static async _internalAfterUpdateMany_(context) {
-        const options = context.options;
-
-        if (options.$retrieveDbResult) {
-            context.rawOptions.$result = context.result || {
-                affectedRows: 0,
-                changedRows: 0,
-            };
-
-            /**
-             * afterUpdateMany ResultSetHeader {
-             * fieldCount: 0,
-             * affectedRows: 1,
-             * insertId: 0,
-             * info: 'Rows matched: 1  Changed: 1  Warnings: 0',
-             * serverStatus: 3,
-             * warningStatus: 0,
-             * changedRows: 1 }
-             */
-        }
-
-        if (options.$retrieveUpdated) {
-            let retrieveOptions = {};
-
-            if (_.isPlainObject(options.$retrieveUpdated)) {
-                retrieveOptions = options.$retrieveUpdated;
-            } else if (options.$relationships) {
-                retrieveOptions.$relationships = options.$relationships;
-            }
-
-            context.return = await this.findAll_(
-                {
-                    $query: options.$query,
-                    $includeDeleted: options.$retrieveDeleted,
-                    ...retrieveOptions,
-                },
-                context.connOptions
-            );
-        }
-
-        context.queryKey = options.$query;
-    }
-
-    /**
-     * Before deleting an entity.
-     * @param {*} context
-     * @property {object} [context.options] - Delete options
-     * @property {bool} [context.options.$retrieveDeleted] - Retrieve the recently deleted record from db.
-     */
-    static async _internalBeforeDelete_(context) {
-        if (context.options.$retrieveDeleted) {
-            await this.ensureTransaction_(context);
-
-            const retrieveOptions = _.isPlainObject(
-                context.options.$retrieveDeleted
-            )
-                ? {
-                      ...context.options.$retrieveDeleted,
-                      $query: context.options.$query,
-                  }
-                : { $query: context.options.$query };
-
-            if (context.options.$physicalDeletion) {
-                retrieveOptions.$includeDeleted = true;
-            }
-
-            context.return = context.existing = await this.findOne_(
-                retrieveOptions,
-                context.connOptions
-            );
-        }
-
-        return true;
-    }
-
-    static async _internalBeforeDeleteMany_(context) {
-        if (context.options.$retrieveDeleted) {
-            await this.ensureTransaction_(context);
-
-            const retrieveOptions = _.isPlainObject(
-                context.options.$retrieveDeleted
-            )
-                ? {
-                      ...context.options.$retrieveDeleted,
-                      $query: context.options.$query,
-                  }
-                : { $query: context.options.$query };
-
-            if (context.options.$physicalDeletion) {
-                retrieveOptions.$includeDeleted = true;
-            }
-
-            context.return = context.existing = await this.findAll_(
-                retrieveOptions,
-                context.connOptions
-            );
-        }
-
-        return true;
-    }
-
-    /**
-     * Post delete processing.
-     * @param {*} context
-     */
-    static _internalAfterDelete_(context) {
-        if (context.options.$retrieveDbResult) {
-            context.rawOptions.$result = context.result;
-        }
-    }
-
-    /**
-     * Post delete processing.
-     * @param {*} context
-     */
-    static _internalAfterDeleteMany_(context) {
-        if (context.options.$retrieveDbResult) {
-            context.rawOptions.$result = context.result;
-        }
+        const autoId = this.meta.features.autoId;
+        return autoId && this.meta.fields[autoId.field].autoIncrementId;
     }
 
     /**
      *
      * @param {*} findOptions
      */
-    static _prepareAssociations(findOptions) {
-        const [normalAssocs, customAssocs] = _.partition(
-            findOptions.$association,
-            (assoc) => typeof assoc === 'string'
-        );
+    _prepareAssociations(findOptions) {
+        const [normalAssocs, customAssocs] = _.partition(findOptions.$relation, (assoc) => typeof assoc === 'string');
 
         const associations = _.uniq(normalAssocs).sort().concat(customAssocs);
         const assocTable = {};
-            let counter = 0;
-            const cache = {};
+        let counter = 0;
+        const cache = {};
 
         associations.forEach((assoc) => {
-            if (_.isPlainObject(assoc)) {
+            if (isPlainObject(assoc)) {
                 assoc = this._translateSchemaNameToDb(assoc);
 
                 let alias = assoc.alias;
@@ -467,7 +70,7 @@ class RelationalEntityModel extends EntityModel {
      * @param {*} cache - Dotted path as key
      * @param {*} assoc - Dotted path
      */
-    static _loadAssocIntoTable(assocTable, cache, assoc) {
+    _loadAssocIntoTable(assocTable, cache, assoc) {
         if (cache[assoc]) return cache[assoc];
 
         const lastPos = assoc.lastIndexOf('.');
@@ -475,17 +78,12 @@ class RelationalEntityModel extends EntityModel {
 
         if (lastPos === -1) {
             // direct association
-            const assocInfo = { ...this._meta.associations[assoc] };
-            if (_.isEmpty(assocInfo)) {
-                throw new InvalidArgument(
-                    `Entity "${this._meta.name}" does not have the association "${assoc}".`
-                );
+            const assocInfo = { ...this.meta.associations[assoc] };
+            if (isEmpty(assocInfo)) {
+                throw new InvalidArgument(`Entity "${this.meta.name}" does not have the association "${assoc}".`);
             }
 
-            result =
-                cache[assoc] =
-                assocTable[assoc] =
-                    { ...this._translateSchemaNameToDb(assocInfo) };
+            result = cache[assoc] = assocTable[assoc] = { ...this._translateSchemaNameToDb(assocInfo) };
         } else {
             const base = assoc.substr(0, lastPos);
             const last = assoc.substr(lastPos + 1);
@@ -495,12 +93,10 @@ class RelationalEntityModel extends EntityModel {
                 baseNode = this._loadAssocIntoTable(assocTable, cache, base);
             }
 
-            const entity = baseNode.model || this.db.model(baseNode.entity);
+            const entity = baseNode.model || this.db.entity(baseNode.entity);
             const assocInfo = { ...entity.meta.associations[last] };
-            if (_.isEmpty(assocInfo)) {
-                throw new InvalidArgument(
-                    `Entity "${entity.meta.name}" does not have the association "${assoc}".`
-                );
+            if (isEmpty(assocInfo)) {
+                throw new InvalidArgument(`Entity "${entity.meta.name}" does not have the association "${assoc}".`);
             }
 
             result = { ...entity._translateSchemaNameToDb(assocInfo, this.db) };
@@ -513,17 +109,13 @@ class RelationalEntityModel extends EntityModel {
         }
 
         if (result.assoc) {
-            this._loadAssocIntoTable(
-                assocTable,
-                cache,
-                assoc + '.' + result.assoc
-            );
+            this._loadAssocIntoTable(assocTable, cache, assoc + '.' + result.assoc);
         }
 
         return result;
     }
 
-    static _translateSchemaNameToDb(assoc, currentDb) {
+    _translateSchemaNameToDb(assoc, currentDb) {
         if (!assoc.entity) {
             throw new ApplicationError('"entity" is required in the association object.');
         }
@@ -541,15 +133,13 @@ class RelationalEntityModel extends EntityModel {
             }
 
             assoc.entity = refDb.connector.database + '.' + entityName;
-            assoc.model = refDb.model(entityName);
+            assoc.model = refDb.entity(entityName);
 
             if (!assoc.model) {
-                throw new ApplicationError(
-                    `Failed load the entity model "${schemaName}.${entityName}".`
-                );
+                throw new ApplicationError(`Failed load the entity model "${schemaName}.${entityName}".`);
             }
         } else {
-            assoc.model = this.db.model(assoc.entity);
+            assoc.model = this.db.entity(assoc.entity);
 
             if (currentDb && currentDb !== this.db) {
                 assoc.entity = this.db.connector.database + '.' + assoc.entity;
@@ -563,15 +153,9 @@ class RelationalEntityModel extends EntityModel {
         return assoc;
     }
 
-    static _mapRecordsToObjects(
-        [rows, columns, aliasMap],
-        hierarchy,
-        nestedKeyGetter
-    ) {
+    _mapRecordsToObjects([rows, columns, aliasMap], hierarchy, nestedKeyGetter) {
         nestedKeyGetter == null && (nestedKeyGetter = defaultNestedKeyGetter);
-        aliasMap = _.mapValues(aliasMap, (chain) =>
-            chain.map((anchor) => nestedKeyGetter(anchor))
-        );
+        aliasMap = _.mapValues(aliasMap, (chain) => chain.map((anchor) => nestedKeyGetter(anchor)));
 
         const mainIndex = {};
         const self = this;
@@ -601,92 +185,77 @@ class RelationalEntityModel extends EntityModel {
 
         // map flat record into hierachy
         function mergeRecord(existingRow, rowObject, associations, nodePath) {
-            return _.each(
-                associations,
-                ({ sql, key, list, subAssocs }, anchor) => {
-                    if (sql) return;
+            return _.each(associations, ({ sql, key, list, subAssocs }, anchor) => {
+                if (sql) return;
 
-                    const currentPath = nodePath.concat();
-                    currentPath.push(anchor);
+                const currentPath = nodePath.concat();
+                currentPath.push(anchor);
 
-                    const objKey = nestedKeyGetter(anchor);
-                    const subObj = rowObject[objKey];
+                const objKey = nestedKeyGetter(anchor);
+                const subObj = rowObject[objKey];
 
-                    if (!subObj) {
-                        // associated entity not in result set, probably when custom projection is used
-                        return;
-                    }
+                if (!subObj) {
+                    // associated entity not in result set, probably when custom projection is used
+                    return;
+                }
 
-                    const subIndexes = existingRow.subIndexes[objKey];
+                const subIndexes = existingRow.subIndexes[objKey];
 
-                    // joined an empty record
-                    const rowKeyValue = subObj[key];
-                    if (_.isNil(rowKeyValue)) {
-                        if (list && rowKeyValue == null) {
-                            if (existingRow.rowObject[objKey]) {
-                                existingRow.rowObject[objKey].push(subObj);
-                            } else {
-                                existingRow.rowObject[objKey] = [subObj];
-                            }
-                        }
-
-                        return;
-                    }
-
-                    const existingSubRow = subIndexes && subIndexes[rowKeyValue];
-                    if (existingSubRow) {
-                        if (subAssocs) {
-                            return mergeRecord(
-                                existingSubRow,
-                                subObj,
-                                subAssocs,
-                                currentPath
-                            );
-                        }
-                    } else {
-                        if (!list) {
-                            throw new ApplicationError(
-                                `The structure of association "${currentPath.join(
-                                    '.'
-                                )}" with [key=${key}] of entity "${
-                                    self.meta.name
-                                }" should be a list.`,
-                                { existingRow, rowObject }
-                            );
-                        }
-
+                // joined an empty record
+                const rowKeyValue = subObj[key];
+                if (rowKeyValue == null) {
+                    if (list) {
                         if (existingRow.rowObject[objKey]) {
                             existingRow.rowObject[objKey].push(subObj);
                         } else {
                             existingRow.rowObject[objKey] = [subObj];
                         }
-
-                        const subIndex = {
-                            rowObject: subObj,
-                        };
-
-                        if (subAssocs) {
-                            subIndex.subIndexes = buildSubIndexes(
-                                subObj,
-                                subAssocs
-                            );
-                        }
-
-                        if (!subIndexes) {
-                            throw new ApplicationError(
-                                `The subIndexes of association "${currentPath.join(
-                                    '.'
-                                )}" with [key=${key}] of entity "${
-                                    self.meta.name
-                                }" does not exist.`,
-                                { existingRow, rowObject }
-                            );
-                        }
-
-                        subIndexes[rowKeyValue] = subIndex;
                     }
+
+                    return;
                 }
-            );
+
+                const existingSubRow = subIndexes && subIndexes[rowKeyValue];
+                if (existingSubRow) {
+                    if (subAssocs) {
+                        return mergeRecord(existingSubRow, subObj, subAssocs, currentPath);
+                    }
+                } else {
+                    if (!list) {
+                        throw new ApplicationError(
+                            `The structure of association "${currentPath.join('.')}" with [key=${key}] of entity "${
+                                self.meta.name
+                            }" should be a list.`,
+                            { existingRow, rowObject }
+                        );
+                    }
+
+                    if (existingRow.rowObject[objKey]) {
+                        existingRow.rowObject[objKey].push(subObj);
+                    } else {
+                        existingRow.rowObject[objKey] = [subObj];
+                    }
+
+                    const subIndex = {
+                        rowObject: subObj,
+                    };
+
+                    if (subAssocs) {
+                        subIndex.subIndexes = buildSubIndexes(subObj, subAssocs);
+                    }
+
+                    if (!subIndexes) {
+                        throw new ApplicationError(
+                            `The subIndexes of association "${currentPath.join('.')}" with [key=${key}] of entity "${
+                                self.meta.name
+                            }" does not exist.`,
+                            { existingRow, rowObject }
+                        );
+                    }
+
+                    subIndexes[rowKeyValue] = subIndex;
+                }
+            });
         }
 
         // build sub index for list member
@@ -714,7 +283,7 @@ class RelationalEntityModel extends EntityModel {
                     rowObject[objKey] = [subObject];
 
                     // many to *
-                    if (_.isNil(subObject[key])) {
+                    if (subObject[key] == null) {
                         // when custom projection is used
                         subObject = null;
                     }
@@ -722,10 +291,7 @@ class RelationalEntityModel extends EntityModel {
 
                 if (subObject) {
                     if (subAssocs) {
-                        subIndex.subIndexes = buildSubIndexes(
-                            subObject,
-                            subAssocs
-                        );
+                        subIndex.subIndexes = buildSubIndexes(subObject, subAssocs);
                     }
 
                     indexes[objKey] = subObject[key]
@@ -809,11 +375,11 @@ class RelationalEntityModel extends EntityModel {
      * @param {*} isNew - New record flag, true for creating, false for updating
      * @returns {Array} [raw, assocs, refs];
      */
-    static _extractAssociations(data, isNew) {
+    _extractAssociations(data, isNew) {
         const raw = {};
-            const assocs = {};
-            const refs = {};
-        const meta = this._meta.associations;
+        const assocs = {};
+        const refs = {};
+        const meta = this.meta.associations;
 
         _.forOwn(data, (v, k) => {
             if (k[0] === ':') {
@@ -821,19 +387,12 @@ class RelationalEntityModel extends EntityModel {
                 const anchor = k.substr(1);
                 const assocMeta = meta[anchor];
                 if (!assocMeta) {
-                    throw new ValidationError(
-                        `Unknown association "${anchor}" of entity "${this._meta.name}".`
-                    );
+                    throw new ValidationError(`Unknown association "${anchor}" of entity "${this.meta.name}".`);
                 }
 
-                if (
-                    isNew &&
-                    (assocMeta.type === 'refersTo' ||
-                        assocMeta.type === 'belongsTo') &&
-                    anchor in data
-                ) {
+                if (isNew && (assocMeta.type === 'refersTo' || assocMeta.type === 'belongsTo') && anchor in data) {
                     throw new ValidationError(
-                        `Association data ":${anchor}" of entity "${this._meta.name}" conflicts with input value of field "${anchor}".`
+                        `Association data ":${anchor}" of entity "${this.meta.name}" conflicts with input value of field "${anchor}".`
                     );
                 }
 
@@ -843,19 +402,14 @@ class RelationalEntityModel extends EntityModel {
                 const anchor = k.substr(1);
                 const assocMeta = meta[anchor];
                 if (!assocMeta) {
-                    throw new ValidationError(
-                        `Unknown association "${anchor}" of entity "${this._meta.name}".`
-                    );
+                    throw new ValidationError(`Unknown association "${anchor}" of entity "${this.meta.name}".`);
                 }
 
-                if (
-                    assocMeta.type !== 'refersTo' &&
-                    assocMeta.type !== 'belongsTo'
-                ) {
+                if (assocMeta.type !== 'refersTo' && assocMeta.type !== 'belongsTo') {
                     throw new ValidationError(
                         `Association type "${assocMeta.type}" cannot be used for update by reference.`,
                         {
-                            entity: this._meta.name,
+                            entity: this.meta.name,
                             data,
                         }
                     );
@@ -863,14 +417,14 @@ class RelationalEntityModel extends EntityModel {
 
                 if (isNew && anchor in data) {
                     throw new ValidationError(
-                        `Association reference "@${anchor}" of entity "${this._meta.name}" conflicts with input value of field "${anchor}".`
+                        `Association reference "@${anchor}" of entity "${this.meta.name}" conflicts with input value of field "${anchor}".`
                     );
                 }
 
                 const assocAnchor = ':' + anchor;
                 if (assocAnchor in data) {
                     throw new ValidationError(
-                        `Association reference "@${anchor}" of entity "${this._meta.name}" conflicts with association data "${assocAnchor}".`
+                        `Association reference "@${anchor}" of entity "${this.meta.name}" conflicts with association data "${assocAnchor}".`
                     );
                 }
 
@@ -887,23 +441,18 @@ class RelationalEntityModel extends EntityModel {
         return [raw, assocs, refs];
     }
 
-    static async _populateReferences_(context, references) {
-        const meta = this._meta.associations;
+    async _populateReferences_(context, references) {
+        const meta = this.meta.associations;
 
         await eachAsync_(references, async (refQuery, anchor) => {
             const assocMeta = meta[anchor];
-            const ReferencedEntity = this.db.model(assocMeta.entity);
+            const ReferencedEntity = this.db.entity(assocMeta.entity);
 
-            const created = await ReferencedEntity.findOne_(
-                refQuery,
-                context.connOptions
-            );
+            const { result: created } = await ReferencedEntity.findOne_({ ...refQuery, $select: [assocMeta.field] });
 
-            if (!created) {
+            if (created == null) {
                 throw new ReferencedNotExistError(
-                    `Referenced entity "${
-                        ReferencedEntity.meta.name
-                    }" with ${JSON.stringify(refQuery)} not exist.`
+                    `Referenced entity "${ReferencedEntity.meta.name}" with ${JSON.stringify(refQuery)} not exist.`
                 );
             }
 
@@ -911,24 +460,19 @@ class RelationalEntityModel extends EntityModel {
         });
     }
 
-    static async _createAssocs_(context, assocs, beforeEntityCreate) {
-        const meta = this._meta.associations;
+    async _createAssocs_(context, assocs, beforeEntityCreate) {
+        const meta = this.meta.associations;
         let keyValue;
 
         if (!beforeEntityCreate) {
-            keyValue = context.return[this._meta.keyField];
+            keyValue = context.result.data[this.meta.keyField];
 
-            if (_.isNil(keyValue)) {
+            if (keyValue == null) {
                 if (context.result.affectedRows === 0) {
                     // insert ignored
 
-                    const query = this.getUniqueKeyValuePairsFrom(
-                        context.return
-                    );
-                    context.return = await this.findOne_(
-                        { $query: query },
-                        context.connOptions
-                    );
+                    const query = this.getUniqueKeyValuePairsFrom(context.result.data);
+                    context.return = await this.findOne_({ $query: query }, context.connOptions);
                     if (!context.return) {
                         throw new ApplicationError(
                             'The parent entity is duplicated on unique keys different from the pair of keys used to query',
@@ -941,17 +485,13 @@ class RelationalEntityModel extends EntityModel {
                     }
                 }
 
-                keyValue = context.return[this._meta.keyField];
+                keyValue = context.result.data[this.meta.keyField];
 
-                if (_.isNil(keyValue)) {
-                    throw new ApplicationError(
-                        'Missing required primary key field value. Entity: ' +
-                            this._meta.name,
-                        {
-                            data: context.return,
-                            associations: assocs,
-                        }
-                    );
+                if (keyValue == null) {
+                    throw new ApplicationError('Missing required primary key field value. Entity: ' + this.meta.name, {
+                        data: context.return,
+                        associations: assocs,
+                    });
                 }
             }
         }
@@ -965,43 +505,35 @@ class RelationalEntityModel extends EntityModel {
             '$migration',
             '$variables',
             '$upsert',
-            '$dryRun'
+            '$dryRun',
         ]);
 
         await eachAsync_(assocs, async (data, anchor) => {
             const assocMeta = meta[anchor];
 
-            if (
-                beforeEntityCreate &&
-                assocMeta.type !== 'refersTo' &&
-                assocMeta.type !== 'belongsTo'
-            ) {
+            if (beforeEntityCreate && assocMeta.type !== 'refersTo' && assocMeta.type !== 'belongsTo') {
                 pendingAssocs[anchor] = data;
                 return;
             }
 
-            const assocModel = this.db.model(assocMeta.entity);
+            const assocModel = this.db.entity(assocMeta.entity);
 
             if (assocMeta.list) {
                 data = _.castArray(data);
 
                 if (!assocMeta.field) {
                     throw new ApplicationError(
-                        `Missing "field" property in the metadata of association "${anchor}" of entity "${this._meta.name}".`
+                        `Missing "field" property in the metadata of association "${anchor}" of entity "${this.meta.name}".`
                     );
                 }
 
                 return eachAsync_(data, (item) =>
-                    assocModel.create_(
-                        { ...item, [assocMeta.field]: keyValue },
-                        passOnOptions,
-                        context.connOptions
-                    )
+                    assocModel.create_({ ...item, [assocMeta.field]: keyValue }, passOnOptions, context.connOptions)
                 );
-            } else if (!_.isPlainObject(data)) {
+            } else if (!isPlainObject(data)) {
                 if (Array.isArray(data)) {
                     throw new ApplicationError(
-                        `Invalid type of associated entity (${assocMeta.entity}) data triggered from "${this._meta.name}" entity. Singular value expected (${anchor}), but an array is given instead.`
+                        `Invalid type of associated entity (${assocMeta.entity}) data triggered from "${this.meta.name}" entity. Singular value expected (${anchor}), but an array is given instead.`
                     );
                 }
 
@@ -1019,26 +551,18 @@ class RelationalEntityModel extends EntityModel {
                 data = { ...data, [assocMeta.field]: keyValue };
             }
 
-            passOnOptions.$retrieveDbResult = true;
-            let created = await assocModel.create_(
-                data,
-                passOnOptions,
-                context.connOptions
-            );
+            passOnOptions.$fullResult = true;
+            let created = await assocModel.create_(data, passOnOptions, context.connOptions);
 
             if (
                 passOnOptions.$result.affectedRows === 0 ||
-                (assocModel.hasAutoIncrement &&
-                    passOnOptions.$result.insertId === 0)
+                (assocModel.hasAutoIncrement && passOnOptions.$result.insertId === 0)
             ) {
                 // insert ignored or upserted
 
                 const assocQuery = assocModel.getUniqueKeyValuePairsFrom(data);
 
-                created = await assocModel.findOne_(
-                    { $query: assocQuery },
-                    context.connOptions
-                );
+                created = await assocModel.findOne_({ $query: assocQuery }, context.connOptions);
                 if (!created) {
                     throw new ApplicationError(
                         'The assoicated entity is duplicated on unique keys different from the pair of keys used to query',
@@ -1050,9 +574,7 @@ class RelationalEntityModel extends EntityModel {
                 }
             }
 
-            finished[anchor] = beforeEntityCreate
-                ? created[assocMeta.field]
-                : created[assocMeta.key];
+            finished[anchor] = beforeEntityCreate ? created[assocMeta.field] : created[assocMeta.key];
         });
 
         if (beforeEntityCreate) {
@@ -1064,60 +586,40 @@ class RelationalEntityModel extends EntityModel {
         return pendingAssocs;
     }
 
-    static async _updateAssocs_(
-        context,
-        assocs,
-        beforeEntityUpdate,
-        forSingleRecord
-    ) {
-        const meta = this._meta.associations;
+    async _updateAssocs_(context, assocs, beforeEntityUpdate, forSingleRecord) {
+        const meta = this.meta.associations;
 
         let currentKeyValue;
 
         if (!beforeEntityUpdate) {
-            currentKeyValue = getValueFrom(
-                [context.options.$query, context.return],
-                this._meta.keyField
-            );
-            if (_.isNil(currentKeyValue)) {
+            currentKeyValue = getValueFromAny([context.options.$query, context.return], this.meta.keyField);
+            if (currentKeyValue == null) {
                 // should have in updating
-                throw new ApplicationError(
-                    'Missing required primary key field value. Entity: ' +
-                        this._meta.name
-                );
+                throw new ApplicationError('Missing required primary key field value. Entity: ' + this.meta.name);
             }
         }
 
         const pendingAssocs = {};
 
         // todo: double check to ensure including all required options
-        const passOnOptions = _.pick(context.options, [
-            '$skipModifiers',
-            '$migration',
-            '$variables',
-            '$upsert',
-        ]);
+        const passOnOptions = _.pick(context.options, ['$skipModifiers', '$migration', '$variables', '$upsert']);
 
         await eachAsync_(assocs, async (data, anchor) => {
             const assocMeta = meta[anchor];
 
-            if (
-                beforeEntityUpdate &&
-                assocMeta.type !== 'refersTo' &&
-                assocMeta.type !== 'belongsTo'
-            ) {
+            if (beforeEntityUpdate && assocMeta.type !== 'refersTo' && assocMeta.type !== 'belongsTo') {
                 pendingAssocs[anchor] = data;
                 return;
             }
 
-            const assocModel = this.db.model(assocMeta.entity);
+            const assocModel = this.db.entity(assocMeta.entity);
 
             if (assocMeta.list) {
                 data = _.castArray(data);
 
                 if (!assocMeta.field) {
                     throw new ApplicationError(
-                        `Missing "field" property in the metadata of association "${anchor}" of entity "${this._meta.name}".`
+                        `Missing "field" property in the metadata of association "${anchor}" of entity "${this.meta.name}".`
                     );
                 }
 
@@ -1133,10 +635,7 @@ class RelationalEntityModel extends EntityModel {
                     assocRecordsToRemove[assocMeta.key] = { $notIn: assocKeys };
                 }
 
-                await assocModel.deleteMany_(
-                    assocRecordsToRemove,
-                    context.connOptions
-                );
+                await assocModel.deleteMany_(assocRecordsToRemove, context.connOptions);
 
                 return eachAsync_(data, (item) =>
                     item[assocMeta.key] != null
@@ -1159,10 +658,10 @@ class RelationalEntityModel extends EntityModel {
                               context.connOptions
                           )
                 );
-            } else if (!_.isPlainObject(data)) {
+            } else if (!isPlainObject(data)) {
                 if (Array.isArray(data)) {
                     throw new ApplicationError(
-                        `Invalid type of associated entity (${assocMeta.entity}) data triggered from "${this._meta.name}" entity. Singular value expected (${anchor}), but an array is given instead.`
+                        `Invalid type of associated entity (${assocMeta.entity}) data triggered from "${this.meta.name}" entity. Singular value expected (${anchor}), but an array is given instead.`
                     );
                 }
 
@@ -1177,27 +676,18 @@ class RelationalEntityModel extends EntityModel {
             }
 
             if (beforeEntityUpdate) {
-                if (_.isEmpty(data)) return;
+                if (isEmpty(data)) return;
 
                 // refersTo or belongsTo
-                let destEntityId = getValueFrom(
-                    [context.existing, context.options.$query, context.raw],
-                    anchor
-                );
+                let destEntityId = getValueFromAny([context.existing, context.options.$query, context.raw], anchor);
 
                 if (destEntityId == null) {
-                    if (_.isEmpty(context.existing)) {
-                        context.existing = await this.findOne_(
-                            context.options.$query,
-                            context.connOptions
-                        );
+                    if (isEmpty(context.existing)) {
+                        context.existing = await this.findOne_(context.options.$query, context.connOptions);
                         if (!context.existing) {
-                            throw new ValidationError(
-                                `Specified "${this._meta.name}" not found.`,
-                                {
-                                    query: context.options.$query,
-                                }
-                            );
+                            throw new ValidationError(`Specified "${this.meta.name}" not found.`, {
+                                query: context.options.$query,
+                            });
                         }
                         destEntityId = context.existing[anchor];
                     }
@@ -1218,22 +708,14 @@ class RelationalEntityModel extends EntityModel {
 
                         // to create the associated, existing is null
 
-                        passOnOptions.$retrieveDbResult = true;
-                        let created = await assocModel.create_(
-                            data,
-                            passOnOptions,
-                            context.connOptions
-                        );
+                        passOnOptions.$fullResult = true;
+                        let created = await assocModel.create_(data, passOnOptions, context.connOptions);
 
                         if (passOnOptions.$result.affectedRows === 0) {
                             // insert ignored
 
-                            const assocQuery =
-                                assocModel.getUniqueKeyValuePairsFrom(data);
-                            created = await assocModel.findOne_(
-                                { $query: assocQuery },
-                                context.connOptions
-                            );
+                            const assocQuery = assocModel.getUniqueKeyValuePairsFrom(data);
+                            created = await assocModel.findOne_({ $query: assocQuery }, context.connOptions);
                             if (!created) {
                                 throw new ApplicationError(
                                     'The assoicated entity is duplicated on unique keys different from the pair of keys used to query',
@@ -1262,10 +744,7 @@ class RelationalEntityModel extends EntityModel {
                 return;
             }
 
-            await assocModel.deleteMany_(
-                { [assocMeta.field]: currentKeyValue },
-                context.connOptions
-            );
+            await assocModel.deleteMany_({ [assocMeta.field]: currentKeyValue }, context.connOptions);
 
             if (forSingleRecord) {
                 return assocModel.create_(
@@ -1275,9 +754,7 @@ class RelationalEntityModel extends EntityModel {
                 );
             }
 
-            throw new Error(
-                'update associated data for multiple records not implemented'
-            );
+            throw new Error('update associated data for multiple records not implemented');
 
             // return assocModel.replaceOne_({ ...data, ...(assocMeta.field ? { [assocMeta.field]: keyValue } : {}) }, null, context.connOptions);
         });

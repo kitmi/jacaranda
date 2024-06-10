@@ -1,6 +1,4 @@
-"use strict";
-
-const { _ } = require('@genx/july');
+const { _ } = require('@kitmi/utils');
 const pluralize = require('pluralize');
 
 class Clonable {

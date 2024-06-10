@@ -21,11 +21,11 @@ class T_TEXT {
         const isString = type === 'string';
 
         if (isString) {
-            if (meta.trim) {
+            if (!meta.noTrim) {
                 value = value.trim();
             }
 
-            if (value === '' && meta.nonEmpty) {
+            if (value === '' && meta.emptyAsNull) {
                 value = null;
                 if (!meta.optional) {
                     throw new ValidationError('Missing a required value.', {

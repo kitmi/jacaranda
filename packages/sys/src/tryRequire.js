@@ -1,36 +1,8 @@
-import { createRequire } from 'node:module';
+import requireFrom from './requireFrom';
 import path from 'node:path';
 
-function tryRequireBy(packageName, mainModule, throwWhenNotFound) {
-    try {
-        const require2 = createRequire(
-            mainModule.endsWith('/') || mainModule.endsWith('\\') ? mainModule : mainModule + path.sep
-        );
-
-        return require2(packageName);
-    } catch (error) {
-        if (error.code === 'MODULE_NOT_FOUND') {
-            if (throwWhenNotFound) {
-                let pkgPaths = packageName.split('/');
-                let npmPkgName = pkgPaths[0];
-
-                if (npmPkgName.startsWith('.')) {
-                    //path
-                    throw error;
-                }
-
-                throw error;
-            }
-
-            return undefined;
-        }
-
-        throw error;
-    }
-}
-
 /**
- * Try require a package module and show install tips if not found.
+ * Try require a package module directly or fallback to normal require logic with the starting point of current working folder.
  * @alias helpers.tryRequire
  * @param {String} packageName
  * @param {String} [basePath] - Base path to find the module
@@ -43,7 +15,7 @@ function tryRequire(packageName, basePath) {
         packageName = path.resolve(basePath ?? '', packageName);
     }
 
-    if (packageName.startsWith('@') || path.isAbsolute(packageName)) {
+    if (packageName.startsWith('@') || !isRelative) {
         try {
             return require(packageName);
         } catch (error) {
@@ -55,7 +27,7 @@ function tryRequire(packageName, basePath) {
 
     basePath != null || (basePath = process.cwd());
 
-    return tryRequireBy(packageName, basePath, true);
+    return requireFrom(packageName, basePath);
 }
 
 export default tryRequire;

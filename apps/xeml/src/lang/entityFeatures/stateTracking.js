@@ -1,6 +1,4 @@
-"use strict";
-
-const { naming } = require('@genx/july');
+const { naming } = require('@kitmi/utils');
 
 const FEATURE_NAME = 'stateTracking';
 
@@ -54,13 +52,13 @@ function feature(entity, args = []) {
 
         let fieldInfo = entity.fields[options.field];
 
-        if (fieldInfo.type !== 'enum') {
+        if (!('enum' in fieldInfo)) {
             throw new Error('Only enum field can be used with stateTracking feature!');
         }
 
         let stateMapping = {};
 
-        fieldInfo.values.forEach(state => {
+        fieldInfo.enum.forEach(state => {
             let fieldName = timestampFieldNaming(options.field, state);
 
             entity.addField(fieldName, stateSetTimestamp);

@@ -3,6 +3,8 @@ const { startCommand } = require('@kitmi/jacaranda');
 const { _, findKey } = require('@kitmi/utils');
 const pkg = require('../../package.json');
 
+require('./init');
+
 const run = require('./run');
 const { Commands, getCommandOptions } = require('./commands');
 const figlet = require('figlet');

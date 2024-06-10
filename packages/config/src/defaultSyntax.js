@@ -1,13 +1,13 @@
 import { _ } from '@kitmi/utils';
 
-const PROCESSOR_PREFIX = '#!';
+export const PROCESSOR_PREFIX = '#!';
 
 // syntax: <PROCESSOR_PREFIX><TOKEN>:
 
-const JS_VALUE_TOKEN = 'jsv';
-const ES6_TEMPLATE_TOKEN = 'es6';
-const JS_SWIG_TOKEN = 'swig';
-const FN_TOKEN = 'fn';
+export const JS_VALUE_TOKEN = 'jsv';
+export const ES6_TEMPLATE_TOKEN = 'es6';
+export const JS_SWIG_TOKEN = 'swig';
+export const FN_TOKEN = 'fn';
 
 const esTemplateSetting = {
     interpolate: /\$\{([\s\S]+?)\}/g,

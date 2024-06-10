@@ -1,13 +1,34 @@
 import { naming } from '@kitmi/utils';
 
 class DbModel {
-    constructor(app, connector, transaction = false) {
+    constructor(app, connector, transaction) {
         this.app = app;
         this.connector = connector;
         this.transaction = transaction;
 
-        this._meta = this.constructor.meta;
         this._entities = {};
+    }
+
+    /**
+     * Get the db model metadata, e.g. Entity classes.
+     */
+    get meta() {
+        return this.constructor.meta;
+    }
+
+    /**
+     * Get the schema name.
+     */
+    get schemaName() {
+        return this.meta.schemaName;
+    }
+
+    /**
+     * Get the driver.
+     * @returns {string}
+     */
+     get driver() {
+        return this.connector.driver;
     }
 
     /**
@@ -17,14 +38,6 @@ class DbModel {
      */
     fork(transaction) {
         return new this.constructor(this.app, this.connector, transaction ?? true);
-    }
-
-    /**
-     * Get the driver.
-     * @returns {string}
-     */
-    get driver() {
-        return this.connector.driver;
     }
 
     /**
@@ -38,7 +51,7 @@ class DbModel {
         const modelClassName = naming.pascalCase(entityName);
         if (this._entities[modelClassName]) return this._entities[modelClassName];
 
-        return (this._entities[modelClassName] = new this.constructor.meta.Entities[modelClassName](this));
+        return (this._entities[modelClassName] = new this.meta.Entities[modelClassName](this));
     }
 
     /**
@@ -50,14 +63,14 @@ class DbModel {
      * @param {*} onRetry_
      */
     async transaction_(transactionFunc) {
-        const db = this.fork(true);
+        let db;
 
         try {
-            await db.connector.beginTransaction_();
+            db = this.fork(await this.connector.beginTransaction_());
             await transactionFunc(db);
-            await db.connector.commit_();
+            await db.connector.commit_(db.transaction);
         } catch (error) {
-            await db.connector.rollback_();
+            db && await db.connector.rollback_(db.transaction);
             throw error;
         } finally {
             db.end();
@@ -68,6 +81,7 @@ class DbModel {
      * End the model.
      */
     end() {
+        delete this.transaction;
         delete this._entities;
         delete this.connector;
         delete this.app;

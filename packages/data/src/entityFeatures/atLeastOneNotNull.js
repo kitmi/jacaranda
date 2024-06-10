@@ -1,17 +1,17 @@
-const { _, quote } = require('@genx/july');
-const { ValidationError } = require('../utils/Errors');
-const Rules = require('../enum/Rules');
+import { _, quote } from "@kitmi/utils";
+import { ValidationError } from "@kitmi/types";
+import Rules from "../Rules";
 
 /**
  * A rule specifies at least one field not null, e.g. email or mobile.
  * @module EntityFeatureRuntime_AtLeastOneNotNull
  */
 
-module.exports = {
+export default {
     [Rules.RULE_BEFORE_CREATE]: (feature, entityModel, context) => {
         _.each(feature, (item) => {
             if (
-                _.every(item, (fieldName) => _.isNil(context.latest[fieldName]))
+                _.every(item, (fieldName) => context.latest[fieldName] == null)
             ) {
                 throw new ValidationError(
                     `At least one of these fields ${item
@@ -33,9 +33,9 @@ module.exports = {
             if (
                 _.every(item, (fieldName) =>
                     fieldName in context.latest
-                        ? _.isNil(context.latest[fieldName])
+                        ? context.latest[fieldName] == null
                         : context.existing &&
-                          _.isNil(context.existing[fieldName])
+                          context.existing[fieldName] == null
                 )
             ) {
                 throw new ValidationError(

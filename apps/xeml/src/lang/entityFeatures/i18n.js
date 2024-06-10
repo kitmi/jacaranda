@@ -1,6 +1,4 @@
-"use strict";
-
-const { _, isPlainObject } = require('@genx/july')
+const { _, isPlainObject } = require('@kitmi/utils')
 const FEATURE_NAME = 'i18n';
 
 /**

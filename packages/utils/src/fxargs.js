@@ -49,11 +49,14 @@ function fxargs(args, types) {
                 // Assign the value and increment the argument index
                 result[i] = value;
                 argIndex++;
-                matched = true;                
+                matched = true;
 
                 if (isOptional) {
                     optionalSpots.push(i);
-                } else {
+                } else if (
+                    optionalSpots.length > 0 &&
+                    typeOptions.every((typeOption) => typeOf(args[argIndex - 2]) !== typeOption)
+                ) {
                     optionalSpots.length = 0;
                 }
             } else if (isOptional) {
@@ -63,8 +66,11 @@ function fxargs(args, types) {
                 // Try pop up an optional value
                 if (optionalSpots.length > 0 && lt - i >= la - argIndex + 1) {
                     const optionalIndex = optionalSpots.pop();
+                    for (let j = optionalIndex + 1; j < i; j++) {
+                        result[j] = result[j - 1];
+                    }
                     result[optionalIndex] = undefined;
-                    argIndex--;                    
+                    argIndex--;
                     continue;
                 }
 
@@ -74,11 +80,16 @@ function fxargs(args, types) {
         }
 
         if (!matched && !isOptional) {
-            // Try pop up an optional value
+            // Try pop up an optional value 2， 2-
+
             if (optionalSpots.length > 0 && lt - i >= la - argIndex + 1) {
                 const optionalIndex = optionalSpots.pop();
+
+                for (let j = optionalIndex + 1; j < i; j++) {
+                    result[j] = result[j - 1];
+                }
                 result[optionalIndex] = undefined;
-                argIndex--;                    
+                argIndex--;
                 i--;
             } else {
                 throw new Error(`Missing argument at index ${i}, expected "${type}".`);

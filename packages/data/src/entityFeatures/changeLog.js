@@ -1,7 +1,7 @@
-const { _ } = require('@genx/july');
-const Rules = require('../enum/Rules');
-const { DATETIME } = require('../types');
-const { ApplicationError } = require('../utils/Errors');
+import { _ } from '@kitmi/utils';
+import Rules from '../Rules';
+import { Types } from '@kitmi/validators/allSync';
+import { ApplicationError } from '@kitmi/types';
 
 function getConnector(entityModel, feature) {
     const app = entityModel.db.app;
@@ -22,7 +22,7 @@ async function createLogEntry_(entityModel, feature, context, operation) {
         entity: entityModel.meta.name,
         operation,
         which: context.queryKey,
-        changedAt: DATETIME.typeObject.local(),
+        changedAt: Types.DATETIME.typeObject.local(),
     };
 
     if (operation !== 'delete') {
@@ -33,7 +33,7 @@ async function createLogEntry_(entityModel, feature, context, operation) {
 
     if (feature.withUser) {
         const user = entityModel.getValueFromContext(context, feature.withUser);
-        if (_.isNil(user)) {
+        if (user == null) {
             throw new ApplicationError(
                 `Cannot get value of [${feature.withUser}] from context. Entity: ${entityModel.meta.name}, operation: ${operation}`
             );
@@ -48,11 +48,7 @@ async function createLogEntry_(entityModel, feature, context, operation) {
     }
 
     const clConnector = getConnector(entityModel, feature);
-    await clConnector.insertOne_(
-        feature.storeEntity,
-        logEntry,
-        context.connOptions
-    );
+    await clConnector.insertOne_(feature.storeEntity, logEntry, context.connOptions);
 }
 
 /**
@@ -60,7 +56,7 @@ async function createLogEntry_(entityModel, feature, context, operation) {
  * @module EntityFeatureRuntime_ChangeLog
  */
 
-module.exports = {
+export default {
     [Rules.RULE_AFTER_CREATE]: (feature, entityModel, context) =>
         createLogEntry_(entityModel, feature, context, 'create'),
     [Rules.RULE_AFTER_UPDATE]: (feature, entityModel, context) =>

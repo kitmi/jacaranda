@@ -5,6 +5,8 @@
 
 import { _ } from '@kitmi/utils';
 import Feature from '../Feature';
+import pino from 'pino';
+import 'pino-pretty';
 
 /*
  logger: {
@@ -46,19 +48,19 @@ export default {
      *  let logger1 = app.getService('logger-category1');
      */
     load_: function (app, config, name) {
-        const pino = app.requireModule('pino');
-
         config = app.featureConfig(
             config ?? {},
             {
                 schema: {
-                    transport: { type: 'object', optional: true },
+                    transport: { type: 'object', optional: true },                    
                 },
+                keepUnsanitized: true,
             },
             name
         );
 
         const options = {
+            level: app.options.logLevel,
             nestedKey: 'payload',
             transport: {
                 target: 'pino-pretty',
@@ -71,6 +73,10 @@ export default {
             ...config,
         };
 
+        if (options.level === 'verbose') {
+            options.level = 'debug';
+        }
+
         const names = name.split('.', 2);
         let isAppLogger = true;
 
@@ -79,10 +85,7 @@ export default {
             isAppLogger = false;
         }
 
-        const logger = pino({
-            level: app.options.logLevel === 'verbose' ? 'debug' : app.options.logLevel,
-            ...options,
-        });
+        const logger = pino(options);
 
         logger.verbose = logger.debug.bind(logger);
         logger.log = (level, message, info) => logger[level](info, message);

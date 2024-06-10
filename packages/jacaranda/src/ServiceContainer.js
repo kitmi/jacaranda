@@ -1,5 +1,5 @@
 import ConfigLoader, { JsonConfigProvider, YamlConfigProvider } from '@kitmi/config';
-import { _, pushIntoBucket, eachAsync_, batchAsync_, arrayToObject, esmCheck } from '@kitmi/utils';
+import { _, pushIntoBucket, eachAsync_, batchAsync_, arrayToObject, isEmpty, esmCheck } from '@kitmi/utils';
 import { fs, tryRequire as _tryRequire } from '@kitmi/sys';
 import { InvalidConfiguration, ValidationError, ApplicationError } from '@kitmi/types';
 import { Types } from '@kitmi/validators/allSync';
@@ -295,7 +295,7 @@ class ServiceContainer extends AsyncEmitter {
 
     /**
      * Require a module from the runtime registry
-     * @param {*} moduleName 
+     * @param {*} moduleName
      * @returns {*}
      */
     requireModule(moduleName) {
@@ -324,7 +324,7 @@ class ServiceContainer extends AsyncEmitter {
                 console.log('ERR_REQUIRE_ESM', pkgName);
                 try {
                     const esmModule = await import(pkgName);
-                    console.log('feiojfiaojfoejfaoj');
+                    
                     if (useDefault) {
                         return esmModule.default;
                     }
@@ -467,7 +467,7 @@ class ServiceContainer extends AsyncEmitter {
             return runtime;
         }
 
-        return runtime.get(...args);        
+        return runtime.get(...args);
     }
 
     getRuntimeVariables() {
@@ -502,7 +502,7 @@ class ServiceContainer extends AsyncEmitter {
         }
 
         const topoSort = new TopoSort();
-        features.forEach(([feature]) => {
+        features.forEach(([feature]) => {    
             topoSort.depends(feature.name, feature.depends);
         });
 
@@ -698,6 +698,7 @@ class ServiceContainer extends AsyncEmitter {
                     throw new InvalidConfiguration(`Don't know where to load feature "${feature}".`, this, {
                         feature,
                         searchingPath: searchingPath.join('\n'),
+                        passedInRegistry: Object.keys(this.registry?.features ?? {}).join(', '),
                     });
                 }
 

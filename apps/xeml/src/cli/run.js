@@ -1,6 +1,5 @@
 const { startWorker } = require('@kitmi/jacaranda');
-const model = require('../features/model');
-const { dataSource } = require('@kitmi/feat-db');
+const { dataSource, dataModel, db } = require('@kitmi/data');
 
 async function run(cli, command) {
     let configPath = cli.option('c');
@@ -9,7 +8,7 @@ async function run(cli, command) {
 
     let cmdMethod_ = require('../commands/' + command);
 
-    return startWorker(cmdMethod_, {
+    await startWorker(cmdMethod_, {
         throwOnError: true,
         configPath,
         configType,
@@ -19,10 +18,13 @@ async function run(cli, command) {
 
         registry: {
             features: {
-                model,
-                dataSource
+                dataModel,
+                dataSource,
+                db
             },
         },
+
+        argv: cli.argv
     });
 }
 

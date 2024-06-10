@@ -13,7 +13,6 @@ export { default as serviceGroup } from './serviceGroup';
 export { default as nanoid } from './nanoid';
 export { default as logger } from './logger';
 export { default as jwt } from './jwt';
-export { default as imageProcessor } from './imageProcessor';
 export { default as i18N } from './i18n';
 export { default as fetchAgent } from './fetchAgent';
 export { default as featureRegistry } from './featureRegistry';

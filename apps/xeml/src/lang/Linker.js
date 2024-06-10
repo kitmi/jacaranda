@@ -1,8 +1,8 @@
 const path = require("node:path");
-const { _ } = require("@kitmi/utils");
-const { fs } = require("@kitmi/sys");
+const { _, esmCheck } = require("@kitmi/utils");
+const { fs, requireFrom } = require("@kitmi/sys");
 const { globSync } = require("glob");
-const { Types } = require('@kitmi/validators/allSync');
+const Types = require("./Types");
 
 const Xeml = require("./grammar/xeml");
 const XemlParser = Xeml.parser;
@@ -56,6 +56,7 @@ class Linker {
     static buildSchemaObjects(app, options) {
         const schemaObjects = {};
         const schemaFiles = Linker.getXemlFiles(options.schemaPath, options.useJsonSource);
+        
         schemaFiles.forEach((schemaFile) => {
             const linker = new Linker(app, options);
             linker.link(schemaFile);
@@ -217,8 +218,6 @@ class Linker {
         modulePath = path.resolve(this.sourcePath, modulePath);
 
         let id = this.getModuleIdByPath(modulePath);
-
-        console.log(`Loading module: ${id}`, modulePath);
 
         if (this.isModuleLoaded(id)) {
             return this.getModuleById(id);
@@ -440,44 +439,44 @@ class Linker {
         return element;
     }
 
-    _compile(oolFile, packageName) {
+    _compile(xemlFile, packageName) {
         let jsFile;
 
-        if (oolFile.endsWith(".json")) {
-            jsFile = oolFile;
-            oolFile = oolFile.substr(0, oolFile.length - 5);
+        if (xemlFile.endsWith(".json")) {
+            jsFile = xemlFile;
+            xemlFile = xemlFile.substring(0, xemlFile.length - 5);
         } else {
-            jsFile = oolFile + ".json";
+            jsFile = xemlFile + ".json";
         }
 
-        let ool, searchExt;
+        let xeml, searchExt;
 
         if (this.useJsonSource) {
             if (!fs.existsSync(jsFile)) {
                 throw new Error(`"useJsonSource" enabeld but json file "${jsFile}" not found.`);
             }
 
-            ool = fs.readJsonSync(jsFile);
+            xeml = fs.readJsonSync(jsFile);
             searchExt = XEML_SOURCE_EXT + ".json";
         } else {
             try {
-                ool = XemlParser.parse(fs.readFileSync(oolFile, "utf8"));
+                xeml = XemlParser.parse(fs.readFileSync(xemlFile, "utf8"));
             } catch (error) {
-                throw new Error(`Failed to compile "${oolFile}".\n${error.message || error}`);
+                throw new Error(`Failed to compile "${xemlFile}".\n${error.message || error}`);
             }
 
-            if (!ool) {
-                throw new Error("Unknown error occurred while compiling: " + oolFile);
+            if (!xeml) {
+                throw new Error("Unknown error occurred while compiling: " + xemlFile);
             }
 
             searchExt = XEML_SOURCE_EXT;
         }
 
-        let baseName = path.basename(oolFile, XEML_SOURCE_EXT);
+        let baseName = path.basename(xemlFile, XEML_SOURCE_EXT);
 
         let namespace = [];
 
-        let currentPath = path.dirname(oolFile);
+        let currentPath = path.dirname(xemlFile);
 
         /**
          *
@@ -488,7 +487,7 @@ class Linker {
         function expandNs(namespaces, ns, recursive, packageName) {
             let stats = fs.statSync(ns);
 
-            //import '/path/user.ool'
+            //import '/path/user.xeml'
             if (stats.isFile() && ns.endsWith(searchExt)) {
                 if (packageName) {
                     namespaces.push([ns, packageName]);
@@ -506,8 +505,8 @@ class Linker {
             }
         }
 
-        if (ool.namespace) {
-            ool.namespace.forEach((ns) => {
+        if (xeml.namespace) {            
+            xeml.namespace.forEach((ns) => {
                 let p;
                 let packageName;
 
@@ -519,11 +518,18 @@ class Linker {
 
                     if (pkgPath == null) {
                         throw new Error(
-                            `Package "${packageName}" not found in xeml dependencies settings. Failed to compile ${oolFile}`
+                            `Package "${packageName}" not found in xeml dependencies settings. Failed to compile ${xemlFile}`
                         );
                     }
 
-                    ns = path.join(pkgPath, ns.substring(packageSep + 1));
+                    const files = ns.substring(packageSep + 1);
+
+                    if (pkgPath.startsWith(".") || pkgPath.startsWith("..")) {
+                        ns = path.join(pkgPath, files);    
+                    } else {
+                        const schemaPath = esmCheck(requireFrom(pkgPath, process.cwd())).schemaPath;                        
+                        ns = path.join(schemaPath, files);
+                    }                    
                 }
 
                 if (ns.endsWith("/*")) {
@@ -545,19 +551,19 @@ class Linker {
             });
         }
 
-        ool.namespace = namespace;
+        xeml.namespace = namespace;
 
-        ool.id = this.getModuleIdByPath(oolFile);
+        xeml.id = this.getModuleIdByPath(xemlFile);
         if (packageName) {
-            ool.packageName = packageName;
+            xeml.packageName = packageName;
         }
-        ool.name = baseName;
+        xeml.name = baseName;
 
         if (!this.useJsonSource && this.saveIntermediate) {
-            fs.writeFileSync(jsFile, JSON.stringify(ool, null, 4));
+            fs.writeFileSync(jsFile, JSON.stringify(xeml, null, 4));
         }
 
-        return ool;
+        return xeml;
     }
 }
 

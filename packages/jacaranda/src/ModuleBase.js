@@ -13,7 +13,7 @@ const ModuleBase = (Base) =>
             super(name, {
                 workingPath: appPath,
                 configPath: path.join(appPath, 'conf'),
-                sourcePath: './',
+                sourcePath: hostApp.isEsm ? './src' : './cjs',
                 ...options,
             });
 

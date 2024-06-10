@@ -28,6 +28,6 @@ const common = {
     )
 };
 
-common.isRequired = common.exist;
+common.required = common.exist;
 
 export default common;

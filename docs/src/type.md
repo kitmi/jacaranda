@@ -10,7 +10,7 @@ This discrepancy between type recognition and business logic necessitates a sema
 
 The `@kitmi/types` library is not just a collection of predefined data types; it also allows the creation of an independent and extensible type system. This flexibility is crucial for business applications where the context and semantics of data are paramount. By defining types semantically, developers can ensure that data conforms to business rules and expectations, such as treating a numeric string as an integer or a date string as a datetime object.
 
-Building on the capabilities of `@kitmi/types`, the `@kitmi/validators` library introduces a `postProcess` hook to perform validations and transformations based on the Jacaranda Object Modifiers Syntax (JOMS). This approach enables dynamic and complex validation strategies that are defined using data descriptors rather than code, allowing for the configuration and storage of these rules in a standardized format.
+Building on the capabilities of `@kitmi/types`, the `@kitmi/validators` library introduces a `postProcess` hook to perform validations and transformations based on the Js Type Modifiers Syntax (JTMS). This approach enables dynamic and complex validation strategies that are defined using data descriptors rather than code, allowing for the configuration and storage of these rules in a standardized format.
 
 ### Conventions and Types
 
@@ -38,11 +38,11 @@ The `@kitmi/types` library also supports plugins as serializer, deserializer, pr
 
 ## Dynamic Validation with Declarative Syntax
 
-Building on the foundation of `@kitmi/types`, the `@kitmi/validators` library introduces a dynamic validation system using the Jacaranda Object Modifiers Syntax (JOMS). This declarative syntax allows developers to specify complex validation rules by combining different types of modifiers.
+Building on the foundation of `@kitmi/types`, the `@kitmi/validators` library introduces a dynamic validation system using the Js Type Modifiers Syntax (JTMS). This declarative syntax allows developers to specify complex validation rules by combining different types of modifiers.
 
 ### Modifier Syntax
 
-Modifiers in JOMS can be standalone or require arguments, with the latter being expressed in object or array style.
+Modifiers in JTMS can be standalone or require arguments, with the latter being expressed in object or array style.
 
 -   Standalone Modifiers: "<type-prefix><modifier-name>", e.g. `~isIP`, `~isEmail`
 -   Modifiers with Arguments: These can be expressed either as objects or arrays:
@@ -63,7 +63,7 @@ There are three types of modifiers with different prefix symbols:
 
 ### Sample
 
-An optional config object for koa is described with JOMS as below:
+An optional config object for koa is described with JTMS as below:
 
 ```json
 {
@@ -96,9 +96,9 @@ While libraries like Joi or Yup provide powerful code-based solutions for data v
 
 ## Validators and Processors Extension
 
-Furthermore, `@kitmi/validators` incorporates the `@kitmi/jsonv` and `@kitmi/jsonx` libraries, which introduce a series of validation and transformation operators inspired by MongoDB query operators. The `@kitmi/jsonv` library is utilized through the `~jsv` validator, and `@kitmi/jsonx` is applied via the `|jsx` processor within JOMS. This integration equips `@kitmi/validators` with a robust set of validators and processors capable of not just validating data but also transforming it, thus creating a comprehensive data processing pipeline.
+Furthermore, `@kitmi/validators` incorporates the `@kitmi/jsonv` and `@kitmi/jsonx` libraries, which introduce a series of validation and transformation operators inspired by MongoDB query operators. The `@kitmi/jsonv` library is utilized through the `~jsv` validator, and `@kitmi/jsonx` is applied via the `|jsx` processor within JTMS. This integration equips `@kitmi/validators` with a robust set of validators and processors capable of not just validating data but also transforming it, thus creating a comprehensive data processing pipeline.
 
-## Use JOMS to Describe JOMS
+## Use JTMS to Describe JTMS
 
 ```yaml
 type: object,

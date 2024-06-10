@@ -1,8 +1,6 @@
-"use strict";
-
-const { _ } = require('@genx/july');
-const { generateDisplayName, deepCloneField, Clonable, fieldNaming } = require('./XemlUtils');
-const { Types } = require('@genx/data');
+const { _ } = require("@kitmi/utils");
+const { generateDisplayName, deepCloneField, Clonable, fieldNaming } = require("./XemlUtils");
+const Types = require("./Types");
 const RESERVED_KEYS = new Set(['name', 'type', 'modifiers', 'subClass', 'values']);
 
 /**
@@ -43,7 +41,7 @@ class Field extends Clonable {
                 throw new Error(`Unsupported field qualifier "${key}" for type "${this.info.type}" of field "${this.name}."`);
             }
 
-            this[key] = Array.isArray(value) ? value[0] : value;
+            this[key] = key === 'enum' ? value : (Array.isArray(value) && value.length === 1 ? value[0] : value);
         });
 
         if (this.info.modifiers && _.find(this.info.modifiers, mod => mod.$xt === 'Activator')) {

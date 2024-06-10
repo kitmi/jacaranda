@@ -1,4 +1,4 @@
-import { _, sleep_, batchAsync_ } from '@kitmi/utils';
+import { _, sleep_, batchAsync_, isRunAsEsm } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
 import { defaultRunnableOpts } from './defaultOpts';
 import path from 'node:path';
@@ -57,7 +57,6 @@ const Runnable = (T) =>
             });            
 
             this.runnable = true;
-
             this.libModulesPath = this.toAbsolutePath(this.options.libModulesPath);            
         }
 

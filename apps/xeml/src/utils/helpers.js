@@ -8,19 +8,11 @@ exports.throwIfFileNotExist = (name, filePath) => {
     }
 }
 
-exports.getSchemaConnectors = (app, schemas) => _.mapValues(schemas, (schemaConfig, name) => {
-    let connector = app.getService(schemaConfig.dataSource);
-    if (!connector) {
-        throw new Error(`Connector service not found for data source [${schemaConfig.dataSource}] of schema "${name}".`);
-    } 
-    return connector;
-});
-
 /**
  * Get default reverse output path.
  * @param {string} prefix 
  * @param {bool} override 
- * @returns {string} Output path of oolong generated files.
+ * @returns {string} Output path of xeml generated files.
  */
 exports.getDateNamedDir = (baseDir, prefix, override) => {
     let now = new Date();
@@ -93,4 +85,4 @@ exports.importDataFiles = async function (migrator, folderName, ignoreDuplicate)
     if (!imported) {
         throw new Error(`Entry file of dataset "${folderName}" not found.`);
     }    
- }
+}

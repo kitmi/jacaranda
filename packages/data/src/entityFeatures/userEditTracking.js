@@ -1,6 +1,6 @@
-const Rules = require('../enum/Rules');
-const { InvalidArgument } = require('../utils/Errors');
-const Lang = require('../utils/lang');
+import Rules from "../Rules";
+import { InvalidArgument } from "@kitmi/types";
+import { doInc } from "../helpers";
 
 function addCreatedBy_(entityModel, feature, context) {
     if (context.options.$migration) {
@@ -26,7 +26,7 @@ function addUpdatedBy_(entityModel, feature, context) {
         throw new InvalidArgument(`Context "${feature.uidSource}" not found.`);
     }
     context.latest[feature.fields.updatedBy] = uid;
-    context.latest[feature.fields.revision] = Lang.$inc(feature.fields.revision, 1);
+    context.latest[feature.fields.revision] = doInc(feature.fields.revision, 1);
     // revision++
     return true;
 }

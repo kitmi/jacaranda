@@ -1,31 +1,31 @@
-const path = require("path");
-const { _, naming, text, pushIntoBucket } = require("@genx/july");
-const { fs } = require("@genx/sys");
-const swig = require("swig-templates");
+const path = require('node:path');
+const { _, naming, text, pushIntoBucket, baseName, isEmpty } = require('@kitmi/utils');
+const { fs } = require('@kitmi/sys');
+const swig = require('swig-templates');
 
-const GemlTypes = require("../lang/XemlTypes");
-const JsLang = require("./util/ast.js");
-const GemlToAst = require("./util/gemlToAst.js");
-const Snippets = require("./dao/snippets");
-const { Types } = require("@genx/data");
+const XemlTypes = require('../lang/XemlTypes');
+const JsLang = require('./util/ast');
+const XemlToAst = require('./util/xemlToAst');
+const Snippets = require('./dao/snippets');
+const Types = require('../lang/Types');
 
 const ChainableType = [
-    GemlToAst.AST_BLK_VALIDATOR_CALL,
-    GemlToAst.AST_BLK_PROCESSOR_CALL,
-    GemlToAst.AST_BLK_ACTIVATOR_CALL,
+    XemlToAst.AST_BLK_VALIDATOR_CALL,
+    XemlToAst.AST_BLK_PROCESSOR_CALL,
+    XemlToAst.AST_BLK_ACTIVATOR_CALL,
 ];
 
-const getFieldName = (t) => t.split(".").pop();
+const getFieldName = (t) => t.split('.').pop();
 const isChainable = (current, next) =>
     ChainableType.indexOf(current.type) > -1 && current.target === next.target && next.type === current.type;
 const chainCall = (lastBlock, lastType, currentBlock, currentType) => {
     if (lastBlock) {
-        if (lastType === "ValidatorCall") {
-            assert: currentType === "ValidatorCall", "Unexpected currentType";
+        if (lastType === 'ValidatorCall') {
+            assert: currentType === 'ValidatorCall', 'Unexpected currentType';
 
-            currentBlock = JsLang.astBinExp(lastBlock, "&&", currentBlock);
+            currentBlock = JsLang.astBinExp(lastBlock, '&&', currentBlock);
         } else {
-            assert: currentType === "ProcessorCall", "Unexpected currentType: " + currentType + " last: " + lastType;
+            assert: currentType === 'ProcessorCall', 'Unexpected currentType: ' + currentType + ' last: ' + lastType;
 
             currentBlock.arguments[0] = lastBlock;
         }
@@ -33,18 +33,24 @@ const chainCall = (lastBlock, lastType, currentBlock, currentType) => {
 
     return currentBlock;
 };
-const asyncMethodNaming = (name) => name + "_";
+const asyncMethodNaming = (name) => name + '_';
 
 const indentLines = (lines, indentation) =>
     lines
-        .split("\n")
-        .map((line, i) => (i === 0 ? line : _.repeat(" ", indentation) + line))
-        .join("\n");
+        .split('\n')
+        .map((line, i) => (i === 0 ? line : _.repeat(' ', indentation) + line))
+        .join('\n');
 
-const OOL_MODIFIER_RETURN = {
-    [GemlTypes.Modifier.VALIDATOR]: () => [JsLang.astThrow('Error', ['To be implemented!']), JsLang.astReturn(true)],
-    [GemlTypes.Modifier.PROCESSOR]: (args) => [JsLang.astThrow('Error', ['To be implemented!']), JsLang.astReturn(JsLang.astId(args[0]))],
-    [GemlTypes.Modifier.ACTIVATOR]: () => [JsLang.astThrow('Error', ['To be implemented!']), JsLang.astReturn(JsLang.astId("undefined"))],
+const XEML_MODIFIER_RETURN = {
+    [XemlTypes.Modifier.VALIDATOR]: () => [JsLang.astThrow('Error', ['To be implemented!']), JsLang.astReturn(true)],
+    [XemlTypes.Modifier.PROCESSOR]: (args) => [
+        JsLang.astThrow('Error', ['To be implemented!']),
+        JsLang.astReturn(JsLang.astId(args[0])),
+    ],
+    [XemlTypes.Modifier.ACTIVATOR]: () => [
+        JsLang.astThrow('Error', ['To be implemented!']),
+        JsLang.astReturn(JsLang.astId('undefined')),
+    ],
 };
 
 /**
@@ -53,22 +59,21 @@ const OOL_MODIFIER_RETURN = {
  */
 class DaoModeler {
     /**
-     * @param {object} context
-     * @property {GemlLinker} context.linker - Geml linker
-     * @property {object} context.modelPath - Generated model output path
-     * @property {object} context.manifestPath - Entities manifest output path
+     * @param {object} modelService
+     * @param {XemlLinker} linker - Xeml linker     
      * @param {Connector} connector
      */
-    constructor(context, linker, connector) {
+    constructor(modelService, linker, connector) {
+        this.modelService = modelService;
         this.linker = linker;
-        this.outputPath = context.modelPath;
-        this.manifestPath = context.manifestPath;
+        this.outputPath = modelService.config.modelPath;
+        this.manifestPath = modelService.config.manifestPath;
 
         this.connector = connector;
     }
 
     modeling_(schema) {
-        this.linker.log("info", 'Generating entity models for schema "' + schema.name + '"...');
+        this.linker.log('info', 'Generating entity models for schema "' + schema.name + '"...');
 
         this._generateSchemaModel(schema);
         this._generateEntityModel(schema);
@@ -89,37 +94,37 @@ class DaoModeler {
             driver: this.connector.driver,
             className: capitalized,
             schemaName: schema.name,
-            entities: JSON.stringify(Object.keys(schema.entities)),
+            entities: Object.keys(schema.entities).map(name => naming.pascalCase(name)),
         };
 
-        let classTemplate = path.resolve(__dirname, "database", this.connector.driver, "Database.js.swig");
+        let classTemplate = path.resolve(__dirname, 'database', this.connector.driver, 'Database.js.swig');
         let classCode = swig.renderFile(classTemplate, locals);
 
-        let modelFilePath = path.resolve(this.outputPath, capitalized + ".js");
+        let modelFilePath = path.resolve(this.outputPath, capitalized + '.js');
         fs.ensureFileSync(modelFilePath);
         fs.writeFileSync(modelFilePath, classCode);
 
-        this.linker.log("info", "Generated database model: " + modelFilePath);
+        this.linker.log('info', 'Generated database model: ' + modelFilePath);
     }
 
     _generateEnumTypes(schema) {
         //build types defined outside of entity
         _.forOwn(schema.types, (location, type) => {
             const typeInfo = schema.linker.getTypeInfo(type, location);
-            if (typeInfo.type === Types.ENUM.name) {
+            if (typeInfo.enum && Array.isArray(typeInfo.enum)) {
                 const capitalized = naming.pascalCase(type);
 
-                const content = `module.exports = {
-    ${typeInfo.values
+                const content = `export default {
+    ${typeInfo.enum
         .map((val) => `${naming.snakeCase(val).toUpperCase()}: '${val}'`)
-        .join(",\n    ")}                    
+        .join(',\n    ')}                    
 };`;
 
-                const modelFilePath = path.resolve(this.outputPath, schema.name, "types", capitalized + ".js");
+                const modelFilePath = path.resolve(this.outputPath, schema.name, 'types', capitalized + '.js');
                 fs.ensureFileSync(modelFilePath);
                 fs.writeFileSync(modelFilePath, content);
 
-                this.linker.log("info", "Generated enum type definition: " + modelFilePath);
+                this.linker.log('info', 'Generated enum type definition: ' + modelFilePath);
             }
         });
     }
@@ -150,9 +155,9 @@ class DaoModeler {
 
             let modelMeta = {
                 schemaName: schema.name,
-                name: entityInstanceName,
+                name: entityInstanceName,                
                 keyField: entity.key,
-                fields: _.mapValues(entity.fields, (f) => _.omit(f.toJSON(), "modifiers")),
+                fields: _.mapValues(entity.fields, (f) => _.omit(f.toJSON(), 'modifiers')),
                 features: entity.features || {},
                 uniqueKeys,
             };
@@ -161,19 +166,19 @@ class DaoModeler {
                 modelMeta.baseClasses = entity.baseClasses;
             }
 
-            if (!_.isEmpty(entity.indexes)) {
+            if (!isEmpty(entity.indexes)) {
                 modelMeta.indexes = entity.indexes;
             }
 
-            if (!_.isEmpty(entity.features)) {
+            if (!isEmpty(entity.features)) {
                 modelMeta.features = entity.features;
             }
 
-            if (!_.isEmpty(entity.associations)) {
+            if (!isEmpty(entity.associations)) {
                 modelMeta.associations = entity.associations;
             }
 
-            if (!_.isEmpty(fieldReferences)) {
+            if (!isEmpty(fieldReferences)) {
                 modelMeta.fieldDependencies = fieldReferences;
             }
 
@@ -189,37 +194,38 @@ class DaoModeler {
             let importLines = [];
 
             //generate functors if any
-            if (!_.isEmpty(sharedContext.mapOfFunctorToFile)) {
+            if (!isEmpty(sharedContext.mapOfFunctorToFile)) {
                 _.forOwn(sharedContext.mapOfFunctorToFile, (fileName, functionName) => {
-                    importLines.push(JsLang.astToCode(JsLang.astRequire(functionName, "." + fileName)));
+                    importLines.push(JsLang.astToCode(JsLang.astImport(functionName, baseName(fileName, true))));
                 });
             }
 
-            if (!_.isEmpty(sharedContext.newFunctorFiles)) {
-                _.each(sharedContext.newFunctorFiles, (entry) => {
+            if (!isEmpty(sharedContext.newFunctorFiles)) {
+                _.each(sharedContext.newFunctorFiles, (entry) => {                    
                     this._generateFunctionTemplateFile(schema, entry);
                 });
             }
 
             //add package path
             const packageName = entity.xemlModule.packageName;
-            if (packageName) {                
-                modelMeta.fromPackage = packageName;                
-                modelMeta.packagePath = this.linker.app.settings.geml.dependencies[packageName]; //path.relative(this.linker.dependencies[packageName], this.linker.app.workingPath);
+            if (packageName) {
+                modelMeta.fromPackage = packageName;
+                modelMeta.packagePath = this.modelService.config.dependencies[packageName]; //path.relative(this.linker.dependencies[packageName], this.linker.app.workingPath);
             }
 
             let locals = {
-                imports: importLines.join("\n"),
+                driver: this.connector.driver,
+                imports: importLines.join('\n'),
                 className: capitalized,
                 entityMeta: indentLines(JSON.stringify(modelMeta, null, 4), 4),
-                classBody: indentLines(astClassMain.map((block) => JsLang.astToCode(block)).join("\n\n"), 8),
+                classBody: indentLines(astClassMain.map((block) => JsLang.astToCode(block)).join('\n\n'), 8),
                 functors: indentLines(
                     JsLang.astToCode(
                         JsLang.astValue(
                             _.reduce(
                                 sharedContext.newFunctorFiles,
                                 (result, functor) => {
-                                    result["$" + functor.functionName] = JsLang.astId(functor.functionName);
+                                    result['$' + functor.functionName] = JsLang.astId(functor.functionName);
                                     return result;
                                 },
                                 {}
@@ -231,14 +237,14 @@ class DaoModeler {
                 //mixins
             };
 
-            let classTemplate = path.resolve(__dirname, "database", this.connector.driver, "EntityModel.js.swig");
+            let classTemplate = path.resolve(__dirname, 'database', this.connector.driver, 'EntityModel.js.swig');
             let classCode = swig.renderFile(classTemplate, locals);
 
-            let modelFilePath = path.resolve(this.outputPath, schema.name, "base", capitalized + ".js");
+            let modelFilePath = path.resolve(this.outputPath, schema.name, capitalized + '.js');
             fs.ensureFileSync(modelFilePath);
             fs.writeFileSync(modelFilePath, classCode);
 
-            this.linker.log("info", "Generated entity model: " + modelFilePath);
+            this.linker.log('info', 'Generated entity model: ' + modelFilePath);
         });
     }
 
@@ -248,11 +254,11 @@ class DaoModeler {
             _.each(entity.inputs, (inputs, inputSetName) => {
                 const validationSchema = {};
                 const dependencies = new Set();
-                const ast = JsLang.astProgram();
+                const ast = JsLang.astProgram(true);
 
                 inputs.forEach((input) => {
                     //:address
-                    if (input.name.startsWith(":")) {
+                    if (input.name.startsWith(':')) {
                         const assoc = input.name.substr(1);
                         const assocMeta = entity.associations[assoc];
 
@@ -271,18 +277,18 @@ class DaoModeler {
 
                         if (assocMeta.list) {
                             validationSchema[input.name] = JsLang.astValue({
-                                type: "array",
+                                type: 'array',
                                 elementSchema: {
-                                    type: "object",
+                                    type: 'object',
                                     schema: JsLang.astCall(_.camelCase(dep), []),
                                 },
-                                ..._.pick(input, ["optional"]),
+                                ..._.pick(input, ['optional']),
                             });
                         } else {
                             validationSchema[input.name] = JsLang.astValue({
-                                type: "object",
+                                type: 'object',
                                 schema: JsLang.astCall(_.camelCase(dep), []),
-                                ..._.pick(input, ["optional"]),
+                                ..._.pick(input, ['optional']),
                             });
                         }
                     } else {
@@ -293,8 +299,8 @@ class DaoModeler {
                         }
 
                         validationSchema[input.name] = JsLang.astValue({
-                            ..._.pick(field, ["type", "values"]),
-                            ..._.pick(input, ["optional"]),
+                            ..._.pick(field, ['type', 'values']),
+                            ..._.pick(input, ['optional']),
                         });
                     }
                 });
@@ -302,13 +308,13 @@ class DaoModeler {
                 //console.dir(JsLang.astValue(validationSchema), {depth: 20});
 
                 const exportBody = Array.from(dependencies).map((dep) =>
-                    JsLang.astRequire(_.camelCase(dep), `./${dep}`)
+                    JsLang.astImport(_.camelCase(dep), `./${dep}`)
                 );
 
                 JsLang.astPushInBody(
                     ast,
                     JsLang.astAssign(
-                        JsLang.astVarRef("module.exports"),
+                        JsLang.astVarRef('module.exports'),
                         JsLang.astAnonymousFunction([], exportBody.concat(JsLang.astReturn(validationSchema)))
                     )
                 );
@@ -316,13 +322,13 @@ class DaoModeler {
                 let inputSchemaFilePath = path.resolve(
                     this.outputPath,
                     schema.name,
-                    "inputs",
-                    entityInstanceName + "-" + inputSetName + ".js"
+                    'inputs',
+                    entityInstanceName + '-' + inputSetName + '.js'
                 );
                 fs.ensureFileSync(inputSchemaFilePath);
                 fs.writeFileSync(inputSchemaFilePath, JsLang.astToCode(ast));
 
-                this.linker.log("info", "Generated entity input schema: " + inputSchemaFilePath);
+                this.linker.log('info', 'Generated entity input schema: ' + inputSchemaFilePath);
             });
         });
     }
@@ -430,11 +436,11 @@ class DaoModeler {
             */
         });
 
-        let diagramOutputFilePath = path.resolve(this.manifestPath, schema.name, "diagram.json");
+        let diagramOutputFilePath = path.resolve(this.manifestPath, schema.name, 'diagram.json');
         fs.ensureFileSync(diagramOutputFilePath);
         fs.writeFileSync(diagramOutputFilePath, JSON.stringify(diagram, null, 4));
 
-        this.linker.log("info", "Generated schema manifest: " + diagramOutputFilePath);
+        this.linker.log('info', 'Generated schema manifest: ' + diagramOutputFilePath);
     }
 
     /*
@@ -508,13 +514,13 @@ class DaoModeler {
                 astDoLoadMain = astDoLoadMain.concat(_.castArray(compileContext.astMap[dep]));
             });
 
-            if (!_.isEmpty(compileContext.mapOfFunctorToFile)) {
+            if (!isEmpty(compileContext.mapOfFunctorToFile)) {
                 _.forOwn(compileContext.mapOfFunctorToFile, (fileName, functionName) => {
                     JsLang.astPushInBody(ast, JsLang.astRequire(functionName, '.' + fileName));
                 });
             }
 
-            if (!_.isEmpty(compileContext.newFunctorFiles)) {
+            if (!isEmpty(compileContext.newFunctorFiles)) {
                 _.each(compileContext.newFunctorFiles, entry => {
                     this._generateFunctionTemplateFile(dbService, entry);
                 });
@@ -541,24 +547,26 @@ class DaoModeler {
     */
 
     _processFieldModifiers(entity, sharedContext) {
-        let compileContext = GemlToAst.createCompileContext(entity.xemlModule.name, this.linker, sharedContext);
-        compileContext.variables["raw"] = { source: "context", finalized: true };
-        compileContext.variables["i18n"] = { source: "context", finalized: true };
-        compileContext.variables["connector"] = { source: "context", finalized: true };
-        compileContext.variables["latest"] = { source: "context" };
+        let compileContext = XemlToAst.createCompileContext(entity.xemlModule.name, this.linker, sharedContext);
+        compileContext.variables['raw'] = { source: 'context', finalized: true };
+        compileContext.variables['i18n'] = { source: 'context', finalized: true };
+        compileContext.variables['connector'] = { source: 'context', finalized: true };
+        compileContext.variables['latest'] = { source: 'context' };
 
-        const allFinished = GemlToAst.createTopoId(compileContext, "done.");
+        const allFinished = XemlToAst.createTopoId(compileContext, 'done.');
 
         //map of field name to dependencies
         let fieldReferences = {};
 
         _.forOwn(entity.fields, (field, fieldName) => {
-            let topoId = GemlToAst.compileField(fieldName, field, compileContext);
-            GemlToAst.dependsOn(compileContext, topoId, allFinished);
+            let topoId = XemlToAst.compileField(fieldName, field, compileContext);
+            XemlToAst.dependsOn(compileContext, topoId, allFinished);
 
+            /* remove self dependency
             if (field.writeOnce || field.freezeAfterNonDefault) {
                 pushIntoBucket(fieldReferences, fieldName, { reference: fieldName, writeProtect: true });
             }
+            */
         });
 
         let deps = compileContext.topoSort.sort();
@@ -575,7 +583,7 @@ class DaoModeler {
 
         const _mergeDoValidateAndFillCode = function (fieldName, references, astCache, requireTargetField) {
             let fields = [fieldName].concat(references);
-            let checker = fields.join(",");
+            let checker = fields.join(',');
 
             if (lastFieldsGroup && lastFieldsGroup.checker !== checker) {
                 methodBodyValidateAndFill = methodBodyValidateAndFill.concat(
@@ -615,7 +623,7 @@ class DaoModeler {
                     fieldReferences[targetFieldName] = fieldReference = [];
                 }
 
-                if (sourceMap.type === GemlToAst.AST_BLK_ACTIVATOR_CALL) {
+                if (sourceMap.type === XemlToAst.AST_BLK_ACTIVATOR_CALL) {
                     sourceMap.references.forEach((ref) => {
                         fieldReference.push({ reference: ref, whenNull: true });
                     });
@@ -641,12 +649,11 @@ class DaoModeler {
                 }
             }
 
-            if (sourceMap.type === GemlToAst.AST_BLK_VALIDATOR_CALL) {
+            if (sourceMap.type === XemlToAst.AST_BLK_VALIDATOR_CALL) {
                 //hasValidator = true;
                 let astCache = Snippets._validateCheck(targetFieldName, astBlock);
-
                 _mergeDoValidateAndFillCode(targetFieldName, sourceMap.references, astCache, true);
-            } else if (sourceMap.type === GemlToAst.AST_BLK_PROCESSOR_CALL) {
+            } else if (sourceMap.type === XemlToAst.AST_BLK_PROCESSOR_CALL) {
                 let astCache = JsLang.astAssign(
                     JsLang.astVarRef(sourceMap.target, true),
                     astBlock,
@@ -654,7 +661,7 @@ class DaoModeler {
                 );
 
                 _mergeDoValidateAndFillCode(targetFieldName, sourceMap.references, astCache, true);
-            } else if (sourceMap.type === GemlToAst.AST_BLK_ACTIVATOR_CALL) {
+            } else if (sourceMap.type === XemlToAst.AST_BLK_ACTIVATOR_CALL) {
                 let astCache = Snippets._checkAndAssign(
                     astBlock,
                     JsLang.astVarRef(sourceMap.target, true),
@@ -663,7 +670,7 @@ class DaoModeler {
 
                 _mergeDoValidateAndFillCode(targetFieldName, sourceMap.references, astCache, false);
             } else {
-                throw new Error("To be implemented.");
+                throw new Error('To be implemented.');
                 //astBlock = _.castArray(astBlock);
                 //_mergeDoValidateAndFillCode(targetFieldName, [], astBlock);
             }
@@ -677,7 +684,7 @@ class DaoModeler {
         }
         */
 
-        if (!_.isEmpty(methodBodyCache)) {
+        if (!isEmpty(methodBodyCache)) {
             methodBodyValidateAndFill = methodBodyValidateAndFill.concat(
                 Snippets._fieldRequirementCheck(
                     lastFieldsGroup.fieldName,
@@ -689,7 +696,7 @@ class DaoModeler {
         }
 
         /*
-        let ast = JsLang.astProgram(false);
+        let ast = JsLang.astProgram();
         JsLang.astPushInBody(ast, JsLang.astClassDeclare('Abc', 'Model', [
             JsLang.astMemberMethod(asyncMethodNaming('prepareEntityData_'), [ 'context' ],
             Snippets._doValidateAndFillHeader.concat(methodBodyValidateAndFill).concat([ JsLang.astReturn(JsLang.astId('context')) ]),
@@ -699,15 +706,15 @@ class DaoModeler {
 
         return {
             ast: JsLang.astMemberMethod(
-                asyncMethodNaming("applyModifiers"),
-                ["context", "isUpdating"],
+                asyncMethodNaming('applyModifiers'),
+                ['context', 'isUpdating'],
                 Snippets._applyModifiersHeader
                     .concat(methodBodyValidateAndFill)
-                    .concat([JsLang.astReturn(JsLang.astId("context"))]),
+                    .concat([JsLang.astReturn(JsLang.astId('context'))]),
                 false,
                 true,
-                true,
-                "Applying predefined modifiers to entity fields."
+                false,
+                'Applying predefined modifiers to entity fields.'
             ),
             fieldReferences,
         };
@@ -718,38 +725,38 @@ class DaoModeler {
 
         if (fs.existsSync(filePath)) {
             //todo: analyse code, compare arguments
-            this.linker.log("info", `${_.upperFirst(functorType)} "${fileName}" exists. File generating skipped.`);
+            this.linker.log('info', `${_.upperFirst(functorType)} "${fileName}" exists. File generating skipped.`);
 
             return;
         }
 
-        let ast = JsLang.astProgram();
+        let ast = JsLang.astProgram(true);
 
-        JsLang.astPushInBody(ast, JsLang.astFunction(functionName, args, OOL_MODIFIER_RETURN[functorType](args)));
-        JsLang.astPushInBody(ast, JsLang.astAssign("module.exports", JsLang.astVarRef(functionName)));
+        JsLang.astPushInBody(ast, JsLang.astFunction(functionName, args, XEML_MODIFIER_RETURN[functorType](args)));
+        JsLang.astPushInBody(ast, JsLang.astExportDefault(functionName));
 
         fs.ensureFileSync(filePath);
         fs.writeFileSync(filePath, JsLang.astToCode(ast));
-        this.linker.log("info", `Generated ${functorType} file: ${filePath}`);
+        this.linker.log('info', `Generated ${functorType} file: ${filePath}`);
     }
 
     _buildInterfaces(entity, modelMetaInit, sharedContext) {
         let ast = [];
 
         _.forOwn(entity.interfaces, (method, name) => {
-            this.linker.info("Building interface: " + name);
+            this.linker.info('Building interface: ' + name);
 
             let astBody = [
                 JsLang.astVarDeclare(
-                    "$meta",
-                    JsLang.astVarRef("this.meta.interfaces." + name),
+                    '$meta',
+                    JsLang.astVarRef('this.meta.interfaces.' + name),
                     true,
                     false,
-                    "Retrieving the meta data"
+                    'Retrieving the meta data'
                 ),
             ];
 
-            let compileContext = GemlToAst.createCompileContext(entity.xemlModule.name, this.linker, sharedContext);
+            let compileContext = XemlToAst.createCompileContext(entity.xemlModule.name, this.linker, sharedContext);
 
             let paramMeta;
 
@@ -758,16 +765,16 @@ class DaoModeler {
             }
 
             //metadata
-            modelMetaInit["interfaces"] || (modelMetaInit["interfaces"] = {});
-            modelMetaInit["interfaces"][name] = { params: Object.values(paramMeta) };
+            modelMetaInit['interfaces'] || (modelMetaInit['interfaces'] = {});
+            modelMetaInit['interfaces'][name] = { params: Object.values(paramMeta) };
 
             _.each(method.implementation, (operation, index) => {
                 //let lastTopoId =
-                GemlToAst.compileDbOperation(index, operation, compileContext, compileContext.mainStartId);
+                XemlToAst.compileDbOperation(index, operation, compileContext, compileContext.mainStartId);
             });
 
             if (method.return) {
-                GemlToAst.compileExceptionalReturn(method.return, compileContext);
+                XemlToAst.compileExceptionalReturn(method.return, compileContext);
             }
 
             let deps = compileContext.topoSort.sort();
@@ -784,9 +791,9 @@ class DaoModeler {
 
                 let targetFieldName = sourceMap.target; //getFieldName(sourceMap.target);
 
-                if (sourceMap.type === GemlToAst.AST_BLK_VALIDATOR_CALL) {
+                if (sourceMap.type === XemlToAst.AST_BLK_VALIDATOR_CALL) {
                     astBlock = Snippets._validateCheck(targetFieldName, astBlock);
-                } else if (sourceMap.type === GemlToAst.AST_BLK_PROCESSOR_CALL) {
+                } else if (sourceMap.type === XemlToAst.AST_BLK_PROCESSOR_CALL) {
                     if (sourceMap.needDeclare) {
                         astBlock = JsLang.astVarDeclare(
                             JsLang.astVarRef(sourceMap.target),
@@ -802,7 +809,7 @@ class DaoModeler {
                             `Processing "${targetFieldName}"`
                         );
                     }
-                } else if (sourceMap.type === GemlToAst.AST_BLK_ACTIVATOR_CALL) {
+                } else if (sourceMap.type === XemlToAst.AST_BLK_ACTIVATOR_CALL) {
                     if (sourceMap.needDeclare) {
                         astBlock = JsLang.astVarDeclare(
                             JsLang.astVarRef(sourceMap.target),
@@ -831,7 +838,7 @@ class DaoModeler {
                     false,
                     true,
                     true,
-                    text.replaceAll(_.kebabCase(name), "-", " ")
+                    text.replaceAll(_.kebabCase(name), '-', ' ')
                 )
             );
         });
@@ -843,9 +850,9 @@ class DaoModeler {
         let paramMeta = {};
 
         acceptParams.forEach((param, i) => {
-            GemlToAst.compileParam(i, param, compileContext);
+            XemlToAst.compileParam(i, param, compileContext);
             paramMeta[param.name] = param;
-            compileContext.variables[param.name] = { source: "argument" };
+            compileContext.variables[param.name] = { source: 'argument' };
         });
 
         return paramMeta;

@@ -4,8 +4,7 @@
  */
 
 import { InvalidConfiguration } from '@kitmi/types';
-
-const controllerCache = {};
+import { get as _get, set as _set } from '@kitmi/utils';
 
 /**
  * Action middleware creator
@@ -13,6 +12,8 @@ const controllerCache = {};
  * @param {Routable} app
  */
 const action = (controllerAction, app) => {
+    app.log('info', 'actions: ', { controllerAction });
+
     if (typeof controllerAction !== 'string') {
         throw new InvalidConfiguration('Invalid action syntax.', app);
     }
@@ -25,7 +26,7 @@ const action = (controllerAction, app) => {
     let controller = controllerAction.substring(0, pos);
     let action = controllerAction.substring(pos + 1);
 
-    let ctrl = app.registry.controllers?.actions?.[controller];
+    let ctrl = _get(app.registry.controllers?.actions, controller);
 
     if (ctrl == null) {
         throw new InvalidConfiguration(`Action controller "${controller}" not found.`, app);
@@ -36,11 +37,18 @@ const action = (controllerAction, app) => {
     if (typeof ctrl === 'function') {    
         isController = true;
 
-        if (!controllerCache[controller]){            
-            controllerCache[controller] = new ctrl(app);
+        let _ctrl = _get(app.__controllerCache, controller);
+
+        if (_ctrl == null){            
+            if (!app.__controllerCache) {
+                app.__controllerCache = {};
+            }
+
+            _ctrl = new ctrl(app);            
+            _set(app.__controllerCache, controller, _ctrl);
         }
 
-        ctrl = controllerCache[controller];
+        ctrl = _ctrl;
     }
 
     // todo: path support

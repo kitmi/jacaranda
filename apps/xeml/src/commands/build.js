@@ -1,10 +1,8 @@
 const path = require('node:path');
-const { fs } = require("@kitmi/sys");
-const { _, eachAsync_ } = require('@kitmi/utils');
-
+const { fs, cmd } = require("@kitmi/sys");
+const { _, eachAsync_, isEmpty } = require('@kitmi/utils');
+const { hash } = require('@kitmi/feat-cipher');
 const Linker = require('../lang/Linker');
-
-const { getSchemaConnectors } = require('../utils/helpers');
 
 /**
  * Build database scripts and entity models from oolong files.
@@ -14,13 +12,11 @@ const { getSchemaConnectors } = require('../utils/helpers');
 module.exports = async (app) => {
     app.log('verbose', `${app.name} build`);    
 
-    const modelService = app.getService('model');
+    const modelService = app.getService('dataModel');
 
     const schemaObjects = Linker.buildSchemaObjects(app, modelService.config);   
 
-    let schemaToConnector = modelService.getConnectors();
-
-    return eachAsync_(modelService.config.schemaSet, async (deploymentSetting, schemaName) => {      
+    await eachAsync_(modelService.config.schemaSet, async (deploymentSetting, schemaName) => {      
         app.log('verbose', `Processing schema "${schemaName}" ...`);   
         
         let schema = schemaObjects[schemaName];
@@ -29,20 +25,43 @@ module.exports = async (app) => {
             throw new Error(`Schema "${schemaName}" not found in xeml entry files."`);
         }
 
-        let connector = schemaToConnector[schemaName];
+        const connector = modelService.getConnector(schemaName);
 
         let DbModeler = require(`../modeler/database/${connector.driver}/Modeler`);
-        let dbModeler = new DbModeler(context, schema.linker, connector, deploymentSetting.extraOptions);
-        let refinedSchema = dbModeler.modeling(schema, schemaToConnector);
+        let dbModeler = new DbModeler(modelService, schema.linker, connector, deploymentSetting.options);
+        let refinedSchema = dbModeler.modeling(schema);
 
-        if (context.saveIntermediate) {
-            let jsFile = path.resolve(context.gemlPath, schemaName + ".model.json");
-            fs.writeFileSync(jsFile, JSON.stringify(refinedSchema.toJSON(), null, 4));
+        if (!isEmpty(dbModeler.warnings)) {
+            Object.values(dbModeler.warnings).forEach(warning => app.log('warn', warning));
+        }
+
+        const stringifiedContent = JSON.stringify(refinedSchema.toJSON(), null, 4);
+        const digest = hash('sha256', stringifiedContent);
+
+        const verFile = path.resolve(modelService.config.migrationPath, schemaName + ".ver.json");
+        const verContent = fs.existsSync(verFile) ? JSON.parse(fs.readFileSync(verFile, 'utf8')) : { version: 0 };
+        
+        if (!verContent.digest || verContent.digest !== digest) {
+            verContent.digest = digest;
+            verContent.version = verContent.version + 1;
+            fs.writeFileSync(verFile, JSON.stringify(verContent, null, 4));
+            app.log('info', `Schema "${schemaName}" updated to version ${verContent.version}.`);
+        }        
+
+        if (modelService.config.saveIntermediate) {
+            let jsFile = path.resolve(modelService.config.schemaPath, schemaName + ".model.json");
+            fs.writeFileSync(jsFile, stringifiedContent);
         }
 
         const DaoModeler = require('../modeler/Dao');
-        let daoModeler = new DaoModeler(context, schema.linker, connector);
+        let daoModeler = new DaoModeler(modelService, schema.linker, connector);
 
         return daoModeler.modeling_(refinedSchema);
     });  
+
+    try {
+        await cmd.runLive_('pnpm', ['prettier']);
+    } catch (e) {
+        app.logError(e);
+    }
 };

@@ -1,10 +1,11 @@
 /**
- * Enable data source feature
+ * Enable dataSource feature
  * @module Feature_DataSource
  */
 
 import { Feature } from '@kitmi/jacaranda';
 import { _ } from '@kitmi/utils';
+import * as drivers from '../drivers';
 
 export default {
     /**
@@ -20,8 +21,6 @@ export default {
      * @returns {Promise.<*>}
      */
     load_: async (app, dataSources, name) => {
-        //const { Connector } = app.tryRequire('@genx/data');
-
         dataSources = app.featureConfig(dataSources, {
             type: 'object',
             valueSchema: {
@@ -30,13 +29,13 @@ export default {
                     type: 'object',
                     schema: {
                         connection: { type: 'text' },
-                        logStatements: { type: 'boolean', optional: true },
+                        logStatement: { type: 'boolean', optional: true },
+                        logConnection: { type: 'boolean', optional: true },
                     },
+                    keepUnsanitized: true,
                 },
             },
         }, name);
-
-        /*
 
         _.forOwn(dataSources, (dataSource, dbms) => {
             _.forOwn(dataSource, (config, connectorName) => {
@@ -51,15 +50,21 @@ export default {
                 }
                 
                 let { connection: connectionString, ...other } = config;  
+
+                if (!(dbms in drivers)) {
+                    throw new Error(`Unsupported connector driver: "${dbms}"!`);
+                }
+
+                const Connector = drivers[dbms].Connector;
+                other.connectorName = connectorName;
                 
-                let connectorService = Connector.createConnector(dbms, connectionString, { logger: loggerProxy, ...other });
+                const connectorService = new Connector(app, connectionString, other);
                 app.registerService(serviceName, connectorService);
 
-                app.on('stopping', (elegantStoppers) => {
-                    elegantStoppers.push(connectorService.end_());
+                app.on('stopping', async () => {
+                   await connectorService.end_();
                 });
             });            
-        });        
-        */
+        });   
     },
 };

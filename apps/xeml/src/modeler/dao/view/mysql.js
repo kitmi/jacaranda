@@ -1,6 +1,4 @@
-"use strict";
-
-const AST = require('../../util/ast.js');
+const AST = require('../../util/ast');
 
 module.exports = function (dbService, viewName, viewInfo) {
     let spName = dbService.getViewSPName(viewName);

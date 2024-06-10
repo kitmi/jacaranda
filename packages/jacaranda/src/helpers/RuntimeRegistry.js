@@ -33,7 +33,7 @@ class RuntimeRegistry {
         let [ns, moduleName, loadedModule, asDefaultOnly] = fxargs(args, [
             'string?',
             'string',
-            'object|function',
+            'object|function|string',
             'boolean?',
         ]);
         if (ns != null) {

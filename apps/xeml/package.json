@@ -2,7 +2,7 @@
     "name": "@kitmi/xeml",
     "version": "0.1.0",
     "description": "Jacaranda data entity modeling tool.",
-    "main": "lib/index.js",
+    "main": "src/index.js",
     "bin": {
         "xeml": "bin/xeml.js"
     },
@@ -51,12 +51,20 @@
         "pg": "8.11.5"
     },
     "dependencies": {
+        "@kitmi/data": "workspace:*",
+        "@kitmi/jacaranda": "workspace:*",
         "@kitmi/sys": "workspace:*",
         "@kitmi/utils": "workspace:*",
-        "@kitmi/feat-db": "workspace:*",
+        "@kitmi/validators": "workspace:*",
+        "@kitmi/feat-cipher": "workspace:*",
+        "chalk": "^4.1.2",
+        "del": "^6.1.1",
         "escodegen": "2.1.0",
         "esprima": "4.0.1",
         "figlet": "^1.7.0",
-        "glob": "^10.3.10"
+        "glob": "^10.3.10",
+        "inquirer": "^8.2.6",
+        "minimist": "^1.2.8",
+        "pluralize": "^8.0.0"
     }
 }

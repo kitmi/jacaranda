@@ -74,6 +74,14 @@ serialize: (value, meta) => string
 
 Note: if preProcess or postProcess is async function, sanitize_ should be called instead of sanitize
 
+See `@kitmi/validators` for semantic validation. 
+
+### Notes
+
+- Object sanitization
+
+Use `keepUnsanitized` for keeping those entries not defined in the object schema.
+
 ## License
 - MIT
 - Copyright (c) 2023 KITMI PTY LTD

@@ -1,6 +1,4 @@
-"use strict";
-
-const { _ } = require('@genx/july');
+const { _ } = require('@kitmi/utils');
 const { generateDisplayName, deepCloneField, Clonable, schemaNaming } = require('./XemlUtils');
 
 /**
@@ -118,7 +116,7 @@ class Schema extends Clonable {
      * Add an type into the schema
      * @param {*} type 
      * @param {*} typeLocation 
-     * @returns 
+     * @returns {Schema}
      */
     addType(type, typeLocation) {
         const existing = this.types[type];

@@ -14,7 +14,10 @@ import {
     camelCase,
     kebabCase,
     snakeCase,
+    replaceAll,
 } from '@kitmi/utils';
+
+import { typeOf } from '@kitmi/types';
 
 const _quoteSet = ['"', "'"];
 
@@ -46,6 +49,10 @@ export default {
 
     toLower: (value) => value.toLowerCase(),
     toUpper: (value) => value.toUpperCase(),
+
+    replaceAll: (value, options) => replaceAll(value, options.from, options.to),
+
+    typeOf: (value) => typeOf(value),
 
     type: (value, options, meta, context) => context.system.sanitize(value, options, context.i18n, context.path),
 };

@@ -61,7 +61,9 @@
     "@kitmi/utils": "workspace:^",
     "@kitmi/validators": "workspace:^",
     "glob": "^10.3.10",
-    "minimist": "^1.2.8"
+    "minimist": "^1.2.8",
+    "pino": "^8.14.1",
+    "pino-pretty": "^10.0.0"
   },
   "peerDependencies": {
     "@kitmi/algo": "workspace:^",

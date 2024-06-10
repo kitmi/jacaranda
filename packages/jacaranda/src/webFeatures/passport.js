@@ -19,42 +19,50 @@ export default {
     /**
      * Load the feature
      * @param {Routable} app - The app module object
-     * @param {object} config - Passport settings
-     * @property {bool} [config.useSession=false] - Use session or not, default: false
+     * @param {object} options - Passport settings
+     * @property {bool} [options.useSession=false] - Use session or not, default: false
      *
-     * @property {object} config.init - Passport initialization settings
-     * @property {string} [config.init.userProperty='user'] - User property name, default: user
+     * @property {object} options.init - Passport initialization settings
+     * @property {string} [options.init.userProperty='user'] - User property name, default: user
+     * @property {bool} [options.init.compat=false] - Backwards compatibility with old strategies, default: false
      *
-     * @property {array} config.strategies - Passport strategies, e.g. [ 'local', 'facebook' ]
-     * @property {array} config.shareToServer - Expose the passport servcie to while server
+     * @property {array} options.strategies - Passport strategies, e.g. [ 'local', 'facebook' ]
+     * @property {bool|string} options.shareToServer - Expose the passport servcie to whole server
      * @returns {Promise.<*>}
      */
     load_: function (app, options, name) {
-        const { strategies, useSession, init, shareToServer } =
-            app.featureConfig(
-                options,
-                {
-                    schema: {
-                        strategies: {
-                            type: 'array',
-                            element: { type: 'text' },
-                        },
-                        useSession: { type: 'bool', default: false },
-                        init: { type: 'object', optional: true },
-                        shareToServer: { type: 'bool', default: false },
+        const { strategies, useSession, init, shareToServer } = app.featureConfig(
+            options,
+            {
+                schema: {
+                    strategies: {
+                        type: 'array',
+                        element: { type: 'text' },
                     },
+                    useSession: { type: 'bool', default: false },
+                    init: {
+                        type: 'object',
+                        optional: true,
+                        schema: {
+                            userProperty: { type: 'text', default: 'user' },
+                            compat: { type: 'bool', default: false },
+                        },
+                    },
+                    shareToServer: [
+                        { type: 'text', optional: true },
+                        { type: 'bool', optional: true, default: false },
+                    ],
                 },
-                name
-            );
+            },
+            name
+        );
 
-        const KoaPassport = app.tryRequire('koa-passport').KoaPassport;
+        const KoaPassport = app.requireModule('koa-passport').KoaPassport;
         const passport = new KoaPassport();
 
         let initializeMiddleware = passport.initialize(init);
 
-        passport.middlewares = useSession
-            ? [initializeMiddleware, passport.session()]
-            : initializeMiddleware;
+        passport.middlewares = useSession ? [initializeMiddleware, passport.session()] : initializeMiddleware;
 
         app.on('before:' + Feature.FINAL, async () => {
             await app.useMiddlewares_(app.router, passport.middlewares);
@@ -67,15 +75,12 @@ export default {
         app.registerService(name, passport);
 
         if (shareToServer && app.host != null) {
-            app.host.registerService(name, passport);
+            app.host.registerService(typeof shareToServer === 'string' ? shareToServer : name, passport);
         }
 
         return batchAsync_(strategies, async (strategy) => {
-            const strategyScript = path.join(
-                app.sourcePath,
-                'passports',
-                strategy
-            );
+            const strategyScript = path.join(app.sourcePath, 'passports', strategy);
+            
             const strategyInitiator = esmCheck(require(strategyScript));
             return strategyInitiator(app, passport);
         });

@@ -79,4 +79,67 @@ describe('fxargs', function () {
         assert.strictEqual(typeof testToRun, 'function');
         assert.strictEqual(typeof options, 'object');
     });
+
+    it('issue1 - case1', function () {
+        function f1(...args) {
+            let [a, b, c, d] = fxargs(args, [
+                'string?',
+                'string',
+                'object|function|string',
+                'boolean?',
+            ]);
+
+            return {
+                a, b, c, d
+            };
+        }
+
+        const { a, b, c, d } = f1("key", "value");
+        assert.strictEqual(a, undefined);
+        assert.strictEqual(b, "key");
+        assert.strictEqual(c, "value");
+        assert.strictEqual(d, undefined);
+    });
+
+    it('issue1 - case2', function () {
+        function f1(...args) {
+            let [a, b, c, d] = fxargs(args, [
+                'string?',
+                'string',
+                'object|function|string',
+                'boolean?',
+            ]);
+
+            return {
+                a, b, c, d
+            };
+        }
+
+        const { a, b, c, d } = f1("key", "value", false);
+        assert.strictEqual(a, undefined);
+        assert.strictEqual(b, "key");
+        assert.strictEqual(c, "value");
+        assert.strictEqual(d, false);
+    });
+
+    it('issue1 - case3', function () {
+        function f1(...args) {
+            let [a, b, c, d] = fxargs(args, [
+                'string?',
+                'string',
+                'object|function|string',
+                'boolean?',
+            ]);
+
+            return {
+                a, b, c, d
+            };
+        }
+
+        const { a, b, c, d } = f1("a", "key", "value");
+        assert.strictEqual(a, "a");
+        assert.strictEqual(b, "key");
+        assert.strictEqual(c, "value");
+        assert.strictEqual(d, undefined);
+    });
 });

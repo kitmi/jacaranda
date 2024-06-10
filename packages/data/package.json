@@ -28,7 +28,7 @@
     "test": "SWCRC=true mocha --recursive test/**/*.spec.js",
     "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
     "report": "allure generate allure-results --clean -o allure-report && serve ./allure-report",
-    "doc": "echo skipped",
+    "doc": "jsdoc --configure .jsdoc.json --verbose && pnpm prepack",
     "prettier": "prettier --write .",
     "lint": "eslint \"**/*.js\"",
     "lint-fix": "eslint \"**/*.js\" --fix",
@@ -50,15 +50,19 @@
     ]
   },
   "dependencies": {
-    "@kitmi/jacaranda": "workspace:^",
-    "@kitmi/sys": "workspace:^",
-    "@kitmi/utils": "workspace:^",
+    "@kitmi/jacaranda": "workspace:*",
+    "@kitmi/sys": "workspace:*",
+    "@kitmi/types": "workspace:*",
+    "@kitmi/utils": "workspace:*",
+    "@kitmi/validators": "workspace:*",
     "number-to-letter": "^1.0.1",
+    "@napi-rs/uuid": "^0.2.2",
     "yaml": "^2.3.4"
   },
   "devDependencies": {
     "@kitmi/tester": "workspace:^"
   },
+  "peerDependencies": {},
   "prettier": {
     "quoteProps": "consistent",
     "printWidth": 120,

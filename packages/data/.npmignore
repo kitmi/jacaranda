@@ -1,0 +1,26 @@
+# .npmignore 
+
+.DS_Store
+.babelrc
+.mocharc.js 
+.gitignore
+.gitattributes
+.prettierignore
+.travis.yml
+.editorconfig
+.swcrc
+jsconfig.json
+jsdoc.json
+babel.config.js
+rollup.config.js
+*.log
+*.md
+test
+examples
+docs
+coverage
+.nyc_output
+__test__
+__tests__
+**/*.spec.js
+allure-results

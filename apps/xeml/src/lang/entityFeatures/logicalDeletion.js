@@ -1,6 +1,4 @@
-"use strict";
-
-const { _ } = require('@genx/july')
+const { _ } = require('@kitmi/utils')
 
 const FEATURE_NAME = 'logicalDeletion';
 
@@ -56,7 +54,7 @@ function feature(entity, args = []) {
             readOnly: true,
             optional: true,
             writeOnce: true,
-            auto: true
+            auto: 'now'
         };
 
         entity.addFeature(FEATURE_NAME, {

@@ -1,6 +1,9 @@
-export { default as Connector } from './Connector';
 export { default as DbModel } from './DbModel';
+export { default as Activators } from './modifiers/Activators';
+export { default as Processors } from './modifiers/Processors';
+export { default as Validators } from './modifiers/Validators';
 export * from './features';
+export * from './helpers';
 
 
 //const Loaders = require('./loaders');
