@@ -59,7 +59,7 @@ class RelationalConnector extends Connector {
      * @param {*} queryOptions 
      * @param {*} options 
      * @param {*} connection 
-     * @returns 
+     * @returns {object} { data, affectedRows, [reverseAliasMap], [totalCount] }
      */
     async _executeQuery_(query, queryOptions, connection) {
         let result, totalCount;
@@ -357,7 +357,7 @@ class RelationalConnector extends Connector {
      * @param {object} aliasMap - The alias map
      * @param {integer} startId - The starting index for alias generation
      * @param {array} params - The parameters array
-     * @returns
+     * @returns {integer} next start id
      */
     _joinAssociation(assocInfo, anchor, joinings, parentAliasKey, aliasMap, startId, params) {
         const alias = assocInfo.alias || this._generateAlias(startId++, anchor);
@@ -438,6 +438,7 @@ class RelationalConnector extends Connector {
      * @param {string} joinOperator - 'AND' or 'OR'
      * @param {string} mainEntity - The entity name that has joining
      * @param {object} aliasMap - The alias map, dot separated key -> alias
+     * @returns {string}
      */
     _joinCondition(condition, params, joinOperator, mainEntity, aliasMap) {
         if (Array.isArray(condition)) {
@@ -615,7 +616,7 @@ class RelationalConnector extends Connector {
      * @param {*} params
      * @param {*} mainEntity
      * @param {*} aliasMap
-     * @returns
+     * @returns {string}
      */
     _packValue(value, params, mainEntity, aliasMap) {
         if (isPlainObject(value)) {
@@ -669,6 +670,7 @@ class RelationalConnector extends Connector {
      * @param {string} mainEntity - The entity name that has joining
      * @param {object} aliasMap - The alias map, dot separated key -> alias
      * @param {boolean} [inject=false] - Whether to inject the value directly
+     * @returns {string}
      */
     _wrapCondition(fieldName, value, params, mainEntity, aliasMap, inject) {
         if (value == null) {
@@ -914,7 +916,7 @@ class RelationalConnector extends Connector {
      * @param {*} params
      * @param {*} mainEntity
      * @param {*} aliasMap
-     * @returns
+     * @returns {string}
      */
     _buildColumn(col, params, mainEntity, aliasMap) {
         if (typeof col === 'string') {
@@ -1088,7 +1090,7 @@ class RelationalConnector extends Connector {
      * @param {*} partitionBy 
      * @param {*} mainEntity 
      * @param {*} aliasMap 
-     * @returns 
+     * @returns {string}
      */
     _buildPartitionBy(partitionBy, mainEntity, aliasMap) {
         if (typeof partitionBy === 'string') {

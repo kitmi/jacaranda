@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>helpers.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Connector.html">Connector</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Connector.html#getConnectionStringWithoutCredential">getConnectionStringWithoutCredential</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Connector.html#makeNewConnectionString">makeNewConnectionString</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="EntityModel.html">EntityModel</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_containsUniqueKey">_containsUniqueKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_delete_">_delete_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_ensureContainsUniqueKey">_ensureContainsUniqueKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_ensureReturningAutoId">_ensureReturningAutoId</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_normalizeGetCreated">_normalizeGetCreated</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_prepareEntityData_">_prepareEntityData_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_prepareQueries">_prepareQueries</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_translateValue">_translateValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#afterCreate_">afterCreate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#afterDeleteMany_">afterDeleteMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#afterDelete_">afterDelete_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#afterFindAll_">afterFindAll_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#afterUpdateMany_">afterUpdateMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#afterUpdate_">afterUpdate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#aggregate_">aggregate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#assocFrom">assocFrom</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#beforeCreate_">beforeCreate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#beforeDeleteMany_">beforeDeleteMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#beforeDelete_">beforeDelete_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#beforeUpdateMany_">beforeUpdateMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#beforeUpdate_">beforeUpdate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#cached_">cached_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#create_">create_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#deleteMany_">deleteMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#deleteOne_">deleteOne_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#ensureFields_">ensureFields_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#ensureRetrieveCreated">ensureRetrieveCreated</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#ensureRetrieveDeleted">ensureRetrieveDeleted</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#ensureRetrieveUpdated">ensureRetrieveUpdated</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#fieldSchema">fieldSchema</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#findMany_">findMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#findOne_">findOne_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#getNestedObject">getNestedObject</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#getUniqueKeyFieldsFrom">getUniqueKeyFieldsFrom</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#getUniqueKeyValuePairsFrom">getUniqueKeyValuePairsFrom</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#getValueFromContext">getValueFromContext</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#inputSchema">inputSchema</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#retryCreateOnDuplicate_">retryCreateOnDuplicate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#updateMany_">updateMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#updateOne_">updateOne_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#valueOfKey">valueOfKey</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="PostgresConnector.html">PostgresConnector</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#beginTransaction_">beginTransaction_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#commit_">commit_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#connect_">connect_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#create_">create_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#delete_">delete_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#disconnect_">disconnect_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#end_">end_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#execute_">execute_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#find_">find_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#getConnectionStringWithoutCredential">getConnectionStringWithoutCredential</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#insertMany_">insertMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#makeNewConnectionString">makeNewConnectionString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#ping_">ping_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#replace_">replace_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#rollback_">rollback_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#update_">update_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#upsertMany_">upsertMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#upsertOne_">upsertOne_</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="PostgresEntityModel.html">PostgresEntityModel</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresEntityModel.html#_internalAfterCreate_">_internalAfterCreate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresEntityModel.html#_internalAfterDeleteMany_">_internalAfterDeleteMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresEntityModel.html#_internalAfterDelete_">_internalAfterDelete_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresEntityModel.html#_internalAfterUpdateMany_">_internalAfterUpdateMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresEntityModel.html#_internalAfterUpdate_">_internalAfterUpdate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresEntityModel.html#_internalBeforeDelete_">_internalBeforeDelete_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresEntityModel.html#_serializeByTypeInfo">_serializeByTypeInfo</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresEntityModel.html#_translateSymbolToken">_translateSymbolToken</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="RelationalConnector.html">RelationalConnector</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildCTEHeader">_buildCTEHeader</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildColumn">_buildColumn</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildColumns">_buildColumns</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildGroupBy">_buildGroupBy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildGroupByColumn">_buildGroupByColumn</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildGroupByList">_buildGroupByList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildLimitOffset">_buildLimitOffset</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildOrderBy">_buildOrderBy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildPartitionBy">_buildPartitionBy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_escapeIdWithAlias">_escapeIdWithAlias</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_executeQuery_">_executeQuery_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_generateAlias">_generateAlias</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_joinAssociation">_joinAssociation</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_joinAssociations">_joinAssociations</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_joinCondition">_joinCondition</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_packArray">_packArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_packValue">_packValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_replaceFieldNameWithAlias">_replaceFieldNameWithAlias</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_wrapCondition">_wrapCondition</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#aggregate_">aggregate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#buildQuery">buildQuery</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="RelationalEntityModel.html">RelationalEntityModel</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalEntityModel.html#_extractAssociations">_extractAssociations</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalEntityModel.html#_loadAssocIntoTable">_loadAssocIntoTable</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalEntityModel.html#_prepareAssociations">_prepareAssociations</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeatureRuntime_AtLeastOneNotNull.html">EntityFeatureRuntime_AtLeastOneNotNull</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeatureRuntime_ChangeLog.html">EntityFeatureRuntime_ChangeLog</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeatureRuntime_LogicalDeletion.html">EntityFeatureRuntime_LogicalDeletion</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeatureRuntime_StateTracking.html">EntityFeatureRuntime_StateTracking</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_DataModel.html">Feature_DataModel</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_DataSource.html">Feature_DataSource</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_DataSource.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Db.html">Feature_Db</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#getValueFromAny">getValueFromAny</a></span></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#hasValueInAny">hasValueInAny</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#mergeWhere">mergeWhere</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">helpers.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { isWrappedWith, unwrap } from '@kitmi/utils';
+
+export const isRawSql = (value) => isWrappedWith(value, 'r#"', '"#');
+export const extractRawSql = (value) => unwrap(value, 'r#"', '"#');
+
+export const xrRawValue = (value) => ({ $xr: 'Raw', value });
+export const xrRaw = xrRawValue;
+
+export const xrColumn = (name) => ({ $xr: 'Column', name });
+export const xrCol = xrColumn;
+
+export const xrFunction = (name, args) => ({ $xr: 'Function', name, args });
+export const xrCall = xrFunction;
+
+export const xrExpression = (left, op, right) => ({ $xr: 'BinExpr', left, op, right });
+export const xrExpr = xrExpression;
+
+export const xrQuery = (query) => ({ $xr: 'Query', query });
+export const xrDataSet = (model, query) => ({ $xr: 'DataSet', model, query });
+export const xrSql = (sql) => ({ $xr: 'SQL', sql });
+
+export const doInc = (field, increment) => xrExpr(xrCol(field), '+', increment);
+export const doDec = (field, decrement) => xrExpr(xrCol(field), '-', decrement);
+
+//export const callCount = (alias, fieldName) => xrCall('COUNT', )
+
+/**
+ * Merge two query conditions using given operator.
+ * @param {*} condition1
+ * @param {*} condition2
+ * @param {*} operator
+ * @returns {object}
+ */
+export function mergeWhere(condition1, condition2, operator = '$and') {
+    if (_.isEmpty(condition1)) {
+        return condition2;
+    }
+
+    if (_.isEmpty(condition2)) {
+        return condition1;
+    }
+
+    return { [operator]: [condition1, condition2] };
+}
+
+/**
+ * Check if any one of collection as the element of given array has a value in the specified key.
+ * @param {*} arrayOfColl
+ * @param {*} key
+ * @returns {*}
+ */
+export const hasValueInAny = (arrayOfColl, key) => getValueFromAny(arrayOfColl, key) != null;
+
+/**
+ * Get the value from the first element of the collection that has a value in the specified key.
+ * @param {*} arrayOfColl
+ * @param {*} key
+ * @returns {*}
+ */
+export const getValueFromAny = (arrayOfColl, key) => _.find(arrayOfColl, (coll) => coll?.[key] != null);
+
+/*
+queryCount = (alias, fieldName) => ({
+    type: 'function',
+    name: 'COUNT',
+    args: [fieldName || '*'],
+    alias: alias || 'count',
+});
+
+$call = (name, alias, args, extra) => ({
+    ...extra,
+    type: 'function',
+    name,
+    alias,
+    args,
+});
+$as = (name, alias) => ({ type: 'column', name, alias });
+
+// in mysql, null value comparison will never return true, even null != 1
+nullOrIs = (fieldName, value) => [{ [fieldName]: { $exists: false } }, { [fieldName]: { $eq: value } }];
+*/
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Tue Jun 11 2024 10:01:08 GMT+1000 (Australian Eastern Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

@@ -55,7 +55,7 @@ export const hasValueInAny = (arrayOfColl, key) => getValueFromAny(arrayOfColl, 
  * Get the value from the first element of the collection that has a value in the specified key.
  * @param {*} arrayOfColl
  * @param {*} key
- * @returns
+ * @returns {*}
  */
 export const getValueFromAny = (arrayOfColl, key) => _.find(arrayOfColl, (coll) => coll?.[key] != null);
 
