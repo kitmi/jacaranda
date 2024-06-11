@@ -1,5 +1,11 @@
 # @kitmi/sys
 
+## 1.2.1
+
+### Patch Changes
+
+-   48cb18d: Refactor xeml and data package and minor bug fixing and change on utility libs
+
 ## 1.2.0
 
 ### Minor Changes

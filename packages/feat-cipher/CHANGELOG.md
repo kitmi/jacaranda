@@ -1,5 +1,13 @@
 # @kitmi/feat-cipher
 
+## 2.0.0
+
+### Patch Changes
+
+-   Updated dependencies [48cb18d]
+    -   @kitmi/types@1.3.0
+    -   @kitmi/jacaranda@3.0.0
+
 ## 1.0.0
 
 ### Minor Changes

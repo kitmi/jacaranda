@@ -1,5 +1,12 @@
 # @kitmi/feat-storage
 
+## 1.1.1
+
+### Patch Changes
+
+-   Updated dependencies [48cb18d]
+    -   @kitmi/utils@1.2.1
+
 ## 1.1.0
 
 ### Minor Changes

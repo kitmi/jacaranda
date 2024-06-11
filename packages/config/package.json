@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/config",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "JavaScript env-aware config system",
     "main": "cjs/index.js",
     "module": "src/index.js",

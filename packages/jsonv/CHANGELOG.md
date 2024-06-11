@@ -1,5 +1,13 @@
 # @kitmi/jsonv
 
+## 1.2.1
+
+### Patch Changes
+
+-   Updated dependencies [48cb18d]
+    -   @kitmi/types@1.3.0
+    -   @kitmi/utils@1.2.1
+
 ## 1.2.0
 
 ### Minor Changes

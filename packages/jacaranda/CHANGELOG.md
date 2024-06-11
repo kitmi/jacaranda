@@ -1,5 +1,19 @@
 # @kitmi/jacaranda
 
+## 3.0.0
+
+### Patch Changes
+
+-   48cb18d: Refactor xeml and data package and minor bug fixing and change on utility libs
+-   Updated dependencies [48cb18d]
+    -   @kitmi/types@1.3.0
+    -   @kitmi/validators@1.2.0
+    -   @kitmi/adapters@1.1.2
+    -   @kitmi/algo@1.1.1
+    -   @kitmi/config@1.2.1
+    -   @kitmi/sys@1.2.1
+    -   @kitmi/utils@1.2.1
+
 ## 2.0.1
 
 ### Patch Changes

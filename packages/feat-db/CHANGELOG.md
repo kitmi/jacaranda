@@ -1,5 +1,14 @@
 # @kitmi/feat-db
 
+## 0.1.1
+
+### Patch Changes
+
+-   Updated dependencies [48cb18d]
+    -   @kitmi/jacaranda@3.0.0
+    -   @kitmi/sys@1.2.1
+    -   @kitmi/utils@1.2.1
+
 ## 0.1.0
 
 ### Minor Changes

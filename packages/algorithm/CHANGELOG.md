@@ -1,5 +1,14 @@
 # @kitmi/algo
 
+## 1.1.1
+
+### Patch Changes
+
+-   48cb18d: Refactor xeml and data package and minor bug fixing and change on utility libs
+-   Updated dependencies [48cb18d]
+    -   @kitmi/types@1.3.0
+    -   @kitmi/utils@1.2.1
+
 ## 1.1.0
 
 ### Minor Changes

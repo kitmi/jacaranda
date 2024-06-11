@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/utils",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "A JavaScript utility library for both server and browser",
     "main": "cjs/index",
     "module": "src/index.js",

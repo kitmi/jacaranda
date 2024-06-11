@@ -1,5 +1,16 @@
 # @kitmi/types
 
+## 1.3.0
+
+### Minor Changes
+
+-   48cb18d: Refactor xeml and data package and minor bug fixing and change on utility libs
+
+### Patch Changes
+
+-   Updated dependencies [48cb18d]
+    -   @kitmi/utils@1.2.1
+
 ## 1.2.0
 
 ### Minor Changes

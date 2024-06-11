@@ -1,5 +1,15 @@
 # @kitmi/feat-pipeline
 
+## 0.1.1
+
+### Patch Changes
+
+-   Updated dependencies [48cb18d]
+    -   @kitmi/validators@1.2.0
+    -   @kitmi/jacaranda@3.0.0
+    -   @kitmi/utils@1.2.1
+    -   @kitmi/feat-cipher@2.0.0
+
 ## 0.1.0
 
 ### Minor Changes

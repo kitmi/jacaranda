@@ -1,6 +1,6 @@
 {
   "name": "@kitmi/examples",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Jacaranda example apps",
   "main": "cjs/index.js",
   "module": "src/index.js",

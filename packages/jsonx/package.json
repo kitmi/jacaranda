@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/jsonx",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "JSON Expression Syntax",
     "main": "cjs/index.js",
     "module": "src/index.js",
