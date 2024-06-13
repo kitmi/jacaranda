@@ -79,7 +79,7 @@ with
   changeLog
 ```
 
-带参数的例子
+- 带参数的例子
 
 ```
 with
@@ -239,6 +239,17 @@ Validators:
   exist
   required
 ```  
+
+- 范例
+```
+password : text maxLength(200) |~strongPassword |>hashPassword(@latest.passwordSalt) -- "User password"
+
+passwordSalt : text fixedLength(16) readOnly |=random -- "User password salt"  
+```
+
+以上例子中
+- `passwordSalt`是只读字段，它的值由`random`生成器生成固定长度为16的随机字符串作为密码哈希的干扰码。
+- `password`字段会检测输入是否满足`strongPassword`要求，默认是最小8个字符，需要包含至少一个大小写、数字和特殊字，符合要求后会与最新的`passwordSalt`进行哈希，处理器`hashPassword`并非内置的处理器，`xeml命令行`会在models目录中生成一个处理器的模板文件，供开发人员填入具体的哈希代码。
 
 ## 关系定义 
 
