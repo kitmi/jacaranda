@@ -4,7 +4,8 @@
         "array": [
             "#!es6:value1: ${value1}",
             "#!es6:value2: ${value2}",
-            "#!es6:sum: ${value1 + value2}"
+            "#!es6:sum: ${value1 + value2}",
+            "${value1 + value2}"
         ],
         "object": {
             "non": "nothing",

@@ -186,7 +186,7 @@ class ConfigLoader {
             throw new Error('Invalid post processor syntax: ' + strVal);
         } else if (strVal.startsWith('${') && strVal.endsWith('}')) {
             const operator = this.postProcessors.processors[ES6_TEMPLATE_TOKEN];            
-            return operator(strVal.substring(2, strVal.length-1), variables);
+            return operator(strVal, variables);
         }
 
         return strVal;

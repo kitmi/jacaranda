@@ -298,7 +298,7 @@ hasMany的一方不会在Entity中添加任何字段。
 ### 一对一(hasOne + belongsTo)
 
 - 语法
-- 
+
 ```
 一的一方：
 <belongsTo|belongs to> <被引用的Entity> [with <条件表达式>] [ [as <添加到当前entity的字段> ] [optional] [default(<默认值>)] [...修饰器] | [ on <当前entity的字段> ] ]

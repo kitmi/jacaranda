@@ -43,6 +43,7 @@ describe('bvt:json', function () {
                     cfg['key2']['array'][0].should.equal('value1: 10');
                     cfg['key2']['array'][1].should.equal('value2: 20');
                     cfg['key2']['array'][2].should.equal('sum: 30');
+                    cfg['key2']['array'][3].should.equal('30');
                     cfg['key2']['object'].should.have.keys('non', 'itpl');
                     cfg['key2']['object']['non'].should.equal('nothing');
                     cfg['key2']['jsv1'].should.be.exactly(200);
