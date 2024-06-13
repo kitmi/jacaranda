@@ -1,5 +1,11 @@
 # @kitmi/config
 
+## 1.2.2
+
+### Patch Changes
+
+-   Bug fix
+
 ## 1.2.1
 
 ### Patch Changes

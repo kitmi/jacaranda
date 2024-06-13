@@ -1,5 +1,13 @@
 # @kitmi/jacaranda
 
+## 3.0.1
+
+### Patch Changes
+
+-   Updated dependencies
+    -   @kitmi/config@1.2.2
+    -   @kitmi/adapters@1.1.2
+
 ## 3.0.0
 
 ### Patch Changes

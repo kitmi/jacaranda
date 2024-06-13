@@ -1,5 +1,12 @@
 # @kitmi/data
 
+## 0.2.1
+
+### Patch Changes
+
+-   fix db feature dependency bug.
+-   @kitmi/jacaranda@3.0.1
+
 ## 0.2.0
 
 ### Minor Changes
