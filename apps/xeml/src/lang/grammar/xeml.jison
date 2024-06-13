@@ -20,41 +20,7 @@ Keyword by state
     };
 
     //top level keywords
-    const TOP_LEVEL_KEYWORDS = new Set(['import', 'type', 'const', 'schema', 'entity', 'view', 'customize', 'override']);
-
-    //allowed keywords of different state
-    const SUB_KEYWORDS = { 
-        // level 1
-        'customize': new Set(['entities']),
-        'override': new Set(['entity']),
-        'schema': new Set(['entities', 'views']),
-        'entity': new Set([ 'is', 'extends', 'with', 'has', 'associations', 'key', 'index', 'data', 'input', /*'interface', 'code'*/, 'triggers' ]),
-    
-        // level 2
-        'entity.associations': new Set(['hasOne', 'hasMany', 'refersTo', 'belongsTo']),
-        'entity.index': new Set(['is', 'unique']),        
-        //'entity.interface': new Set(['accept', 'find', 'findOne', 'return']),
-        'entity.triggers': new Set(['onCreate', 'onCreateOrUpdate', 'onUpdate', 'onDelete']),          
-        'entity.data': new Set(['in']),
-        'entity.input': new Set(['extends']),     
-
-        // level 3
-        'entity.associations.item': new Set(['connectedBy', 'being', 'with', 'as', 'of']),        
-        'entity.interface.find': new Set(['a', 'an', 'the', 'one', 'by', 'cases', 'selected', 'selectedBy', "of", "which", "where", "when", "with", "otherwise", "else"]),           
-        'entity.interface.return': new Set(["unless", "when"]),       
-        'entity.triggers.onChange': new Set(["when"]), 
-
-        // level 4
-        'entity.associations.item.block': new Set(['when']),           
-        'entity.interface.find.when': new Set(['when', 'else', 'otherwise']),           
-        'entity.interface.find.else': new Set(['return', 'throw']),
-        'entity.interface.return.when': new Set(['exists', 'null', 'throw']),   
-        
-        'entity.input.inputSet.item': new Set(['optional', 'with']),     
-
-        // level 5
-        'entity.associations.item.block.when': new Set(['being', 'with' ])               
-    };
+    const TOP_LEVEL_KEYWORDS = new Set(['import', 'type', 'const', 'schema', 'entity', 'customize', 'override', 'api']);
 
     //next state transition table
     //.* means any char except newline after the parent keyword
@@ -73,11 +39,27 @@ Keyword by state
         'entity.key': 'entity.key', 
         'entity.index': 'entity.index', 
         'entity.input': 'entity.input', 
+        'entity.views': 'entity.views', 
         'entity.data': 'entity.data', 
         'entity.code': 'entity.code', 
 
         'entity.input.$INDENT': 'entity.input.inputSet',
         'entity.input.inputSet.$INDENT': 'entity.input.inputSet.item',
+
+        'entity.views.$INDENT': 'entity.views.dataSet',
+        'entity.views.dataSet.$INDENT': 'entity.views.dataSet.item',
+
+        'entity.views.dataSet.item.select': 'entity.views.dataSet.item.select',
+        'entity.views.dataSet.item.select.$INDENT': 'entity.views.dataSet.item.select.item',
+
+        'entity.views.dataSet.item.groupBy': 'entity.views.dataSet.item.groupBy',
+        'entity.views.dataSet.item.groupBy.$INDENT': 'entity.views.dataSet.item.groupBy.item',
+
+        'entity.views.dataSet.item.orderBy': 'entity.views.dataSet.item.orderBy',
+        'entity.views.dataSet.item.orderBy.$INDENT': 'entity.views.dataSet.item.orderBy.item',        
+
+        'entity.views.dataSet.item.options': 'entity.views.dataSet.item.options',
+        'entity.views.dataSet.item.options.$INDENT': 'entity.views.dataSet.item.options.item',        
         
         'entity.associations': 'entity.associations',
         'entity.associations.hasOne': 'entity.associations.item',
@@ -87,23 +69,47 @@ Keyword by state
         'entity.associations.item.$INDENT': 'entity.associations.item.block',
         'entity.associations.item.block.when': 'entity.associations.item.block.when',
 
-        'entity.interface': 'entity.interface',
-        'entity.interface.accept': 'entity.interface.accept',
-        'entity.interface.accept.$INDENT': 'entity.interface.accept.block',
-        'entity.interface.find': 'entity.interface.find',
-        'entity.interface.findOne': 'entity.interface.find',
-        'entity.interface.return': 'entity.interface.return',
-        'entity.interface.return.when': 'entity.interface.return.when',
-        'entity.interface.find.when': 'entity.interface.find.when',
-        'entity.interface.find.otherwise': 'entity.interface.find.else',
-        'entity.interface.find.else': 'entity.interface.find.else',
-
         'entity.triggers': 'entity.triggers',
         'entity.triggers.onCreate': 'entity.triggers.onChange',
         'entity.triggers.onCreateOrUpdate': 'entity.triggers.onChange',
         'entity.triggers.onUpdate': 'entity.triggers.onChange',
         'entity.triggers.onDelete': 'entity.triggers.onChange',
         'entity.triggers.onChange.when': 'entity.triggers.onChange.when',        
+    };
+
+    //allowed keywords of different state
+    const SUB_KEYWORDS = { 
+        // level 1
+        'customize': new Set(['entities']),
+        'override': new Set(['entity']),
+        'schema': new Set(['entities', 'views']),
+        'entity': new Set([ 'is', 'extends', 'with', 'has', 'associations', 'key', 'index', 'data', 'input', 'views', /*'interface', 'code'*/, 'triggers' ]),
+    
+        // level 2
+        'entity.associations': new Set(['hasOne', 'hasMany', 'refersTo', 'belongsTo', 'has', 'one', 'many', 'refers', 'to', 'belongs']),
+        'entity.index': new Set(['is', 'unique']),        
+        //'entity.interface': new Set(['accept', 'find', 'findOne', 'return']),
+        'entity.triggers': new Set(['onCreate', 'onCreateOrUpdate', 'onUpdate', 'onDelete']),          
+        'entity.data': new Set(['in']),
+        'entity.input': new Set(['extends']),    
+        'entity.views': new Set(['extends']),     
+
+        // level 3
+        'entity.associations.item': new Set(['connectedBy', 'being', 'with', 'as', 'of', 'connected', 'by']),               
+        'entity.triggers.onChange': new Set(["when"]), 
+
+        // level 4
+        'entity.associations.item.block': new Set(['when']),        
+        
+        'entity.input.inputSet.item': new Set(['optional', 'with']),     
+
+        'entity.views.dataSet.item': new Set(['select', 'orderBy', 'order', 'groupBy', 'group', 'by', 'options']),     
+
+        // level 5
+        'entity.associations.item.block.when': new Set(['being', 'with' ]),     
+
+        // level 6
+        'entity.views.dataSet.item.orderBy.item': new Set(['asc', 'desc', 'ASC', 'DESC', 'v', '^', 'ascend', 'descend']),      
     };
 
     //exit number of states on dedent if exists in below table
@@ -115,11 +121,19 @@ Keyword by state
         [ 'entity.index', 1 ],           
         [ 'entity.input.inputSet', 2 ],
         [ 'entity.input.inputSet.item', 1 ],                  
+        [ 'entity.views.dataSet', 2 ],
+        [ 'entity.views.dataSet.item', 1 ],                  
         [ 'entity.associations', 1 ],
         [ 'entity.associations.item', 2 ],
-        [ 'entity.associations.item.block.when', 2 ],        
-        [ 'entity.interface.accept.block', 2 ],
-        [ 'entity.interface.find.else', 2]        
+        [ 'entity.associations.item.block.when', 2 ],  
+        [ 'entity.views.dataSet.item.select', 2 ],
+        [ 'entity.views.dataSet.item.select.item', 1 ],
+        [ 'entity.views.dataSet.item.groupBy', 2 ],
+        [ 'entity.views.dataSet.item.groupBy.item', 1 ],
+        [ 'entity.views.dataSet.item.orderBy', 2 ],
+        [ 'entity.views.dataSet.item.orderBy.item', 1 ],
+        [ 'entity.views.dataSet.item.options', 2 ],
+        [ 'entity.views.dataSet.item.options.item', 1 ],        
     ]);
 
     //exit number of states on newline if exists in below table
@@ -132,18 +146,22 @@ Keyword by state
         [ 'entity.data', 1 ],                
         [ 'entity.input.inputSet', 1 ],
         [ 'entity.input.inputSet.item', 1 ],
-        [ 'entity.interface.accept', 1 ],       
-        [ 'entity.interface.find.when', 1], 
-        [ 'entity.interface.find.else', 1], 
-        [ 'entity.interface.return.when', 1 ],         
+        [ 'entity.views.dataSet', 1 ],
+        [ 'entity.views.dataSet.item', 1 ],        
+        [ 'entity.views.dataSet.item.select', 1 ],
+        [ 'entity.views.dataSet.item.select.item', 1 ],
+        [ 'entity.views.dataSet.item.groupBy', 1 ],
+        [ 'entity.views.dataSet.item.groupBy.item', 1 ],
+        [ 'entity.views.dataSet.item.orderBy', 1 ],
+        [ 'entity.views.dataSet.item.orderBy.item', 1 ],
+        [ 'entity.views.dataSet.item.options', 1 ],
+        [ 'entity.views.dataSet.item.options.item', 1 ],        
         [ 'entity.associations.item', 1 ],        
-        [ 'entity.associations.item.block.when', 1 ]
+        [ 'entity.associations.item.block.when', 1 ],
     ]);
 
     //in below states, certain tokens are allowed
-    const ALLOWED_TOKENS = new Map([        
-        [ 'entity.interface.find.when', new Set([ 'word_operators' ]) ],
-        [ 'entity.interface.return.when', new Set([ 'word_operators' ]) ],
+    const ALLOWED_TOKENS = new Map([      
         [ 'entity.associations.item', new Set([ 'word_operators' ]) ],
         [ 'entity.associations.item.block.when', new Set([ 'word_operators' ]) ],
         [ 'entity.triggers.onChange.when', new Set([ 'word_operators' ]) ]
@@ -152,7 +170,7 @@ Keyword by state
     //indented child starting state
     const CHILD_KEYWORD_START_STATE = new Set([ 'EMPTY', 'DEDENTED' ]);    
     
-    const BUILTIN_TYPES = new Set([ 'any', 'array', 'binary', 'blob', 'bool', 'boolean', 'buffer', 'datetime', 'decimal', 'enum', 'float', 'int', 'integer', 'number', 'object', 'json', 'string', 'text', 'timestamp' ]);
+    const BUILTIN_TYPES = new Set([ 'any', 'array', 'binary', 'blob', 'bool', 'boolean', 'buffer', 'datetime', 'decimal', 'float', 'int', 'integer', 'bigint', 'number', 'object', 'json', 'string', 'text', 'timestamp' ]);
 
     class ParserState {
         constructor() {
@@ -484,11 +502,18 @@ Keyword by state
             this.define('relation', name, value, line);    
         }
 
-        defineView(name, value, line) {
-            this.define('view', name, value, line);
+        idOrFunctionToKV(value) {
+            if (typeof value === 'string') {
+                return { [value]: true };
+            }
+
+            return {
+                [value.name]: value.args.length === 1 ? value.args[0] : value.args
+            };
         }
     }
 
+    // merge two objects
     function merge(obj1, obj2) {
         let m = Object.assign({}, obj1);
 
@@ -542,7 +567,9 @@ newline		            \n|\r\n|\r|\f
 
 // identifiers
 element_access          {variable}"["({space})*?({variable}|{shortstring}|{integer})({space})*?"]"
+associated_select_all   {identifier}("."{identifier})*".\*"
 member_access           {identifier}("."{identifier})+
+exclude_column          "-"{identifier}
 variable                {member_access}|{identifier}
 object_reference        "@"({variable}|{shortstring})
 symbol_token            "@""@"{identifier}
@@ -847,6 +874,16 @@ escapeseq               \\.
 
                                 return 'DOTNAME';
                            %}
+<INLINE>{associated_select_all}    %{      
+                                state.matchAnyExceptNewline();
+
+                                return 'SELECT_ALL';
+                           %}                    
+<INLINE>{exclude_column}    %{      
+                                state.matchAnyExceptNewline();
+
+                                return 'EXCLUDE_COLUMN';
+                           %}                    
 <INLINE>{symbol_token}     %{
                                 state.matchAnyExceptNewline();
 
@@ -1045,15 +1082,6 @@ customize_statement
     : "customize" NEWLINE INDENT schema_statement_block DEDENT NEWLINE? -> state.defineOverrides($4, @4.first_line)
     ;
 
-schema_views
-    : "views" NEWLINE INDENT schema_views_block DEDENT NEWLINE? -> { views: $4 }
-    ;
-
-schema_views_block
-    : identifier_or_string NEWLINE -> [ $1 ]
-    | identifier_or_string NEWLINE schema_views_block -> [ $1 ].concat($3)
-    ;
-
 type_statement
     : "type" type_statement_item NEWLINE
     | "type" NEWLINE INDENT type_statement_block DEDENT NEWLINE? 
@@ -1147,7 +1175,7 @@ type_infos
 
 type_info
     : identifier -> { [$1]: true }
-    | narrow_function_call -> { [$1.name]: $1.args  }
+    | simple_function_call -> { [$1.name]: $1.args  }
     ;    
 
 type_modifiers_or_not
@@ -1190,7 +1218,7 @@ entity_statement
 
 entity_statement_header
     : entity_statement_header0 -> [ $1, {} ]
-    | entity_statement_header0 entity_base_keywords identifier_or_string_list -> [ $1, { base: $3 } ]    
+    | entity_statement_header0 entity_base_keywords id_or_string_or_call_list -> [ $1, { base: $3 } ]    
     ;
 
 entity_base_keywords
@@ -1200,7 +1228,7 @@ entity_base_keywords
 
 entity_statement_header0
     : "entity" identifier_or_string -> $2
-    | "entity" narrow_function_call -> $2
+    | "entity" simple_function_call -> $2
     ;
 
 entity_statement_block
@@ -1220,6 +1248,7 @@ entity_sub_item
     | key_statement
     | index_statement
     | input_statement
+    | views_statement
     | data_statement
     | code_statement    
     | interfaces_statement
@@ -1240,8 +1269,8 @@ with_features
     ;
 
 with_features_block
-    : feature_inject NEWLINE -> [ $1 ]
-    | feature_inject NEWLINE with_features_block -> [ $1 ].concat($3)
+    : id_or_string_or_call NEWLINE -> [ $1 ]
+    | id_or_string_or_call NEWLINE with_features_block -> [ $1 ].concat($3)
     ;
 
 has_fields
@@ -1283,27 +1312,39 @@ associations_block
 association_item
     : association_type_referee identifier_or_string (association_through)? (association_as)? type_info_or_not field_comment_or_not -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6} }    
     | association_type_referee NEWLINE INDENT identifier_or_string association_cases_block (association_as)? type_info_or_not field_comment_or_not NEWLINE DEDENT -> { type: $1, destEntity: $4, ...$5, ...$6, fieldProps: { ...$7, ...$8 } }
-    | "belongsTo" identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6, ...$7 } }      
-    | "refersTo" identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6, ...$7 } }      
-    | "refersTo" identifier_or_string "of" identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $4, destField: $2, ...$5, ...$6, fieldProps: { ...$7, ...$8, ...$9 } }      
+    | belongs_to_keywords identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6, ...$7 } }      
+    | refers_to_keywords identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6, ...$7 } }      
+    | refers_to_keywords identifier_or_string "of" identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $4, destField: $2, ...$5, ...$6, fieldProps: { ...$7, ...$8, ...$9 } }      
+    ;
+
+refers_to_keywords
+    : "refersTo"
+    | "refers" "to"
+    ;
+
+belongs_to_keywords
+    : "belongsTo"
+    | "belongs" "to"
     ;
 
 association_type_referee
     : "hasOne"
+    | "has" "one" -> "hasOne"
     | "hasMany"
-    ;    
-
-association_type_referer
-    : "refersTo"
-    | "belongsTo"
+    | "has" "many" -> "hasMany"
     ;    
 
 association_through
-    : "connectedBy" identifier_string_or_dotname -> { by: $2 }    
-    | "connectedBy" identifier_string_or_dotname association_extra_condition -> { by: $2, ...$3 }    
+    : connected_by_keywords identifier_string_or_dotname -> { by: $2 }    
+    | connected_by_keywords identifier_string_or_dotname association_extra_condition -> { by: $2, ...$3 }    
     | association_connection -> { remoteField: $1 }     
     | "being" array_of_identifier_or_string -> { remoteField: $2 }      
     | association_condition -> { with: $1 }
+    ;
+
+connected_by_keywords
+    : "connectedBy"
+    | "connected" "by"
     ;
 
 association_extra_condition
@@ -1392,9 +1433,102 @@ input_block_item_base
     ;    
 
 input_block_item_with_spec
-    : input_block_item_base 'with' feature_inject -> { ...$1, spec: $3 }
-    | input_block_item_base 'with' feature_inject 'optional' -> { ...$1, spec: $3, optional: true }
+    : input_block_item_base 'with' id_or_string_or_call -> { ...$1, spec: $3 }
+    | input_block_item_base 'with' id_or_string_or_call 'optional' -> { ...$1, spec: $3, optional: true }
     ;    
+
+// ----- views related -----
+
+views_statement
+    : "views" NEWLINE INDENT views_statement_block DEDENT NEWLINE? -> { views: $4 }     
+    ;
+
+views_statement_block
+    : views_statement_def NEWLINE INDENT entity_views_block DEDENT NEWLINE -> { [$1.name]: $4 }     
+    | views_statement_def NEWLINE INDENT entity_views_block DEDENT views_statement_block -> { [$1.name]: $4, ...$6 }     
+    ;
+
+views_statement_def
+    : identifier_or_string -> { name: $1 }
+    | identifier_or_string "extends" identifier_or_string -> { name: $1, extends: $3 }
+    ;
+
+entity_views_block
+    : views_statement_select views_statement_group_by? views_statement_order_by* views_statement_options? -> { $select: $1, ...($2 ? { $groupBy: $2 } : null), ...($3 && $3.length > 0 ? { $orderBySet: $3 } : null), ...$4 }
+    ;
+
+views_statement_select
+    : "select" NEWLINE INDENT entity_views_block_select DEDENT NEWLINE? -> $4
+    ;
+
+groupby_keywords
+    : "groupBy" 
+    | "group" "by" 
+    ;
+
+views_statement_group_by
+    : groupby_keywords NEWLINE INDENT identifier_string_or_dotname_block DEDENT NEWLINE? -> $4
+    ;
+
+orderby_keywords
+    : "orderBy" 
+    | "order" "by" 
+    ;
+
+views_statement_order_by
+    : orderby_keywords NEWLINE INDENT order_by_block DEDENT NEWLINE? -> { "$default": $4 }
+    | orderby_keywords identifier_or_string NEWLINE INDENT order_by_block DEDENT NEWLINE? -> { [$2]: $5 }
+    ;
+
+order_by_block
+    : order_by_clause NEWLINE -> [ $1 ]
+    | order_by_clause NEWLINE order_by_block -> [ $1 ].concat($3)
+    ;
+
+order_by_clause
+    : identifier_string_or_dotname -> { field: $1, ascend: true }
+    | identifier_string_or_dotname order_ascend_keywords -> { field: $1, ascend: true }    
+    | identifier_string_or_dotname order_descend_keywords -> { field: $1, ascend: false }
+    ;
+
+order_ascend_keywords
+    : "ascend"
+    | "ASC"
+    | "^"
+    | "asc"
+    | "<"
+    ;
+
+order_descend_keywords
+    : "descend"
+    | "DESC"
+    | "v"
+    | "desc"
+    | ">"
+    ;
+
+views_statement_options
+    : "options" NEWLINE INDENT entity_views_block_options DEDENT NEWLINE? -> $4
+    ;
+
+entity_views_block_options
+    : id_or_string_or_call NEWLINE -> state.idOrFunctionToKV($1)
+    | id_or_string_or_call NEWLINE entity_views_block_options -> { ...state.idOrFunctionToKV($1), ...$3 }
+    ;
+ 
+entity_views_block_select
+    : entity_views_block_select_item NEWLINE -> [ $1 ]
+    | entity_views_block_select_item NEWLINE entity_views_block_select -> [ $1 ].concat($3)
+    ;   
+
+entity_views_block_select_item
+    : identifier_string_or_dotname
+    | SELECT_ALL  
+    | "*" EXCLUDE_COLUMN+ -> { $xt: "ExclusiveSelect", columnSet: $1, excludes: $2 }
+    | SELECT_ALL EXCLUDE_COLUMN+ -> { $xt: "ExclusiveSelect", columnSet: $1, excludes: $2 }
+    ;    
+
+// ----- data related -----
 
 data_statement
     : "data" data_records NEWLINE -> { data: [{ records: $2 }] }
@@ -1432,243 +1566,8 @@ triggers_operation_item
     | "always" NEWLINE INDENT triggers_result_block DEDENT NEWLINE? -> { do: $4 }
     ;   
 
-interfaces_statement
-    : "interface" NEWLINE INDENT interfaces_statement_block DEDENT NEWLINE? -> { interfaces: $4 }
-    ;
-
-interfaces_statement_block
-    : interface_definition -> Object.assign({}, $1)
-    | interface_definition interfaces_statement_block -> Object.assign({}, $1, $2)
-    ;
-
-interface_definition
-    : identifier_or_string NEWLINE INDENT interface_definition_body DEDENT NEWLINE? -> { [$1]: $4 }
-    ;
-
-interface_definition_body
-    : accept_or_not implementation return_or_not -> Object.assign({}, $1, { implementation: $2 }, $3)
-    ;
-
-accept_or_not
-    :
-    | accept_statement
-    ;
-
-accept_statement
-    : "accept" accept_param NEWLINE -> { accept: [ $2 ] }
-    | "accept" NEWLINE INDENT accept_block DEDENT NEWLINE? -> { accept: $4 }
-    ;
-
-accept_block
-    : accept_param NEWLINE -> [ $1 ]
-    | accept_param NEWLINE accept_block -> [ $1 ].concat($3)
-    ;
-
-accept_param
-    : modifiable_param
-    | identifier_or_string ":" DOTNAME type_info_or_not type_modifiers_or_not -> Object.assign({ name: $1, type: $3 }, $4, $5)   
-    ;
-
-implementation
-    : operation -> [ $1 ]
-    | operation implementation -> [ $1 ].concat($2)
-    ;
-
-operation
-    : find_one_operation
-    | coding_block /*
-    | find_list_operation
-    | update_operation
-    | create_operation
-    | delete_operation    
-    | assign_operation   */
-    ;
-
-find_one_keywords
-    : "findOne"
-    | "find" article_keyword
-    ;
-
-find_one_operation
-    : find_one_keywords identifier_or_string selection_inline_keywords conditional_expression -> { $xt: 'FindOneStatement', model: $2, condition: $4 }
-    | find_one_keywords identifier_or_string case_statement -> { $xt: 'FindOneStatement', model: $2, condition: $3 }
-    ;    
-
-cases_keywords
-    : ":"
-    | "by" "cases"    
-    | "by" "cases" "as" "below"
-    ;   
-
-case_statement
-    : cases_keywords NEWLINE INDENT case_condition_block DEDENT NEWLINE? -> { $xt: 'cases', items: $4 }
-    | cases_keywords NEWLINE INDENT case_condition_block otherwise_statement DEDENT NEWLINE? -> { $xt: 'cases', items: $4, else: $5 } 
-    ;
-
-case_condition_item
-    : "when" conditional_expression "=>" condition_as_result_expression -> { $xt: 'ConditionalStatement', test: $2, then: $4 }
-    ; 
-
-case_condition_block
-    : case_condition_item -> [ $1 ]
-    | case_condition_item case_condition_block -> [ $1 ].concat($2)
-    ;
-
-otherwise_statement
-    : otherwise_keywords "=>" condition_as_result_expression NEWLINE -> $3
-    | otherwise_keywords "=>" stop_controll_flow_expression NEWLINE -> $3
-    | otherwise_keywords "=>" NEWLINE INDENT stop_controll_flow_expression NEWLINE DEDENT -> $5
-    ;
-
-otherwise_keywords
-    : "otherwise"
-    | "else"
-    ;          
-
-stop_controll_flow_expression
-    : return_expression
-    | throw_error_expression
-    ;
-
-condition_as_result_expression
-    : conditional_expression NEWLINE
-    | NEWLINE INDENT conditional_expression NEWLINE DEDENT -> $3
-    ;
-
-return_expression
-    : "return" modifiable_value -> { $xt: 'ReturnExpression', value: $2 }
-    ;
-
-throw_error_expression
-    : "throw" STRING -> { $xt: 'ThrowExpression', message: $2 }
-    | "throw" identifier -> { $xt: 'ThrowExpression', errorType: $2 }
-    | "throw" identifier "(" gfc_param_list  ")" -> { $xt: 'ThrowExpression', errorType: $2, args: $4 }
-    ;
-
-return_or_not
-    :
-    | return_expression NEWLINE
-        { $$ = { return: $1 }; }
-    | return_expression "unless" NEWLINE INDENT return_condition_block DEDENT NEWLINE? 
-        { $$ = { return: Object.assign($1, { exceptions: $5 }) }; }
-    ;
-
-return_condition_item
-    : "when" conditional_expression "=>" modifiable_value -> { $xt: 'ConditionalStatement', test: $2, then: $4 }    
-    | "when" conditional_expression "=>" throw_error_expression -> { $xt: 'ConditionalStatement', test: $2, then: $4 }    
-    ;
-
-return_condition_block
-    : return_condition_item NEWLINE -> [ $1 ]
-    | return_condition_item NEWLINE return_condition_block -> [ $1 ].concat($3)
-    ;
-
-update_operation
-    : "update" identifier_or_string "with" inline_object where_expr NEWLINE
-        { $$ = { $xt: 'update', target: $2, data: $4, filter: $5 }; }
-    ;
-
-create_operation
-    : "create" identifier_or_string "with" inline_object NEWLINE
-        { $$ = { $xt: 'create', target: $2, data: $4 }; }
-    ;
-
-delete_operation
-    : "delete" identifier_or_string where_expr NEWLINE
-        { $$ = { $xt: 'delete', target: $2, filter: $3 }; }
-    ;
-
-coding_block
-    : "do" javascript NEWLINE -> { $xt: 'DoStatement', do: $2 }
-    ;
-
-assign_operation
-    : "set" identifier_or_member_access "<-" value variable_modifier_or_not NEWLINE
-        { $$ = { $xt: 'assignment', left: $2, right: Object.assign({ argument: $4 }, $5) }; }
-    ;
-
-entity_fields_selections
-    : identifier_or_string -> { entity: $1 }     
-    | identifier_or_string "->" inline_array -> { entity: $1, projection: $3 }
-    ;
-
-article_keyword
-    : "a"
-    | "an"
-    | "the"
-    | "one"
-    ;    
-
-selection_attributive_keywords
-    : "of" "which"
-    | "where" 
-    | "when" 
-    | "with"
-    ;
-
-selection_keywords
-    : "by"
-    | "selectedBy"
-    | "selected" "by"    
-    ;    
-
-selection_inline_keywords
-    : selection_keywords
-    | selection_attributive_keywords
-    ;
-
-group_by_or_not
-    :
-    | "group" "by" identifier_string_or_dotname_list NEWLINE -> { groupBy: $3 }
-    | "group" "by" NEWLINE INDENT identifier_string_or_dotname_block DEDENT NEWLINE? -> { groupBy: $5 }
-    ;
-
-having_or_not
-    : 
-    | "having" conditional_expression NEWLINE -> { having: $2 }
-    ;    
-
-order_by_or_not
-    :
-    | "order" "by" order_by_list NEWLINE -> { orderBy: $3 }
-    | "order" "by" NEWLINE INDENT order_by_block DEDENT NEWLINE? -> { orderBy: $5 }
-    ;
-
-order_by_block
-    : order_by_clause NEWLINE -> [ $1 ]
-    | order_by_clause NEWLINE order_by_block -> [ $1 ].concat($3)
-    ;
-
-order_by_clause
-    : identifier_string_or_dotname -> { field: $1, ascend: true }
-    | identifier_string_or_dotname "ascend" -> { field: $1, ascend: true }
-    | identifier_string_or_dotname "<" -> { field: $1, ascend: true }
-    | identifier_string_or_dotname "descend" -> { field: $1, ascend: false }
-    | identifier_string_or_dotname ">" -> { field: $1, ascend: false }
-    ;
-
-order_by_list
-    : order_by_clause -> [ $1 ]
-    | order_by_clause order_by_list0 -> [ $1 ].concat($2)
-    ;
-
-order_by_list0
-    : "," order_by_clause -> [ $2 ]
-    | "," order_by_clause order_by_list0 -> [ $2 ].concat($3)
-    ;
-
-skip_or_not
-    :
-    | "offset" INTEGER NEWLINE -> { offset: $2 }
-    | "offset" REFERENCE NEWLINE -> { offset: $2 }
-    ;
-
-limit_or_not
-    :
-    | "limit" INTEGER NEWLINE -> { limit: $2 }
-    | "limit" REFERENCE NEWLINE -> { limit: $2 }
-    ;
-
+// ----- value types related -----    
+    
 /* A field of entity with a series of modifiers, subject should be identifier or quoted string. */
 modifiable_field
     : identifier_or_string type_base_or_not type_info_or_not type_modifiers_or_not -> Object.assign({ name: $1, type: $1 }, $2, $3, $4)   
@@ -1685,14 +1584,25 @@ modifiable_param
     ; 
 
 /* identifier or simple function call */
-feature_inject
-    : identifier
-    | narrow_function_call
+id_or_string_or_call
+    : identifier_or_string
+    | simple_function_call
     ;
 
+id_or_string_or_call_list
+    : id_or_string_or_call -> [ $1 ]
+    | id_or_string_or_call id_or_string_or_call_list0 -> [ $1 ].concat($2)    
+    ;
+
+id_or_string_or_call_list0
+    : ',' id_or_string_or_call -> [ $2 ]
+    | ',' id_or_string_or_call id_or_string_or_call_list0 -> [ $2 ].concat($3)
+    ;    
+
 /* simple function call, without modifiable support */
-narrow_function_call
-    : identifier "(" nfc_param_list ")" -> { name: $1, args: $3 }
+simple_function_call
+    : identifier "(" ")" -> { name: $1, args: [] }
+    | identifier "(" nfc_param_list ")" -> { name: $1, args: $3 }
     ;    
 
 nfc_param_list
@@ -1827,7 +1737,7 @@ identifier_or_string_list0
 
 value
     : nfc_param
-    | narrow_function_call -> state.normalizeFunctionCall($1)
+    | simple_function_call -> state.normalizeFunctionCall($1)
     ;
 
 conditional_expression

@@ -139,12 +139,11 @@ class RelationalConnector extends Connector {
      * @property {object} $orderBy
      * @property {number} $offset - Offset
      * @property {number} $limit - Limit
-     * @property {boolean|string} $totalCount - Whether to count the total number of records
-     * @property {string} $key
+     * @property {boolean|string} $totalCount - Whether to count the total number of records     
      * @returns {object} { sql, params, countSql, countParams, hasJoining, aliasMap }
      */
-    buildQuery(model, { $relation, $select, $where, $groupBy, $orderBy, $offset, $limit, $totalCount, $key }) {
-        const hasTotalCount = $totalCount;
+    buildQuery(model, { $relation, $select, $where, $groupBy, $orderBy, $offset, $limit, $totalCount }) {
+        const hasTotalCount = $totalCount != null;
         let needDistinctForLimit = ($limit != null && $limit > 0) || ($offset != null && $offset > 0);
 
         const { fromTable, withTables, model: _model } = this._buildCTEHeader(model);
@@ -228,7 +227,11 @@ class RelationalConnector extends Connector {
         let distinctField;
 
         if (hasTotalCount || needDistinctForLimit) {
-            distinctFieldRaw = typeof $totalCount === 'string' ? $totalCount : $key;
+            if (typeof $totalCount !== 'string') {
+                throw new InvalidArgument('The "$totalCount" should be a distinct column name for counting.');
+            }
+            
+            distinctFieldRaw = $totalCount;
             distinctField = this._escapeIdWithAlias(
                 distinctFieldRaw,
                 mainEntity,
@@ -1011,7 +1014,7 @@ class RelationalConnector extends Connector {
                 return this._joinCondition(col.expr, params, null, mainEntity, aliasMap);
             }
 
-            if (col.type.starsWith('column')) {
+            if (col.type.starsWith('col')) {
                 return this._escapeIdWithAlias(col.name, mainEntity, aliasMap);
             }
         }

@@ -1761,10 +1761,95 @@ const restMethods = (serviceId, entityName, className) => ({
     sourceType: 'script',
 });
 
+const processorMethod = (functor) => {
+    const args = functor.args.slice(3).map((arg) => ({
+        type: 'Identifier',
+        name: arg,
+    }))
+    return {
+        type: 'MethodDefinition',
+        key: {
+            type: 'Identifier',
+            name: functor.functionName,
+        },
+        computed: false,
+        value: {
+            type: 'FunctionExpression',
+            id: null,
+            params: [
+                {
+                    type: 'Identifier',
+                    name: 'fieldName',
+                },
+                ...args,
+            ],
+            body: {
+                type: 'BlockStatement',
+                body: [
+                    {
+                        type: 'ReturnStatement',
+                        argument: {
+                            type: 'CallExpression',
+                            callee: {
+                                type: 'Identifier',
+                                name: `${functor.functionName}Processor`,
+                            },
+                            arguments: [
+                                {
+                                    type: 'ThisExpression',
+                                },
+                                {
+                                    type: 'MemberExpression',
+                                    computed: true,
+                                    object: {
+                                        type: 'MemberExpression',
+                                        computed: false,
+                                        object: {
+                                            type: 'MemberExpression',
+                                            computed: false,
+                                            object: {
+                                                type: 'ThisExpression',
+                                            },
+                                            property: {
+                                                type: 'Identifier',
+                                                name: 'meta',
+                                            },
+                                        },
+                                        property: {
+                                            type: 'Identifier',
+                                            name: 'fields',
+                                        },
+                                    },
+                                    property: {
+                                        type: 'Identifier',
+                                        name: 'fieldName',
+                                    },
+                                },
+                                {
+                                    type: 'Literal',
+                                    value: null,
+                                    raw: 'null',
+                                },
+                                ...args,
+                            ],
+                        },
+                    },
+                ],
+            },
+            generator: false,
+            expression: false,
+            async: functor.functionName.endsWith('_'),
+        },
+        kind: 'method',
+        static: false,
+    };
+};
+
 module.exports = {
     _checkAndAssign,
     _applyModifiersHeader,
     _validateCheck,
     _fieldRequirementCheck,
     restMethods,
+    processorMethod,
 };

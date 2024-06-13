@@ -5,7 +5,7 @@
 
 const { _ } = require('@kitmi/utils');
 const { TopoSort } = require('@kitmi/algo');
-const { Activators, Processors, Validators } = require('@kitmi/data');
+const { _Activators, _Processors, _Validators } = require('@kitmi/data');
 const JsLang = require('./ast');
 const XemlTypes = require('../../lang/XemlTypes');
 const { isDotSeparateName, extractDotSeparateName, extractReferenceBaseName } = require('../../lang/XemlUtils');
@@ -43,9 +43,9 @@ const XEML_MODIFIER_PATH = {
 };
 
 const XEML_MODIFIER_BUILTIN = {
-    [XemlTypes.Modifier.VALIDATOR]: Validators,
-    [XemlTypes.Modifier.PROCESSOR]: Processors,
-    [XemlTypes.Modifier.ACTIVATOR]: Activators,
+    [XemlTypes.Modifier.VALIDATOR]: _Validators,
+    [XemlTypes.Modifier.PROCESSOR]: _Processors,
+    [XemlTypes.Modifier.ACTIVATOR]: _Activators,
 };
 
 const OPERATOR_TOKEN = {
@@ -468,7 +468,7 @@ function translateModifier(functor, compileContext, args) {
 
             addModifierToMap(functorId, functor.$xt, fileName, compileContext.mapOfFunctorToFile);
         } else {
-            functorId = functor.$xt + 's.' + functionName;
+            functorId = '_' + functor.$xt + 's.' + functionName;
         }
     }
 

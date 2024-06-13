@@ -6,18 +6,19 @@ import { v4 } from "@napi-rs/uuid";
 
 // Activator will only be called when the field value is null
 // Activator signature: (entity, field, context, ...args) => value
+const activatorTable = typeSystem.handlers.activator;
+activatorTable['isEqual'] = ([arg1, arg2]) => arg1 === arg2;
+activatorTable['isNotEqual'] = ([arg1, arg2]) => arg1 !== arg2;
+activatorTable['setValueWhen'] = ([value, condition]) => condition ? value : null;
+activatorTable['concat'] = ([sep = '', ...strs]) => strs.join(sep);
+activatorTable['sum'] = (args) => args.reduce((sum, v) => (sum += v), 0);
+activatorTable['multiply'] = ([multiplier, multiplicand]) => multiplier * multiplicand;
+activatorTable['uuid'] = () => v4();
+activatorTable['timeOfValueSet'] = (value) => value != null ? new Date() : null;
 
-const Activators = _.mapValues(typeSystem.handlers.activator, (activator) => (entity, field, context, options) => activator(options, field, context));
+export const _Activators = _.mapValues(activatorTable, (activator) => (entity, field, context, ...options) => activator(options, field, context));
 
-Activators.isEqual = (entity, field, context, arg1, arg2) => arg1 === arg2;
-Activators.setValueWhen = (entity, field, context, value, condition) => condition ? value : null;
-Activators.timeByDuration = (entity, field, context, startTime, duration) => startTime.plus(duration);
-Activators.concat = (entity, field, context, sep = '', ...strs) => strs.join(sep);
-Activators.sum = (entity, field, context, ...args) => args.reduce((sum, v) => (sum += v), 0);
-Activators.multiply = (entity, field, context, multiplier, multiplicand) => multiplier * multiplicand;
-Activators.uuid = () => v4();
-Activators.timeOfValueSet = (value) => value != null ? new Date() : null;
-Activators.fetch_ = async (entity, field, context, assoc, options) => {
+_Activators.fetch_ = async (entity, field, context, assoc, options) => {
     const parts = assoc.split('.');
 
     const selectedField = parts.pop();
@@ -111,4 +112,4 @@ Activators.fetch_ = async (entity, field, context, assoc, options) => {
     return remoteEntity[selectedField];
 };
 
-export default Activators;
+export default activatorTable;

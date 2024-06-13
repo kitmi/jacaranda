@@ -412,8 +412,6 @@ class Linker {
             const overrideElement = this.loadElement(this.entryModule, XemlTypes.Element.ENTITY_OVERRIDE, elementName, true);
 
             Entity.overrideEntityMeta(elementInfo, overrideElement);
-
-            //console.dir(elementInfo, { depth: 10 });
         }
 
         if (elementType in ELEMENT_CLASS_MAP) {

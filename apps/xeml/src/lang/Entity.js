@@ -1,7 +1,7 @@
 const EventEmitter = require("node:events");
 const path = require("node:path");
 
-const { _ } = require("@kitmi/utils");
+const { _, isPlainObject } = require("@kitmi/utils");
 const { generateDisplayName, deepCloneField, Clonable, entityNaming } = require("./XemlUtils");
 const { FunctionalQualifiers } = require('./Rules');
 const Field = require("./Field");
@@ -46,6 +46,13 @@ class Entity extends Clonable {
                 ...overrideInfo.inputs
             };
         }  
+
+        if (overrideInfo.views) {
+            sourceInfo.views = {
+                ...sourceInfo.views,
+                ...overrideInfo.views
+            };
+        }
     }
 
 
@@ -131,6 +138,11 @@ class Entity extends Clonable {
             //inherit fields, processed features, key and indexes
             let baseClasses = _.castArray(this.info.base);
             baseClasses.reverse().forEach(base => {
+                if (isPlainObject(base)) {
+                    console.log(base);
+                    return;
+                }
+
                 let baseEntity = this.linker.loadEntity(this.xemlModule, base);
                 assert: baseEntity.linked;
 
@@ -206,6 +218,10 @@ class Entity extends Clonable {
 
         if (this.info.inputs) {
             this.inputs = this.info.inputs;
+        }
+
+        if (this.info.views) {
+            this.views = this.info.views;
         }
 
         /**
@@ -496,6 +512,21 @@ class Entity extends Clonable {
         return this;
     }
 
+    getReferencedEntityByPath(dotPath) {
+        let parts = dotPath.split('.');
+        let entity = this;
+
+        for (let i = 0, l = parts.length; i < l; i++) {
+            let part = parts[i];
+            entity = entity.getReferencedEntity(part);
+            if (entity == null) {
+                throw new Error(`Entity association "${part}" not found in entity "${this.name}".`);
+            }
+        }
+
+        return entity;
+    }
+
     getReferencedEntity(entityName) {
         return this.linker.loadEntity(this.xemlModule, entityName);    
     }
@@ -551,6 +582,7 @@ class Entity extends Clonable {
         deepCloneField(this, entity, 'key');        
         deepCloneField(this, entity, 'indexes');    
         deepCloneField(this, entity, 'inputs');        
+        deepCloneField(this, entity, 'views');        
         deepCloneField(this, entity, 'interfaces');
 
         entity.linked = true;
@@ -662,6 +694,10 @@ class Entity extends Clonable {
 
         if (baseEntity.inputs) {
             overrideInfo.inputs = { ...baseEntity.inputs, ...this.info.inputs };
+        }
+
+        if (baseEntity.views) {
+            overrideInfo.views = { ...baseEntity.views, ...this.info.views };
         }
 
         if (!_.isEmpty(overrideInfo)) {                    

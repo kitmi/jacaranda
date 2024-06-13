@@ -130,12 +130,12 @@ class EntityModel {
 
     /**
      * Helper to combine explicit required associations and associations required by query fields or projection fields.
-     * @param {*} extraArray
-     * @param {*} fields
+    * @param {array} [fields] 
+    * @param {array} [extraArray]     
      * @returns {Array}
      */
-    assocFrom(extraArray, fields) {
-        const result = new Set(extraArray);
+    assocFrom(fields, extraArray) {
+        const result = new Set(extraArray ?? []);
 
         if (fields) {
             fields.forEach((keyPath) => {
@@ -197,7 +197,7 @@ class EntityModel {
                 throw new UnexpectedState('None of the unique keys found from the data set.');
             }
 
-            const findOptions = { $where: uk, /* $projection: fields,*/ $association: this.assocFrom(null, fields) };
+            const findOptions = { $where: uk, /* $projection: fields,*/ $association: this.assocFrom(fields) };
 
             return this.findOne_(findOptions, connOpts);
         }
@@ -355,7 +355,6 @@ class EntityModel {
 
         const record = await this._safeExecute_(async () => {
             let result = await this.db.connector.find_(this.meta.name, opOptions, this.db.transaction);
-            console.log('find', result);            
 
             if (opOptions.$relationships && !opOptions.$skipOrm) {
                 // rows, coloumns, aliasMap
@@ -1322,6 +1321,11 @@ class EntityModel {
         return false;
     }
 
+    /**
+     * Check if the given object contains reserved keys.
+     * @param {*} obj 
+     * @returns {boolean}
+     */
     _hasReservedKeys(obj) {
         return _.find(obj, (v, k) => k[0] === '$');
     }
@@ -1412,17 +1416,24 @@ class EntityModel {
             }
 
             let pos;
+            const converted = [];
             
-            qOptions.$select = qOptions.$select.map((v) => {
+            qOptions.$select.forEach((v) => {
                 if (typeof v === 'string' && (pos = v.lastIndexOf('.')) > 0) {
                     relFromSelect.add(v.substring(0, pos));
                 }
-                return this._translateValue(v, variables)
+
+                converted.push(this._translateValue(v, variables));
             });
+
+            qOptions.$select = converted;
         }
 
         if (relFromSelect.size) {
-            qOptions.$relation = [ ...(qOptions.$relation ?? []), ...Array.from(relFromSelect)];
+            if (qOptions.$relation) {
+                qOptions.$relation.forEach(rel => relFromSelect.add(rel));
+            }
+            qOptions.$relation = Array.from(relFromSelect);
         }
 
         if (qOptions.$relation && !qOptions.$relationships) {

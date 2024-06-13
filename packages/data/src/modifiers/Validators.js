@@ -2,12 +2,14 @@ import typeSystem from '@kitmi/validators/allSync';
 import { _ } from '@kitmi/utils';
 import { ValidationError } from '@kitmi/types';
 
-const Validators = _.mapValues(
-    typeSystem.handlers.validator,
+const validatorTable = typeSystem.handlers.validator;
+
+export const _Validators = _.mapValues(
+    validatorTable,
     (validator, name) => (entity, field, context, value, payload) => {
         if (!validator.__metaCheckNull && value == null) return value;
 
-        if (context.options.$skipValidators?.has(name)) return value;
+        if (context?.options.$skipValidators?.has(name)) return value;
 
         const [validated, reason] = validator(value, payload, field, context);
 
@@ -19,4 +21,4 @@ const Validators = _.mapValues(
     }
 );
 
-export default Validators;
+export default validatorTable;

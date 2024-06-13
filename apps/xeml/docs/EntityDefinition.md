@@ -1,6 +1,6 @@
 # Entity Definition
 
-## code
+## Inheriance
 
 ## features
 
@@ -65,9 +65,18 @@
 * refersTo - profile.gender, entity.code     
 
  * hasMany/hasOne - belongsTo      
- * hasMany/hasOne - hasMany/hasOne [connectedBy] [connectedWith]
+ * hasMany/hasOne - hasMany/hasOne [connectedBy] [with] 
+ * hasMany/hasOne - hasMany/hasOne [being] [with] 
  * hasMany - semi connection       
  * refersTo - semi connection
+ * refersTo <remote field> of <remote entity> [optional]
+
+
+association_type_referee identifier_or_string (association_through)? (association_as)? type_info_or_not field_comment_or_not -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6} }    
+    | association_type_referee NEWLINE INDENT identifier_or_string association_cases_block (association_as)? type_info_or_not field_comment_or_not NEWLINE DEDENT -> { type: $1, destEntity: $4, ...$5, ...$6, fieldProps: { ...$7, ...$8 } }
+    | belongs_to_keywords identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6, ...$7 } }      
+    | refers_to_keywords identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6, ...$7 } }      
+    | refers_to_keywords identifier_or_string "of" identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $4, destField: $2, ...$5, ...$6, fieldProps: { ...$7, ...$8, ...$9 } }      
 
 "type": "refersTo",
 "destEntity": "auAddressInfo",

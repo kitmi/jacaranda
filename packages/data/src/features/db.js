@@ -10,8 +10,6 @@ import { InvalidArgument, InvalidConfiguration, ApplicationError } from '@kitmi/
 export default {
     stage: Feature.SERVICE,
 
-    depends: ['dataSource'],
-
     load_: async function (app, options, name) {
         const config = app.featureConfig(
             options,

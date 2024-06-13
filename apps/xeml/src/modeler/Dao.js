@@ -1,5 +1,5 @@
 const path = require('node:path');
-const { _, naming, text, pushIntoBucket, baseName, isEmpty } = require('@kitmi/utils');
+const { _, naming, text, isPlainObject, baseName, isEmpty } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
 const swig = require('swig-templates');
 
@@ -7,7 +7,7 @@ const XemlTypes = require('../lang/XemlTypes');
 const JsLang = require('./util/ast');
 const XemlToAst = require('./util/xemlToAst');
 const Snippets = require('./dao/snippets');
-const Types = require('../lang/Types');
+const { extractReferenceBaseName } = require('../lang/XemlUtils');
 
 const ChainableType = [
     XemlToAst.AST_BLK_VALIDATOR_CALL,
@@ -60,7 +60,7 @@ const XEML_MODIFIER_RETURN = {
 class DaoModeler {
     /**
      * @param {object} modelService
-     * @param {XemlLinker} linker - Xeml linker     
+     * @param {XemlLinker} linker - Xeml linker
      * @param {Connector} connector
      */
     constructor(modelService, linker, connector) {
@@ -79,6 +79,7 @@ class DaoModeler {
         this._generateEntityModel(schema);
         this._generateEnumTypes(schema);
         this._generateEntityInputSchema(schema);
+        this._generateEntityViews(schema);
         //
         //this._generateViewModel();
 
@@ -94,7 +95,7 @@ class DaoModeler {
             driver: this.connector.driver,
             className: capitalized,
             schemaName: schema.name,
-            entities: Object.keys(schema.entities).map(name => naming.pascalCase(name)),
+            entities: Object.keys(schema.entities).map((name) => naming.pascalCase(name)),
         };
 
         let classTemplate = path.resolve(__dirname, 'database', this.connector.driver, 'Database.js.swig');
@@ -155,7 +156,7 @@ class DaoModeler {
 
             let modelMeta = {
                 schemaName: schema.name,
-                name: entityInstanceName,                
+                name: entityInstanceName,
                 keyField: entity.key,
                 fields: _.mapValues(entity.fields, (f) => _.omit(f.toJSON(), 'modifiers')),
                 features: entity.features || {},
@@ -182,6 +183,12 @@ class DaoModeler {
                 modelMeta.fieldDependencies = fieldReferences;
             }
 
+            sharedContext.newFunctorFiles?.forEach((functor) => {
+                if (functor.functorType === XemlTypes.Modifier.PROCESSOR) {
+                    astClassMain.push(Snippets.processorMethod(functor));
+                }
+            });
+
             //build customized interfaces
             if (entity.interfaces) {
                 let astInterfaces = this._buildInterfaces(entity, modelMeta, sharedContext);
@@ -201,7 +208,7 @@ class DaoModeler {
             }
 
             if (!isEmpty(sharedContext.newFunctorFiles)) {
-                _.each(sharedContext.newFunctorFiles, (entry) => {                    
+                _.each(sharedContext.newFunctorFiles, (entry) => {
                     this._generateFunctionTemplateFile(schema, entry);
                 });
             }
@@ -219,21 +226,6 @@ class DaoModeler {
                 className: capitalized,
                 entityMeta: indentLines(JSON.stringify(modelMeta, null, 4), 4),
                 classBody: indentLines(astClassMain.map((block) => JsLang.astToCode(block)).join('\n\n'), 8),
-                functors: indentLines(
-                    JsLang.astToCode(
-                        JsLang.astValue(
-                            _.reduce(
-                                sharedContext.newFunctorFiles,
-                                (result, functor) => {
-                                    result['$' + functor.functionName] = JsLang.astId(functor.functionName);
-                                    return result;
-                                },
-                                {}
-                            )
-                        )
-                    ),
-                    4
-                ),
                 //mixins
             };
 
@@ -330,6 +322,56 @@ class DaoModeler {
 
                 this.linker.log('info', 'Generated entity input schema: ' + inputSchemaFilePath);
             });
+        });
+    }
+
+    _generateEntityViews(schema) {
+        //generate views config
+        _.forOwn(schema.entities, (entity, entityInstanceName) => {
+            if (!isEmpty(entity.views)) {
+                const views = _.mapValues(entity.views, viewSet => {
+                    return {
+                        ...viewSet,
+                        $select: viewSet.$select.reduce((columns, field) => {
+                            if (isPlainObject(field)) {
+                                if (field.$xt === 'ExclusiveSelect') {
+                                    const { columnSet, excludes } = field;
+                                    let refEntity = entity;
+
+                                    if (columnSet.indexOf('.') !== -1) {
+                                        // association
+                                        const baseAssoc = extractReferenceBaseName(columnSet);
+                                        refEntity = entity.getReferencedEntityByPath(baseAssoc);
+                                    } 
+
+                                    // get all fields
+                                    for (const fieldName in refEntity.fields) {
+                                        if (!excludes.includes("-" + fieldName)) {
+                                            columns.push(fieldName);
+                                        }
+                                    }                                    
+
+                                    return columns;
+                                }
+                            }
+
+                            columns.push(field);
+                            return columns;
+                        }, [])
+                    }
+                });
+
+                let inputSchemaFilePath = path.resolve(
+                    this.outputPath,
+                    schema.name,
+                    'views',
+                    entityInstanceName + '.json'
+                );
+                fs.ensureFileSync(inputSchemaFilePath);
+                fs.writeFileSync(inputSchemaFilePath, JSON.stringify(views, null, 4));
+
+                this.linker.log('info', 'Generated entity views data set: ' + inputSchemaFilePath);
+            }
         });
     }
 
