@@ -144,7 +144,7 @@ class PostgresConnector extends RelationalConnector {
      */
     async connect_(options) {
         if (options) {
-            const connProps = {};
+            let connProps;
 
             if (options.createDatabase) {
                 // remove the database from connection
@@ -154,12 +154,14 @@ class PostgresConnector extends RelationalConnector {
                     );
                 }
 
-                connProps.username = this.options.adminCredential.username;
-                connProps.password = this.options.adminCredential.password;
-                connProps.database = 'postgres';
+                connProps = {
+                    username: this.options.adminCredential.username,
+                    password: this.options.adminCredential.password,
+                    database: 'postgres'
+                };                
             }
 
-            const csKey = _.isEmpty(connProps) ? null : this.makeNewConnectionString(connProps);
+            const csKey = connProps ? this.makeNewConnectionString(connProps) : null;
 
             if (csKey && csKey !== this.connectionString) {
                 // create standalone connection
@@ -237,9 +239,11 @@ class PostgresConnector extends RelationalConnector {
      * @returns {Promise.<Client>}
      */
     async beginTransaction_() {
-        const client = await this.connect_();
+        const client = await this.connect_();        
         const tid = (client[tranSym] = ++this.transactionId);
-        this.app.log('verbose', `Begins a new transaction [id: ${tid}].`);
+        if (this.options.logTransaction) {            
+            this.app.log('info', `Begins a new transaction [id: ${tid}].`);
+        }
         await client.query('BEGIN');
         return client;
     }
@@ -250,9 +254,11 @@ class PostgresConnector extends RelationalConnector {
      */
     async commit_(client) {
         try {
-            await client.query('COMMIT');
-            const tid = client[tranSym];
-            this.app.log('verbose', `Commits a transaction [id: ${tid}].`);
+            await client.query('COMMIT');            
+            if (this.options.logTransaction) {
+                const tid = client[tranSym];
+                this.app.log('info', `Commits a transaction [id: ${tid}].`);
+            }
         } finally {
             this.disconnect_(client);
         }
@@ -266,7 +272,7 @@ class PostgresConnector extends RelationalConnector {
         try {
             await client.query('ROLLBACK;');
             const tid = client[tranSym];
-            this.app.log('error', `Rollbacked a transaction [id: ${tid}].`);
+            this.app.log('error', `Rollbacked a transaction [id: ${tid}].`);            
         } finally {
             this.disconnect_(client);
         }
@@ -285,20 +291,20 @@ class PostgresConnector extends RelationalConnector {
      */
     async execute_(sql, params, options, connection) {
         let conn;
-        const { $preparedKey, $asArray, $getFields, ...connOptons } = options ?? {};
+        const { $preparedKey, $asArray, $getFields, ...connOptions } = options ?? {};
 
         try {
-            conn = connection ?? (await this.connect_(connOptons));
+            conn = connection ?? (await this.connect_(connOptions));
 
             const query = {
                 text: sql,
                 values: params,
             };
 
-            if (this.options.logStatement) {
+            if (this.options.logStatement && !connOptions.createDatabase) {
                 const meta = { ...options, params };
                 if (connection) {
-                    meta.transaction = connection[tranSym];
+                    meta.transactionId = connection[tranSym];
                 }
 
                 this.app.log('verbose', sql, meta);
@@ -318,7 +324,7 @@ class PostgresConnector extends RelationalConnector {
                 }
             }
 
-            const res = await conn.query(query);
+            const res = await conn.query(query);            
             this.executedCount++;
 
             const adapted = {

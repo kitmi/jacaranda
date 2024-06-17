@@ -3,7 +3,7 @@
  * @ignore
  */
 
-const { _ } = require('@kitmi/utils');
+const { _, isPlainObject, isEmpty } = require('@kitmi/utils');
 const escodegen = require('escodegen');
 const esprima = require('esprima');
 
@@ -32,7 +32,7 @@ function astParams(params) {
             return astId(p);
         }
 
-        if (_.isPlainObject(p)) {
+        if (isPlainObject(p)) {
             if (p.type === 'Identifier' || p.type === 'AssignmentPattern') {
                 return p;
             }
@@ -60,10 +60,10 @@ function astParams(params) {
 function mapArgs(args) {
     args = Array.isArray(args) ? args : [args];
 
-    if (_.isEmpty(args)) return [];
+    if (isEmpty(args)) return [];
 
     return args.map((a) => {
-        if (_.isPlainObject(a) && 'type' in a) {
+        if (isPlainObject(a) && 'type' in a) {
             return a;
         }
 
@@ -76,7 +76,7 @@ function mapBody(body) {
         return astBlock(body);
     }
 
-    if (_.isPlainObject(body) && 'type' in body) {
+    if (isPlainObject(body) && 'type' in body) {
         return body;
     }
 
@@ -100,6 +100,24 @@ function astImport(defaultName, fromPath, ...args) {
                 local: astId(defaultName),
             },
             ...args.map((arg) => ({
+                type: 'ImportSpecifier',
+                local: astId(arg),
+                imported: astId(arg),
+            })),
+        ],
+        source: astLiteral(fromPath),
+    };
+}
+
+function astImportNonDefault(fromPath, ...args) {
+    return {
+        type: 'ImportDeclaration',
+        specifiers: [            
+            ...args.map((arg) => typeof arg === 'object' && ('local' in arg) ? ({
+                type: 'ImportSpecifier',
+                local: astId(arg.local),
+                imported: astId(arg.name),
+            }) : ({
                 type: 'ImportSpecifier',
                 local: astId(arg),
                 imported: astId(arg),
@@ -144,7 +162,7 @@ function astVarDeclare(left, right, isConstant = false, isObjDestruct = false, c
             {
                 type: 'VariableDeclarator',
                 id: isObjDestruct ? astObjPat(left) : astId(left),
-                init: _.isNil(right) ? null : astValue(right),
+                init: right == null ? null : astValue(right),
             },
         ],
         kind: isConstant ? 'const' : 'let',
@@ -196,7 +214,7 @@ function astIf(test, consequent, alternate, comment = false) {
         type: 'IfStatement',
         test: astValue(test),
         consequent: mapBody(consequent),
-        alternate: _.isNil(alternate) ? null : mapBody(alternate),
+        alternate: alternate == null ? null : mapBody(alternate),
         ...astLeadingComments(comment),
     };
 }
@@ -222,7 +240,7 @@ function astLogicalExp(left, operator, right) {
 function astCall(functionName, args) {
     return {
         type: 'CallExpression',
-        callee: _.isPlainObject(functionName) ? functionName : astVarRef(functionName),
+        callee: isPlainObject(functionName) ? functionName : astVarRef(functionName),
         arguments: mapArgs(args),
     };
 }
@@ -256,7 +274,7 @@ function astArrayAccess(name, index) {
 }
 
 function astVarRef(name, elementStyle = false) {
-    if (_.isPlainObject(name)) {
+    if (isPlainObject(name)) {
         if (name.type === 'MemberExpression' || name.type === 'Identifier') {
             return name;
         }
@@ -307,7 +325,7 @@ function astId(name) {
             type: 'Identifier',
             name: name,
         };
-    } else if (_.isPlainObject(name) && name.type === 'Identifier') {
+    } else if (isPlainObject(name) && name.type === 'Identifier') {
         return name;
     }
 
@@ -349,7 +367,7 @@ function astValue(value) {
         };
     }
 
-    if (_.isPlainObject(value)) {
+    if (isPlainObject(value)) {
         if (AST_OBJECT_TYPES.indexOf(value.type) !== -1) {
             return value;
         }
@@ -385,7 +403,7 @@ function astValue(value) {
         };
     }
 
-    if (_.isObject(value)) {
+    if (typeof value === 'object') {
         throw new Error('Only plain object supported. Given: ' + JSON.stringify(value));
     }
 
@@ -563,7 +581,9 @@ function astExportDefault(expr) {
 
 module.exports = {
     astProgram,
+    astLeadingComments,
     astImport,
+    astImportNonDefault,
     astRequire,
     astVarDeclare,
     astClassDeclare,

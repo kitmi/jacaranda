@@ -5,7 +5,9 @@ class Clonable {
     linked = false;
 
     clone() {      
-        assert: this.linked, 'An element becomes clonable only after being linked.';
+        if (!this.linked) {
+            throw new Error('An element becomes clonable only after being linked.');
+        }
     }
 }
 
@@ -16,6 +18,13 @@ const deepCloneField = (src, dest, field) => {
 };
 
 const isDotSeparateName = (name) => (name.indexOf('.') > 0);
+
+const isIdWithNamespace = (name) => (name.indexOf(':') > 0);
+
+const extractNamespace = (name) => { 
+    const pos = name.lastIndexOf(':');
+    return [ name.substring(0, pos), name.substring(pos+1) ];
+};
 
 const extractDotSeparateName = (name) => name.split('.');
 
@@ -153,7 +162,9 @@ exports.pluralize = (name) => {
 
 exports.deepClone = deepClone;
 exports.deepCloneField = deepCloneField;
+exports.isIdWithNamespace = isIdWithNamespace;
 exports.isDotSeparateName = isDotSeparateName;
+exports.extractNamespace = extractNamespace;
 exports.extractDotSeparateName = extractDotSeparateName;
 exports.extractReferenceBaseName = extractReferenceBaseName;
 exports.getReferenceNameIfItIs = getReferenceNameIfItIs;

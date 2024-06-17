@@ -22,6 +22,7 @@ Entity的定义包含以下子语法块，并建议按照以下顺序来定义�
     - index
     - inputs
     - views
+    - associations: 当关系被继承时，被继承的关系会自动将左方修改为当前实体
 
 - 支持多继承，按照逆序覆盖
   
@@ -90,13 +91,26 @@ with
 ```
 
 - 目前已实现的特性
-  - atLeastOneNotNull
-  - autoId
-  - createTimestamp
-  - i18n
-  - logicalDeletion
-  - stateTracking
-  - updateTimestamp
+  - atLeastOneNotNull: 自动检测参数提供的若干字段至少有一个值不为空
+  - autoId: 自增长或自动生成的ID字段
+  - createTimestamp: 保存记录创建的时间，默认为`createdAt`字段
+  - i18n: 多语言支持，待重构
+  - logicalDeletion: 逻辑删除，默认为`isDeleted`字段，可通过参数修改为某个字段的某一特殊取值
+  - stateTracking: 对具有`enum`属性的状态字段进行变化跟踪，记录状态改变的时间（，并生成对应的有限状态机 TBD）
+  - updateTimestamp: 保存记录创建的时间，默认为`updatedAt`字段
+
+- 是否允许多个相同的特性
+
+特性在将特性信息添加到Entity的时候，会提供一个flag标识该特性是否允许存在多个。
+
+  - 如`autoId`不允许在多个，后出现的会覆盖已存在，以便于继承的时候改写`autoId`的字段类型
+  - 如`stateTracking`可以允许多个对不同字段的状态跟踪 
+
+- 特性对生成的**Entity Model**的影响
+
+  - 特性会将自己元数据写入`EntityModel.meta.features`表中，如果是允许多个实例的特性，其值为数组。
+  - 如果特性添加了新的字段，会写在`field`或`fields`字段中，单字段用`field`，多个字段用`fields`数组。
+  - 模型层将对特性根据不同的数据库的特点进行具体的实现。
 
 ## 字段定义
 
@@ -121,6 +135,8 @@ with
     - optional
     - default
     - auto
+    - autoByDb: 如为true，则为数据库内部生成机制，如`mysql`的UPDATE_TIMESTAMP，如为**运行时对象**，则通常代表数据库函数调用，`{ $xr: 'Function', ... }`
+    - generator: 根据不同的数据库，generator可能被实现为数据库的函数调用，或者JS的activator，如最终为数据库调用，则`autoByDb`为true或为特殊对象，如为JS调用，则`auto`为true或特殊标记
     - readOnly
     - writeOnce
     - plain

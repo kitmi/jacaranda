@@ -10,9 +10,6 @@ const defaultGenerator = (info, i18n) => {
                 return i18n ? i18n.now() : new Date();
             }
             break;
-
-        case 'boolean':
-            break;
     }
 
     return typeObject.defaultValue;

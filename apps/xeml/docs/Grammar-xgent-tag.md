@@ -1,6 +1,5 @@
  [x] entity multiple inheritance
 
-
 - SymbolToken
 - ObjectReference
 - ConstReference

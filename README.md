@@ -50,13 +50,11 @@
     - This library provides a unified interface for interacting with various components that share similar functionalities but may have different underlying implementations or interfaces. By using this library, developers can switch between different components such as HTTP clients or JavaScript package managers without changing the consuming codebase, making the code more modular and easier to maintain. 
     - See [Manual](https://kitmi.github.io/jacaranda/@kitmi/adapters/index.html)
 
-## Publish
+## Command-lines
 
-```bash
-pnpm changeset
-pnpm bump
-pnpm release-all
-```
+- `@kitmi/xeml`
+  - Jacaranda data entity modeling tool
+  - See [Manual](@kitmi/xeml/index.html)
 
 ## License
 - MIT

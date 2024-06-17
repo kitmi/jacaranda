@@ -1,3 +1,4 @@
+// v.{{ schemaVersion }} by xeml
 import { DbModel } from '@kitmi/data';
 {% for entity in entities %}
 import {{ entity }} from './{{ schemaName }}/{{ entity }}';{% endfor %}

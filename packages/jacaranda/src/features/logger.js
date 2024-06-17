@@ -106,6 +106,9 @@ export default {
                     _logger.verbose = _logger.debug.bind(_logger);
                     return makeLogger(_logger);
                 },
+                flush: () => {
+                    logger.flush();
+                },                                
             });
 
             app.logger = makeLogger(logger);

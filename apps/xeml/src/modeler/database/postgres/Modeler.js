@@ -1,7 +1,7 @@
 const EventEmitter = require('node:events');
 const path = require('node:path');
 
-const { _, pushIntoBucket, get, naming, bin2Hex, suffixForDuplicate } = require('@kitmi/utils');
+const { _, pushIntoBucket, get, naming, bin2Hex, suffixForDuplicate, isEmpty } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
 
 const XemlUtils = require('../../../lang/XemlUtils');
@@ -45,6 +45,7 @@ class PostgresModeler {
         this._references = {};
         this._relationEntities = {};
         this._processedRef = new Set();
+        this._sequenceRestart = [];
 
         this.warnings = {};
     }
@@ -64,7 +65,7 @@ class PostgresModeler {
             let entityName = pendingEntities.shift();
             let entity = modelingSchema.entities[entityName];
 
-            if (!_.isEmpty(entity.info.associations)) {
+            if (!isEmpty(entity.info.associations)) {
                 this.linker.log('debug', `Processing associations of entity "${entityName}"...`);
 
                 let assocs = this._preProcessAssociations(entity);
@@ -88,6 +89,7 @@ class PostgresModeler {
         let sqlFilesDir = path.join('postgres', schema.name);
         let dbFilePath = path.join(sqlFilesDir, 'entities.sql');
         let fkFilePath = path.join(sqlFilesDir, 'relations.sql');
+        let seqFilePath = path.join(sqlFilesDir, 'sequence.sql');
 
         let tableSQL = '',
             relationSQL = '',
@@ -96,7 +98,11 @@ class PostgresModeler {
         //let mapOfEntityNameToCodeName = {};
 
         _.each(modelingSchema.entities, (entity, entityName) => {
-            assert: entityName === entity.name;
+            if (entityName !== entity.name) {
+                throw new Error(
+                    `Entity name "${entity.name}" does not match the entity name "${entityName}" in the schema.`
+                );
+            }
             //mapOfEntityNameToCodeName[entityName] = entity.code;
 
             entity.addIndexes();
@@ -161,7 +167,7 @@ class PostgresModeler {
 
                                     let keyField = entity.fields[fields[0]];
 
-                                    if (!keyField.auto && !keyField.defaultByDb) {
+                                    if (!keyField.auto && !keyField.autoByDb) {
                                         throw new Error(
                                             `The key field "${entity.name}" has no default value or auto-generated value.`
                                         );
@@ -220,6 +226,11 @@ class PostgresModeler {
         });
 
         if (!skipGeneration) {
+            if (!isEmpty(this._sequenceRestart)) {
+                let seqSQL = this._sequenceRestart.join('\n\n');
+                this._writeFile(path.join(this.outputPath, seqFilePath), seqSQL);
+            }
+
             _.forOwn(this._references, (refs, srcEntityName) => {
                 _.each(refs, (ref) => {
                     relationSQL +=
@@ -807,7 +818,10 @@ class PostgresModeler {
                     );
                 }
 
-                entity.addAssocField(localField, destEntity, referencedField, assoc.fieldProps);
+                if (!assoc.existingField) {
+                    entity.addAssocField(localField, destEntity, referencedField, assoc.fieldProps);
+                }
+                
                 entity.addAssociation(localField, {
                     type: assoc.type,
                     entity: destEntityName,
@@ -1029,9 +1043,8 @@ class PostgresModeler {
                 if (field.type === 'integer' && !field.generator) {
                     field.autoIncrementId = true;
                     if ('startFrom' in feature) {
-                        this._events.once('setTableOptions:' + entity.name, (extraOpts) => {
-                            extraOpts['AUTO_INCREMENT'] = feature.startFrom;
-                        });
+                        const seqId = `${entity.name}_${feature.field}_seq`;
+                        this._sequenceRestart.push(`ALTER SEQUENCE ${this.connector.escapeId(seqId)} RESTART WITH ${feature.startFrom};`);                                            
                     }
                 }
                 break;
@@ -1383,6 +1396,14 @@ class PostgresModeler {
 
         sql += ';\n\n';
 
+        const outVars = {};
+
+        this._events.emit('afterTableDefinition:' + entityName, outVars);
+
+        if (outVars.sql) {
+            sql += outVars.sql;
+        }
+
         //other keys
         if (entity.indexes && entity.indexes.length > 0) {
             entity.indexes.forEach((index) => {
@@ -1534,7 +1555,7 @@ class PostgresModeler {
                     break;            
 
                 default:
-                    throw new Error('Unsupported type "' + field.type + '".');
+                    throw new Error('Unsupported type "' + field.type + '". Field: ' + JSON.stringify(field));
             }
         }
 
@@ -1722,13 +1743,6 @@ class PostgresModeler {
         return { sql, type };
     }
 
-    enumColumnDefinition(info) {
-        return {
-            sql: 'ENUM(' + _.map(info.values, (v) => this.quoteString(v)).join(', ') + ')',
-            type: 'ENUM',
-        };
-    }
-
     columnNullable(info) {
         if (info.hasOwnProperty('optional') && info.optional) {
             return ' NULL';
@@ -1739,12 +1753,12 @@ class PostgresModeler {
 
     defaultValue(info, type) {
         if (info.isCreateTimestamp) {
-            info.createByDb = true;
+            info.autoByDb = true;
             return ' DEFAULT CURRENT_TIMESTAMP';
         }
 
         if (info.autoIncrementId) {
-            info.createByDb = true;
+            info.autoByDb = true;
             return ''; // no ' AUTO_INCREMENT' in progres;
         }
 
@@ -1768,7 +1782,7 @@ class PostgresModeler {
                     switch (tokenName) {
                         case 'NOW':
                             sql += ' DEFAULT NOW()';
-                            info.createByDb = true;
+                            info.autoByDb = true;
                             break;
 
                         default:
@@ -1785,6 +1799,7 @@ class PostgresModeler {
                             sql += ' DEFAULT ' + (Types.BOOLEAN.sanitize(defaultValue) ? 'TRUE' : 'FALSE');
                             break;
 
+                        case 'bigint':
                         case 'integer':
                             if (_.isInteger(defaultValue)) {
                                 sql += ' DEFAULT ' + defaultValue.toString();
@@ -1829,20 +1844,22 @@ class PostgresModeler {
                     return '';
                 }
 
-                if (info.type === 'boolean' || info.type === 'integer' || info.type === 'number') {
+                if (info.type === 'boolean') {
+                    sql += ' DEFAULT FALSE';
+                } else if (info.type === 'bigint' || info.type === 'integer' || info.type === 'number') {
                     sql += ' DEFAULT 0';
                 } else if (info.type === 'datetime') {
                     sql += ' DEFAULT CURRENT_TIMESTAMP';
-                } else if (info.type === 'enum') {
-                    sql += ' DEFAULT ' + this.quoteString(info.values[0]);
-                    info.createByDb = true;
+                } else if (info.enum) {
+                    sql += ' DEFAULT ' + this.quoteString(info.enum[0]);
+                    info.autoByDb = true;
                 } else {
                     sql += " DEFAULT ''";
                 }
 
-                //not explicit specified, will not treated as createByDb
-                //info.createByDb = true;
-            }
+                //not explicit specified, will not treated as autoByDb
+                //info.autoByDb = true;
+            } 
         }
 
         return sql;

@@ -11,7 +11,11 @@ const XemlTypes = {
     Element: Object.freeze({
         CONST: 'constant',
         TYPE: 'type',
+        ACTIVATOR: 'Activator',
+        PROCESSOR: 'Processor',
+        VALIDATOR: 'Validator',
         ENTITY: 'entity',
+        ENTITY_TEMPLATE: 'entityTemplate',
         SCHEMA: 'schema',
         DATASET: 'dataset',
         VIEW: 'view',

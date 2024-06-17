@@ -1,7 +1,8 @@
 const path = require('node:path');
-const { _, naming, text, isPlainObject, baseName, isEmpty } = require('@kitmi/utils');
+const { _, naming, text, isPlainObject, baseName, isEmpty, pushIntoBucket } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
 const swig = require('swig-templates');
+const esprima = require('esprima');
 
 const XemlTypes = require('../lang/XemlTypes');
 const JsLang = require('./util/ast');
@@ -21,11 +22,21 @@ const isChainable = (current, next) =>
 const chainCall = (lastBlock, lastType, currentBlock, currentType) => {
     if (lastBlock) {
         if (lastType === 'ValidatorCall') {
-            assert: currentType === 'ValidatorCall', 'Unexpected currentType';
+            if (currentType !== 'ValidatorCall') {
+                throw new Error('Unexpected currentType');
+            } 
 
             currentBlock = JsLang.astBinExp(lastBlock, '&&', currentBlock);
         } else {
-            assert: currentType === 'ProcessorCall', 'Unexpected currentType: ' + currentType + ' last: ' + lastType;
+            if (currentType !== 'ProcessorCall') {
+                console.log({
+                    lastType,
+                    currentType,
+                    lastBlock: JsLang.astToCode(lastBlock),
+                    currentBlock: JsLang.astToCode(currentBlock),
+                });
+                throw new Error('Unexpected currentType: ' + currentType + ' last: ' + lastType);
+            }
 
             currentBlock.arguments[0] = lastBlock;
         }
@@ -72,13 +83,13 @@ class DaoModeler {
         this.connector = connector;
     }
 
-    modeling_(schema) {
+    modeling_(schema, versionInfo) {
         this.linker.log('info', 'Generating entity models for schema "' + schema.name + '"...');
 
-        this._generateSchemaModel(schema);
-        this._generateEntityModel(schema);
-        this._generateEnumTypes(schema);
-        this._generateEntityInputSchema(schema);
+        this._generateSchemaModel(schema, versionInfo);
+        this._generateEntityModel(schema, versionInfo);
+        this._generateEnumTypes(schema, versionInfo);
+        this._generateEntityInputSchema(schema, versionInfo);
         this._generateEntityViews(schema);
         //
         //this._generateViewModel();
@@ -88,13 +99,15 @@ class DaoModeler {
         }
     }
 
-    _generateSchemaModel(schema) {
+    _generateSchemaModel(schema, versionInfo) {
         let capitalized = naming.pascalCase(schema.name);
 
         let locals = {
+            schemaVersion: versionInfo.version,
             driver: this.connector.driver,
             className: capitalized,
             schemaName: schema.name,
+            
             entities: Object.keys(schema.entities).map((name) => naming.pascalCase(name)),
         };
 
@@ -108,9 +121,9 @@ class DaoModeler {
         this.linker.log('info', 'Generated database model: ' + modelFilePath);
     }
 
-    _generateEnumTypes(schema) {
+    _generateEnumTypes(schema, versionInfo) {
         //build types defined outside of entity
-        _.forOwn(schema.types, (location, type) => {
+        _.forOwn(schema.types, (location, type) => {            
             const typeInfo = schema.linker.getTypeInfo(type, location);
             if (typeInfo.enum && Array.isArray(typeInfo.enum)) {
                 const capitalized = naming.pascalCase(type);
@@ -130,7 +143,7 @@ class DaoModeler {
         });
     }
 
-    _generateEntityModel(schema) {
+    _generateEntityModel(schema, versionInfo) {
         _.forOwn(schema.entities, (entity, entityInstanceName) => {
             let capitalized = naming.pascalCase(entityInstanceName);
 
@@ -198,18 +211,35 @@ class DaoModeler {
                 astClassMain = astClassMain.concat(astInterfaces);
             }
 
-            let importLines = [];
+            const importLines = [];
+            const assignLines = [];
+            const importBucket = {};
 
             //generate functors if any
             if (!isEmpty(sharedContext.mapOfFunctorToFile)) {
                 _.forOwn(sharedContext.mapOfFunctorToFile, (fileName, functionName) => {
-                    importLines.push(JsLang.astToCode(JsLang.astImport(functionName, baseName(fileName, true))));
+                    if (isPlainObject(fileName)) {
+                        const importName = fileName.type + 's';
+                        const asLocalName= naming.camelCase(fileName.packageName) + importName;
+                        pushIntoBucket(importBucket, fileName.packageName, importName); 
+                        assignLines.push(JsLang.astToCode(JsLang.astVarDeclare(fileName.functorId, JsLang.astVarRef(asLocalName + '.' + fileName.functionName, false), true)));
+                    } else {
+                        importLines.push(JsLang.astToCode(JsLang.astImport(functionName, baseName(fileName, true))));
+                    }
+                });
+
+                _.forOwn(importBucket, (importNames, packageName) => {
+                    const names = _.uniq(importNames);
+                    names.forEach((importName) => {
+                        const asLocalName= naming.camelCase(packageName) + importName;
+                        importLines.push(JsLang.astToCode(JsLang.astImportNonDefault(packageName, { name: importName, local: asLocalName })));
+                    });
                 });
             }
 
             if (!isEmpty(sharedContext.newFunctorFiles)) {
                 _.each(sharedContext.newFunctorFiles, (entry) => {
-                    this._generateFunctionTemplateFile(schema, entry);
+                    this._generateFunctionTemplateFile(schema, entry, versionInfo);
                 });
             }
 
@@ -221,8 +251,10 @@ class DaoModeler {
             }
 
             let locals = {
+                schemaVersion: versionInfo.version,
                 driver: this.connector.driver,
                 imports: importLines.join('\n'),
+                assigns: assignLines.join('\n'),
                 className: capitalized,
                 entityMeta: indentLines(JSON.stringify(modelMeta, null, 4), 4),
                 classBody: indentLines(astClassMain.map((block) => JsLang.astToCode(block)).join('\n\n'), 8),
@@ -240,7 +272,7 @@ class DaoModeler {
         });
     }
 
-    _generateEntityInputSchema(schema) {
+    _generateEntityInputSchema(schema, versionInfo) {
         //generate validator config
         _.forOwn(schema.entities, (entity, entityInstanceName) => {
             _.each(entity.inputs, (inputs, inputSetName) => {
@@ -588,8 +620,14 @@ class DaoModeler {
     };
     */
 
+    /**
+     * Process field modifiers and generate ast and field references
+     * @param {*} entity 
+     * @param {object} sharedContext 
+     * @returns {object} { ast, fieldReferences }
+     */
     _processFieldModifiers(entity, sharedContext) {
-        let compileContext = XemlToAst.createCompileContext(entity.xemlModule.name, this.linker, sharedContext);
+        let compileContext = XemlToAst.createCompileContext(entity.xemlModule.name, entity.xemlModule, this.linker, sharedContext);
         compileContext.variables['raw'] = { source: 'context', finalized: true };
         compileContext.variables['i18n'] = { source: 'context', finalized: true };
         compileContext.variables['connector'] = { source: 'context', finalized: true };
@@ -762,20 +800,26 @@ class DaoModeler {
         };
     }
 
-    _generateFunctionTemplateFile(schema, { functionName, functorType, fileName, args }) {
+    _generateFunctionTemplateFile(schema, { functionName, functorType, fileName, args }, versionInfo) {
         let filePath = path.resolve(this.outputPath, schema.name, fileName);
 
+        let ast;
+
         if (fs.existsSync(filePath)) {
-            //todo: analyse code, compare arguments
-            this.linker.log('info', `${_.upperFirst(functorType)} "${fileName}" exists. File generating skipped.`);
+            ast = esprima.parseModule(fs.readFileSync(filePath, 'utf8'), { tokens: true, comment: true });
+            ast.body[0].leadingComments = JsLang.astLeadingComments(` v.${versionInfo.version} by xeml`).leadingComments;
 
-            return;
-        }
+            fs.ensureFileSync(filePath);
+            fs.writeFileSync(filePath, JsLang.astToCode(ast));
 
-        let ast = JsLang.astProgram(true);
+            this.linker.log('warn', `${_.upperFirst(functorType)} "${fileName}" exists.`);
+        } else {
+            ast = JsLang.astProgram(true);            
 
-        JsLang.astPushInBody(ast, JsLang.astFunction(functionName, args, XEML_MODIFIER_RETURN[functorType](args)));
-        JsLang.astPushInBody(ast, JsLang.astExportDefault(functionName));
+            JsLang.astPushInBody(ast, JsLang.astFunction(functionName, args, XEML_MODIFIER_RETURN[functorType](args)));
+            JsLang.astPushInBody(ast, JsLang.astExportDefault(functionName));
+            ast.body[0].leadingComments = JsLang.astLeadingComments(` v.${versionInfo.version} by xeml`).leadingComments;
+        }        
 
         fs.ensureFileSync(filePath);
         fs.writeFileSync(filePath, JsLang.astToCode(ast));
@@ -798,7 +842,7 @@ class DaoModeler {
                 ),
             ];
 
-            let compileContext = XemlToAst.createCompileContext(entity.xemlModule.name, this.linker, sharedContext);
+            let compileContext = XemlToAst.createCompileContext(entity.xemlModule.name, entity.xemlModule, this.linker, sharedContext);
 
             let paramMeta;
 

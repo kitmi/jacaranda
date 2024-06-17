@@ -1,0 +1,9 @@
+const
+  ABC = 1
+
+modifier
+  |=activator1(argA, argB)
+
+override entity entity1
+  has
+    feildAbc : text default(ABC)

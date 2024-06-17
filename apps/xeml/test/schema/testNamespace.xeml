@@ -1,0 +1,14 @@
+import 'abc:**'
+import entity1
+
+customize
+  entities
+    module1:entity1
+    
+entity entity1
+  has
+    field1 : text |=module1:activator1('a', 'b')   
+
+schema schema1
+  entities
+    entity1

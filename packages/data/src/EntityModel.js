@@ -498,11 +498,11 @@ class EntityModel {
     }
 
     async ensureTransaction_() {
-        if (!this._safeFlag)  {
-            throw new ApplicationError('Transaction is not allowed outside of a safe execution block.');
-        }
-
         if (!this.db.transaction) {
+            if (!this._safeFlag)  {
+                throw new ApplicationError('Transaction is not allowed outside of a safe execution block.');
+            }
+
             this.db = this.db.fork(await this.db.connector.beginTransaction_());
         }
     }
@@ -660,7 +660,7 @@ class EntityModel {
                         this.getUniqueKeyFieldsFrom(context.latest),
                         context.latest
                     );
-                } else {
+                } else {                    
                     context.result = await this.db.connector.create_(
                         this.meta.name,
                         context.latest,
@@ -674,8 +674,6 @@ class EntityModel {
                     if (this.hasAutoIncrement) {
                         context.result.insertId = context.latest[this.meta.features.autoId.field];  
                     }                    
-
-                    console.log('created', context.result);
                 }                
             } else {                
                 context.result = { data: context.latest, affectedRows: 1 };
@@ -1193,7 +1191,7 @@ class EntityModel {
             }
 
             // new record
-            if (!fieldInfo.createByDb) {
+            if (!fieldInfo.autoByDb) {
                 if ('default' in fieldInfo) {
                     // has default setting in meta data
                     latest[fieldName] = fieldInfo.default;

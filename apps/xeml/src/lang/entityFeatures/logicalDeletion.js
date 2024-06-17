@@ -1,4 +1,4 @@
-const { _ } = require('@kitmi/utils')
+const { isPlainObject } = require('@kitmi/utils')
 
 const FEATURE_NAME = 'logicalDeletion';
 
@@ -23,7 +23,7 @@ function feature(entity, args = []) {
     let [ options ] = args;
 
     if (options) {
-        if (_.isPlainObject(options)) {
+        if (isPlainObject(options)) {
             newField = false;
 
             let keys = Object.keys(options);

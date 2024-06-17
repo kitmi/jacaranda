@@ -8,6 +8,7 @@ const commonQualifiers = [
     'optional',
     'default',
     'auto',
+    'generator',
     'readOnly',
     'writeOnce',
     'plain',

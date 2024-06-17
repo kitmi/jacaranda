@@ -50,6 +50,10 @@ const semanticText = {
     uppercase: makeValidator(isUpperCase, 'The value is not an uppercase string.'),
     url: makeValidator(isURL, 'The value is not a valid URL.'),
     uuid: makeValidator(isUUID, 'The value is not a valid UUID.'),
+    matches: makeValidator(
+        (value, pattern) => (pattern instanceof RegExp ? pattern : new RegExp(pattern)).test(value),
+        'The value does not match the pattern.'
+    ),
 };
 
 semanticText['alphanum'] = semanticText['alphanumeric'];

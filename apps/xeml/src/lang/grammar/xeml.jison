@@ -20,7 +20,7 @@ Keyword by state
     };
 
     //top level keywords
-    const TOP_LEVEL_KEYWORDS = new Set(['import', 'type', 'const', 'schema', 'entity', 'customize', 'override', 'api']);
+    const TOP_LEVEL_KEYWORDS = new Set(['import', 'type', 'const', 'schema', 'entity', 'customize', 'override', 'api', 'modifier']);
 
     //next state transition table
     //.* means any char except newline after the parent keyword
@@ -28,9 +28,11 @@ Keyword by state
         'import.*': 'import.item',
         'type.*': 'type.item',
         'const.*': 'const.item',
+        'modifier.*': 'modifier.item',
         'import.$INDENT': 'import.block',
         'type.$INDENT': 'type.block',
-        'const.$INDENT': 'const.block', 
+        'const.$INDENT': 'const.block',
+        'modifier.$INDENT': 'modifier.block', 
 
         'override.entity': 'entity',       
 
@@ -95,7 +97,7 @@ Keyword by state
         'entity.views': new Set(['extends']),     
 
         // level 3
-        'entity.associations.item': new Set(['connectedBy', 'being', 'with', 'as', 'of', 'connected', 'by']),               
+        'entity.associations.item': new Set(['connectedBy', 'being', 'with', 'as', 'of', 'connected', 'by', 'on']),               
         'entity.triggers.onChange': new Set(["when"]), 
 
         // level 4
@@ -141,6 +143,7 @@ Keyword by state
         [ 'import.item', 2 ],
         [ 'type.item', 2 ],
         [ 'const.item', 2 ],              
+        [ 'modifier.item', 2 ], 
         [ 'entity.code', 1 ],
         [ 'entity.key', 1 ],   
         [ 'entity.data', 1 ],                
@@ -171,6 +174,7 @@ Keyword by state
     const CHILD_KEYWORD_START_STATE = new Set([ 'EMPTY', 'DEDENTED' ]);    
     
     const BUILTIN_TYPES = new Set([ 'any', 'array', 'binary', 'blob', 'bool', 'boolean', 'buffer', 'datetime', 'decimal', 'float', 'int', 'integer', 'bigint', 'number', 'object', 'json', 'string', 'text', 'timestamp' ]);
+    const TYPE_DEF_STATES = new Set([ 'type.item', 'type.block', 'entity.has', 'entity.input.inputSet.item' ]);
 
     class ParserState {
         constructor() {
@@ -453,6 +457,10 @@ Keyword by state
         }
 
         defineType(name, value, line) {
+            if (BUILTIN_TYPES.has(name)) {
+                throw new Error(`Cannot use built-in type "${name}" as a custom type name at line: ${line}!`);
+            }
+
             if (!value.type) {
                 throw new Error(`Missing type property for type "${name}" at line: ${line}!`);
             }
@@ -570,6 +578,8 @@ element_access          {variable}"["({space})*?({variable}|{shortstring}|{integ
 associated_select_all   {identifier}("."{identifier})*".\*"
 member_access           {identifier}("."{identifier})+
 exclude_column          "-"{identifier}
+module_namespace        {identifier}(":"{identifier})?":"
+namespace_access        {module_namespace}({identifier}|{member_access})
 variable                {member_access}|{identifier}
 object_reference        "@"({variable}|{shortstring})
 symbol_token            "@""@"{identifier}
@@ -578,7 +588,7 @@ identifier              ({id_start})({id_continue})*
 id_start                "_"|"$"|({uppercase})|({lowercase})
 id_continue             {id_start}|{digit}               
 
-bool_value              "true"|"false"|"yes"|"no"|"on"|"off"
+bool_value              "true"|"false"|"yes"|"no"
 
 // numbers 
 bytes                   {integer}("B"|"b")
@@ -612,7 +622,7 @@ route_identifier         (":")?{id_start}{id_continue}*
 symbol_operators        {relation_operators}|{syntax_operators}|{math_operators}
 word_operators          {logical_operators}|{relation_operators2}|{predicate_operators}
 bracket_operators       "("|")"|"["|"]"|"{"|"}"
-syntax_operators        "|~" | "," | ":" | "|>" | "|=" | "--" | "=>" | "~" | "=" | "->"
+syntax_operators        "|~" | "," | ":" | "|>" | "|=" | "=>" | "~" | "=" | "->"
 comment_operators       "//"
 relation_operators      "!="|">="|"<="|">"|"<"|"=="
 logical_operators       "not"|"and"|"or"
@@ -623,6 +633,9 @@ predicate_operators     "exists"|"null"|"all"|"any"
 // javascript
 javascript              "<js>"{longstringitem}*?"</js>"
 block_comment           "/*"{longstringitem}*?"*/"
+inline_comment          "--"({non_newline_espace}|{non_comment_operators})*
+non_newline_espace      [^\n\/\r]
+non_comment_operators   "/"[^\/]
 
 // strings
 jststring               "`"{longstringitem}*?"`"
@@ -815,6 +828,13 @@ escapeseq               \\.
                             yytext = state.unquoteString(yytext, 1);
                             return 'STRING';
                         %}
+<INLINE>{inline_comment}   %{
+                            state.matchAnyExceptNewline();
+
+                            yytext = yytext.substring(2).trim();
+                            yytext = state.isQuote(yytext) ? state.unquoteString(yytext, 1) : yytext 
+                            return 'INLINE_COMMENT';
+                        %}
 <INLINE>{newline}       %{
                             // implicit line joining
                             if (!state.hasOpenBracket) {                                
@@ -873,6 +893,11 @@ escapeseq               \\.
                                 state.matchAnyExceptNewline();
 
                                 return 'DOTNAME';
+                           %}
+<INLINE>{namespace_access}    %{      
+                                state.matchAnyExceptNewline();
+
+                                return 'NAMESPACED';
                            %}
 <INLINE>{associated_select_all}    %{      
                                 state.matchAnyExceptNewline();
@@ -947,7 +972,7 @@ escapeseq               \\.
                                     this.begin('REPARSE');
                                 }                                
                             %}      
-<INLINE>{symbol_operators}  return yytext;                                                  
+<INLINE>{symbol_operators}  return yytext;   
 <REPARSE,INLINE>{identifier}        %{        
                                 if (this.topState(0) !== 'INLINE') {
                                     this.begin('INLINE');
@@ -974,7 +999,12 @@ escapeseq               \\.
 
                                     return yytext;
                                 } else {
-                                    state.matchAnyExceptNewline();
+                                    if (TYPE_DEF_STATES.has(state.lastState) && BUILTIN_TYPES.has(yytext)) {
+                                        state.matchAnyExceptNewline();                                    
+                                        return yytext;
+                                    }
+
+                                    state.matchAnyExceptNewline();                                    
                                 }
 
                                 return 'NAME';
@@ -1023,6 +1053,7 @@ statement
     : import_statement    
     | const_statement
     | type_statement
+    | modifier_def_statement
     | schema_statement   
     | customize_statement
     | override_statement    
@@ -1056,6 +1087,16 @@ const_statement_block
     | const_statement_item NEWLINE const_statement_block
     ;
 
+modifier_def_statement
+    : "modifier" type_modifier NEWLINE
+    | "modifier" NEWLINE INDENT modifier_def_statement_block DEDENT NEWLINE?
+    ;
+
+modifier_def_statement_block
+    : type_modifier_def NEWLINE -> state.define($1.$xt, $1.name, $1, @1.first_line)
+    | type_modifier_def NEWLINE modifier_def_statement_block -> state.define($1.$xt, $1.name, $1, @1.first_line)
+    ;
+
 schema_statement
     : "schema" identifier_or_string NEWLINE INDENT schema_statement_block DEDENT NEWLINE? -> state.defineSchema($2, $5, @1.first_line)
     ;
@@ -1075,7 +1116,9 @@ schema_entities
 
 schema_entities_block
     : identifier_or_string NEWLINE -> [ { entity: $1 } ]
+    | NAMESPACED NEWLINE -> [ { entity: $1 } ]
     | identifier_or_string NEWLINE schema_entities_block -> [ { entity: $1 } ].concat($3)
+    | NAMESPACED NEWLINE schema_entities_block -> [ { entity: $1 } ].concat($3)
     ;
 
 customize_statement
@@ -1088,19 +1131,10 @@ type_statement
     ;
 
 type_statement_item
-    /* 
-    there are three kinds of modifiers: validator, processor and activator 
-        validator: take subject as the first arg
-        processor: take subject as the first arg
-        activator: assign value to the subject
-        activator should only appear before validator and processor
-    */
-    : identifier_or_string type_base type_info_or_not type_modifiers_or_not field_comment_or_not
-        {            
-            if (BUILTIN_TYPES.has($1)) throw new Error('Cannot use built-in type "' + $1 + '" as a custom type name. Line: ' + @1.first_line);
-            // default as text
-            state.defineType($1, Object.assign({type: 'text'}, $2, $3, $4, $5));
-        }
+    : identifier_or_string type_base -> state.defineType($1, $2, @1.first_line)
+    | identifier_or_string type_base entity_or_field_comment -> state.defineType($1, { ...$2, ...$3 }, @1.first_line)
+    | identifier_or_string type_base type_modifiers_list entity_or_field_comment? -> state.defineType($1, { ...$2, ...$3, ...$4 }, @1.first_line)
+    | identifier_or_string type_base type_infos type_modifiers_list? entity_or_field_comment? -> state.defineType($1, { ...$2, ...$3, ...$4, ...$5 }, @1.first_line)    
     ;
 
 type_statement_block
@@ -1124,6 +1158,7 @@ types
     | 'array' -> { type: 'array' }
     | object_keyword -> { type: 'object' }
     | identifier_or_string -> { type: $1 }
+    | 'bigint' -> { type: 'bigint' }
     ;
 
 int_keyword
@@ -1163,11 +1198,6 @@ datetime_keyword
     | 'timestamp'
     ;    
 
-type_info_or_not
-    :
-    | type_infos
-    ;
-
 type_infos
     : type_info
     | type_info type_infos -> Object.assign({}, $1, $2)
@@ -1178,9 +1208,8 @@ type_info
     | simple_function_call -> { [$1.name]: $1.args  }
     ;    
 
-type_modifiers_or_not
-    : /* empty */
-    | type_modifiers -> { modifiers: $1 }
+type_modifiers_list
+    : type_modifiers -> { modifiers: $1 }
     ;     
 
 type_modifiers
@@ -1190,20 +1219,30 @@ type_modifiers
 
 type_modifier
     : "|~" type_modifier_validators -> $2
-    | "|>" identifier_or_general_function_call -> state.normalizeProcessor(...$2)    
-    | "|=" "(" literal_and_value_expression ")" -> state.normalizeActivator('$eval', [ $3 ])
+    | "|>" identifier_or_general_function_call -> state.normalizeProcessor(...$2)        
     | "|=" identifier_or_general_function_call -> state.normalizeActivator(...$2)
+    ;
+
+type_modifier_def
+    : "|~" modifier_def_item -> state.normalizeValidator(...$2) 
+    | "|>" modifier_def_item -> state.normalizeProcessor(...$2)        
+    | "|=" modifier_def_item -> state.normalizeActivator(...$2)
+    ;  
+
+modifier_def_item
+    : identifier -> [$1]
+    | simple_function_call -> [$1.name, $1.args]
     ;
 
 identifier_or_general_function_call 
     : general_function_call -> [$1.name, $1.args]
     | identifier -> [$1]
+    | NAMESPACED -> [$1]
     ;
 
 type_modifier_validators
     : identifier_or_general_function_call -> state.normalizeValidator(...$1) 
-    | REGEXP -> state.normalizeValidator('matches', $1)    
-    | "(" logical_expression ")" -> state.normalizeValidator('$eval', [ $2 ])
+    | REGEXP -> state.normalizeValidator('matches', $1)        
     ;
 
 override_statement
@@ -1261,7 +1300,7 @@ code_statement
 
 comment_or_not
     :
-    | "--" STRING NEWLINE -> { comment: $2 }
+    | INLINE_COMMENT NEWLINE -> { comment: $1 }
     ;
 
 with_features
@@ -1283,22 +1322,17 @@ has_fields_block
     ;
 
 field_item
-    : field_item_body field_comment_or_not -> Object.assign({}, $1, $2)
+    : field_item_body 
+    | field_item_body entity_or_field_comment -> { ...$1, ...$2 }
     ;
 
-field_comment_or_not
-    :
-    | "--" STRING -> { comment: $2 }
-    ;    
+entity_or_field_comment
+    : INLINE_COMMENT -> { comment: $1 }
+    ;
 
 field_item_body
     : modifiable_field    
     ;
-
-type_base_or_not
-    :
-    | type_base
-    ;    
 
 associations_statement
     : "associations" NEWLINE INDENT associations_block DEDENT NEWLINE? -> { associations: $4 }
@@ -1310,11 +1344,41 @@ associations_block
     ;
 
 association_item
-    : association_type_referee identifier_or_string (association_through)? (association_as)? type_info_or_not field_comment_or_not -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6} }    
-    | association_type_referee NEWLINE INDENT identifier_or_string association_cases_block (association_as)? type_info_or_not field_comment_or_not NEWLINE DEDENT -> { type: $1, destEntity: $4, ...$5, ...$6, fieldProps: { ...$7, ...$8 } }
-    | belongs_to_keywords identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6, ...$7 } }      
-    | refers_to_keywords identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6, ...$7 } }      
-    | refers_to_keywords identifier_or_string "of" identifier_or_string (association_extra_condition)? (association_as)? type_info_or_not type_modifiers_or_not field_comment_or_not -> { type: $1, destEntity: $4, destField: $2, ...$5, ...$6, fieldProps: { ...$7, ...$8, ...$9 } }      
+    : association_item_many_to_one
+    //| association_type_referee NEWLINE INDENT identifier_or_string association_cases_block (association_as)? type_info_or_not field_comment_or_not NEWLINE DEDENT -> { type: $1, destEntity: $4, ...$5, ...$6, fieldProps: { ...$7, ...$8 } }
+    | association_item_new_field    
+    | association_item_existing_field
+    ;
+
+association_item_many_to_one    
+    : association_type_referee identifier_or_string -> { type: $1, destEntity: $2 }        
+    | association_type_referee identifier_or_string entity_or_field_comment -> { type: $1, destEntity: $2, fieldProps: $3 }        
+    | association_type_referee identifier_or_string type_infos entity_or_field_comment? -> { type: $1, destEntity: $2, fieldProps: { ...$3, ...$4} }        
+    | association_type_referee identifier_or_string association_as type_infos? entity_or_field_comment? -> { type: $1, destEntity: $2, ...$3, fieldProps: { ...$4, ...$5} }        
+    | association_type_referee identifier_or_string association_through association_as? type_infos? entity_or_field_comment? -> { type: $1, destEntity: $2, ...$3, ...$4, fieldProps: { ...$5, ...$6} }        
+    ;
+
+association_item_belong_refer_to_base
+    : belongs_to_keywords identifier_or_string association_extra_condition? -> { type: $1, destEntity: $2, ...$3 }      
+    | refers_to_keywords identifier_or_string association_extra_condition? -> { type: $1, destEntity: $2, ...$3 }      
+    | refers_to_keywords identifier_or_string "of" identifier_or_string association_extra_condition? -> { type: $1, destEntity: $4, destField: $2, ...$5 }          
+    ;
+
+association_item_existing_field    
+    : association_item_belong_refer_to_base "on" identifier_or_string -> { ...$1, srcField: $3, existingField: true }
+    ;
+
+association_item_new_field
+    : association_item_belong_refer_to_base
+    | association_item_belong_refer_to_base "as" identifier_or_string -> { ...$1, srcField: $3 }
+    | association_item_belong_refer_to_base association_item_fields_props -> { ...$1, fieldProps: $2 }
+    | association_item_belong_refer_to_base "as" identifier_or_string association_item_fields_props -> { ...$1, srcField: $3, fieldProps: $4 }
+    ;
+
+association_item_fields_props
+    : entity_or_field_comment
+    | type_modifiers_list entity_or_field_comment? -> { ...$1, ...$2 }
+    | type_infos type_modifiers_list? entity_or_field_comment? -> { ...$1, ...$2, ...$3 }
     ;
 
 refers_to_keywords
@@ -1570,12 +1634,16 @@ triggers_operation_item
     
 /* A field of entity with a series of modifiers, subject should be identifier or quoted string. */
 modifiable_field
-    : identifier_or_string type_base_or_not type_info_or_not type_modifiers_or_not -> Object.assign({ name: $1, type: $1 }, $2, $3, $4)   
+    : identifier_or_string -> { name: $1, type: $1 }
+    | identifier_or_string type_modifiers_list -> { name: $1, type: $1, ...$2 }
+    | identifier_or_string type_infos type_modifiers_list?  -> { name: $1, type: $1, ...$2, ...$3 }
+    | identifier_or_string type_base type_infos? type_modifiers_list? -> { name: $1, type: $1, ...$2, ...$3, ...$4 }
     ;
 
 /* An argument with a series of modifiers to be used in a function call. */
 modifiable_value
-    : gfc_param0 type_modifiers_or_not -> state.normalizePipedValue($1, $2)
+    : gfc_param0 -> state.normalizePipedValue($1)
+    | gfc_param0 type_modifiers_list -> state.normalizePipedValue($1, $2)
     ;
 
 /* A parameter declared with a series of modifiers to be used in a function signature. */
@@ -1629,6 +1697,7 @@ literal_and_value_expression
 
 general_function_call
     : identifier "(" gfc_param_list ")" -> { name: $1, args: $3 }
+    | NAMESPACED "(" gfc_param_list ")" -> { name: $1, args: $3 }
     ;        
 
 gfc_param_list

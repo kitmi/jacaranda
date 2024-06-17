@@ -3,12 +3,18 @@
  * @ignore
  */
 
-const { _ } = require('@kitmi/utils');
+const { _, replaceAll } = require('@kitmi/utils');
 const { TopoSort } = require('@kitmi/algo');
 const { _Activators, _Processors, _Validators } = require('@kitmi/data');
 const JsLang = require('./ast');
 const XemlTypes = require('../../lang/XemlTypes');
-const { isDotSeparateName, extractDotSeparateName, extractReferenceBaseName } = require('../../lang/XemlUtils');
+const {
+    isDotSeparateName,
+    isIdWithNamespace,
+    extractNamespace,
+    extractDotSeparateName,
+    extractReferenceBaseName,
+} = require('../../lang/XemlUtils');
 const Types = require('../../lang/Types');
 
 const defaultError = 'InvalidRequest';
@@ -294,7 +300,7 @@ function compileModifier(topoId, value, functor, compileContext) {
     if (functor.$xt === XemlTypes.Modifier.ACTIVATOR) {
         declareParams = translateFunctionParams(
             [{ name: compileContext.moduleName }, { name: 'meta' }, { name: 'context' }].concat(functor.args ?? [])
-        );        
+        );
     } else {
         declareParams = translateFunctionParams(
             [{ name: compileContext.moduleName }, { name: 'meta' }, { name: 'context' }].concat(
@@ -318,7 +324,7 @@ function compileModifier(topoId, value, functor, compileContext) {
         callArgs = [];
     }
 
-    if (functor.$xt === XemlTypes.Modifier.ACTIVATOR) {        
+    if (functor.$xt === XemlTypes.Modifier.ACTIVATOR) {
         compileContext.astMap[topoId] = JsLang.astAwait(
             functorId,
             [
@@ -435,7 +441,62 @@ function translateModifier(functor, compileContext, args) {
     let functionName, fileName, functorId;
 
     //extract validator naming and import information
-    if (isDotSeparateName(functor.name)) {
+    if (isIdWithNamespace(functor.name)) {
+        const [namespace, functorName] = extractNamespace(functor.name);
+
+        let refEntityName;
+
+        if (isDotSeparateName(functorName)) {
+            let names = extractDotSeparateName(functor.name);
+            if (names.length > 2) {
+                throw new Error('Not supported reference type: ' + functor.name);
+            }
+
+            refEntityName = names[0];
+            functionName = names[1];
+        } else {
+            functionName = functorName;
+        }
+
+        const modifierInfo = compileContext.linker.loadElement(
+            compileContext.xemlModule,
+            functor.$xt,
+            functor.name,
+            true
+        );
+
+        if (!modifierInfo.xemlModule.packageName) {
+            // todo: reference to self package
+            throw new Error('To be implemented: reference to self package.');
+        }
+
+        namespacePrefix = replaceAll(namespace, ':', '_');
+        const isAsync = functionName.endsWith('_');
+        functionName = isAsync ? functionName.substring(0, functionName.length - 1) : functionName;
+        functorId =
+            namespacePrefix +
+            '_' +
+            (refEntityName ? refEntityName + _.upperFirst(functionName) : functionName) +
+            functor.$xt;
+        if (isAsync) {
+            functorId += '_';
+        }
+
+        fileName = {
+            functorId,
+            packageName: compileContext.linker.dependencies[modifierInfo.xemlModule.packageName],
+            type: modifierInfo.$xt,
+            functionName: modifierInfo.name,
+        };
+
+        if (!fileName.packageName) {
+            throw new Error(
+                `Xeml package "${modifierInfo.xemlModule.packageName}" not found in dataModel dependencies.`
+            );
+        }
+
+        addModifierToMap(functorId, functor.$xt, fileName, compileContext.mapOfFunctorToFile);
+    } else if (isDotSeparateName(functor.name)) {
         let names = extractDotSeparateName(functor.name);
         if (names.length > 2) {
             throw new Error('Not supported reference type: ' + functor.name);
@@ -445,30 +506,80 @@ function translateModifier(functor, compileContext, args) {
         let refEntityName = names[0];
         functionName = names[1];
         fileName = './' + XEML_MODIFIER_PATH[functor.$xt] + '/' + refEntityName + '-' + functionName + '.js';
-        functorId = refEntityName + _.upperFirst(functionName) + functor.$xt;
+        const isAsync = functionName.endsWith('_');
+        functorId =
+            refEntityName +
+            _.upperFirst(isAsync ? functionName.substring(0, functionName.length - 1) : functionName) +
+            functor.$xt;
+        if (isAsync) {
+            functorId += '_';
+        }
         addModifierToMap(functorId, functor.$xt, fileName, compileContext.mapOfFunctorToFile);
     } else {
         functionName = functor.name;
 
-        let builtins = XEML_MODIFIER_BUILTIN[functor.$xt];
+        const modifierInfo = compileContext.linker.loadElement(
+            compileContext.xemlModule,
+            functor.$xt,
+            functor.name,
+            false
+        );
 
-        if (!(functionName in builtins)) {
-            fileName =
-                './' + XEML_MODIFIER_PATH[functor.$xt] + '/' + compileContext.moduleName + '-' + functionName + '.js';
-            functorId = functionName + functor.$xt;
+        if (modifierInfo == null) {
+            let builtins = XEML_MODIFIER_BUILTIN[functor.$xt];
 
-            if (!compileContext.mapOfFunctorToFile[functorId]) {
-                compileContext.newFunctorFiles.push({
-                    functionName,
-                    functorType: functor.$xt,
-                    fileName,
-                    args,
-                });
+            if (!(functionName in builtins)) {
+                fileName =
+                    './' +
+                    XEML_MODIFIER_PATH[functor.$xt] +
+                    '/' +
+                    compileContext.moduleName +
+                    '-' +
+                    functionName +
+                    '.js';
+                functorId = functionName + functor.$xt;
+
+                if (!compileContext.mapOfFunctorToFile[functorId]) {
+                    compileContext.newFunctorFiles.push({
+                        functionName,
+                        functorType: functor.$xt,
+                        fileName,
+                        args,
+                    });
+                }
+
+                addModifierToMap(functorId, functor.$xt, fileName, compileContext.mapOfFunctorToFile);
+            } else {
+                functorId = '_' + functor.$xt + 's.' + functionName;
+            }
+        } else {
+            const namespace = `${compileContext.xemlModule.packageName}:${compileContext.xemlModule.name}`;            
+            const namespacePrefix = replaceAll(namespace, ':', '_');
+            const isAsync = functionName.endsWith('_');
+            functionName = isAsync ? functionName.substring(0, functionName.length - 1) : functionName;
+            functorId =
+                namespacePrefix +
+                '_' +
+                functionName +
+                functor.$xt;
+            if (isAsync) {
+                functorId += '_';
+            }
+
+            fileName = {
+                functorId,
+                packageName: compileContext.linker.dependencies[modifierInfo.xemlModule.packageName],
+                type: modifierInfo.$xt,
+                functionName: modifierInfo.name,
+            };
+
+            if (!fileName.packageName) {
+                throw new Error(
+                    `Xeml package "${modifierInfo.xemlModule.packageName}" not found in dataModel dependencies.`
+                );
             }
 
             addModifierToMap(functorId, functor.$xt, fileName, compileContext.mapOfFunctorToFile);
-        } else {
-            functorId = '_' + functor.$xt + 's.' + functionName;
         }
     }
 
@@ -1245,10 +1356,11 @@ function getCodeRepresentationOf(topoId, compileContext) {
     return compileContext.astMap[topoId];
 }
 
-function createCompileContext(moduleName, linker, sharedContext) {
+function createCompileContext(moduleName, xemlModule, linker, sharedContext) {
     let compileContext = {
         moduleName,
         linker,
+        xemlModule,
         variables: {},
         topoNodes: new Set(),
         topoSort: new TopoSort(),

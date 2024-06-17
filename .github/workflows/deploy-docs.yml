@@ -42,6 +42,7 @@ jobs:
         uses: actions/configure-pages@v4
       - name: Build with mdBook
         run: |
+          cp ./README.md ./docs/src/index.md
           cd docs
           mdbook build
       - name: Copy project docs

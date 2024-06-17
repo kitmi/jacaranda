@@ -10,7 +10,7 @@ At the heart of `@kitmi/jacaranda` lies a reflection-based feature system couple
 
 The framework treats each top-level node in the configuration file as a distinct feature. This approach allows developers to modularize their application by encapsulating specific functionalities within self-contained features. Each feature is responsible for a particular aspect of the application, such as configuration, logging, or internationalization.
 
-Features in `@kitmi/jacaranda` are loaded in a specific order, following the stages of Config, Initial, Services, Plugins, and Final. This ordered loading is further refined by dependency relations declared among features, ensuring that dependencies are resolved before a feature is initialized. Topological sorting is employed to manage the loading sequence of features that share the same stage.
+Features in `@kitmi/jacaranda` are loaded in a specific order, following the stages of `Config`, `Initial`, `Services`, `Plugins`, and `Final`. This ordered loading is further refined by dependency relations declared among features, ensuring that dependencies are resolved before a feature is initialized. Topological sorting is employed to manage the loading sequence of features that share the same stage.
 
 Moreover, the framework supports both built-in features and custom features placed under the application's features directory. This directory is configurable, allowing developers to structure their application as they see fit. Features can also declare their required npm packages, and the framework provides a script to install these dependencies using the developer's preferred package manager.
 

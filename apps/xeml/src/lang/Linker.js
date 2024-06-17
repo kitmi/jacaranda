@@ -1,5 +1,5 @@
 const path = require("node:path");
-const { _, esmCheck } = require("@kitmi/utils");
+const { _, esmCheck, baseName } = require("@kitmi/utils");
 const { fs, requireFrom } = require("@kitmi/sys");
 const { globSync } = require("glob");
 const Types = require("./Types");
@@ -12,11 +12,18 @@ const Schema = require("./Schema");
 const View = require("./View");
 const Dataset = require("./Dataset");
 
+const {
+    isIdWithNamespace,
+    extractNamespace,
+} = require('./XemlUtils');
+
 const ELEMENT_CLASS_MAP = {
     [XemlTypes.Element.ENTITY]: Entity,
     [XemlTypes.Element.VIEW]: View,
     [XemlTypes.Element.DATASET]: Dataset,
 };
+
+const ELEMENT_WITH_MODULE = new Set([ XemlTypes.Element.TYPE, XemlTypes.Element.ACTIVATOR, XemlTypes.Element.PROCESSOR, XemlTypes.Element.VALIDATOR ]);
 
 const XEML_SOURCE_EXT = ".xeml";
 const BUILTINS_PATH = path.resolve(__dirname, "builtins");
@@ -332,6 +339,46 @@ class Linker {
         return this.loadElement(refererModule, XemlTypes.Element.ENTITY, elementName, throwOnMissing);
     }
 
+    loadEntityTemplate(refererModule, elementName, args) {
+        const templateInfo = this.loadElement(refererModule, XemlTypes.Element.ENTITY_TEMPLATE, elementName, true);
+        
+        const templateArgs = templateInfo.templateArgs;
+        if (templateArgs.length !== args.length) {
+            throw new Error(`Arguments mismatch for entity template "${elementName}"`);
+        }
+
+        const variables = {};
+
+        templateInfo.templateArgs.forEach((arg, index) => {
+            if (arg.name[0] !== arg.name[0].toUpperCase()) {
+                throw new Error(`Entity template argument name "${arg.name}" should be in PascalCase.`);
+            }
+            variables[arg.name] = args[index];
+        });
+
+        const instanceInfo = _.mapValues(templateInfo, (value, key) => {
+            if (key === "fields") {
+                return _.mapValues(value, (fieldInfo) => {
+                    if (fieldInfo.type in variables) {
+                        return { ...fieldInfo, type: variables[fieldInfo.type] };
+                    }
+                    return fieldInfo;
+                });
+            }
+
+            // todo: other blocks
+
+            return value;
+        });
+
+        delete instanceInfo.templateArgs;
+
+        const element = new Entity(this, elementName, refererModule, instanceInfo);
+        element.link();
+
+        return element;
+    }
+
     loadType(refererModule, elementName, throwOnMissing = true) {
         return this.loadElement(refererModule, XemlTypes.Element.TYPE, elementName, throwOnMissing);
     }
@@ -346,9 +393,11 @@ class Linker {
 
     /**
      * Load an element based on the namespace chain.
-     * @param {object} refererModule
-     * @param {string} elementType
-     * @param {string} elementName
+     * @param {object} refererModule - The module that refers to the element.
+     * @param {string} elementType - The type of the element: entity, type, modifier, etc.
+     * @param {string} elementName - The name of the element.
+     * @param {boolean} throwOnMissing - Throw an error if the element is not found.
+     * @returns {*}
      */
     loadElement(refererModule, elementType, elementName, throwOnMissing) {
         // the element id with type, should be unique among the whole schema
@@ -359,9 +408,31 @@ class Linker {
             return this._elementsCache[uniqueId];
         }
 
+        let packageNamespace, moduleNamespace;
+        let withNamespace = false;
+
+        if (isIdWithNamespace(elementName)) {
+            withNamespace = true;
+
+            // the element name is a namespace
+            let [namespace, name] = extractNamespace(elementName);
+            elementName = name;
+
+            const namespaceParts = namespace.split(":");
+            if (namespaceParts.length > 2) {
+                // todo: support moduleNamespace with path
+                throw new Error(`Invalid namespace syntax "${namespace}"`);
+            } else if (namespaceParts.length === 2) {
+                packageNamespace = namespaceParts[0];
+                moduleNamespace = namespaceParts[1];
+            } else {
+                moduleNamespace = namespaceParts[0];
+            }
+        }
+
         let targetModule;
 
-        if (elementType in refererModule && elementName in refererModule[elementType]) {
+        if (!withNamespace && elementType in refererModule && elementName in refererModule[elementType]) {
             // see if it exists in the same module
             targetModule = refererModule;
         } else {
@@ -372,14 +443,23 @@ class Linker {
                 //this.log('debug', `Looking for ${elementType} "${elementName}" in "${modulePath}" ...`);
                 let packageName;
 
+                // from other package
                 if (Array.isArray(modulePath)) {
-                    packageName = modulePath[1];
+                    packageName = modulePath[1]; // key in dependencies
                     modulePath = modulePath[0];
+                }
+
+                if (packageNamespace && packageName !== packageNamespace) {
+                    return false;
+                }
+
+                if (moduleNamespace && baseName(modulePath, false) !== moduleNamespace) {
+                    return false;
                 }
 
                 targetModule = this.loadModule(modulePath, packageName);
                 if (!targetModule) {
-                    return undefined;
+                    return false;
                 }
 
                 return targetModule[elementType] && elementName in targetModule[elementType];
@@ -421,7 +501,7 @@ class Linker {
             element = new ElementClass(this, elementName, targetModule, elementInfo);
             element.link();
         } else {
-            if (elementType === XemlTypes.Element.TYPE) {
+            if (ELEMENT_WITH_MODULE.has(elementType)) {
                 element = {
                     ...elementInfo,
                     xemlModule: targetModule,

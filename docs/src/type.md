@@ -44,10 +44,10 @@ Building on the foundation of `@kitmi/types`, the `@kitmi/validators` library in
 
 Modifiers in JTMS can be standalone or require arguments, with the latter being expressed in object or array style.
 
--   Standalone Modifiers: "<type-prefix><modifier-name>", e.g. `~isIP`, `~isEmail`
+-   Standalone Modifiers: "<type-prefix><modifier-name>", e.g. `~ip`, `~email`, `~strongPassword`
 -   Modifiers with Arguments: These can be expressed either as objects or arrays:
     -   Object Style:
-        -   `name`: Modifier name with prefix (e.g., `~isMobile`)
+        -   `name`: Modifier name with prefix (e.g., `~mobile`)
         -   `options`: Arguments for the modifier (e.g., `{ locale: 'en-US' }`)
     -   Two-tuple Array Style:
         -   Index 0: Modifier name with prefix
@@ -58,7 +58,7 @@ Modifiers in JTMS can be standalone or require arguments, with the latter being 
 There are three types of modifiers with different prefix symbols:
 
 -   Validator (`~`): Validates the value.
--   Processor (`|`): Transforms the value.
+-   Processor (`>`): Transforms the value.
 -   Activator (`=`): Provides a value if the current value is null.
 
 ### Sample

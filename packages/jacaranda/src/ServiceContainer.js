@@ -529,11 +529,14 @@ class ServiceContainer extends AsyncEmitter {
             const _makeLogger = (logLevel, channel) => ({
                 log: makeLogger(consoleLogger, logLevel, channel),
                 child: (arg1, arg2) => _makeLogger(arg2?.level || logLevel, arg1?.module),
+                flush: () => {
+                    this._logCache.forEach((log) => this.logger.log(...log));
+                    this._logCache.length = 0;
+                },
             });
             this.logger = _makeLogger(this.options.logLevel);
             this.log = this._loggerLog;
-            this._logCache.forEach((log) => this.logger.log(...log));
-            this._logCache.length = 0;
+            this.logger.flush();
         }
     }
 

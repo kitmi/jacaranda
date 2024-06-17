@@ -1,8 +1,8 @@
-# Gen-X Entity Modeling Language
+# XGENT Entity Modeling Language
 
 ## Commands
 
-* build: Generate database scripts and entity models.
+* build: Generate database migration scripts and entity models.
 * graphql: Generate graphql schemas.
 * migrate: Create database structure.        
 * import: Import data set.
@@ -11,25 +11,19 @@
 
 ## Config
 
+```yaml
+dataModel:
+    schemaSet:
+        schemaName:
+            dataSource: postgres.connectorName
+    dependencies:
+        commons: '@xgent/xem-common'
+        base: 'wj-db-base'
+        auth: 'wj-api-auth'
+        crm: 'wj-api-crm'
+        cms: 'wj-api-cms'
+        lms: 'wj-api-lms'
+        psi: 'wj-api-psi'
+        sso: 'wj-api-sso'
 ```
-"geml": {
-    "modelPath": "src/models",
-    "gemlPath": "geml",
-    "scriptPath": "scripts",
-    "manifestPath": "manifests",
-    "useJsonSource": false,
-    "saveIntermediate": false,
-    "schemas": { 
-        "teamlink": {
-            "dataSource": "mysql.teamlink"
-        }
-    }
-}
-```
-
-## reverse
-
-geml reverse 
-
-## export
 

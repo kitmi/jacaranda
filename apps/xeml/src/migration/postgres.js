@@ -41,7 +41,7 @@ class PostgresMigration {
     }
 
     async create_(extraOptions) {
-        let sqlFiles = ['entities.sql', 'relations.sql', 'procedures.sql'];
+        let sqlFiles = ['entities.sql', 'sequence.sql', 'relations.sql', 'procedures.sql'];
 
         let sqlCreate = `CREATE DATABASE ${this.db.connector.escapeId(this.db.connector.database)}`;
 
@@ -75,8 +75,8 @@ class PostgresMigration {
 
             let sql = _.trim(fs.readFileSync(sqlFile, { encoding: 'utf8' }));
             if (sql) {
-                let result = _.castArray(await this.db.connector.execute_(sql));              
-                this.app.log('info', `Database scripts "${sqlFile}" run successfully. Affected rows: ${result.affectedRows}`);                
+                let result = await this.db.connector.execute_(sql);                        
+                this.app.log('info', `Database scripts "${sqlFile}" run successfully.`);                
             }
         });
     }

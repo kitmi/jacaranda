@@ -528,7 +528,7 @@ class RelationalEntityModel extends EntityModel {
                 }
 
                 return eachAsync_(data, (item) =>
-                    assocModel.create_({ ...item, [assocMeta.field]: keyValue }, passOnOptions, context.connOptions)
+                    assocModel.create_({ ...item, [assocMeta.field]: keyValue }, passOnOptions)
                 );
             } else if (!isPlainObject(data)) {
                 if (Array.isArray(data)) {
@@ -551,12 +551,11 @@ class RelationalEntityModel extends EntityModel {
                 data = { ...data, [assocMeta.field]: keyValue };
             }
 
-            passOnOptions.$fullResult = true;
             let created = await assocModel.create_(data, passOnOptions, context.connOptions);
-
+            
             if (
-                passOnOptions.$result.affectedRows === 0 ||
-                (assocModel.hasAutoIncrement && passOnOptions.$result.insertId === 0)
+                created.affectedRows === 0 ||
+                (assocModel.hasAutoIncrement && created.insertId === 0)
             ) {
                 // insert ignored or upserted
 
@@ -574,7 +573,7 @@ class RelationalEntityModel extends EntityModel {
                 }
             }
 
-            finished[anchor] = beforeEntityCreate ? created[assocMeta.field] : created[assocMeta.key];
+            finished[anchor] = beforeEntityCreate ? created.data[assocMeta.field] : created.data[assocMeta.key];
         });
 
         if (beforeEntityCreate) {
@@ -708,10 +707,9 @@ class RelationalEntityModel extends EntityModel {
 
                         // to create the associated, existing is null
 
-                        passOnOptions.$fullResult = true;
                         let created = await assocModel.create_(data, passOnOptions, context.connOptions);
 
-                        if (passOnOptions.$result.affectedRows === 0) {
+                        if (created.affectedRows === 0) {
                             // insert ignored
 
                             const assocQuery = assocModel.getUniqueKeyValuePairsFrom(data);

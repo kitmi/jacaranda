@@ -1,15 +1,23 @@
-const path = require("node:path");
-const fs = require("node:fs");
-const Xeml = require("../src/lang/grammar/xeml");
-const XemlParser = Xeml.parser;
+const path = require('node:path');
+const Linker = require('../src/lang/Linker');
 
-const file1 = path.resolve(__dirname, "schema", "entities", "resource.xeml");
+describe.only('test-parser', function () {
+    it('test case 1', async function () {
+        await jacat.startWorker_(async (app) => {
+          const linker = new Linker(app, {
+            schemaPath: path.resolve(__dirname, './schema'),
+            useJsonSource: false,
+            saveIntermediate: true,
+            dependencies: {
+              abc: '../abc-module'
+            }
+          });
+          let result = linker.loadModule('testNamespace.xeml');
+          console.log(result);
 
-describe("test-parser", function () {
-  it("test case 1", function () {
-      const result = XemlParser.parse(fs.readFileSync(file1, "utf8"));
-      fs.writeFileSync(file1 + ".json", JSON.stringify(result, null, 4));
-      console.log(result);
-  });
-
+          result = linker.loadElement(result, 'modifier', 'module1:activator1', true);
+          console.log(result.xemlModule);
+        });
+        
+    });
 });

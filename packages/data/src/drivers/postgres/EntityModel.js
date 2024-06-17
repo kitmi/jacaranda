@@ -1,8 +1,6 @@
 import { _ } from '@kitmi/utils';
 import EntityModel from '../relational/EntityModel';
-import {
-    ApplicationError,
-} from '@kitmi/types';
+import { ApplicationError } from '@kitmi/types';
 import { Types } from '@kitmi/validators/allSync';
 
 /**
@@ -71,25 +69,12 @@ class PostgresEntityModel extends EntityModel {
     async _internalAfterUpdate_(context) {
         const options = context.options;
 
-        if (options.$fullResult) {
-            context.rawOptions.$result = context.result || {
-                affectedRows: 0,
-                changedRows: 0,
-            };
-        }
-
         let retrieveUpdated = options.$getUpdated;
 
         if (!retrieveUpdated) {
-            if (
-                options.$retrieveActualUpdated &&
-                context.result.affectedRows > 0
-            ) {
+            if (options.$retrieveActualUpdated && context.result.affectedRows > 0) {
                 retrieveUpdated = options.$retrieveActualUpdated;
-            } else if (
-                options.$retrieveNotUpdate &&
-                context.result.affectedRows === 0
-            ) {
+            } else if (options.$retrieveNotUpdate && context.result.affectedRows === 0) {
                 retrieveUpdated = options.$retrieveNotUpdate;
             }
         }
@@ -120,9 +105,7 @@ class PostgresEntityModel extends EntityModel {
             );
 
             if (context.return) {
-                context.queryKey = this.getUniqueKeyValuePairsFrom(
-                    context.return
-                );
+                context.queryKey = this.getUniqueKeyValuePairsFrom(context.return);
             } else {
                 context.queryKey = condition.$query;
             }
@@ -137,24 +120,6 @@ class PostgresEntityModel extends EntityModel {
      */
     async _internalAfterUpdateMany_(context) {
         const options = context.options;
-
-        if (options.$fullResult) {
-            context.rawOptions.$result = context.result || {
-                affectedRows: 0,
-                changedRows: 0,
-            };
-
-            /**
-             * afterUpdateMany ResultSetHeader {
-             * fieldCount: 0,
-             * affectedRows: 1,
-             * insertId: 0,
-             * info: 'Rows matched: 1  Changed: 1  Warnings: 0',
-             * serverStatus: 3,
-             * warningStatus: 0,
-             * changedRows: 1 }
-             */
-        }
 
         if (options.$getUpdated) {
             let retrieveOptions = {};
@@ -188,9 +153,7 @@ class PostgresEntityModel extends EntityModel {
         if (context.options.$getDeleted) {
             await this.ensureTransaction_(context);
 
-            const retrieveOptions = _.isPlainObject(
-                context.options.$getDeleted
-            )
+            const retrieveOptions = _.isPlainObject(context.options.$getDeleted)
                 ? {
                       ...context.options.$getDeleted,
                       $query: context.options.$query,
@@ -201,10 +164,7 @@ class PostgresEntityModel extends EntityModel {
                 retrieveOptions.$includeDeleted = true;
             }
 
-            context.return = context.existing = await this.findOne_(
-                retrieveOptions,
-                context.connOptions
-            );
+            context.return = context.existing = await this.findOne_(retrieveOptions, context.connOptions);
         }
 
         return true;
@@ -214,9 +174,7 @@ class PostgresEntityModel extends EntityModel {
         if (context.options.$getDeleted) {
             await this.ensureTransaction_(context);
 
-            const retrieveOptions = _.isPlainObject(
-                context.options.$getDeleted
-            )
+            const retrieveOptions = _.isPlainObject(context.options.$getDeleted)
                 ? {
                       ...context.options.$getDeleted,
                       $query: context.options.$query,
@@ -227,10 +185,7 @@ class PostgresEntityModel extends EntityModel {
                 retrieveOptions.$includeDeleted = true;
             }
 
-            context.return = context.existing = await this.findAll_(
-                retrieveOptions,
-                context.connOptions
-            );
+            context.return = context.existing = await this.findAll_(retrieveOptions, context.connOptions);
         }
 
         return true;
@@ -240,21 +195,13 @@ class PostgresEntityModel extends EntityModel {
      * Post delete processing.
      * @param {*} context
      */
-    _internalAfterDelete_(context) {
-        if (context.options.$fullResult) {
-            context.rawOptions.$result = context.result;
-        }
-    }
+    _internalAfterDelete_(context) {}
 
     /**
      * Post delete processing.
      * @param {*} context
      */
-    _internalAfterDeleteMany_(context) {
-        if (context.options.$fullResult) {
-            context.rawOptions.$result = context.result;
-        }
-    }
+    _internalAfterDeleteMany_(context) {}
 }
 
 export default PostgresEntityModel;

@@ -1,6 +1,6 @@
 const path = require('node:path');
 const { fs, cmd } = require("@kitmi/sys");
-const { _, eachAsync_, isEmpty } = require('@kitmi/utils');
+const { _, eachAsync_, isEmpty, sleep_ } = require('@kitmi/utils');
 const { hash } = require('@kitmi/feat-cipher');
 const Linker = require('../lang/Linker');
 
@@ -56,8 +56,12 @@ module.exports = async (app) => {
         const DaoModeler = require('../modeler/Dao');
         let daoModeler = new DaoModeler(modelService, schema.linker, connector);
 
-        return daoModeler.modeling_(refinedSchema);
+        return daoModeler.modeling_(refinedSchema, verContent);
     });  
+
+    app.logger.flush();
+
+    await sleep_(1000);
 
     try {
         await cmd.runLive_('pnpm', ['prettier']);

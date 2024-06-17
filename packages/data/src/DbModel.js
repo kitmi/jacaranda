@@ -33,11 +33,11 @@ class DbModel {
 
     /**
      * Fork the model with transaction flag.
-     * @param {bool} transaction 
+     * @param {Client} transaction - Client created from beginTransaction_.
      * @returns {DbModel}
      */
     fork(transaction) {
-        return new this.constructor(this.app, this.connector, transaction ?? true);
+        return new this.constructor(this.app, this.connector, transaction);
     }
 
     /**

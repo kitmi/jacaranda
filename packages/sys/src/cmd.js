@@ -1,5 +1,4 @@
 import childProcess from 'node:child_process';
-import { consoleLog, consoleError } from './functions';
 
 /**
  * Execute a shell command.
@@ -37,8 +36,8 @@ export const runLive_ = (cmd, args, onStdOut, onStdErr, options) =>
         });
         let e;
 
-        onStdOut ??= consoleLog;
-        onStdErr ??= consoleError;
+        onStdOut ??= (s) => process.stdout.write(s);
+        onStdErr ??= (s) => process.stderr.write(s);
 
         ps.stdout.on('data', onStdOut);
         ps.stderr.on('data', onStdErr);

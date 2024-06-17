@@ -139,7 +139,7 @@ class MySQLModeler {
 
                                     let keyField = entity.fields[fields[0]];
 
-                                    if (!keyField.auto && !keyField.defaultByDb) {
+                                    if (!keyField.auto && !keyField.autoByDb) {
                                         throw new Error(
                                             `The key field "${entity.name}" has no default value or auto-generated value.`
                                         );
@@ -1662,12 +1662,12 @@ class MySQLModeler {
 
     static defaultValue(info, type) {
         if (info.isCreateTimestamp) {
-            info.createByDb = true;
+            info.autoByDb = true;
             return " DEFAULT CURRENT_TIMESTAMP";
         }
 
         if (info.autoIncrementId) {
-            info.createByDb = true;
+            info.autoByDb = true;
             return " AUTO_INCREMENT";
         }
 
@@ -1688,7 +1688,7 @@ class MySQLModeler {
                     switch (tokenName) {
                         case "NOW":
                             sql += " DEFAULT NOW()";
-                            info.createByDb = true;
+                            info.autoByDb = true;
                             break;
 
                         default:
@@ -1751,13 +1751,13 @@ class MySQLModeler {
                     sql += " DEFAULT CURRENT_TIMESTAMP";
                 } else if (info.type === "enum") {
                     sql += " DEFAULT " + quote(info.values[0]);
-                    info.createByDb = true;
+                    info.autoByDb = true;
                 } else {
                     sql += ' DEFAULT ""';
                 }
 
-                //not explicit specified, will not treated as createByDb
-                //info.createByDb = true;
+                //not explicit specified, will not treated as autoByDb
+                //info.autoByDb = true;
             }
         }     
 

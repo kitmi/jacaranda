@@ -7,14 +7,14 @@ import { v4 } from "@napi-rs/uuid";
 // Activator will only be called when the field value is null
 // Activator signature: (entity, field, context, ...args) => value
 const activatorTable = typeSystem.handlers.activator;
-activatorTable['isEqual'] = ([arg1, arg2]) => arg1 === arg2;
-activatorTable['isNotEqual'] = ([arg1, arg2]) => arg1 !== arg2;
+activatorTable['isEqual'] = (args) => args[0] === args[1];
+activatorTable['isNotEqual'] = (args) => args[0] !== args[1];
 activatorTable['setValueWhen'] = ([value, condition]) => condition ? value : null;
 activatorTable['concat'] = ([sep = '', ...strs]) => strs.join(sep);
 activatorTable['sum'] = (args) => args.reduce((sum, v) => (sum += v), 0);
 activatorTable['multiply'] = ([multiplier, multiplicand]) => multiplier * multiplicand;
 activatorTable['uuid'] = () => v4();
-activatorTable['timeOfValueSet'] = (value) => value != null ? new Date() : null;
+activatorTable['timeOfValueSet'] = ([value]) => value != null ? new Date() : null;
 
 export const _Activators = _.mapValues(activatorTable, (activator) => (entity, field, context, ...options) => activator(options, field, context));
 
@@ -35,7 +35,7 @@ _Activators.fetch_ = async (entity, field, context, assoc, options) => {
     }
 
     const assocValue = context.latest[localAssoc];
-    if (assocValue == null) {
+    if (assocValue == null) {        
         throw new ApplicationError(
             `The value of referenced association "${localAssoc}" of entity "${entity.meta.name}" should not be null.`
         );

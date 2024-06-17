@@ -16,10 +16,10 @@ function initialize(entity, args = []) {
         type: 'datetime',
         readOnly: true,
         forceUpdate: true,
-        optional: true
+        optional: true,
     };
 
-    let [ options ] = args;
+    let [options] = args;
 
     if (options) {
         if (typeof options === 'string') {
@@ -29,12 +29,13 @@ function initialize(entity, args = []) {
         Object.assign(typeInfo, options);
     }
 
-    let fieldName = typeInfo.name;
+    const fieldName = typeInfo.name;
+    const featureInfo = {
+        field: fieldName,
+    };
 
-    entity.addFeature(FEATURE_NAME, {
-        field: fieldName
-    }).once('afterAddingFields', () => {
-        entity.addField(fieldName, typeInfo)
+    entity.addFeature(FEATURE_NAME, featureInfo).once('afterAddingFields', () => {
+        entity.addField(fieldName, typeInfo);
     });
 }
 

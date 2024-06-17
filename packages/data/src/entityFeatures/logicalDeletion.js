@@ -49,10 +49,6 @@ module.exports = {
                 context.forSingleRecord
             );
 
-            if (options.$fullResult) {
-                context.rawOptions.$result = updateOpts.$result;
-            }
-
             return false;
         }
 
