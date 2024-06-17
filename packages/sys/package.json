@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/sys",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "description": "JavaScript local system utilities",
     "main": "cjs/index.js",
     "module": "src/index.js",

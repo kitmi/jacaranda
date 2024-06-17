@@ -1,5 +1,11 @@
 # @kitmi/sys
 
+## 1.2.2
+
+### Patch Changes
+
+-   40a3a30: cmd runner, logger, data access model bugs fix and xeml cli bugs fix
+
 ## 1.2.1
 
 ### Patch Changes

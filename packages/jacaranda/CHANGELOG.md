@@ -1,5 +1,18 @@
 # @kitmi/jacaranda
 
+## 3.1.0
+
+### Minor Changes
+
+-   40a3a30: cmd runner, logger, data access model bugs fix and xeml cli bugs fix
+
+### Patch Changes
+
+-   Updated dependencies [40a3a30]
+    -   @kitmi/validators@1.3.0
+    -   @kitmi/sys@1.3.0
+    -   @kitmi/adapters@1.1.2
+
 ## 3.0.1
 
 ### Patch Changes
