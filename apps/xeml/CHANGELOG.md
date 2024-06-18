@@ -1,5 +1,13 @@
 # @kitmi/xeml
 
+## 0.3.1
+
+### Patch Changes
+
+-   Add createBefore and createAfter entity features.
+-   Updated dependencies
+    -   @kitmi/data@0.3.1
+
 ## 0.3.0
 
 ### Minor Changes
