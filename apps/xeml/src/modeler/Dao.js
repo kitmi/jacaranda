@@ -99,6 +99,58 @@ class DaoModeler {
         }
     }
 
+    _featureReducer(schema, entity, featureName, feature) {
+        let field;
+
+        switch (featureName) {
+            case "autoId":                
+                break;
+
+            case "createTimestamp":                
+                break;
+
+            case "updateTimestamp":
+                break;
+
+            case "userEditTracking":
+                break;
+
+            case "logicalDeletion":
+                break;
+
+            case "atLeastOneNotNull":
+                break;
+
+            case "validateAllFieldsOnCreation":
+                break;
+
+            case "stateTracking":
+                break;
+
+            case "i18n":
+                break;
+
+            case "changeLog":
+                break;
+
+            case 'createBefore':      
+                field = entity.fields[feature.relation];
+                if (field) {
+                    field.fillByRule = true;
+                }
+                break;
+
+            case 'createAfter':                
+                break;    
+
+            case 'closureTable':                
+                break;
+
+            default:
+                throw new Error('Unsupported feature "' + featureName + '".');
+        }
+    }
+
     _generateSchemaModel(schema, versionInfo) {
         let capitalized = naming.pascalCase(schema.name);
 
@@ -145,6 +197,16 @@ class DaoModeler {
 
     _generateEntityModel(schema, versionInfo) {
         _.forOwn(schema.entities, (entity, entityInstanceName) => {
+            if (entity.features) {
+                _.forOwn(entity.features, (f, featureName) => {
+                    if (Array.isArray(f)) {
+                        f.forEach((ff) => this._featureReducer(schema, entity, featureName, ff));
+                    } else {
+                        this._featureReducer(schema, entity, featureName, f);
+                    }
+                });
+            }
+
             let capitalized = naming.pascalCase(entityInstanceName);
 
             //shared information with model CRUD and customized interfaces

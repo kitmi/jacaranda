@@ -15,6 +15,8 @@ const Dataset = require("./Dataset");
 const {
     isIdWithNamespace,
     extractNamespace,
+    isDotSeparateName,
+    extractDotSeparateName,
 } = require('./XemlUtils');
 
 const ELEMENT_CLASS_MAP = {
@@ -27,6 +29,8 @@ const ELEMENT_WITH_MODULE = new Set([ XemlTypes.Element.TYPE, XemlTypes.Element.
 
 const XEML_SOURCE_EXT = ".xeml";
 const BUILTINS_PATH = path.resolve(__dirname, "builtins");
+
+const CONTEXT_REFS = new Set([ 'latest', 'existing', 'raw' ]);
 
 /**
  * Linker of xeml
@@ -298,7 +302,22 @@ class Linker {
                 let uniqueId = this.getElementUniqueId(xemlModule, XemlTypes.Element.CONST, value.name);
                 let ownerModule = this.getModuleById(this._mapOfReferenceToModuleId[uniqueId]);
                 return this.translateXemlValue(ownerModule, refedValue);
-            } else if (value.$xt) {
+            } else if (value.$xt) {                
+                switch (value.$xt) {
+                    case XemlTypes.Lang.OBJECT_REF:
+                        let refName = value.name;
+
+                        if (isDotSeparateName(value.name)) {
+                            refName = extractDotSeparateName(value.name)[0];
+                        }
+
+                        if (!CONTEXT_REFS.has(refName)) {
+                            throw new Error(`Invalid object reference "${value.name}"`);
+                        }
+                        
+                        return { $xr: 'Input', name: value.name };
+                }
+
                 throw new Error(`todo: translateXemlValue with type: ${value.$xt}`);
             }
 

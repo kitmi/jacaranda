@@ -36,7 +36,7 @@ function minifyAssocs(assocs) {
     return minified;
 }
 
-const $xrsToBypass = new Set(['Column', 'Function', 'BinExpr', 'Query', 'Raw', 'DataSet', 'SQL']);
+const $dbRuntimeObjects = new Set(['Column', 'Function', 'BinExpr', 'Query', 'Raw', 'DataSet', 'SQL']);
 
 /**
  * Base entity model class.
@@ -151,6 +151,20 @@ class EntityModel {
         }
 
         return Array.from(result);
+    }
+
+    /**
+     * Get related entity model by anchor.
+     * @param {string} anchor 
+     * @returns {EntityModel}
+     */
+    getRalatedEntity(anchor) {
+        const assocInfo = this.meta.associations[anchor];
+        if (!assocInfo) {
+            throw new InvalidArgument(`Unknown association "${anchor}" of entity "${this.meta.name}".`);
+        }
+
+        return this.db.entity(assocInfo.entity);
     }
 
     /**
@@ -295,10 +309,10 @@ class EntityModel {
      * @param {object} [connOptions]
      * @returns {*}
      */
-    async aggregate_(pipeline, connOptions) {
+    async aggregate_(pipeline) {
         const _pipeline = pipeline.map((q) => this._prepareQueries(q));
 
-        return this.db.connector.aggregate_(this.meta.name, _pipeline, connOptions);
+        return this.db.connector.aggregate_(this.meta.name, _pipeline);
     }
 
     async applyRules_(ruleName, context) {
@@ -674,7 +688,7 @@ class EntityModel {
                     if (this.hasAutoIncrement) {
                         context.result.insertId = context.latest[this.meta.features.autoId.field];  
                     }                    
-                }                
+              }                
             } else {                
                 context.result = { data: context.latest, affectedRows: 1 };
             }
@@ -1200,8 +1214,8 @@ class EntityModel {
                 } else if (fieldInfo.auto) {
                     // automatically generated
                     latest[fieldName] = await defaultGenerator(fieldInfo, i18n);
-                } else if (!fieldInfo.hasActivator) {
-                    // skip those have activators
+                } else if (!fieldInfo.hasActivator && !fieldInfo.fillByRule) {
+                    // skip those have activators or fill by beforeCreate rule
 
                     throw new ValidationError(`Field "${fieldName}" of "${name}" entity is required.`, {
                         entity: name,
@@ -1212,7 +1226,7 @@ class EntityModel {
             } // else default value set by database or by rules
         });
 
-        latest = context.latest = this._translateValue(latest, opOptions.$variables, true);
+        latest = context.latest = this._translateValue(latest, opOptions.$variables, true, false, context);
 
         await this.applyRules_(Rules.RULE_AFTER_VALIDATION, context);
 
@@ -1421,7 +1435,7 @@ class EntityModel {
                     relFromSelect.add(v.substring(0, pos));
                 }
 
-                converted.push(this._translateValue(v, variables));
+                converted.push(this._translateValue(v, qOptions.$variables));
             });
 
             qOptions.$select = converted;
@@ -1580,52 +1594,64 @@ class EntityModel {
      * @param {object} variables
      * @param {boolean} skipTypeCast
      * @param {boolean} arrayToInOperator - Convert an array value to { $in: array }
+     * @param {object} context
      * @returns {*}
      */
-    _translateValue(value, variables, skipTypeCast, arrayToInOperator) {
+    _translateValue(value, variables, skipTypeCast, arrayToInOperator, context) {
         if (isPlainObject(value)) {
             if (value.$xr) {
-                if ($xrsToBypass.has(value.$xr)) return value;
+                if ($dbRuntimeObjects.has(value.$xr)) return value;
 
-                if (value.$xr === 'SessionVariable') {
-                    if (!variables) {
-                        throw new InvalidArgument('Variables context missing.', {
-                            entity: this.meta.name,
-                        });
-                    }
-
-                    if ((!variables.session || !(value.name in variables.session)) && !value.optional) {
-                        const errArgs = [];
-                        if (value.missingMessage) {
-                            errArgs.push(value.missingMessage);
+                switch (value.$xr) {
+                    case 'SessionVariable':
+                        if (!variables) {
+                            throw new InvalidArgument('Variables context missing.', {
+                                entity: this.meta.name,
+                            });
                         }
-                        if (value.missingStatus) {
-                            errArgs.push(value.missingStatus || HttpCode.BAD_REQUEST);
+    
+                        if ((!variables.session || !(value.name in variables.session)) && !value.optional) {
+                            const errArgs = [];
+                            if (value.missingMessage) {
+                                errArgs.push(value.missingMessage);
+                            }
+                            if (value.missingStatus) {
+                                errArgs.push(value.missingStatus || HttpCode.BAD_REQUEST);
+                            }
+    
+                            throw new ValidationError(...errArgs);
                         }
+    
+                        return variables.session[value.name];
 
-                        throw new ValidationError(...errArgs);
-                    }
+                    case 'QueryVariable':
+                        if (!variables) {
+                            throw new InvalidArgument('Variables context missing.', {
+                                entity: this.meta.name,
+                            });
+                        }
+    
+                        if (!variables.query || !(value.name in variables.query)) {
+                            throw new InvalidArgument(`Query parameter "${value.name}" in configuration not found.`, {
+                                entity: this.meta.name,
+                            });
+                        }
+    
+                        return variables.query[value.name];
 
-                    return variables.session[value.name];
-                } else if (value.$xr === 'QueryVariable') {
-                    if (!variables) {
-                        throw new InvalidArgument('Variables context missing.', {
-                            entity: this.meta.name,
-                        });
-                    }
+                    case 'SymbolToken':
+                        return this._translateSymbolToken(value.name);
 
-                    if (!variables.query || !(value.name in variables.query)) {
-                        throw new InvalidArgument(`Query parameter "${value.name}" in configuration not found.`, {
-                            entity: this.meta.name,
-                        });
-                    }
-
-                    return variables.query[value.name];
-                } else if (value.$xr === 'SymbolToken') {
-                    return this._translateSymbolToken(value.name);
+                    case 'Input':
+                        if (context == null) {
+                            throw new InvalidArgument('Context is required for input value reference.', {
+                                entity: this.meta.name,
+                            });
+                        }
+                        return _get(context, value.name);
                 }
 
-                throw new Error('Not implemented yet. ' + value.$xr);
+                throw new Error('Not implemented yet. ' + value.$xr);                
             }
 
             return _.mapValues(value, (v, k) =>

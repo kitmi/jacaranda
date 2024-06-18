@@ -1,4 +1,4 @@
-import { isWrappedWith, unwrap } from '@kitmi/utils';
+import { _, isWrappedWith, isEmpty, unwrap } from '@kitmi/utils';
 
 export const isRawSql = (value) => isWrappedWith(value, 'r#"', '"#');
 export const extractRawSql = (value) => unwrap(value, 'r#"', '"#');
@@ -32,11 +32,11 @@ export const doDec = (field, decrement) => xrExpr(xrCol(field), '-', decrement);
  * @returns {object}
  */
 export function mergeWhere(condition1, condition2, operator = '$and') {
-    if (_.isEmpty(condition1)) {
+    if (isEmpty(condition1)) {
         return condition2;
     }
 
-    if (_.isEmpty(condition2)) {
+    if (isEmpty(condition2)) {
         return condition1;
     }
 
@@ -59,23 +59,3 @@ export const hasValueInAny = (arrayOfColl, key) => getValueFromAny(arrayOfColl, 
  */
 export const getValueFromAny = (arrayOfColl, key) => _.find(arrayOfColl, (coll) => coll?.[key] != null);
 
-/*
-queryCount = (alias, fieldName) => ({
-    type: 'function',
-    name: 'COUNT',
-    args: [fieldName || '*'],
-    alias: alias || 'count',
-});
-
-$call = (name, alias, args, extra) => ({
-    ...extra,
-    type: 'function',
-    name,
-    alias,
-    args,
-});
-$as = (name, alias) => ({ type: 'column', name, alias });
-
-// in mysql, null value comparison will never return true, even null != 1
-nullOrIs = (fieldName, value) => [{ [fieldName]: { $exists: false } }, { [fieldName]: { $eq: value } }];
-*/

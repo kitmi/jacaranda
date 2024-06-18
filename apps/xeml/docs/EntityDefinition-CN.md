@@ -136,7 +136,8 @@ with
     - default
     - auto
     - autoByDb: 如为true，则为数据库内部生成机制，如`mysql`的UPDATE_TIMESTAMP，如为**运行时对象**，则通常代表数据库函数调用，`{ $xr: 'Function', ... }`
-    - generator: 根据不同的数据库，generator可能被实现为数据库的函数调用，或者JS的activator，如最终为数据库调用，则`autoByDb`为true或为特殊对象，如为JS调用，则`auto`为true或特殊标记
+    - generator: 根据不同的数据库，generator可能被实现为数据库的函数调用，或者JS的activator，如最终为数据库调用，则`autoByDb`为true或为特殊对象，如为JS调用，则`auto`为true或特殊标记，（todo: updateByDb）
+    - fillByRule
     - readOnly
     - writeOnce
     - plain

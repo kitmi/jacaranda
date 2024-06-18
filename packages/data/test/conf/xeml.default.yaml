@@ -1,0 +1,27 @@
+logger:
+    level: info
+
+dataSource:
+    postgres:
+        testConnector:
+            connection: 'postgres://postgres:postgres@localhost:5432/wisley'
+            adminCredential:
+                username: 'postgres'
+                password: 'postgres'
+            logStatement: true
+            logConnection: false
+            logTransaction: true
+
+dataModel:
+    schemaSet:
+        test:
+            dataSource: postgres.testConnector
+    dependencies:
+        commons: '@xgent/xem-common'
+
+db:
+    test:
+        dataSource: postgres.testConnector
+
+settings:
+    defaultDb: test

@@ -1,12 +1,14 @@
 const XemlTypes = {
     Lang: Object.freeze({
         CONST_REF: 'ConstReference',
+        OBJECT_REF: 'ObjectReference',
         STRING_TMPL: 'StringTemplate',
         VALIDATOR: 'Validator',
         PROCESSOR: 'Processor',
         ACTIVATOR: 'Activator',
         PIPELINE_VAL: 'PipedValue',
-        FUNCTION_CALL: 'FunctionCall'
+        FUNCTION_CALL: 'FunctionCall',
+        SYMBOL_TOKEN: 'SymbolToken',
     }),
     Element: Object.freeze({
         CONST: 'constant',

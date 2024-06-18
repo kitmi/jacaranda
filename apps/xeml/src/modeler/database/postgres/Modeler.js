@@ -1,10 +1,11 @@
 const EventEmitter = require('node:events');
 const path = require('node:path');
 
-const { _, pushIntoBucket, get, naming, bin2Hex, suffixForDuplicate, isEmpty } = require('@kitmi/utils');
+const { _, isPlainObject, isEmpty, pushIntoBucket, get, naming, bin2Hex, suffixForDuplicate } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
 
 const XemlUtils = require('../../../lang/XemlUtils');
+const XemlTypes = require('../../../lang/XemlTypes');
 const { pluralize, isDotSeparateName, extractDotSeparateName, prefixNaming } = XemlUtils;
 const Entity = require('../../../lang/Entity');
 const Types = require('../../../lang/Types');
@@ -134,16 +135,20 @@ class PostgresModeler {
                     let enumName = prefixNaming(entity.name, name);
 
                     if (schema.types[enumName]) {
-                        this.warnings[enumName] = `Enum type "${enumName}" already exists. The one in entity "${entity.name}" will be renamed.`;
+                        this.warnings[
+                            enumName
+                        ] = `Enum type "${enumName}" already exists. The one in entity "${entity.name}" will be renamed.`;
 
-                        enumName = suffixForDuplicate(enumName, (newName) => newName in schema.types);                        
+                        enumName = suffixForDuplicate(enumName, (newName) => newName in schema.types);
                     }
 
-                    schema.types[enumName] = _.omit(field, ['name']);      
-                    field.domain = enumName;   
+                    schema.types[enumName] = _.omit(field, ['name']);
+                    field.domain = enumName;
 
-                    tableSQL += `-- Create Enum Type\nCREATE TYPE ${enumName} AS ENUM (${field.enum.map((v) => `'${v}'`).join(', ')});\n\n`;
-                }                
+                    tableSQL += `-- Create Enum Type\nCREATE TYPE ${enumName} AS ENUM (${field.enum
+                        .map((v) => `'${v}'`)
+                        .join(', ')});\n\n`;
+                }
             });
 
             if (!skipGeneration) {
@@ -157,7 +162,7 @@ class PostgresModeler {
 
                         if (Array.isArray(records)) {
                             records.forEach((record) => {
-                                if (!_.isPlainObject(record)) {
+                                if (!isPlainObject(record)) {
                                     let fields = Object.keys(entity.fields);
                                     if (fields.length !== 2) {
                                         throw new Error(
@@ -182,7 +187,7 @@ class PostgresModeler {
                             });
                         } else {
                             _.forOwn(records, (record, key) => {
-                                if (!_.isPlainObject(record)) {
+                                if (!isPlainObject(record)) {
                                     let fields = Object.keys(entity.fields);
                                     if (fields.length !== 2) {
                                         throw new Error(
@@ -206,7 +211,7 @@ class PostgresModeler {
                             });
                         }
 
-                        if (!_.isEmpty(entityData)) {
+                        if (!isEmpty(entityData)) {
                             dataSet || (dataSet = '_init');
                             runtimeEnv || (runtimeEnv = 'default');
 
@@ -247,7 +252,7 @@ class PostgresModeler {
 
             let initIdxFiles = {};
 
-            if (!_.isEmpty(data)) {
+            if (!isEmpty(data)) {
                 _.forOwn(data, (envData, dataSet) => {
                     _.forOwn(envData, (entitiesData, runtimeEnv) => {
                         _.forOwn(entitiesData, (records, entityName) => {
@@ -301,7 +306,7 @@ class PostgresModeler {
 
                 funcSQL += `CREATE PROCEDURE ${dbService.getViewSPName(viewName)}(`;
                 
-                if (!_.isEmpty(view.params)) {
+                if (!isEmpty(view.params)) {
                     let paramSQLs = [];
                     view.params.forEach(param => {
                         paramSQLs.push(`p${_.upperFirst(param.name)} ${MySQLModeler.columnDefinition(param, true)}`);
@@ -334,7 +339,7 @@ class PostgresModeler {
             return remoteField.map((rf) => this._translateJoinCondition(context, localField, anchor, rf));
         }
 
-        if (_.isPlainObject(remoteField)) {
+        if (isPlainObject(remoteField)) {
             let ret = { [localField]: this._toColumnReference(anchor + '.' + remoteField.by) };
             let withExtra = this._xemlConditionToQueryCondition(context, remoteField.with);
 
@@ -355,7 +360,7 @@ class PostgresModeler {
             return remoteField.map((rf) => this._getAllRelatedFields(rf));
         }
 
-        if (_.isPlainObject(remoteField)) {
+        if (isPlainObject(remoteField)) {
             return remoteField.by;
         }
 
@@ -616,7 +621,7 @@ class PostgresModeler {
                                     right: true,
                                 };
 
-                                if (_.isPlainObject(remoteField)) {
+                                if (isPlainObject(remoteField)) {
                                     remoteField.with = {
                                         $xt: 'LogicalExpression',
                                         operator: 'and',
@@ -821,7 +826,7 @@ class PostgresModeler {
                 if (!assoc.existingField) {
                     entity.addAssocField(localField, destEntity, referencedField, assoc.fieldProps);
                 }
-                
+
                 entity.addAssociation(localField, {
                     type: assoc.type,
                     entity: destEntityName,
@@ -966,7 +971,7 @@ class PostgresModeler {
             return;
         }
 
-        if (_.isPlainObject(leftField)) {
+        if (isPlainObject(leftField)) {
             this._addReference(left, leftField.by, right.rightField, constraints);
             return;
         }
@@ -1044,7 +1049,9 @@ class PostgresModeler {
                     field.autoIncrementId = true;
                     if ('startFrom' in feature) {
                         const seqId = `${entity.name}_${feature.field}_seq`;
-                        this._sequenceRestart.push(`ALTER SEQUENCE ${this.connector.escapeId(seqId)} RESTART WITH ${feature.startFrom};`);                                            
+                        this._sequenceRestart.push(
+                            `ALTER SEQUENCE ${this.connector.escapeId(seqId)} RESTART WITH ${feature.startFrom};`
+                        );
                     }
                 }
                 break;
@@ -1091,6 +1098,15 @@ class PostgresModeler {
                 }
 
                 Object.assign(feature, changeLogSettings);
+                break;
+
+            case 'createBefore':
+                break;
+
+            case 'createAfter':
+                break;
+
+            case 'closureTable':
                 break;
 
             default:
@@ -1299,21 +1315,21 @@ class PostgresModeler {
 
         sql += 'SELECT ' + colList.join(', ') + ' FROM ' + this.quoteIdentifier(doc.entity) + ' AS ' + alias;
 
-        if (!_.isEmpty(joins)) {
+        if (!isEmpty(joins)) {
             sql += ' ' + joins.join(' ');
         }
 
-        if (!_.isEmpty(view.selectBy)) {
+        if (!isEmpty(view.selectBy)) {
             sql +=
                 ' WHERE ' +
                 view.selectBy.map((select) => this.xemlToSql(modelingSchema, doc, select, view.params)).join(' AND ');
         }
 
-        if (!_.isEmpty(view.groupBy)) {
+        if (!isEmpty(view.groupBy)) {
             sql += ' GROUP BY ' + view.groupBy.map((col) => this._orderByToSql(modelingSchema, doc, col)).join(', ');
         }
 
-        if (!_.isEmpty(view.orderBy)) {
+        if (!isEmpty(view.orderBy)) {
             sql += ' ORDER BY ' + view.orderBy.map((col) => this._orderByToSql(modelingSchema, doc, col)).join(', ');
         }
 
@@ -1340,7 +1356,7 @@ class PostgresModeler {
         let colList = Object.keys(entity.fields).map(k => alias + '.' + MySQLModeler.quoteIdentifier(k));
         let joins = [];
 
-        if (!_.isEmpty(doc.subDocuments)) {
+        if (!isEmpty(doc.subDocuments)) {
             _.forOwn(doc.subDocuments, (doc, fieldName) => {
                 let [ subColList, subAlias, subJoins, startIndex2 ] = this._buildViewSelect(schema, doc, startIndex);
                 startIndex = startIndex2;
@@ -1350,7 +1366,7 @@ class PostgresModeler {
                     + ' ON ' + alias + '.' + MySQLModeler.quoteIdentifier(fieldName) + ' = ' +
                     subAlias + '.' + MySQLModeler.quoteIdentifier(doc.linkWithField));
 
-                if (!_.isEmpty(subJoins)) {
+                if (!isEmpty(subJoins)) {
                     joins = joins.concat(subJoins);
                 }
             });
@@ -1359,12 +1375,12 @@ class PostgresModeler {
         return [ colList, alias, joins, startIndex ];
     }*/
 
-    _createTableStatement(entityName, entity /*, mapOfEntityNameToCodeName*/) {        
+    _createTableStatement(entityName, entity /*, mapOfEntityNameToCodeName*/) {
         let sql = '-- Create Table\nCREATE TABLE IF NOT EXISTS ' + this.connector.escapeId(entityName) + ' (\n';
 
         //column definitions
-        _.each(entity.fields, (field, name) => {            
-            sql += '  ' + this.quoteIdentifier(name) + ' ' + this.columnDefinition(field) + ',\n';
+        _.each(entity.fields, (field, name) => {
+            sql += '  ' + this.quoteIdentifier(name) + ' ' + this.columnDefinition(entity, field) + ',\n';
         });
 
         const pkName = `${entityName}_pkey`;
@@ -1407,7 +1423,6 @@ class PostgresModeler {
         //other keys
         if (entity.indexes && entity.indexes.length > 0) {
             entity.indexes.forEach((index) => {
-                
                 sql += '-- Create Index\nCREATE ';
                 if (index.unique) {
                     sql += 'UNIQUE ';
@@ -1415,7 +1430,14 @@ class PostgresModeler {
 
                 const indexName = `${entityName}_${index.fields.join('_')}_idx`;
 
-                sql += 'INDEX "' + indexName + '" ON "' + entityName + '"(' + this.quoteIdListOrValue(index.fields) + ');\n\n';
+                sql +=
+                    'INDEX "' +
+                    indexName +
+                    '" ON "' +
+                    entityName +
+                    '"(' +
+                    this.quoteIdListOrValue(index.fields) +
+                    ');\n\n';
             });
         }
 
@@ -1424,7 +1446,7 @@ class PostgresModeler {
         }
 
         //column definitions
-        _.each(entity.fields, (field, name) => {            
+        _.each(entity.fields, (field, name) => {
             if (field.comment) {
                 sql += `COMMENT ON COLUMN "${entityName}"."${name}" IS ${this.quoteString(field.comment)};\n\n`;
             }
@@ -1451,7 +1473,9 @@ class PostgresModeler {
         let sql =
             'ALTER TABLE ' +
             this.quoteIdentifier(entityName) +
-            ' ADD CONSTRAINT ' + this.quoteIdentifier(keyName) + ' FOREIGN KEY (' +
+            ' ADD CONSTRAINT ' +
+            this.quoteIdentifier(keyName) +
+            ' FOREIGN KEY (' +
             this.quoteIdentifier(relation.leftField) +
             ') ' +
             'REFERENCES ' +
@@ -1498,21 +1522,21 @@ class PostgresModeler {
         return result;
     }
 
-    columnDefinition(field, isProc, returnType) {
+    columnDefinition(entity, field, isProc, returnType) {
         let col;
 
-        if (field.domain) {            
+        if (field.domain) {
             col = {
                 sql: field.domain,
                 type: 'DOMAIN',
-            }
+            };
         } else {
             switch (field.type) {
                 case 'array':
                     if (field.vector != null) {
                         col = this.vectorColumnDefinition(field);
                     } else if (field.element) {
-                        col = this.arrayColumnDefinition(field);
+                        col = this.arrayColumnDefinition(entity, field);
                     } else {
                         col = this.textColumnDefinition(field);
                     }
@@ -1552,7 +1576,7 @@ class PostgresModeler {
 
                 case 'text':
                     col = this.textColumnDefinition(field);
-                    break;            
+                    break;
 
                 default:
                     throw new Error('Unsupported type "' + field.type + '". Field: ' + JSON.stringify(field));
@@ -1567,7 +1591,7 @@ class PostgresModeler {
 
         if (!isProc) {
             sql += this.columnNullable(field);
-            sql += this.defaultValue(field, type);
+            sql += this.defaultValue(entity, field, type);
         }
 
         return sql;
@@ -1649,17 +1673,17 @@ class PostgresModeler {
         return { sql, type };
     }
 
-    arrayColumnDefinition(info) {
+    arrayColumnDefinition(entity, info) {
         let sql = '',
             type;
 
-        const subType = this.columnDefinition(info.element, true, true);
+        const subType = this.columnDefinition(entity, info.element, true, true);
 
         if (typeof info.fixedLength === 'number') {
             type = sql = subType + '[' + info.fixedLength + ']';
         } else {
             type = sql = subType + '[]';
-        }       
+        }
 
         return { sql, type };
     }
@@ -1671,7 +1695,8 @@ class PostgresModeler {
         if (typeof info.vector === 'number') {
             sql = 'VECTOR(' + info.vector + ')';
             type = 'VECTOR';
-        } if (typeof info.fixedLength === 'number') {
+        }
+        if (typeof info.fixedLength === 'number') {
             sql = 'VECTOR(' + info.fixedLength + ')';
             type = 'VECTOR';
         } else {
@@ -1711,9 +1736,7 @@ class PostgresModeler {
         let sql = '',
             type;
 
-        
         type = sql = 'BYTEA';
-        
 
         return { sql, type };
     }
@@ -1751,7 +1774,7 @@ class PostgresModeler {
         return ' NOT NULL';
     }
 
-    defaultValue(info, type) {
+    defaultValue(entity, info, type) {
         if (info.isCreateTimestamp) {
             info.autoByDb = true;
             return ' DEFAULT CURRENT_TIMESTAMP';
@@ -1776,21 +1799,29 @@ class PostgresModeler {
             if (info.hasOwnProperty('default')) {
                 let defaultValue = info['default'];
 
-                if (typeof defaultValue === 'object' && defaultValue.$xt === 'SymbolToken') {
-                    const tokenName = defaultValue.name.toUpperCase();
+                if (typeof defaultValue === 'object' && defaultValue.$xt) {
+                    if (defaultValue.$xt === XemlTypes.Lang.SYMBOL_TOKEN) {
+                        const tokenName = defaultValue.name.toUpperCase();
 
-                    switch (tokenName) {
-                        case 'NOW':
-                            sql += ' DEFAULT NOW()';
-                            info.autoByDb = true;
-                            break;
+                        switch (tokenName) {
+                            case 'NOW':
+                                sql += ' DEFAULT NOW()';
+                                info.autoByDb = true;
+                                return sql;
 
-                        default:
-                            throw new Error(`Unsupported symbol token "${tokenName}".`);
+                            default:
+                                throw new Error(`Unsupported symbol token "${tokenName}".`);
+                        }
+                    } else if (defaultValue.$xt === XemlTypes.Lang.CONST_REF) {
+                        defaultValue = this.linker.translateXemlValue(entity.xemlModule, defaultValue);
+                    } else {
+                        throw new Error(`Unknown xeml object tag "${defaultValue.$xt}".`);
                     }
-                } else if (info.enum) {
+                } 
+                
+                if (info.enum) {
                     if (!info.enum.includes(defaultValue)) {
-                        throw new Error(`Invalid default value "${defaultValue}" for enum field "${info.name}".`);                        
+                        throw new Error(`Invalid default value "${defaultValue}" for enum field "${info.name}".`);
                     }
                     sql += ' DEFAULT ' + this.quoteString(defaultValue);
                 } else {
@@ -1808,7 +1839,7 @@ class PostgresModeler {
                             }
                             break;
 
-                        case 'text':                        
+                        case 'text':
                             sql += ' DEFAULT ' + defaultValue ? this.quoteString(defaultValue) : "''";
                             break;
 
@@ -1859,7 +1890,7 @@ class PostgresModeler {
 
                 //not explicit specified, will not treated as autoByDb
                 //info.autoByDb = true;
-            } 
+            }
         }
 
         return sql;

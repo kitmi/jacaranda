@@ -1,0 +1,8 @@
+import 'commons:**'
+
+entity book
+  with
+    autoId
+  has
+    name
+    desc
