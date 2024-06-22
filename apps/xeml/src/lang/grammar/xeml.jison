@@ -20,7 +20,7 @@ Keyword by state
     };
 
     //top level keywords
-    const TOP_LEVEL_KEYWORDS = new Set(['import', 'type', 'const', 'schema', 'entity', 'customize', 'override', 'api', 'modifier']);
+    const TOP_LEVEL_KEYWORDS = new Set(['import', 'type', 'const', 'schema', 'entity', 'customize', 'override', 'api', 'modifier', 'abstract']);
 
     //next state transition table
     //.* means any char except newline after the parent keyword
@@ -35,6 +35,7 @@ Keyword by state
         'modifier.$INDENT': 'modifier.block', 
 
         'override.entity': 'entity',       
+        'abstract.entity': 'entity',       
 
         'entity.with': 'entity.with', 
         'entity.has': 'entity.has', 
@@ -84,6 +85,7 @@ Keyword by state
         // level 1
         'customize': new Set(['entities']),
         'override': new Set(['entity']),
+        'abstract': new Set(['entity']),    
         'schema': new Set(['entities', 'views']),
         'entity': new Set([ 'is', 'extends', 'with', 'has', 'associations', 'key', 'index', 'data', 'input', 'views', /*'interface', 'code'*/, 'triggers' ]),
     
@@ -350,7 +352,7 @@ Keyword by state
         }
 
         normalizeSymbol(ref) {
-            return { $xt: 'SymbolToken', name: ref.substr(2).toUpperCase() };
+            return { $xt: 'Symbol', name: ref.substr(2).toUpperCase() };
         }                
         
         normalizeReference(ref) {
@@ -906,7 +908,7 @@ escapeseq               \\.
                            %}                    
 <INLINE>{exclude_column}    %{      
                                 state.matchAnyExceptNewline();
-
+                                yytext = yytext.substring(1);
                                 return 'EXCLUDE_COLUMN';
                            %}                    
 <INLINE>{symbol_token}     %{
@@ -1056,7 +1058,8 @@ statement
     | modifier_def_statement
     | schema_statement   
     | customize_statement
-    | override_statement    
+    | override_statement
+    | abstract_statement    
     | entity_statement        
     ;
 
@@ -1248,6 +1251,11 @@ type_modifier_validators
 override_statement
     : "override" entity_statement_header NEWLINE -> state.defineEntityOverride($2[0], $2[1], @1.first_line)
     | "override" entity_statement_header NEWLINE INDENT entity_statement_block DEDENT NEWLINE? -> state.defineEntityOverride($2[0], Object.assign({}, $2[1], $5), @1.first_line)
+    ;
+
+abstract_statement
+    : "abstract" entity_statement_header NEWLINE -> state.defineEntity($2[0], { ...$2[1], abstract: true }, @1.first_line)
+    | "abstract" entity_statement_header NEWLINE INDENT entity_statement_block DEDENT NEWLINE? -> state.defineEntity($2[0], { ...$2[1], ...$5, abstract: true }, @1.first_line)
     ;
 
 entity_statement

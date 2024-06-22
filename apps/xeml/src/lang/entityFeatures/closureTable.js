@@ -10,15 +10,21 @@ const FEATURE_NAME = 'closureTable';
  * @param {Entity} entity - Entity to apply this feature
  */
 function feature(entity, args = []) {
-    let [ options ] = args;
+    let [ closureTable ] = args;
 
-    if (options == null) {
+    if (closureTable == null) {
         throw new Error('Missing the associated closure table name.');
     }
 
-    options = { entity: options };
-
-    entity.addFeature(FEATURE_NAME, options);
+    entity.addFeature(FEATURE_NAME, { entity: closureTable });
+    entity.addFeature('createAfter', { relation: closureTable, initData: {
+        ancestorId: {
+            $xr: 'ObjectReference',
+            name: 'latest.id'
+        },
+        descendantId: entity.name,
+        depth: 0
+    }  });
 }
 
 module.exports = feature;

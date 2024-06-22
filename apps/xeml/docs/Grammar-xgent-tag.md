@@ -1,6 +1,6 @@
  [x] entity multiple inheritance
 
-- SymbolToken
+- SymbolToken: defined by @@id, e.g. @@NOW (auto-uppercased)
 - ObjectReference
 - ConstReference
 - StringTemplate

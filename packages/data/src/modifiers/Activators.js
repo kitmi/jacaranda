@@ -67,10 +67,10 @@ _Activators.fetch_ = async (entity, field, context, assoc, options) => {
                     )
             )[assocValue];
         } else {
-            const findOptions = { $where: { [assocMeta.key]: assocValue } };
+            const findOptions = { $select: [ selectedField ], $where: { [assocMeta.key]: assocValue } };
 
             if (interAssoc) {
-                findOptions.$relations = [interAssoc];
+                findOptions.$relation = [interAssoc];
             }
 
             await entity.ensureTransaction_(context);

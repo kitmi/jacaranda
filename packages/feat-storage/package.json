@@ -53,11 +53,12 @@
         ]
     },
     "devDependencies": {
-        "@kitmi/jacaranda": "workspace:^",
-        "@kitmi/sys": "workspace:^"
+        "@kitmi/jacaranda": "workspace:*",
+        "@kitmi/sys": "workspace:*"
     },
     "dependencies": {
-        "@kitmi/utils": "workspace:^"
+        "@kitmi/utils": "workspace:*",
+        "@kitmi/validators": "workspace:*"
     },
     "prettier": {
         "quoteProps": "consistent",

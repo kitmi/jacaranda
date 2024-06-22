@@ -1,7 +1,7 @@
 const EventEmitter = require('node:events');
 const path = require('node:path');
 
-const { _, isPlainObject } = require('@kitmi/utils');
+const { _, isPlainObject, isEmpty } = require('@kitmi/utils');
 const { generateDisplayName, deepCloneField, Clonable, entityNaming } = require('./XemlUtils');
 const { FunctionalQualifiers } = require('./Rules');
 const Field = require('./Field');
@@ -228,11 +228,11 @@ class Entity extends Clonable {
          */
         this._events.emit('beforeAddingInterfaces');
 
-        if (!_.isEmpty(this.info.interfaces)) {
+        if (!isEmpty(this.info.interfaces)) {
             this.interfaces = _.cloneDeep(this.info.interfaces);
 
             _.forOwn(this.interfaces, (intf) => {
-                if (!_.isEmpty(intf.accept)) {
+                if (!isEmpty(intf.accept)) {
                     intf.accept = _.map(intf.accept, (param) => {
                         const [typeInfo, baseInfo] = this.linker.trackBackType(this.xemlModule, param);
                         if (baseInfo != null) {
@@ -633,7 +633,7 @@ class Entity extends Clonable {
             }
         }
 
-        if (!_.isEmpty(baseEntity.info.features)) {
+        if (!isEmpty(baseEntity.info.features)) {
             let baseFeatures = _.cloneDeep(baseEntity.info.features);
 
             if (this.info.features) {
@@ -652,7 +652,7 @@ class Entity extends Clonable {
             }
         }
 
-        if (!_.isEmpty(baseEntity.info.fields)) {
+        if (!isEmpty(baseEntity.info.fields)) {
             let fields = _.cloneDeep(baseEntity.info.fields);
             overrideInfo.fields = { ...fields, ...this.info.fields };
         }
@@ -699,6 +699,11 @@ class Entity extends Clonable {
                         ...assoc,
                         destEntity: this.name,
                     };
+                } else {
+                    /*
+                    const destEntity = this.linker.loadEntity(this.xemlModule, assoc.destEntity);
+                    destEntity.info.associations[assoc.field]
+                    */
                 }
 
                 return assoc;
@@ -719,7 +724,7 @@ class Entity extends Clonable {
             overrideInfo.views = { ...baseEntity.views, ...this.info.views };
         }
 
-        if (!_.isEmpty(overrideInfo)) {
+        if (!isEmpty(overrideInfo)) {
             this.info = { ...this.info, ...overrideInfo };
         }
     }

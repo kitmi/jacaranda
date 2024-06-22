@@ -13,7 +13,7 @@ module.exports = {
     [Rules.RULE_BEFORE_FIND]: (feature, entityModel, context) => {
         const findOptions = context.options;
         if (!findOptions.$includeDeleted) {
-            findOptions.$query = mergeWhere(findOptions.$query, {
+            findOptions.$where = mergeWhere(findOptions.$where, {
                 [feature.field]: { $ne: feature.value },
             });
         }

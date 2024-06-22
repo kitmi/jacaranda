@@ -29,6 +29,23 @@
                             ]
                         }
                     ]
+                },
+                "field2": {
+                    "name": "field2",
+                    "type": "text"
+                }
+            },
+            "views": {
+                "view1": {
+                    "$select": [
+                        {
+                            "$xt": "ExclusiveSelect",
+                            "columnSet": "*",
+                            "excludes": [
+                                "field2"
+                            ]
+                        }
+                    ]
                 }
             }
         }

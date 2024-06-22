@@ -2,7 +2,7 @@
     "constant": {
         "ABC": 1
     },
-    "modifier": {
+    "Activator": {
         "activator1": {
             "$xt": "Activator",
             "name": "activator1",

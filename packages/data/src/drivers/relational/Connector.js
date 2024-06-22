@@ -1,5 +1,6 @@
 import ntol from 'number-to-letter';
 import { isPlainObject, isEmpty, snakeCase, isInteger, _ } from '@kitmi/utils';
+import { ApplicationError, InvalidArgument } from '@kitmi/types';
 
 import Connector from '../../Connector';
 import { isRawSql, extractRawSql } from '../../helpers';
@@ -12,6 +13,7 @@ class RelationalConnector extends Connector {
      * @param {object} options
      * @property {boolean} [options.logStatement] - Flag to log executed SQL statement.
      * @property {boolean} [options.logConnection] - Flag to log connect and disconnect.
+     * @property {boolean} [options.logTransaction] - Flag to log connect and disconnect.
      * @property {boolean} [options.verboseAlias] - Flag to use verbose alias.
      */
     constructor(app, driver, connectionString, options) {
@@ -27,7 +29,7 @@ class RelationalConnector extends Connector {
      * @param {object} [options]
      * @returns {*}
      */
-     async aggregate_(model, pipeline, options, connection) {
+    async aggregate_(model, pipeline, options, connection) {
         if (!Array.isArray(pipeline) || pipeline.length === 0) {
             throw new InvalidArgument('"pipeline" should be an unempty array.');
         }
@@ -54,60 +56,6 @@ class RelationalConnector extends Connector {
     }
 
     /**
-     * 
-     * @param {*} query 
-     * @param {*} queryOptions 
-     * @param {*} options 
-     * @param {*} connection 
-     * @returns {object} { data, affectedRows, [reverseAliasMap], [totalCount] }
-     */
-    async _executeQuery_(query, queryOptions, connection) {
-        let result, totalCount;
-
-        if (query.countSql) {
-            const res = await this.execute_(query.countSql, query.countParams, queryOptions, connection);
-            totalCount = res.data[0].count;
-        }
-
-        let options;
-
-        if (query.hasJoining) {
-            options = { ...queryOptions, $asArray: true };
-            result = await this.execute_(query.sql, query.params, options, connection);
-
-            const reverseAliasMap = _.reduce(
-                query.aliasMap,
-                (result, alias, nodePath) => {
-                    result[alias] = nodePath
-                        .split('.')
-                        .slice(
-                            1
-                        ) /* .map(n => ':' + n) changed to be padding by orm and can be customized with other key getter */;
-                    return result;
-                },
-                {}
-            );
-
-            if (query.countSql) {
-                return { ...result, reverseAliasMap, totalCount }; 
-            }
-
-            return  { ...result, reverseAliasMap };
-
-        } else if (queryOptions.$skipOrm) {
-            options = { ...queryOptions, $asArray: true };
-        }
-
-        result = await this.execute_(query.sql, query.params, options, connection);
-
-        if (query.countSql) {
-            return { ...result, totalCount };
-        }
-
-        return result;
-    }
-
-    /**
      * Build CTE header and return the select from target and CTE header
      * @param {string} model
      * @returns {object} { fromTable, withTables, model }
@@ -129,180 +77,9 @@ class RelationalConnector extends Connector {
     }
 
     /**
-     * Build sql statement
-     * @param {string|object} model - Model name or CTE object
-     * @param {*} condition
-     * @property {object} $relation
-     * @property {object} $select
-     * @property {object} $where
-     * @property {object} $groupBy
-     * @property {object} $orderBy
-     * @property {number} $offset - Offset
-     * @property {number} $limit - Limit
-     * @property {boolean|string} $totalCount - Whether to count the total number of records     
-     * @returns {object} { sql, params, countSql, countParams, hasJoining, aliasMap }
-     */
-    buildQuery(model, { $relation, $select, $where, $groupBy, $orderBy, $offset, $limit, $totalCount }) {
-        const hasTotalCount = $totalCount != null;
-        let needDistinctForLimit = ($limit != null && $limit > 0) || ($offset != null && $offset > 0);
-
-        const { fromTable, withTables, model: _model } = this._buildCTEHeader(model);
-        model = _model; // replaced with CTE alias
-
-        const aliasMap = { [model]: 'A' };
-
-        let joinings;
-        let hasJoining = false; // false or primary model name
-        const joiningParams = [];
-
-        // build alias map first
-        // cache params
-        if ($relation) {
-            joinings = this._joinAssociations($relation, model, aliasMap, 1, joiningParams);
-            hasJoining = true;
-        }
-
-        // !!!limit or offset with mutiple joining requires group by distinct field to calculate the correct number of records
-        needDistinctForLimit &&= hasJoining && isEmpty($groupBy);
-
-        // count does not require selectParams
-        const countParams = hasTotalCount ? joiningParams.concat() : null;
-        const mainEntity = hasJoining ? model : null;
-
-        // Build select columns
-        const selectParams = [];
-        const selectColomns = $select ? this._buildColumns($select, selectParams, mainEntity, aliasMap) : '*';
-
-        // Build from clause
-        let fromClause = ' FROM ' + fromTable;
-        let fromAndJoin = fromClause;
-        if (joinings) {
-            fromAndJoin += ' A ' + joinings.join(' ');
-        }
-
-        // Build where clause
-        let whereClause = '';
-        const whereParams = [];
-
-        if ($where) {
-            whereClause = this._joinCondition($where, whereParams, null, mainEntity, aliasMap);
-
-            if (whereClause) {
-                whereClause = ' WHERE ' + whereClause;
-                if (countParams) {
-                    whereParams.forEach((p) => {
-                        countParams.push(p);
-                    });
-                }
-            }
-        }
-
-        // Build group by clause
-        let groupByClause = '';
-        const groupByParams = [];
-
-        if ($groupBy) {
-            groupByClause += ' ' + this._buildGroupBy($groupBy, groupByParams, mainEntity, aliasMap);
-            if (countParams) {
-                groupByParams.forEach((p) => {
-                    countParams.push(p);
-                });
-            }
-        }
-
-        // Build order by clause
-        let orderByClause = '';
-        if ($orderBy) {
-            orderByClause += ' ' + this._buildOrderBy($orderBy, mainEntity, aliasMap);
-        }
-
-        // Build limit & offset clause
-        const limitOffetParams = [];
-        let limitOffset = this._buildLimitOffset($limit, $offset, limitOffetParams);
-
-        const result = { hasJoining, aliasMap };
-
-        // The field used as the key of counting or pagination
-        let distinctFieldRaw;
-        let distinctField;
-
-        if (hasTotalCount || needDistinctForLimit) {
-            if (typeof $totalCount !== 'string') {
-                throw new InvalidArgument('The "$totalCount" should be a distinct column name for counting.');
-            }
-            
-            distinctFieldRaw = $totalCount;
-            distinctField = this._escapeIdWithAlias(
-                distinctFieldRaw,
-                mainEntity,
-                aliasMap
-            );
-        }
-
-        if (hasTotalCount) {
-            const countSubject = 'DISTINCT(' + distinctField + ')';
-
-            result.countSql =
-                withTables + `SELECT COUNT(${countSubject}) AS count` + fromAndJoin + whereClause + groupByClause;
-            result.countParams = countParams;
-        }
-
-        if (needDistinctForLimit) {
-            const distinctFieldWithAlias = `${distinctField} AS key_`;
-            const keysSql = orderByClause
-                ? `WITH records_ AS (SELECT ${distinctFieldWithAlias}, ROW_NUMBER() OVER(${orderByClause}) AS row_${fromAndJoin}${whereClause}${groupByClause}) SELECT key_ FROM records_ GROUP BY key_ ORDER BY row_${limitOffset}`
-                : `WITH records_ AS (SELECT ${distinctFieldWithAlias}${fromAndJoin}${whereClause}${groupByClause}) SELECT key_ FROM records_ GROUP BY key_${limitOffset}`;
-
-            const keySqlAliasIndex = Object.keys(aliasMap).length;
-            const keySqlAnchor = ntol(keySqlAliasIndex);
-
-            this._joinAssociation(
-                {
-                    sql: keysSql,
-                    params: joiningParams.concat(whereParams, groupByParams, limitOffetParams),
-                    joinType: 'INNER JOIN',
-                    on: {
-                        [distinctFieldRaw]: {
-                            $xr: 'Column',
-                            name: `${keySqlAnchor}.key_`,
-                        },
-                    },
-                    output: true,
-                },
-                keySqlAnchor,
-                joinings,
-                model,
-                aliasMap,
-                keySqlAliasIndex,
-                joiningParams
-            );
-
-            fromAndJoin = fromClause + ' A ' + joinings.join(' ');
-
-            result.sql =
-                withTables + 'SELECT ' + selectColomns + fromAndJoin + whereClause + groupByClause + orderByClause;
-            result.params = selectParams.concat(joiningParams, whereParams, groupByParams);
-        } else {
-            result.sql =
-                withTables +
-                'SELECT ' +
-                selectColomns +
-                fromAndJoin +
-                whereClause +
-                groupByClause +
-                orderByClause +
-                limitOffset;
-
-            result.params = selectParams.concat(joiningParams, whereParams, groupByParams, limitOffetParams);
-        }
-
-        return result;
-    }
-
-    /**
      * Generate an alias
-     * @param {*} index 
-     * @param {*} anchor 
+     * @param {*} index
+     * @param {*} anchor
      * @returns {string}
      */
     _generateAlias(index, anchor) {
@@ -311,116 +88,6 @@ class RelationalConnector extends Connector {
         }
 
         return ntol(index);
-    }
-
-    /**
-     * Extract associations into joining clauses.
-     *  [{
-     *      entity: <remote entity>
-     *      joinType: 'LEFT JOIN|INNER JOIN|FULL OUTER JOIN'
-     *      on: join condition
-     *      anchor: 'local property to place the remote entity'
-     *      localField: <local field to join>
-     *      remoteField: <remote field to join>
-     *      $relation: { ... }
-     *  }]
-     *
-     * @param {*} associations
-     * @param {*} parentAliasKey
-     * @param {*} aliasMap
-     * @param {*} params
-     * @param {*} startId
-     * @param {*} params
-     * @returns {object}
-     */
-    _joinAssociations(associations, parentAliasKey, aliasMap, startId, params) {
-        let joinings = [];
-
-        _.each(associations, (assocInfo, anchor) => {
-            startId = this._joinAssociation(assocInfo, anchor, joinings, parentAliasKey, aliasMap, startId, params);
-        });
-
-        return joinings;
-    }
-
-    /**
-     * Convert an association into joining clause
-     * @param {object} assocInfo
-     * @property {string} [assocInfo.joinType="LEFT JOIN"] - Join type
-     * @property {object} [assocInfo.on] - Join condition
-     * @property {string} [assocInfo.alias] - Alias of the association
-     * @property {string} [assocInfo.sql] - Explicit SQL statement
-     * @property {array} [assocInfo.params] - Parameters for the SQL statement
-     * @property {string} [assocInfo.entity] - The entity to join
-     * @property {object} [assocInfo.$relation] - Sub-associations
-     * @property {boolean} [assocInfo.output] - Whether to output the association
-     * @param {string} anchor - The anchor of the association, usually the property name (prefixed by ":") in the parent entity
-     * @param {array} joinings - The array to store the joining clauses
-     * @param {string} parentAliasKey - The parent alias key
-     * @param {object} aliasMap - The alias map
-     * @param {integer} startId - The starting index for alias generation
-     * @param {array} params - The parameters array
-     * @returns {integer} next start id
-     */
-    _joinAssociation(assocInfo, anchor, joinings, parentAliasKey, aliasMap, startId, params) {
-        const alias = assocInfo.alias || this._generateAlias(startId++, anchor);
-        let { joinType, on } = assocInfo;
-
-        joinType || (joinType = 'LEFT JOIN');
-
-        if (assocInfo.sql) {
-            if (assocInfo.output) {
-                aliasMap[parentAliasKey + '.' + alias] = alias;
-            }
-
-            assocInfo.params.forEach((p) => params.push(p));
-            joinings.push(
-                `${joinType} (${assocInfo.sql}) ${alias} ON ${this._joinCondition(
-                    on,
-                    params,
-                    null,
-                    parentAliasKey,
-                    aliasMap
-                )}`
-            );
-
-            return startId;
-        }
-
-        const { entity, $relation } = assocInfo;
-        const aliasKey = parentAliasKey + '.' + anchor;
-        aliasMap[aliasKey] = alias;
-
-        if ($relation) {
-            const _params = [];
-            const subJoinings = this._joinAssociations($relation, aliasKey, aliasMap, startId, _params);
-            startId += subJoinings.length;
-
-            joinings.push(
-                `${joinType} ${this.escapeId(entity)} ${alias} ON ${this._joinCondition(
-                    on,
-                    params,
-                    null,
-                    parentAliasKey,
-                    aliasMap
-                )}`
-            );
-
-            subJoinings.forEach((sj) => joinings.push(sj));
-            _params.forEach((p) => params.push(p));
-        } else {
-            joinings.push(
-                `${joinType} ${this.escapeId(entity)} ${alias} ON ${this._joinCondition(
-                    on,
-                    params,
-                    null,
-                    parentAliasKey,
-                    aliasMap
-                )}`
-            );
-        }
-
-        return startId;
     }
 
     /**
@@ -481,7 +148,7 @@ class RelationalConnector extends Connector {
                     return '(' + this._joinCondition(value, params, 'OR', mainEntity, aliasMap) + ')';
                 }
 
-                if (key === '$not') {
+                if (key === '$not' || key.startsWith('$not_')) {
                     if (Array.isArray(value)) {
                         if (value.length === 0) {
                             throw new Error('"$not" operator value should be non-empty.');
@@ -535,15 +202,15 @@ class RelationalConnector extends Connector {
         if (isInteger($limit) && $limit > 0) {
             if (isInteger($offset) && $offset > 0) {
                 params.push($offset);
-                sql = ` OFFSET ${this.specParamToken(params.length)} LIMIT ${this.specParamToken(params.length+1)}`;                
+                sql = ` OFFSET ${this.specParamToken(params.length)} LIMIT ${this.specParamToken(params.length + 1)}`;
                 params.push($limit);
             } else {
                 params.push($limit);
-                sql = ` LIMIT ${this.specParamToken(params.length)}`;                
+                sql = ` LIMIT ${this.specParamToken(params.length)}`;
             }
         } else if (isInteger($offset) && $offset > 0) {
             params.push($offset);
-            sql = ` OFFSET ${this.specParamToken(params.length)}`;            
+            sql = ` OFFSET ${this.specParamToken(params.length)}`;
         }
 
         return sql;
@@ -562,28 +229,38 @@ class RelationalConnector extends Connector {
             return this.escapeId(fieldName.substring(2));
         }
 
-        const parts = fieldName.split('.');
-        if (parts.length > 1) {
-            const actualFieldName = parts.pop();
+        const rpos = fieldName.lastIndexOf('.');
+        if (rpos > 0) {
+            const actualFieldName = fieldName.substring(rpos + 1);
 
-            const aliasKey = mainEntity + '.' + parts.join('.');
-            const alias = aliasMap[aliasKey];
-            if (!alias) {
-                throw new InvalidArgument(`Column reference "${fieldName}" not found in populated associations.`, {
-                    entity: mainEntity,
-                    alias: aliasKey,
-                    aliasMap,
-                });
-            }
+            const aliasKey = mainEntity + '.' + fieldName.substring(0, rpos);
 
-            return alias + '.' + (actualFieldName === '*' ? '*' : this.escapeId(actualFieldName));
+            return this._buildAliasedColumn(aliasMap, aliasMap[aliasKey], mainEntity, fieldName, actualFieldName);
         }
 
         if (aliasMap[fieldName] === fieldName) {
+            throw new Error('To be reviewed.');
             return this.escapeId(fieldName);
         }
 
-        return aliasMap[mainEntity] + '.' + (fieldName === '*' ? '*' : this.escapeId(fieldName));
+        return this._buildAliasedColumn(aliasMap, aliasMap[mainEntity], mainEntity, fieldName, fieldName);
+    }
+
+    _buildAliasedColumn(aliasMap, alias, mainEntity, fieldName, actualFieldName) {
+        if (!alias) {
+            throw new InvalidArgument(`Column reference "${fieldName}" not found in populated associations.`, {
+                entity: mainEntity,
+                aliasMap,
+            });
+        }
+
+        if (isPlainObject(alias)) {
+            return (
+                alias.outer + '.' + (actualFieldName === '*' ? '*' : this.escapeId(`${alias.inner}_${actualFieldName}`))
+            );
+        }
+
+        return alias + '.' + (actualFieldName === '*' ? '*' : this.escapeId(actualFieldName));
     }
 
     /**
@@ -649,7 +326,7 @@ class RelationalConnector extends Connector {
                     }
 
                     default:
-                        throw new Error(`Unknown xeml runtime type: ${value.$xr}`);
+                        throw new Error(`Unknown xeml runtime type: ${value.$xr}, value: ${JSON.stringify(value)}`);
                 }
             }
 
@@ -718,8 +395,6 @@ class RelationalConnector extends Connector {
                                     return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' IS NOT NULL';
                                 }
 
-                                v = this.typeCast(v);
-
                                 if (inject) {
                                     return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' <> ' + v;
                                 }
@@ -732,8 +407,6 @@ class RelationalConnector extends Connector {
                             case '$>':
                             case '$gt':
                             case '$greaterThan':
-                                v = this.typeCast(v);
-
                                 if (inject) {
                                     return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' > ' + v;
                                 }
@@ -746,8 +419,6 @@ class RelationalConnector extends Connector {
                             case '$>=':
                             case '$gte':
                             case '$greaterThanOrEqual':
-                                v = this.typeCast(v);
-
                                 if (inject) {
                                     return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' >= ' + v;
                                 }
@@ -760,8 +431,6 @@ class RelationalConnector extends Connector {
                             case '$<':
                             case '$lt':
                             case '$lessThan':
-                                v = this.typeCast(v);
-
                                 if (inject) {
                                     return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' < ' + v;
                                 }
@@ -774,8 +443,6 @@ class RelationalConnector extends Connector {
                             case '$<=':
                             case '$lte':
                             case '$lessThanOrEqual':
-                                v = this.typeCast(v);
-
                                 if (inject) {
                                     return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' <= ' + v;
                                 }
@@ -882,8 +549,6 @@ class RelationalConnector extends Connector {
             );
         }
 
-        value = this.typeCast(value);
-
         if (inject) {
             return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + value;
         }
@@ -908,7 +573,7 @@ class RelationalConnector extends Connector {
      *
      * @param {string|number|object} col - The column object or string, quoted string will be treated as raw SQL
      * @property {string} [col.alias] - The alias of the column, can be a dot separated string
-     * @property {string} [col.type] - The type of the column, "function" | "func", "expression" | "expr, "column" | "col"
+     * @property {string} [col.$xr] - The type of the column, "function" | "func", "expression" | "expr, "column" | "col"
      * @property {string} [col.name] - The column name
      * @property {string} [col.prefix] - The prefix of the function, like DISTINCT
      * @property {array} [col.args] - The arguments of the function
@@ -931,12 +596,15 @@ class RelationalConnector extends Connector {
             return col;
         }
 
-        if (isPlainObject(col)) {
+        if (isPlainObject(col) && col.$xr) {
             if (col.alias) {
-                const lastDotIndex = col.alias.lastIndexOf('.');
+                /*
+                const lastDotIndex = col.alias.lastIndexOf('.');                
                 let alias = lastDotIndex > 0 ? col.alias.substring(lastDotIndex + 1) : col.alias;
 
                 if (lastDotIndex > 0) {
+                    throw new Error('Not implemented yet!');
+
                     if (!mainEntity) {
                         throw new InvalidArgument(
                             'Cascade alias is not allowed when the query has no associated entity populated.',
@@ -958,15 +626,16 @@ class RelationalConnector extends Connector {
                 }
 
                 aliasMap[col.alias] = alias;
+                */
 
                 return (
                     this._buildColumn(_.omit(col, ['alias']), params, mainEntity, aliasMap) +
                     ' AS ' +
-                    this.escapeId(alias)
+                    this.escapeId(col.alias)
                 );
             }
 
-            if (col.type.startsWith('func')) {
+            if (col.$xr.startsWith('Fun')) {
                 const name = col.name.toUpperCase();
                 if (name === 'COUNT' && col.args.length === 1 && col.args[0] === '*') {
                     return 'COUNT(*)';
@@ -1010,11 +679,13 @@ class RelationalConnector extends Connector {
                 return funcClause;
             }
 
-            if (col.type.startsWith('expr')) {
+            // Condition
+            if (col.$xr.startsWith('Con')) {
                 return this._joinCondition(col.expr, params, null, mainEntity, aliasMap);
             }
 
-            if (col.type.starsWith('col')) {
+            // Column
+            if (col.$xr.startsWith('Col')) {
                 return this._escapeIdWithAlias(col.name, mainEntity, aliasMap);
             }
         }
@@ -1024,9 +695,9 @@ class RelationalConnector extends Connector {
 
     /**
      * Build group by column
-     * @param {string|object} groupBy 
-     * @param {*} mainEntity 
-     * @param {*} aliasMap 
+     * @param {string|object} groupBy
+     * @param {*} mainEntity
+     * @param {*} aliasMap
      * @returns {string}
      */
     _buildGroupByColumn(groupBy, mainEntity, aliasMap) {
@@ -1045,9 +716,9 @@ class RelationalConnector extends Connector {
 
     /**
      * Build group by column list
-     * @param {array|string} groupBy 
-     * @param {*} mainEntity 
-     * @param {*} aliasMap 
+     * @param {array|string} groupBy
+     * @param {*} mainEntity
+     * @param {*} aliasMap
      * @returns {string}
      */
     _buildGroupByList(groupBy, mainEntity, aliasMap) {
@@ -1060,12 +731,12 @@ class RelationalConnector extends Connector {
 
     /**
      * Build group by clause from groupBy object
-     * @param {object|array|string} groupBy 
+     * @param {object|array|string} groupBy
      * @property {array} [groupBy.columns] - The columns to group by
      * @property {object} [groupBy.having] - The having condition
-     * @param {*} params 
-     * @param {string} [mainEntity] - The entity name that has joining 
-     * @param {*} aliasMap 
+     * @param {*} params
+     * @param {string} [mainEntity] - The entity name that has joining
+     * @param {*} aliasMap
      * @returns {string}
      */
     _buildGroupBy(groupBy, params, mainEntity, aliasMap) {
@@ -1090,9 +761,9 @@ class RelationalConnector extends Connector {
 
     /**
      * Build partition by clause
-     * @param {*} partitionBy 
-     * @param {*} mainEntity 
-     * @param {*} aliasMap 
+     * @param {*} partitionBy
+     * @param {*} mainEntity
+     * @param {*} aliasMap
      * @returns {string}
      */
     _buildPartitionBy(partitionBy, mainEntity, aliasMap) {
@@ -1111,13 +782,13 @@ class RelationalConnector extends Connector {
 
     /**
      * Build order by clause
-     * @param {string|array|object} orderBy 
-     * @param {*} mainEntity 
-     * @param {*} aliasMap 
+     * @param {string|array|object} orderBy
+     * @param {*} mainEntity
+     * @param {*} aliasMap
      * @returns {string}
-     * 
+     *
      * @example
-     * $orderBy: 'name' => 'ORDER BY A.name'     
+     * $orderBy: 'name' => 'ORDER BY A.name'
      * $orderBy: ['name', 'age'] => 'ORDER BY A.name, A.age'
      * $orderBy: { name: -1, age: 1 } => 'ORDER BY A.name DESC, A.age ASC'
      */

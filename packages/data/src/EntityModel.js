@@ -36,7 +36,7 @@ function minifyAssocs(assocs) {
     return minified;
 }
 
-const $dbRuntimeObjects = new Set(['Column', 'Function', 'BinExpr', 'Query', 'Raw', 'DataSet', 'SQL']);
+const DB_RUNTIME_OBJ = new Set(['Column', 'Function', 'BinExpr', 'Query', 'Raw', 'DataSet']);
 
 /**
  * Base entity model class.
@@ -56,7 +56,7 @@ class EntityModel {
 
     /**
      * Get the value of key field/fields from data.
-     * @param {object} data 
+     * @param {object} data
      * @returns {*}
      */
     valueOfKey(data) {
@@ -130,8 +130,8 @@ class EntityModel {
 
     /**
      * Helper to combine explicit required associations and associations required by query fields or projection fields.
-    * @param {array} [fields] 
-    * @param {array} [extraArray]     
+     * @param {array} [fields]
+     * @param {array} [extraArray]
      * @returns {Array}
      */
     assocFrom(fields, extraArray) {
@@ -155,7 +155,7 @@ class EntityModel {
 
     /**
      * Get related entity model by anchor.
-     * @param {string} anchor 
+     * @param {string} anchor
      * @returns {EntityModel}
      */
     getRalatedEntity(anchor) {
@@ -165,6 +165,22 @@ class EntityModel {
         }
 
         return this.db.entity(assocInfo.entity);
+    }
+
+    /**
+     * Get chained related entity model by dot-separated name path.
+     * @param {*} dotPath
+     * @returns {EntityModel}
+     */
+    getChainedRelatedEntity(dotPath) {
+        Array.isArray(dotPath) || (dotPath = dotPath.split('.'));
+        let base = this;
+
+        while (dotPath.length) {
+            base = base.getRalatedEntity(dotPath.shift());
+        }
+
+        return base;
     }
 
     /**
@@ -259,7 +275,23 @@ class EntityModel {
      * @returns {*}
      */
     getValueFromContext(context, key) {
-        return _get(context.options, '$variables.' + key);
+        return _get(context.options.$ctx, key);
+    }
+
+    /**
+     * Pick only allowed fields from ctx.
+     * @param {*} options
+     * @returns {object}
+     */
+    _wrapCtx(options) {
+        if (options && options.$ctx && options.$ctx.module) {
+            return {
+                ...options,
+                $ctx: _.pick(options.$ctx, ['request', 'header', 'session', 'state']),
+            };
+        }
+
+        return options ?? {};
     }
 
     /**
@@ -303,18 +335,6 @@ class EntityModel {
         return Convertors.toKVPairs(entityCollection, key, transformer);
     }
 
-    /**
-     * Run aggregate pipeline
-     * @param {array} pipeline
-     * @param {object} [connOptions]
-     * @returns {*}
-     */
-    async aggregate_(pipeline) {
-        const _pipeline = pipeline.map((q) => this._prepareQueries(q));
-
-        return this.db.connector.aggregate_(this.meta.name, _pipeline);
-    }
-
     async applyRules_(ruleName, context) {
         for (const featureName in this.meta.features) {
             const key = featureName + '.' + ruleName;
@@ -353,28 +373,34 @@ class EntityModel {
      * @property {number} [findOptions.$limit] - Limit
      * @property {bool} [findOptions.$includeDeleted=false] - Include those marked as logical deleted.
      * @property {bool} [findOptions.$skipOrm=false] - Skip ORM mapping
+     * @property {object} [findOptions.$ctx]
      * @returns {*}
      */
     async findOne_(findOptions) {
-        findOptions = this._prepareQueries(findOptions, true /* for single record */);
+        findOptions = this._wrapCtx(findOptions);
+        findOptions = this._normalizeQuery(findOptions, true /* for single record */);
 
         const context = {
             op: 'find',
-            options: findOptions
+            options: findOptions,
         };
 
         const opOptions = context.options;
 
         await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
 
-        const record = await this._safeExecute_(async () => {
-            let result = await this.db.connector.find_(this.meta.name, opOptions, this.db.transaction);
+        this._preProcessOptions(opOptions, true /* for single record */);
 
-            if (opOptions.$relationships && !opOptions.$skipOrm) {
+        const record = await this._safeExecute_(async () => {
+            const result = await this.db.connector.find_(this.meta.name, opOptions, this.db.transaction);
+
+            console.log('result', result);
+
+            if (opOptions.$assoc && !opOptions.$skipOrm) {
                 // rows, coloumns, aliasMap
                 if (result.data.length === 0) return undefined;
 
-                result.data = this._mapRecordsToObjects(result.data, opOptions.$relationships, opOptions.$nestedKeyGetter);
+                result.data = this._mapRecordsToObjects(result, opOptions.$assoc, opOptions.$nestedKeyGetter);
             } else if (result.data.length === 0) {
                 return undefined;
             }
@@ -382,7 +408,7 @@ class EntityModel {
             if (result.data.length !== 1) {
                 this.db.app.log('warn', `"findOne_" returns more than one record.`, {
                     entity: this.meta.name,
-                    options: opOptions,
+                    options: _.omit(opOptions, ['$relationship']),
                 });
             }
 
@@ -399,8 +425,8 @@ class EntityModel {
     /**
      * Find records matching the condition, returns an array of records.
      * @param {object} [findOptions] - findOptions
-     * @property {object} [findOptions.$association] - Joinings
-     * @property {object} [findOptions.$projection] - Selected fields
+     * @property {object} [findOptions.$relation] - Joinings
+     * @property {object} [findOptions.$select] - Selected fields
      * @property {object} [findOptions.$jsx] - Transform fields with jsx syntax before returning
      * @property {object} [findOptions.$where] - Extra condition
      * @property {object} [findOptions.$groupBy] - Group by fields
@@ -409,73 +435,65 @@ class EntityModel {
      * @property {number} [findOptions.$limit] - Limit
      * @property {number} [findOptions.$totalCount] - Return totalCount
      * @property {bool} [findOptions.$includeDeleted=false] - Include those marked as logical deleted.
-     * @param {object} [connOptions]
-     * @property {object} [connOptions.connection]
      * @returns {array}
      */
-    async findMany_(findOptions, connOptions) {
-        const rawOptions = findOptions;
-
-        findOptions = this._prepareQueries(findOptions);
+    async findMany_(findOptions) {
+        findOptions = this._wrapCtx(findOptions);
+        findOptions = this._normalizeQuery(findOptions);
 
         const context = {
             op: 'find',
             options: findOptions,
-            connOptions,
         };
 
+        const opOptions = context.options;
+
         await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
+
+        this._preProcessOptions(opOptions, false /* for single record */);
 
         let totalCount;
 
         let rows = await this._safeExecute_(async () => {
-            let records = await this.db.connector.find_(this.meta.name, context.options, context.connOptions);
+            let result = await this.db.connector.find_(this.meta.name, opOptions, this.db.transaction);
 
-            if (!records) throw new DatabaseError('connector.find_() returns undefined data record.');
+            console.log(result);
 
-            if (rawOptions && rawOptions.$fullResult) {
-                rawOptions.$result = records.slice(1);
-            }
-
-            if (findOptions.$relationships) {
-                if (findOptions.$totalCount) {
-                    totalCount = records[3];
+            if (opOptions.$assoc) {
+                if (opOptions.$totalCount) {
+                    totalCount = result.totalCount;
                 }
 
-                if (!findOptions.$skipOrm) {
-                    records = this._mapRecordsToObjects(
-                        records,
-                        findOptions.$relationships,
-                        findOptions.$nestedKeyGetter
-                    );
+                if (!opOptions.$skipOrm) {
+                    result = this._mapRecordsToObjects(result, opOptions.$assoc, opOptions.$nestedKeyGetter);
                 } else {
-                    records = records[0];
+                    result = result.data;
                 }
             } else {
-                if (findOptions.$totalCount) {
-                    totalCount = records[1];
-                    records = records[0];
-                } else if (findOptions.$skipOrm) {
-                    records = records[0];
+                if (opOptions.$totalCount) {
+                    totalCount = result.totalCount;
+                    records = result.data;
+                } else if (opOptions.$skipOrm) {
+                    records = result.data;
                 }
             }
 
-            return this.afterFindAll_(context, records);
+            return this.afterFindAll_(context, result);
         }, context);
 
-        if (findOptions.$jsx) {
-            rows = rows.map((row) => JES.evaluate(row, findOptions.$jsx));
+        if (opOptions.$jsx) {
+            rows = rows.map((row) => JES.evaluate(row, opOptions.$jsx));
         }
 
-        if (findOptions.$totalCount) {
+        if (opOptions.$totalCount) {
             const ret = { totalItems: totalCount, items: rows };
 
-            if (!isNothing(findOptions.$offset)) {
-                ret.offset = findOptions.$offset;
+            if (opOptions.$offset != null) {
+                ret.offset = opOptions.$offset;
             }
 
-            if (!isNothing(findOptions.$limit)) {
-                ret.limit = findOptions.$limit;
+            if (opOptions.$limit != null) {
+                ret.limit = opOptions.$limit;
             }
 
             return ret;
@@ -513,7 +531,7 @@ class EntityModel {
 
     async ensureTransaction_() {
         if (!this.db.transaction) {
-            if (!this._safeFlag)  {
+            if (!this._safeFlag) {
                 throw new ApplicationError('Transaction is not allowed outside of a safe execution block.');
             }
 
@@ -543,7 +561,7 @@ class EntityModel {
         }
     }
 
-    async _safeExecute_(executor) {        
+    async _safeExecute_(executor) {
         executor = executor.bind(this);
 
         if (this.db.transaction) {
@@ -551,7 +569,7 @@ class EntityModel {
         }
 
         try {
-            this._safeFlag = true;        
+            this._safeFlag = true;
             const result = await executor();
 
             // if the executor have initiated a transaction
@@ -563,7 +581,7 @@ class EntityModel {
 
             throw error;
         } finally {
-            this._safeFlag = false;        
+            this._safeFlag = false;
         }
     }
 
@@ -574,20 +592,20 @@ class EntityModel {
     _normalizeGetCreated(opOptions) {
         if (opOptions.$getCreated) {
             const t = typeof opOptions.$getCreated;
-            
+
             if (t === 'string') {
-                opOptions.$getCreated = [ opOptions.$getCreated ];
+                opOptions.$getCreated = [opOptions.$getCreated];
                 return;
-            } 
-            
+            }
+
             if (t === 'boolean') {
-                opOptions.$getCreated = [ '*' ];
+                opOptions.$getCreated = ['*'];
                 return;
-            } 
-            
+            }
+
             if (t === 'object') {
-                if (Array.isArray(t)) {
-                    if (t.every((v) => v.indexOf('.') === -1)) {
+                if (Array.isArray(opOptions.$getCreated)) {
+                    if (opOptions.$getCreated.every((v) => v.indexOf('.') === -1)) {
                         return;
                     }
 
@@ -595,21 +613,27 @@ class EntityModel {
                 }
             }
 
-            throw new InvalidArgument('Invalid value for "$getCreated", expected: column, column array or boolean for returning all.');
+            throw new InvalidArgument(
+                'Invalid value for "$getCreated", expected: column, column array or boolean for returning all.',
+                {
+                    $getCreated: opOptions.$getCreated,
+                    type: t
+                }
+            );
         }
     }
 
     /**
      * Ensure the returning of auto id if the entity has auto increment feature.
-     * @param {object} opOptions 
+     * @param {object} opOptions
      */
     _ensureReturningAutoId(opOptions) {
         if (this.hasAutoIncrement) {
             if (!opOptions.$getCreated) {
-                opOptions.$getCreated = [ this.meta.features.autoId.field ];
+                opOptions.$getCreated = [this.meta.features.autoId.field];
             } else {
-                opOptions.$getCreated = [ this.meta.features.autoId.field, ...opOptions.$getCreated ];
-            }            
+                opOptions.$getCreated = [this.meta.features.autoId.field, ...opOptions.$getCreated];
+            }
         }
     }
 
@@ -624,18 +648,20 @@ class EntityModel {
      * @returns {EntityModel}
      */
     async create_(data, createOptions) {
+        createOptions = this._wrapCtx(createOptions);
+
         // check if data contains any associations (associcated creation) or references (create with references to other entities)
         let [raw, associations, references] = this._extractAssociations(data, true);
 
         const context = {
             op: 'create',
             raw,
-            options: {...createOptions},
+            options: createOptions,
         };
 
         const opOptions = context.options;
         this._normalizeGetCreated(opOptions);
-        this._ensureReturningAutoId(opOptions);        
+        this._ensureReturningAutoId(opOptions);
 
         // overrided by the genreated entity model
         if (!(await this.beforeCreate_(context))) {
@@ -674,22 +700,22 @@ class EntityModel {
                         this.getUniqueKeyFieldsFrom(context.latest),
                         context.latest
                     );
-                } else {                    
+                } else {
                     context.result = await this.db.connector.create_(
                         this.meta.name,
                         context.latest,
                         opOptions,
                         this.db.transaction
-                    );                    
+                    );
 
                     context.result.data = { ...context.latest, ...context.result.data[0] };
                     context.latest = context.result.data;
 
                     if (this.hasAutoIncrement) {
-                        context.result.insertId = context.latest[this.meta.features.autoId.field];  
-                    }                    
-              }                
-            } else {                
+                        context.result.insertId = context.latest[this.meta.features.autoId.field];
+                    }
+                }
+            } else {
                 context.result = { data: context.latest, affectedRows: 1 };
             }
 
@@ -719,25 +745,24 @@ class EntityModel {
      * @param {object} [updateOptions] - Update options
      * @property {object} [updateOptions.$where] - Extra condition
      * @property {bool} [updateOptions.$getUpdated=false] - Retrieve the updated entity from database
-     * @param {object} [connOptions]
-     * @property {object} [connOptions.connection]
      * @returns {object}
      */
-    async updateOne_(data, updateOptions, connOptions) {
-        return this._update_(data, updateOptions, connOptions, true);
+    async updateOne_(data, updateOptions) {
+        updateOptions = this._wrapCtx(updateOptions);
+        return this._update_(data, updateOptions);
     }
 
     /**
      * Update many existing entites with given data.
      * @param {*} data
      * @param {*} updateOptions
-     * @param {*} connOptions
      */
-    async updateMany_(data, updateOptions, connOptions) {
-        return this._update_(data, updateOptions, connOptions, false);
+    async updateMany_(data, updateOptions) {
+        updateOptions = this._wrapCtx(updateOptions);
+        return this._update_(data, updateOptions, false);
     }
 
-    async _update_(data, updateOptions, connOptions, forSingleRecord) {
+    async _update_(data, updateOptions, forSingleRecord) {
         const rawOptions = updateOptions;
 
         if (!updateOptions) {
@@ -763,8 +788,7 @@ class EntityModel {
             op: 'update',
             raw,
             rawOptions,
-            options: this._prepareQueries(updateOptions, forSingleRecord /* for single record */),
-            connOptions,
+            options: this._normalizeQuery(updateOptions, forSingleRecord /* for single record */),
             forSingleRecord,
         };
 
@@ -780,6 +804,9 @@ class EntityModel {
         if (!toUpdate) {
             return context.result;
         }
+
+        const opOptions = context.options;
+        this._preProcessOptions(opOptions, forSingleRecord /* for single record */);
 
         const success = await this._safeExecute_(async () => {
             if (!isEmpty(references)) {
@@ -887,11 +914,10 @@ class EntityModel {
      * @property {object} [deleteOptions.$where] - Extra condition
      * @property {bool} [deleteOptions.$getDeleted=false] - Retrieve the deleted entity from database
      * @property {bool} [deleteOptions.$physicalDeletion=false] - When $physicalDeletion = true, deletetion will not take into account logicaldeletion feature
-     * @param {object} [connOptions]
-     * @property {object} [connOptions.connection]
      */
-    async deleteOne_(deleteOptions, connOptions) {
-        return this._delete_(deleteOptions, connOptions, true);
+    async deleteOne_(deleteOptions) {
+        deleteOptions = this._wrapCtx(deleteOptions);
+        return this._delete_(deleteOptions, true);
     }
 
     /**
@@ -901,15 +927,14 @@ class EntityModel {
      * @property {bool} [deleteOptions.$getDeleted=false] - Retrieve the deleted entity from database
      * @property {bool} [deleteOptions.$physicalDeletion=false] - When $physicalDeletion = true, deletetion will not take into account logicaldeletion feature
      * @property {bool} [deleteOptions.$deleteAll=false] - When $deleteAll = true, the operation will proceed even empty condition is given
-     * @param {object} [connOptions]
-     * @property {object} [connOptions.connection]
      */
-    async deleteMany_(deleteOptions, connOptions) {
-        return this._delete_(deleteOptions, connOptions, false);
+    async deleteMany_(deleteOptions) {
+        deleteOptions = this._wrapCtx(deleteOptions);
+        return this._delete_(deleteOptions, false);
     }
 
-    async deleteAll_(connOptions) {
-        return this.deleteMany_({ $deleteAll: true }, connOptions);
+    async deleteAll_() {
+        return this.deleteMany_({ $deleteAll: true });
     }
 
     /**
@@ -918,13 +943,11 @@ class EntityModel {
      * @property {object} [deleteOptions.$where] - Extra condition
      * @property {bool} [deleteOptions.$getDeleted=false] - Retrieve the deleted entity from database
      * @property {bool} [deleteOptions.$physicalDeletion=false] - When $physicalDeletion = true, deletetion will not take into account logicaldeletion feature
-     * @param {object} [connOptions]
-     * @property {object} [connOptions.connection]
      */
-    async _delete_(deleteOptions, connOptions, forSingleRecord) {
+    async _delete_(deleteOptions, forSingleRecord) {
         const rawOptions = deleteOptions;
 
-        deleteOptions = this._prepareQueries(deleteOptions, forSingleRecord /* for single record */);
+        deleteOptions = this._normalizeQuery(deleteOptions, forSingleRecord /* for single record */);
 
         if (isEmpty(deleteOptions.$where) && (forSingleRecord || !deleteOptions.$deleteAll)) {
             throw new InvalidArgument(
@@ -940,7 +963,6 @@ class EntityModel {
             op: 'delete',
             rawOptions,
             options: deleteOptions,
-            connOptions,
             forSingleRecord,
         };
 
@@ -955,6 +977,9 @@ class EntityModel {
         if (!toDelete) {
             return context.return;
         }
+
+        const opOptions = context.options;
+        this._preProcessOptions(opOptions, forSingleRecord /* for single record */);
 
         const deletedCount = await this._safeExecute_(async () => {
             if (!(await this.applyRules_(Rules.RULE_BEFORE_DELETE, context))) {
@@ -1052,7 +1077,7 @@ class EntityModel {
      * @property {object} context.raw - Raw input data.
      * @param {bool} isUpdating - Flag for updating existing entity.
      */
-    async _prepareEntityData_(context, isUpdating = false, forSingleRecord = true) {        
+    async _prepareEntityData_(context, isUpdating = false, forSingleRecord = true) {
         const i18n = this.i18n;
         const { name, fields } = this.meta;
 
@@ -1226,7 +1251,7 @@ class EntityModel {
             } // else default value set by database or by rules
         });
 
-        latest = context.latest = this._translateValue(latest, opOptions.$variables, true, false, context);
+        latest = context.latest = this._translateValue(latest, opOptions);
 
         await this.applyRules_(Rules.RULE_AFTER_VALIDATION, context);
 
@@ -1253,6 +1278,15 @@ class EntityModel {
 
             return this._serializeByTypeInfo(value, fieldInfo);
         });
+
+        opOptions.$data = {
+            latest: context.latest,
+            raw: context.raw,
+        };
+
+        if (isUpdating) {
+            opOptions.$data.existing = existing;
+        }
     }
 
     _dependencyChanged(fieldName, context) {
@@ -1335,7 +1369,7 @@ class EntityModel {
 
     /**
      * Check if the given object contains reserved keys.
-     * @param {*} obj 
+     * @param {*} obj
      * @returns {boolean}
      */
     _hasReservedKeys(obj) {
@@ -1348,7 +1382,7 @@ class EntityModel {
      * @param {boolean} [forSingleRecord=false]
      * @returns {object}
      */
-    _prepareQueries(options, forSingleRecord = false) {
+    _normalizeQuery(options, forSingleRecord = false) {
         if (!isPlainObject(options)) {
             if (forSingleRecord && options == null) {
                 throw new InvalidArgument(
@@ -1371,18 +1405,16 @@ class EntityModel {
             }
 
             // single key
-
             return options != null
                 ? {
                       $where: {
-                          [this.meta.keyField]: this._translateValue(options),
+                          [this.meta.keyField]: options,
                       },
                   }
                 : {};
         }
 
-        // todo: key may be an array in the future
-        const qOptions = { $key: this.meta.keyField };
+        const qOptions = { $ctx: options.$ctx };
         const query = {};
 
         // move non-reserved keys to $where
@@ -1396,63 +1428,104 @@ class EntityModel {
 
         qOptions.$where = { ...query, ...qOptions.$where };
 
-        if (forSingleRecord && !options.$skipUniqueCheck) {
-            this._ensureContainsUniqueKey(qOptions.$where);
-        }
-
-        qOptions.$where = this._translateValue(
-            qOptions.$where,
-            qOptions.$variables,
-            null,
-            true
-        );
-
-        if (qOptions.$groupBy) {
-            if (isPlainObject(qOptions.$groupBy)) {
-                if (qOptions.$groupBy.having) {
-                    qOptions.$groupBy.having = this._translateValue(
-                        qOptions.$groupBy.having,
-                        qOptions.$variables,
-                        null,
-                        true
-                    );
-                }
-            }
-        }
-
         let relFromSelect = new Set();
+        const converted = new Set();
 
         if (qOptions.$select) {
-            if (!Array.isArray(qOptions.$select)) {
-                qOptions.$select = [qOptions.$select];
-            }
+            qOptions.$select.forEach((value) => {
+                if (typeof value === 'string') {
+                    let fpos = value.indexOf('* -');
+                    if (fpos > 0) {
+                        // exclude syntax
+                        const parts = value.split(' -');
+                        const baseAssoc = parts[0].substring(0, fpos - 1);
+                        value = {
+                            $xr: 'ExclusiveSelect',
+                            columnSet: baseAssoc,
+                            excludes: parts.slice(1),
+                        };
+                    } else {
+                        let pos;
 
-            let pos;
-            const converted = [];
-            
-            qOptions.$select.forEach((v) => {
-                if (typeof v === 'string' && (pos = v.lastIndexOf('.')) > 0) {
-                    relFromSelect.add(v.substring(0, pos));
+                        if ((pos = value.lastIndexOf('.')) > 0) {
+                            // auto-add relation if select includes a field from related entity
+                            relFromSelect.add(value.substring(0, pos));
+                        }
+
+                        converted.add(value);
+                        return;
+                    }
                 }
 
-                converted.push(this._translateValue(v, qOptions.$variables));
-            });
+                if (isPlainObject(value) && value.$xr === 'ExclusiveSelect') {
+                    this._translateExclSelect(value).forEach((v) => converted.add(v));
+                    return;
+                }
 
-            qOptions.$select = converted;
+                converted.add(this._translateValue(v, qOptions));
+            });
         }
 
+        qOptions.$select = converted; // will be unique in prepareAssociations
+
         if (relFromSelect.size) {
+            // merge with existing relations
             if (qOptions.$relation) {
-                qOptions.$relation.forEach(rel => relFromSelect.add(rel));
+                qOptions.$relation.forEach((rel) => relFromSelect.add(rel));
             }
             qOptions.$relation = Array.from(relFromSelect);
         }
 
-        if (qOptions.$relation && !qOptions.$relationships) {
-            qOptions.$relationships = this._prepareAssociations(qOptions);
+        return qOptions;
+    }
+
+    _preProcessOptions(qOptions, forSingleRecord) {
+        const extraSelect = [];
+        qOptions.$where = this._translateValue(qOptions.$where, qOptions, true, extraSelect);
+        if (extraSelect.length) {
+            extraSelect.forEach((v) => qOptions.$select.add(v));
         }
 
-        return qOptions;
+        if (forSingleRecord && !qOptions.$skipUniqueCheck) {
+            this._ensureContainsUniqueKey(qOptions.$where);
+        }
+
+        if (qOptions.$groupBy) {
+            qOptions.$skipOrm = true; // no orm for grouping
+            if (isPlainObject(qOptions.$groupBy)) {
+                if (qOptions.$groupBy.having) {
+                    qOptions.$groupBy.having = this._translateValue(qOptions.$groupBy.having, qOptions, true);
+                }
+            }
+        }
+
+        if (qOptions.$relation) {
+            if (qOptions.$assoc) {
+                throw new Error('To be implemented');
+            }
+
+            qOptions.$assoc = this._prepareAssociations(qOptions);
+        }
+    }
+
+    _translateExclSelect(value) {
+        const { columnSet, excludes } = value;
+        let targetEntity;
+
+        if (columnSet === '*') {
+            targetEntity = this;
+        } else {
+            const base = columnSet.split('.');
+            const right = base.pop();
+
+            if (right !== '*') {
+                throw new ApplicationError('Invalid column set syntax in exclusive select: ' + columnSet);
+            }
+
+            targetEntity = this.getChainedRelatedEntity(base);
+        }
+
+        return Object.keys(_.omit(targetEntity.meta.fields, excludes));
     }
 
     /**
@@ -1591,26 +1664,50 @@ class EntityModel {
     /**
      * Automatically fetch variables by $xr
      * @param {*} value
-     * @param {object} variables
-     * @param {boolean} skipTypeCast
+     * @param {object} opPayload
      * @param {boolean} arrayToInOperator - Convert an array value to { $in: array }
-     * @param {object} context
      * @returns {*}
      */
-    _translateValue(value, variables, skipTypeCast, arrayToInOperator, context) {
+    _translateValue(value, opPayload, arrayToInOperator, extraSelect) {
         if (isPlainObject(value)) {
             if (value.$xr) {
-                if ($dbRuntimeObjects.has(value.$xr)) return value;
-
+                // todo: check if any properties need translate
                 switch (value.$xr) {
-                    case 'SessionVariable':
-                        if (!variables) {
-                            throw new InvalidArgument('Variables context missing.', {
-                                entity: this.meta.name,
-                            });
+                    case 'Column':
+                        if (extraSelect) {
+                            extraSelect.push(value.name);
                         }
-    
-                        if ((!variables.session || !(value.name in variables.session)) && !value.optional) {
+                        return;
+
+                    case 'Function':
+                        if (value.args) {
+                            return { ...value, args: this._translateValue(value.args, opPayload, false, extraSelect) };
+                        }
+                        return;
+
+                    case 'BinExpr':
+                        return {
+                            ...value,
+                            left: this._translateValue(value.left, opPayload, false, extraSelect),
+                            right: this._translateValue(value.right, opPayload, false, extraSelect),
+                        };
+
+                    case 'Request': {
+                        const ctx = opPayload.$ctx;
+
+                        if (ctx == null) {
+                            throw new InvalidArgument(
+                                'Request reference requires the Http `ctx` object to be passed as `$ctx` in the operation options.',
+                                {
+                                    entity: this.meta.name,
+                                    value,
+                                }
+                            );
+                        }
+
+                        const reqValue = _get(ctx, value.name);
+
+                        if (reqValue == null && !value.optional) {
                             const errArgs = [];
                             if (value.missingMessage) {
                                 errArgs.push(value.missingMessage);
@@ -1618,56 +1715,55 @@ class EntityModel {
                             if (value.missingStatus) {
                                 errArgs.push(value.missingStatus || HttpCode.BAD_REQUEST);
                             }
-    
+
                             throw new ValidationError(...errArgs);
                         }
-    
-                        return variables.session[value.name];
 
-                    case 'QueryVariable':
-                        if (!variables) {
-                            throw new InvalidArgument('Variables context missing.', {
-                                entity: this.meta.name,
-                            });
-                        }
-    
-                        if (!variables.query || !(value.name in variables.query)) {
-                            throw new InvalidArgument(`Query parameter "${value.name}" in configuration not found.`, {
-                                entity: this.meta.name,
-                            });
-                        }
-    
-                        return variables.query[value.name];
+                        return reqValue;
+                    }
 
-                    case 'SymbolToken':
+                    case 'Symbol':
                         return this._translateSymbolToken(value.name);
 
-                    case 'Input':
-                        if (context == null) {
-                            throw new InvalidArgument('Context is required for input value reference.', {
-                                entity: this.meta.name,
-                            });
+                    case 'Data':
+                        if (opPayload.$data == null) {
+                            throw new InvalidArgument(
+                                '`$data` field is required for "latest|existing|raw" value reference.',
+                                {
+                                    entity: this.meta.name,
+                                    value,
+                                }
+                            );
                         }
-                        return _get(context, value.name);
+                        return _get(opPayload.$data, value.name);
+
+                    case 'Query':
+                    case 'DataSet':
+                    case 'Raw':
+                        return value;
                 }
 
-                throw new Error('Not implemented yet. ' + value.$xr);                
+                throw new Error('Not implemented yet. ' + value.$xr);
             }
 
-            return _.mapValues(value, (v, k) =>
-                this._translateValue(v, variables, skipTypeCast, arrayToInOperator && k[0] !== '$')
-            );
+            return _.mapValues(value, (v, k) => {
+                const keyword = k[0] === '$';
+                if (extraSelect && !keyword) {
+                    extraSelect.push(k);
+                }
+
+                return this._translateValue(v, opPayload, arrayToInOperator && !keyword, extraSelect);
+            });
         }
 
         if (Array.isArray(value)) {
-            const ret = value.map((v) => this._translateValue(v, variables, skipTypeCast, arrayToInOperator));
-
-            return arrayToInOperator ? { $in: ret } : ret;
+            return arrayToInOperator
+                ? { $in: value }
+                : // $and, $or, $not array
+                  value.map((v) => this._translateValue(v, opPayload, arrayToInOperator, extraSelect));
         }
 
-        if (skipTypeCast) return value;
-
-        return this.db.connector.typeCast(value);
+        return value;
     }
 }
 

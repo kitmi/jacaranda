@@ -172,6 +172,23 @@ class Connector {
     }
 
     /**
+     * Database sub-collection.
+     * @member {string}
+     */
+    get collection() {
+        // default as database for those 1 layer database, like mysql
+        return this.database;
+    }
+
+    /**
+     * Get the db name to be used in cross-db join.
+     * @member {string}
+     */
+    get crossJoinDbName() {
+        return this.collection;
+    }
+
+    /**
      * Client library.
      * @member {object}
      */

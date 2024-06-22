@@ -6,7 +6,7 @@ export const extractRawSql = (value) => unwrap(value, 'r#"', '"#');
 export const xrRawValue = (value) => ({ $xr: 'Raw', value });
 export const xrRaw = xrRawValue;
 
-export const xrColumn = (name) => ({ $xr: 'Column', name });
+export const xrColumn = (name, alias) => ({ $xr: 'Column', name, alias });
 export const xrCol = xrColumn;
 
 export const xrFunction = (name, args) => ({ $xr: 'Function', name, args });
@@ -17,7 +17,6 @@ export const xrExpr = xrExpression;
 
 export const xrQuery = (query) => ({ $xr: 'Query', query });
 export const xrDataSet = (model, query) => ({ $xr: 'DataSet', model, query });
-export const xrSql = (sql) => ({ $xr: 'SQL', sql });
 
 export const doInc = (field, increment) => xrExpr(xrCol(field), '+', increment);
 export const doDec = (field, decrement) => xrExpr(xrCol(field), '-', decrement);
@@ -59,3 +58,10 @@ export const hasValueInAny = (arrayOfColl, key) => getValueFromAny(arrayOfColl, 
  */
 export const getValueFromAny = (arrayOfColl, key) => _.find(arrayOfColl, (coll) => coll?.[key] != null);
 
+export const extractTableAndField = (path) => {
+    let lastPos = path.lastIndexOf('.');
+    let tablePath = path.substring(0, lastPos);
+    let field = path.substring(lastPos + 1);
+
+    return [tablePath, field];
+};

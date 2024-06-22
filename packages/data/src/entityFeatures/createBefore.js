@@ -13,8 +13,6 @@ export default {
             ...feature.initData
         });
 
-        console.log('RULE_BEFORE_CREATE', result);
-
         const assocInfo = this.meta.associations[feature.relation];
 
         // only belongsTo and refersTo has type

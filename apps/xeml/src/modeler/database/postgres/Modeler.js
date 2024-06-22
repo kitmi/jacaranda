@@ -331,7 +331,7 @@ class PostgresModeler {
     }
 
     _toColumnReference(name) {
-        return { $xr: 'ColumnReference', name };
+        return { $xr: 'Column', name };
     }
 
     _translateJoinCondition(context, localField, anchor, remoteField) {
@@ -429,6 +429,11 @@ class PostgresModeler {
 
         if (!destEntity) {
             throw new Error(`Entity "${entity.name}" references to an unexisting entity "${destEntityName}".`);
+        }
+
+        if (destEntity.info.abstract) {
+            // ignore abstract entity
+            return;
         }
 
         let destKeyField = destEntity.getKeyField();
@@ -1259,39 +1264,39 @@ class PostgresModeler {
         }
     }
 
-    xemlToSql(schema, doc, ool, params) {
-        if (!ool.$xt) {
-            return ool;
+    xemlToSql(schema, doc, xeml, params) {
+        if (!xeml.$xt) {
+            return xeml;
         }
 
-        switch (ool.$xt) {
+        switch (xeml.$xt) {
             case 'BinaryExpression':
                 let left, right;
 
-                if (ool.left.$xt) {
-                    left = this.xemlToSql(schema, doc, ool.left, params);
+                if (xeml.left.$xt) {
+                    left = this.xemlToSql(schema, doc, xeml.left, params);
                 } else {
-                    left = ool.left;
+                    left = xeml.left;
                 }
 
-                if (ool.right.$xt) {
-                    right = this.xemlToSql(schema, doc, ool.right, params);
+                if (xeml.right.$xt) {
+                    right = this.xemlToSql(schema, doc, xeml.right, params);
                 } else {
-                    right = ool.right;
+                    right = xeml.right;
                 }
 
-                return left + ' ' + this.xemlOpToSql(ool.operator) + ' ' + right;
+                return left + ' ' + this.xemlOpToSql(xeml.operator) + ' ' + right;
 
             case 'ObjectReference':
-                if (!XemlUtils.isMemberAccess(ool.name)) {
-                    if (params && _.find(params, (p) => p.name === ool.name) !== -1) {
-                        return 'p' + _.upperFirst(ool.name);
+                if (!XemlUtils.isMemberAccess(xeml.name)) {
+                    if (params && _.find(params, (p) => p.name === xeml.name) !== -1) {
+                        return 'p' + _.upperFirst(xeml.name);
                     }
 
-                    throw new Error(`Referencing to a non-existing param "${ool.name}".`);
+                    throw new Error(`Referencing to a non-existing param "${xeml.name}".`);
                 }
 
-                let { entityNode, entity, field } = XemlUtils.parseReferenceInDocument(schema, doc, ool.name);
+                let { entityNode, entity, field } = XemlUtils.parseReferenceInDocument(schema, doc, xeml.name);
 
                 return entityNode.alias + '.' + this.quoteIdentifier(field.name);
 

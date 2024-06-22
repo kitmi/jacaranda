@@ -224,9 +224,9 @@ class Schema extends Clonable {
         if (entity) {
             this.addEntity(entity);   
 
-            if (newlyAdded) {
+            if (!entity.info.abstract && newlyAdded) {
                 newlyAdded.push(entity.name);
-                this.linker.log('debug', `New entity "${entity.name}" added by association.`);
+                this.linker.log('info', `New entity "${entity.name}" added by association.`);
             }
         }
 

@@ -13,27 +13,6 @@ class BasicController {
         if (!this.apiWrapper) {
             throw new ApplicationError('"apiWrapper" service is required when using the built-in Controller.');
         }
-
-        if (this.app.settings?.models) {
-            // init models service
-            this.modelsService = _.mapValues(this.app.settings.models, ({ lib, driver }, schema) => {
-                if (this.defaultSchema == null) {
-                    /**
-                     * Default schema
-                     * @member {string}
-                     */
-                    this.defaultSchema = schema;
-                }
-
-                const modelsModule = lib ? this.app.host.getLib(lib) : this.app;
-                const service = modelsModule.getService(driver);
-                if (service == null) {
-                    throw new ApplicationError(`Model driver "${driver}" not found in ${lib ? 'lib' : 'app module'} "${lib ?? this.app.name}"`);
-                }
-
-                return service;
-            });
-        }
     }
 
     /**
@@ -54,11 +33,15 @@ class BasicController {
      * Return a db model by name [ and schema ]
      * @param {*} name 
      * @param {*} [schema] 
-     * @returns {DbModel}
+     * @returns {EntityModel}
      */
     $m(name, schema) {
-        const service = this.modelsService[schema ?? this.defaultSchema];
-        return service.$model(name);
+        if (this.app.db == null) {
+            throw new ApplicationError('Database service (i.e. db feature) is not enabled.');
+        }
+
+        const db = this.app.db(schema);        
+        return db.entity(name);
     }
 
     /**

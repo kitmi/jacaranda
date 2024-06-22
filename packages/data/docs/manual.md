@@ -17,30 +17,41 @@
 ## CRUD Operations 
 
 -   async findOne_(findOptions)
--   async findAll_(findOptions)
+-   async findMany_(findOptions)
 -   async create_(data, createOptions)
 -   async updateOne_(data, updateOptions)
--   async upsertOne_(data, updateOptions)
 -   async updateMany_(data, updateOptions)
--   async replaceOne_(data, updateOptions)
+-   async upsertOne_(data, upsertOptions)
 -   async deleteOne_(deleteOptions)
 -   async deleteMany_(deleteOptions)
+-   async deleteAll_()
    
+-   To be implemented
+    -   async createMany_(data /* array of object */, createOptions) 
+    -   async createMany_(fieldNames, data /* array of array */, createOptions)
+    -   async upsertMany_(data, upsertOptions)
+    -   async replaceOne_(data, updateOptions)
+    -   async aggregate_()
 
-
--   async cached_(key, associations)
--   async retryCreateOnDuplicate_(dataGenerator_, maxRery, createOptions, connOptions)
-    - Regenerate creation data and try again if duplicate record exists
--   async ensureFields_(entityObject, fields)
-    - Ensure the entity object containing required fields, if not, it will automatically fetched from db and return.
+-   To be refactored
+    -   async cached_(key, associations)
+    -   async retryCreateOnDuplicate_(dataGenerator_, maxRery, createOptions, connOptions)
+        - Regenerate creation data and try again if duplicate record exists
+    -   async ensureFields_(entityObject, fields)
+        - Ensure the entity object containing required fields, if not, it will automatically fetched from db and return.
 
 ## Operation options
 
 ### common options
 
-#### $fullResult
+#### $ctx 
 
-Return full db operation result which may includes fields & and operation status.
+The `koa` like `ctx` object passed in to interpolate into query condition, will also be passed on to associated operation.
+
+- session
+- request
+- header
+- state
 
 ### findOptions
 
@@ -48,7 +59,7 @@ Return full db operation result which may includes fields & and operation status
 
 - Select by dot-separated field name (syntax: [<association-name>.]<field-name>)
 
-```javascript
+```js
 $select: [
     '*',
     'offices.bookableResources.type'
@@ -61,7 +72,7 @@ Note: The output columns may have some automatically added fields especially key
 - Select by function
 
 ```javascript
-$select: [ { type: 'function', name: 'MAX', alias: 'max', args: ['order'] } ]
+$select: [ { $xr: 'Function', name: 'MAX', alias: 'max', args: ['order'] } ]
 // SELECT MAX(`order`) as max
 ```
 
@@ -73,15 +84,14 @@ No trailing (s).
 
 ```javascript
 // use an anchor 
-$relation [ 'profile', 'roles' ];
+$relation: [ 'profile', 'roles' ];
+// can use multi-levels
+$relation: [ 'profile.address', 'roles.role' ];
 ```
 
-#### $variables 
+#### $where
 
-Variables to interpolate into query condition, will be passed on to associated operation.
-
-- session
-- query
+The where clause object.
 
 #### $features
 
@@ -178,9 +188,6 @@ $jsx: {
 
 Return result as array, i.e. array mode.
 
-#### $getFields
-
-To return a fields array.
 
 ### createOptions
 

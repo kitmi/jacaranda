@@ -315,7 +315,7 @@ class Linker {
                             throw new Error(`Invalid object reference "${value.name}"`);
                         }
                         
-                        return { $xr: 'Input', name: value.name };
+                        return { $xr: 'Data', name: value.name };
                 }
 
                 throw new Error(`todo: translateXemlValue with type: ${value.$xt}`);

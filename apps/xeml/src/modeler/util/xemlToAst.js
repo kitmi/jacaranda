@@ -725,7 +725,7 @@ function compileConcreteValueExpression(startTopoId, value, compileContext) {
             return startTopoId;
         }
 
-        if (value.$xt === 'SymbolToken') {
+        if (value.$xt === 'Symbol') {
             compileContext.astMap[startTopoId] = JsLang.astValue(translateSymbolToken(value.name));
             return startTopoId;
         }
@@ -1021,6 +1021,7 @@ function translateThenAst(startId, endId, then, compileContext, assignTo) {
         }
 
         if (then.$xt === 'UnaryExpression') {
+            throw new Error('To be implemented')
         }
     }
 

@@ -5,6 +5,8 @@ import { runtime, NS_MODULE } from '@kitmi/jacaranda';
 import { connectionStringToObject } from '../../Connector';
 import RelationalConnector from '../relational/Connector';
 
+import { xrCol } from '../../helpers';
+
 const pg = runtime.get(NS_MODULE, 'pg');
 if (!pg) {
     throw new Error('The `pg` module is required for the `postgres` connector.');
@@ -68,20 +70,6 @@ class PostgresConnector extends RelationalConnector {
     escapeValue = escapeLiteral;
     escapeId = escapeIdentifier;
 
-    typeCast(value) {
-        const t = typeof value;
-
-        if (t === 'boolean') return value ? 1 : 0;
-
-        if (t === 'object') {
-            if (value != null && value.isLuxonDateTime) {
-                return value.toISO({ includeOffset: false });
-            }
-        }
-
-        return value;
-    }
-
     /**
      * Create a new instance of the connector.
      * @param {App} app
@@ -96,8 +84,28 @@ class PostgresConnector extends RelationalConnector {
         this.transactionId = 0;
     }
 
+    /**
+     * [override] Database sub-collection.
+     * @member {string}
+     */
+    get collection() {
+        if (!this._dbSchema) {
+            this._dbSchema = new URL(this.connectionString).searchParams.get('schema') || 'public';
+        }
+
+        return this._dbSchema;
+    }
+
+    /**
+     * [override] Get the db name to be used in cross-db join.
+     * @member {string}
+     */
+    get crossJoinDbName() {
+        return this.collection;
+    }
+
     specParamToken(index) {
-        return `$${index}`;
+        return `$?`;
     }
 
     specInClause(index) {
@@ -157,8 +165,8 @@ class PostgresConnector extends RelationalConnector {
                 connProps = {
                     username: this.options.adminCredential.username,
                     password: this.options.adminCredential.password,
-                    database: 'postgres'
-                };                
+                    database: 'postgres',
+                };
             }
 
             const csKey = connProps ? this.makeNewConnectionString(connProps) : null;
@@ -239,9 +247,9 @@ class PostgresConnector extends RelationalConnector {
      * @returns {Promise.<Client>}
      */
     async beginTransaction_() {
-        const client = await this.connect_();        
+        const client = await this.connect_();
         const tid = (client[tranSym] = ++this.transactionId);
-        if (this.options.logTransaction) {            
+        if (this.options.logTransaction) {
             this.app.log('info', `Begins a new transaction [id: ${tid}].`);
         }
         await client.query('BEGIN');
@@ -254,7 +262,7 @@ class PostgresConnector extends RelationalConnector {
      */
     async commit_(client) {
         try {
-            await client.query('COMMIT');            
+            await client.query('COMMIT');
             if (this.options.logTransaction) {
                 const tid = client[tranSym];
                 this.app.log('info', `Commits a transaction [id: ${tid}].`);
@@ -272,7 +280,7 @@ class PostgresConnector extends RelationalConnector {
         try {
             await client.query('ROLLBACK;');
             const tid = client[tranSym];
-            this.app.log('error', `Rollbacked a transaction [id: ${tid}].`);            
+            this.app.log('error', `Rollbacked a transaction [id: ${tid}].`);
         } finally {
             this.disconnect_(client);
         }
@@ -291,7 +299,7 @@ class PostgresConnector extends RelationalConnector {
      */
     async execute_(sql, params, options, connection) {
         let conn;
-        const { $preparedKey, $asArray, $getFields, ...connOptions } = options ?? {};
+        const { $preparedKey, $asArray, ...connOptions } = options ?? {};
 
         try {
             conn = connection ?? (await this.connect_(connOptions));
@@ -302,7 +310,7 @@ class PostgresConnector extends RelationalConnector {
             };
 
             if (this.options.logStatement && !connOptions.createDatabase) {
-                const meta = { ...options, params };
+                const meta = { ..._.omit(options, ['$assoc']), params };
                 if (connection) {
                     meta.transactionId = connection[tranSym];
                 }
@@ -324,23 +332,20 @@ class PostgresConnector extends RelationalConnector {
                 }
             }
 
-            const res = await conn.query(query);            
+            const res = await conn.query(query);
             this.executedCount++;
 
             const adapted = {
                 op: res.command,
                 data: res.rows,
-                affectedRows: res.rowCount,                
+                fields: res.fields,
+                affectedRows: res.rowCount,
             };
-
-            if ($getFields) {
-                adapted.fields = res.fields;
-            }
 
             return adapted;
         } catch (err) {
             err.info || (err.info = {});
-            Object.assign(err.info, options);
+            Object.assign(err.info, _.omit(options, ['$assoc']));
             err.info.sql = sql;
             err.info.params = params;
 
@@ -511,7 +516,7 @@ class PostgresConnector extends RelationalConnector {
      * @param {object} data
      * @param {*} query
      * @param {*} queryOptions
-     * @property {object} [queryOptions.$relationships] - Parsed relatinships
+     * @property {object} [queryOptions.$assoc] - Parsed relatinships
      * @property {boolean} [queryOptions.$requireSplitColumn] - Whether to use set field=value
      * @property {integer} [queryOptions.$limit]
      * @param {*} connOptions
@@ -531,8 +536,8 @@ class PostgresConnector extends RelationalConnector {
         let hasJoining = false;
         const joiningParams = [];
 
-        if (queryOptions && queryOptions.$relationships) {
-            joinings = this._joinAssociations(queryOptions.$relationships, model, aliasMap, 1, joiningParams);
+        if (queryOptions && queryOptions.$assoc) {
+            joinings = this._joinAssociations(queryOptions.$assoc, model, aliasMap, 1, joiningParams);
             hasJoining = model;
         }
 
@@ -634,8 +639,8 @@ class PostgresConnector extends RelationalConnector {
         let hasJoining = false;
         const joiningParams = [];
 
-        if (deleteOptions && deleteOptions.$relationships) {
-            joinings = this._joinAssociations(deleteOptions.$relationships, model, aliasMap, 1, joiningParams);
+        if (deleteOptions && deleteOptions.$assoc) {
+            joinings = this._joinAssociations(deleteOptions.$assoc, model, aliasMap, 1, joiningParams);
             hasJoining = model;
         }
 
@@ -665,6 +670,590 @@ class PostgresConnector extends RelationalConnector {
     async find_(model, findOptions, connection) {
         const sqlInfo = this.buildQuery(model, findOptions);
         return this._executeQuery_(sqlInfo, findOptions, connection);
+    }
+
+    /**
+     * Build sql statement
+     * @param {string|object} model - Model name or CTE object
+     * @param {*} condition
+     * @property {object} $assoc
+     * @property {object} $where
+     * @property {number} $offset - Offset
+     * @property {number} $limit - Limit
+     * @property {boolean|string} $totalCount - Whether to count the total number of records
+     * @returns {object} { sql, params, countSql, countParams, hasJoining, aliasMap }
+     */
+    buildQuery(model, findOptions) {
+        const { $assoc, $where, $groupBy, $offset, $limit, $totalCount } = findOptions;
+        const hasTotalCount = $totalCount != null;
+        let needDistinctForLimit = ($limit != null && $limit > 0) || ($offset != null && $offset > 0);
+
+        const { fromTable, withTables, model: _model } = this._buildCTEHeader(model);
+        model = _model; // replaced with CTE alias
+
+        const aliasMap = { [model]: 'A' };
+
+        let childQuery, childJoinings, subSelects, subJoinings, orderBys;
+        let select;
+
+        if ($assoc) {
+            [childQuery, childJoinings, subSelects, subJoinings, orderBys] = this._joinAssociations(
+                $assoc,
+                model,
+                aliasMap,
+                aliasMap,
+                1
+            );
+
+            select = $assoc.$select;
+        } else {
+            select = findOptions.$select ? Array.from(findOptions.$select) : '*';
+        }       
+
+        // count does not require selectParams
+        //const countParams = hasTotalCount ? joiningParams.concat() : null;
+
+        // Build select columns
+        let { clause: selectClause, params: selectParams } = this._buildSelect(
+            select,
+            model,
+            aliasMap,
+            subSelects
+        );
+
+        if (childQuery?.length > 0) {
+            selectClause += ', ' + childQuery.map((q) => `${q.alias}.*`).join(', ');
+        }
+
+        // Build from clause
+        let fromClause = ' FROM ' + fromTable;
+        let fromAndJoin = fromClause + ' A ';
+        if (subJoinings?.clause) {
+            fromAndJoin += subJoinings.clause;
+        }
+        if (childJoinings?.clause) {
+            fromAndJoin += childJoinings.clause;
+        }
+
+        // Build where clause
+        let whereClause = '';
+        const whereParams = [];
+
+        if ($where) {
+            whereClause = this._joinCondition($where, whereParams, null, model, aliasMap);
+
+            if (whereClause) {
+                whereClause = ' WHERE ' + whereClause;
+                /*
+                if (countParams) {
+                    whereParams.forEach((p) => {
+                        countParams.push(p);
+                    });
+                }
+                    */
+            }
+        }
+
+        // Build group by clause
+        let groupByClause = '';
+        const groupByParams = [];
+
+        if ($groupBy) {
+            groupByClause += ' ' + this._buildGroupBy($groupBy, groupByParams, model, aliasMap);
+            /*
+            if (countParams) {
+                groupByParams.forEach((p) => {
+                    countParams.push(p);
+                });
+            }
+                */
+        }
+
+        let orderByClause = '';
+
+        if ($assoc) {
+            this._pushOrderBy($assoc, orderBys, model, aliasMap);
+            orderByClause = this._sortAndJoinOrderByClause(orderBys);
+        } else if (findOptions.$orderBy) {
+            orderByClause += ' ' + this._buildOrderBy(findOptions.$orderBy, model, aliasMap);
+        }             
+
+        // Build limit & offset clause
+        const limitOffetParams = [];
+        let limitOffset = this._buildLimitOffset($limit, $offset, limitOffetParams);
+
+        const result = { aliasMap };
+
+        // The field used as the key of counting or pagination
+        let distinctFieldRaw;
+        let distinctField;
+
+        if (hasTotalCount || needDistinctForLimit) {
+            if (typeof $totalCount !== 'string') {
+                throw new InvalidArgument('The "$totalCount" should be a distinct column name for counting.');
+            }
+
+            distinctFieldRaw = $totalCount;
+            distinctField = this._escapeIdWithAlias(distinctFieldRaw, mainEntity, aliasMap);
+        }
+
+        if (hasTotalCount) {
+            const countSubject = 'DISTINCT(' + distinctField + ')';
+
+            result.countSql =
+                withTables + `SELECT COUNT(${countSubject}) AS count` + fromAndJoin + whereClause + groupByClause;
+            result.countParams = countParams;
+        }
+
+        if (needDistinctForLimit) {
+            const distinctFieldWithAlias = `${distinctField} AS key_`;
+            const keysSql = orderByClause
+                ? `WITH records_ AS (SELECT ${distinctFieldWithAlias}, ROW_NUMBER() OVER(${orderByClause}) AS row_${fromAndJoin}${whereClause}${groupByClause}) SELECT key_ FROM records_ GROUP BY key_ ORDER BY row_${limitOffset}`
+                : `WITH records_ AS (SELECT ${distinctFieldWithAlias}${fromAndJoin}${whereClause}${groupByClause}) SELECT key_ FROM records_ GROUP BY key_${limitOffset}`;
+
+            const keySqlAliasIndex = Object.keys(aliasMap).length;
+            const keySqlAnchor = ntol(keySqlAliasIndex);
+
+            this._joinAssociation(
+                {
+                    sql: keysSql,
+                    params: joiningParams.concat(whereParams, groupByParams, limitOffetParams),
+                    joinType: 'INNER JOIN',
+                    on: {
+                        [distinctFieldRaw]: {
+                            $xr: 'Column',
+                            name: `${keySqlAnchor}.key_`,
+                        },
+                    },
+                    output: true,
+                },
+                keySqlAnchor,
+                joinings,
+                model,
+                aliasMap,
+                keySqlAliasIndex,
+                joiningParams
+            );
+
+            fromAndJoin = fromClause + ' A ' + joinings.join(' ');
+
+            result.sql =
+                withTables + 'SELECT ' + selectClause + fromAndJoin + whereClause + groupByClause + orderByClause;
+            result.params = selectParams.concat(joiningParams, whereParams);
+        } else {
+            const [withSql, withParams] = this._joinWithTableClause(childQuery, !withTables);
+
+            const sql =
+                withTables +
+                withSql +
+                'SELECT ' +
+                selectClause +
+                fromAndJoin +
+                whereClause +
+                groupByClause +
+                orderByClause +
+                limitOffset;
+
+            result.params = withParams.concat(
+                selectParams,
+                subJoinings ? subJoinings.params : [],
+                childJoinings ? childJoinings.params : [],
+                whereParams,
+                groupByParams,
+                limitOffetParams
+            );
+
+            result.sql = result.params.reduce((_sql, p, i) => {
+                return _sql.replace(`$?`, `$${i + 1}`);
+            }, sql);
+        }
+
+        return result;
+    }
+
+    /**
+     * Extract associations into joining clauses.
+     *  [{
+     *      entity: <remote entity>
+     *      joinType: 'LEFT JOIN|INNER JOIN|FULL OUTER JOIN'
+     *      on: join condition
+     *      anchor: 'local property to place the remote entity'
+     *      localField: <local field to join>
+     *      remoteField: <remote field to join>
+     *      $relation: { ... }
+     *  }]
+     *
+     * @param {*} assocInfo
+     * @param {*} parentAliasKey
+     * @param {*} aliasMap
+     * @param {*} startId
+     * @returns {array} Array of [childQuery, childJoinings, selects, joinings, orderBys, startId]
+     */
+    _joinAssociations(assocInfo, parentAliasKey, aliasMap, innerAliasMap, startId) {
+        const childQuery = []; // array of { sql, params }
+        const childJoinClauses = [];
+        const childJoinParams = [];
+        const joinClauses = [];
+        const joinParams = [];
+        const orderBys = []; // array of { clause, order }
+        const selectClauses = [];
+        const selectParams = [];
+
+        if (assocInfo.$agg) {
+            _.each(assocInfo.$agg, (assocInfo, anchor) => {
+                const [_childQuery, _childJoinings, nextId] = this._buildWithChildTable(
+                    assocInfo,
+                    anchor,
+                    parentAliasKey,
+                    aliasMap,
+                    startId
+                );
+
+                startId = nextId;
+                childQuery.push(..._childQuery);
+                childJoinClauses.push(_childJoinings.clause);
+                childJoinParams.push(..._childJoinings.params);
+            });
+        }
+
+        if (assocInfo.$join) {
+            _.each(assocInfo.$join, (assocInfo, anchor) => {
+                const [_childQuery, _childJoinings, _select, _joinings, _orderBys, nextId] = this._joinAssociation(
+                    assocInfo,
+                    anchor,
+                    parentAliasKey,
+                    innerAliasMap,
+                    startId
+                );
+
+                startId = nextId;
+                childQuery.push(..._childQuery);
+                childJoinClauses.push(_childJoinings.clause);
+                childJoinParams.push(..._childJoinings.params);
+                selectClauses.push(_select.clause);
+                selectParams.push(..._select.params);
+                joinClauses.push(_joinings.clause);
+                joinParams.push(..._joinings.params);
+                orderBys.push(..._orderBys);
+            });
+        }
+
+        return [
+            childQuery,
+            { clause: childJoinClauses.join(''), params: childJoinParams },
+            { clause: selectClauses.join(', '), params: selectParams },
+            { clause: joinClauses.join(''), params: joinParams },
+            orderBys,
+            startId,
+        ];
+    }
+
+    /**
+     * Build child table query as CTE dataset.
+     * @param {object} assocInfo
+     * @property {string} [assocInfo.joinType="LEFT JOIN"] - Join type
+     * @property {object} [assocInfo.on] - Join condition
+     * @property {string} [assocInfo.alias] - Alias of the association
+     * @property {string} [assocInfo.sql] - Explicit SQL statement
+     * @property {array} [assocInfo.params] - Parameters for the SQL statement
+     * @property {string} [assocInfo.entity] - The entity to join
+     * @property {object} [assocInfo.$relation] - Sub-associations
+     * @property {boolean} [assocInfo.output] - Whether to output the association
+     * @param {string} anchor - The anchor of the association, usually the property name (prefixed by ":") in the parent entity
+     * @param {string} parentAliasKey - The parent alias key
+     * @param {object} aliasMap - Alias map
+     * @param {integer} startId - The starting index for alias generation
+     * @returns {array} [childQuery, joinings, startId]
+     */
+    _buildWithChildTable(assocInfo, anchor, parentAliasKey, aliasMap, startId) {
+        const aliasKey = parentAliasKey + '.' + anchor;
+
+        const outerAlias = this._generateAlias(startId++, anchor);
+        aliasMap[aliasKey] = outerAlias;
+
+        const alias = assocInfo.alias || this._generateAlias(startId++, anchor);
+        const innerAliasMap = { [aliasKey]: alias };
+
+        // Build join
+        const [childQuery, childJoinings, extraSelects, subJoinings, orderBys, nextId] = this._joinAssociations(
+            assocInfo,
+            aliasKey,
+            aliasMap,
+            innerAliasMap,
+            startId
+        );
+        startId = nextId;
+
+        // Build select
+        const { clause: selectClause, params: selectParams } = this._buildSelect(
+            assocInfo.$select,
+            aliasKey,
+            innerAliasMap,
+            extraSelects
+        );
+
+        // Build from clause
+        let fromAndJoin = ' FROM ' + this.escapeId(assocInfo.entity) + ` ${alias} `;
+        if (subJoinings.clause) {
+            fromAndJoin += subJoinings.clause;
+        }
+
+        this._pushOrderBy(assocInfo, orderBys, aliasKey, innerAliasMap);
+        const orderByClause = this._sortAndJoinOrderByClause(orderBys);
+
+        const sql = `${outerAlias} AS (SELECT ${selectClause}${fromAndJoin}${orderByClause})`;
+        const subParams = [];
+        subParams.push(...selectParams);
+        subParams.push(...subJoinings.params);
+        childQuery.push({ alias: outerAlias, sql, params: subParams });
+
+        const joinings = this._buildJoin(
+            assocInfo,
+            outerAlias,
+            parentAliasKey,
+            aliasMap,
+            childJoinings,
+            true /*skip entity*/
+        );
+
+        _.each(innerAliasMap, (v, k) => {
+            if (typeof v === 'string') {
+                aliasMap[k] = { outer: outerAlias, inner: v };
+            } else {
+                if (k in aliasMap && typeof aliasMap[k] !== 'string') {
+                    throw new Error('Unexpected alias key conflict.');
+                }
+                aliasMap[k] = v;
+            }
+        });
+
+        return [childQuery, joinings, startId];
+    }
+
+    /**
+     * Convert an association into joining clause
+     * @param {object} assocInfo
+     * @property {string} [assocInfo.joinType="LEFT JOIN"] - Join type
+     * @property {object} [assocInfo.on] - Join condition
+     * @property {string} [assocInfo.alias] - Alias of the association
+     * @property {string} [assocInfo.sql] - Explicit SQL statement
+     * @property {array} [assocInfo.params] - Parameters for the SQL statement
+     * @property {string} [assocInfo.entity] - The entity to join
+     * @property {object} [assocInfo.$relation] - Sub-associations
+     * @property {boolean} [assocInfo.output] - Whether to output the association
+     * @param {string} anchor - The anchor of the association, usually the property name (prefixed by ":") in the parent entity
+     * @param {array} joinings - The array to store the joining clauses
+     * @param {string} parentAliasKey - The parent alias key
+     * @param {object} aliasMap - The alias map
+     * @param {integer} startId - The starting index for alias generation
+     * @returns {array} [childQuery, childJoinings, selects, joinings, orderBys, startId]
+     */
+    _joinAssociation(assocInfo, anchor, parentAliasKey, aliasMap, startId) {
+        const alias = assocInfo.alias || this._generateAlias(startId++, anchor);
+        const aliasKey = parentAliasKey + '.' + anchor;
+        aliasMap[aliasKey] = alias;
+
+        if (assocInfo.sql) {
+            throw new Error('Not implemented.');
+            if (assocInfo.output) {
+                aliasMap[parentAliasKey + '.' + alias] = alias;
+            }
+
+            assocInfo.params.forEach((p) => params.push(p));
+            joinings.push(
+                `${joinType} (${assocInfo.sql}) ${alias} ON ${this._joinCondition(
+                    on,
+                    params,
+                    null,
+                    parentAliasKey,
+                    aliasMap
+                )}`
+            );
+
+            return startId;
+        }
+
+        // Build join
+        const [childQuery, childJoinings, subSelects, subJoinings, orderBys, nextId] = this._joinAssociations(
+            assocInfo,
+            aliasKey,
+            aliasMap,
+            aliasMap,
+            startId
+        );
+        startId = nextId;
+
+        const selects = this._buildSelect(
+            // mark the output columns with the alias
+            assocInfo.$select.map((f) => xrCol(f, `${alias}_${f}`)),
+            aliasKey,
+            aliasMap,
+            subSelects
+        );
+
+        const joinings = this._buildJoin(assocInfo, alias, parentAliasKey, aliasMap, subJoinings);
+        this._pushOrderBy(assocInfo, orderBys, parentAliasKey, aliasMap);
+
+        return [childQuery, childJoinings, selects, joinings, orderBys, startId];
+    }
+
+    /**
+     * Build join clause.
+     * @param {object} assocInfo
+     * @param {string} alias
+     * @param {string} parentAliasKey
+     * @param {object} aliasMap
+     * @param {object} extraJoinings
+     * @returns {object}
+     */
+    _buildJoin(assocInfo, alias, parentAliasKey, aliasMap, extraJoinings, skipEntity = false) {
+        let { joinType, on, entity } = assocInfo;
+        joinType || (joinType = 'LEFT JOIN');
+
+        const joinParams = [];
+        let joinClause = `${joinType} ${
+            skipEntity ? alias : this.escapeId(entity) + ' ' + alias
+        } ON ${this._joinCondition(on, joinParams, null, parentAliasKey, aliasMap)} `;
+
+        if (extraJoinings.clause) {
+            joinClause += extraJoinings.clause;
+            joinParams.push(...extraJoinings.params);
+        }
+
+        return {
+            clause: joinClause,
+            params: joinParams,
+        };
+    }
+
+    /**
+     * Build select clause.
+     * @param {array} selectColumns
+     * @param {string} aliasKey
+     * @param {object} innerAliasMap
+     * @param {object} extraSelects
+     * @returns {object}
+     */
+    _buildSelect(selectColumns, aliasKey, innerAliasMap, extraSelects) {
+        const params = [];
+        let clause = this._buildColumns(selectColumns, params, aliasKey, innerAliasMap);
+        if (extraSelects?.clause) {
+            clause += ', ' + extraSelects.clause;
+            params.push(...extraSelects.params);
+        }
+        return { clause, params };
+    }
+
+    /**
+     * Push order by clause.
+     * @param {*} assocInfo
+     * @param {*} orderBys
+     * @param {*} parentAliasKey
+     * @param {*} aliasMap
+     */
+    _pushOrderBy(assocInfo, orderBys, parentAliasKey, aliasMap) {
+        // Build order by clause
+        if (assocInfo.$order) {
+            orderBys.push(
+                ...assocInfo.$order.map(({ f, o, d }) => ({
+                    order: o,
+                    clause: this._escapeIdWithAlias(f, parentAliasKey, aliasMap) + (d ? ' ASC' : ' DESC'),
+                }))
+            );
+        }
+    }
+
+    /**
+     * Build order by clause.
+     * @param {array} orderBys - Array of { o, s }, o for order, s for statement
+     * @param {*} parentAliasKey
+     * @param {*} aliasMap
+     * @returns {string} Empty string if no order by clause
+     */
+    _sortAndJoinOrderByClause(orderBys) {
+        let orderByClause = '';
+        if (orderBys.length) {
+            orderByClause =
+                ' ORDER BY ' +
+                _.sortBy(orderBys, 'order')
+                    .map((i) => i.clause)
+                    .join(', ');
+        }
+
+        return orderByClause;
+    }
+
+    _joinWithTableClause(withMoreTables, first) {
+        const _params = [];
+        return [
+            withMoreTables?.length
+                ? (first ? 'WITH ' : ', ') +
+                  withMoreTables
+                      .map(({ sql, params }) => {
+                          _params.push(...params);
+                          return sql;
+                      })
+                      .join(', ') +
+                  ' '
+                : '',
+            _params,
+        ];
+    }
+
+    /**
+     * Execute the read query.
+     * @param {*} query
+     * @param {*} queryOptions
+     * @param {*} options
+     * @param {*} connection
+     * @returns {object} { data, affectedRows, fields, [reverseAliasMap], [totalCount] }
+     */
+    async _executeQuery_(query, queryOptions, connection) {
+        let result, totalCount;
+
+        if (query.countSql) {
+            const res = await this.execute_(query.countSql, query.countParams, queryOptions, connection);
+            totalCount = res.data[0].count;
+        }
+
+        let options;
+
+        if (query.hasJoining) {
+            options = { ...queryOptions, $asArray: true };
+            //todo: changed to json_build_object
+            //const wrappedSql = `SELECT row_to_json(_row) FROM (${query.sql}) _row`;
+            result = await this.execute_(query.sql, query.params, options, connection);
+            console.dir(result, { depth: 10 });
+
+            const reverseAliasMap = _.reduce(
+                query.aliasMap,
+                (result, alias, nodePath) => {
+                    result[alias] = nodePath
+                        .split('.')
+                        .slice(
+                            1
+                        ) /* .map(n => ':' + n) changed to be padding by orm and can be customized with other key getter */;
+                    return result;
+                },
+                {}
+            );
+
+            if (query.countSql) {
+                return { ...result, aliases: reverseAliasMap, totalCount };
+            }
+
+            return { ...result, aliases: reverseAliasMap };
+        } else if (queryOptions.$skipOrm) {
+            options = { ...queryOptions, $asArray: true };
+        }
+
+        result = await this.execute_(query.sql, query.params, options, connection);
+
+        if (query.countSql) {
+            return { ...result, totalCount };
+        }
+
+        return result;
     }
 }
 

@@ -8,6 +8,12 @@ customize
 entity entity1
   has
     field1 : text |=module1:activator1('a', 'b')   
+    field2 : text 
+
+  views
+    view1
+      select
+        * -field2
 
 schema schema1
   entities
