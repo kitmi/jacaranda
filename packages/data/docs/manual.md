@@ -40,6 +40,12 @@
     -   async ensureFields_(entityObject, fields)
         - Ensure the entity object containing required fields, if not, it will automatically fetched from db and return.
 
+## Hooks
+
+- async beforeCreate_(context) -> boolean
+- async beforeDelete_(context) -> boolean
+- async beforeDeleteMany_(context) -> boolean
+
 ## Operation options
 
 ### common options

@@ -20,8 +20,6 @@ export default {
                 );
             }
         });
-
-        return true;
     },
 
     [Rules.RULE_BEFORE_UPDATE]: (feature, entityModel, context) => {
@@ -42,7 +40,5 @@ export default {
                 );
             }
         });
-
-        return true;
     },
 };

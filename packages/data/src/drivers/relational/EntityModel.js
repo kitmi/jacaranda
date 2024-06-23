@@ -119,13 +119,13 @@ class RelationalEntityModel extends EntityModel {
                     // insert ignored
 
                     const query = this.getUniqueKeyValuePairsFrom(context.result.data);
-                    context.return = await this.findOne_({ $where: query });
-                    if (!context.return) {
+                    context.result = await this.findOne_({ $where: query });
+                    if (!context.result) {
                         throw new ApplicationError(
                             'The parent entity is duplicated on unique keys different from the pair of keys used to query',
                             {
                                 $where: query,
-                                data: context.return,
+                                data: context.result,
                                 relation: assocs,
                             }
                         );
@@ -136,7 +136,7 @@ class RelationalEntityModel extends EntityModel {
 
                 if (keyValue == null) {
                     throw new ApplicationError('Missing required primary key field value. Entity: ' + this.meta.name, {
-                        data: context.return,
+                        data: context.result,
                         associations: assocs,
                     });
                 }
@@ -235,7 +235,7 @@ class RelationalEntityModel extends EntityModel {
         let currentKeyValue;
 
         if (!beforeEntityUpdate) {
-            currentKeyValue = getValueFromAny([context.options.$where, context.return], this.meta.keyField);
+            currentKeyValue = getValueFromAny([context.options.$where, context.result], this.meta.keyField);
             if (currentKeyValue == null) {
                 // should have in updating
                 throw new ApplicationError('Missing required primary key field value. Entity: ' + this.meta.name);

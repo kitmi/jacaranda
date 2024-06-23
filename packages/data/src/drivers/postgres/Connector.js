@@ -527,14 +527,14 @@ class PostgresConnector extends RelationalConnector {
         if (isEmpty(data)) {
             throw new InvalidArgument('Data record is empty.', {
                 model,
-                options,
+                options: _.omit(options, ['$assoc']),
             });
         }
 
         if (!options.$where) {
             throw new InvalidArgument('"$where" is required for updating.', {
                 model,
-                options,
+                options: _.omit(options, ['$assoc']),
             });
         }
 
@@ -585,7 +585,7 @@ class PostgresConnector extends RelationalConnector {
             let returningFields = options.$getUpdated;
 
             if (returningFields === true) {
-                returningFields = Object.keys(data);
+                returningFields = ['*'];
             }
 
             sql += ` RETURNING ${returningFields.map((col) => (col === '*' ? '*' : this.escapeId(col))).join(', ')}`;
@@ -615,37 +615,65 @@ class PostgresConnector extends RelationalConnector {
     /**
      * Remove an existing entity.
      * @param {string} model
-     * @param {*} query
      * @param {*} deleteOptions
      * @param {*} options
      */
-    async delete_(model, query, deleteOptions, options) {
-        const params = [model];
+    async delete_(model, options, connection) {       
         const aliasMap = { [model]: 'A' };
-        let joinings;
-        let hasJoining = false;
-        const joiningParams = [];
+        let mainEntityForJoin;
 
-        if (deleteOptions && deleteOptions.$assoc) {
-            joinings = this._joinAssociations(deleteOptions.$assoc, model, aliasMap, 1, joiningParams);
-            hasJoining = model;
+        let childQuery, childJoinings, subJoinings;
+        let sql = '';
+        let params;
+
+        if (options.$assoc) {
+            mainEntityForJoin = model;
+            [childQuery, childJoinings, subJoinings] = this._joinAssociations(
+                options.$assoc,
+                mainEntityForJoin,
+                aliasMap,
+                aliasMap,
+                1
+            );
+
+            const [withSql, withParams] = this._joinWithTableClause(childQuery, true);
+            sql = withSql;
+            params = withParams;
         }
 
-        let sql;
+        sql += 'DELETE FROM ' + this.escapeId(model);
 
-        if (hasJoining) {
-            joiningParams.forEach((p) => params.push(p));
-            sql = 'DELETE A FROM ?? A ' + joinings.join(' ');
-        } else {
-            sql = 'DELETE FROM ??';
+        if (mainEntityForJoin) {
+            sql += ' A ';
+            if (subJoinings.clause) {
+                sql += subJoinings.clause;
+            }
+            if (childJoinings.clause) {
+                sql += childJoinings.clause;
+            }
         }
 
-        const whereClause = this._joinCondition(query, params, null, hasJoining, aliasMap);
+        const whereParams = [];
+        const whereClause = this._joinCondition(options.$where, whereParams, null, mainEntityForJoin, aliasMap);
         if (whereClause) {
             sql += ' WHERE ' + whereClause;
         }
 
-        return this.execute_(sql, params, options);
+        if (options.$getDeleted) {
+            let returningFields = options.$getDeleted;
+
+            if (returningFields === true) {
+                returningFields = ['*'];
+            }
+
+            sql += ` RETURNING ${returningFields.map((col) => (col === '*' ? '*' : this.escapeId(col))).join(', ')}`;
+        }
+
+        params = concateParams(params, subJoinings?.params, childJoinings?.params, whereParams);
+
+        sql = this._replaceParamToken(sql, params);
+
+        return this.execute_(sql, params, options, connection);
     }
 
     /**
@@ -703,7 +731,7 @@ class PostgresConnector extends RelationalConnector {
         //const countParams = hasTotalCount ? joiningParams.concat() : null;
 
         // Build select columns
-        let { clause: selectClause, params: selectParams } = this._buildSelect(select, model, aliasMap, subSelects);
+        let { clause: selectClause, params: selectParams } = this._buildSelect(select, mainEntityForJoin, aliasMap, subSelects);
 
         if (childQuery?.length > 0) {
             selectClause += ', ' + childQuery.map((q) => `${q.alias}.*`).join(', ');
@@ -727,7 +755,7 @@ class PostgresConnector extends RelationalConnector {
         const whereParams = [];
 
         if ($where) {
-            whereClause = this._joinCondition($where, whereParams, null, model, aliasMap);
+            whereClause = this._joinCondition($where, whereParams, null, mainEntityForJoin, aliasMap);
 
             if (whereClause) {
                 whereClause = ' WHERE ' + whereClause;
@@ -746,7 +774,7 @@ class PostgresConnector extends RelationalConnector {
         const groupByParams = [];
 
         if ($groupBy) {
-            groupByClause += ' ' + this._buildGroupBy($groupBy, groupByParams, model, aliasMap);
+            groupByClause += ' ' + this._buildGroupBy($groupBy, groupByParams, mainEntityForJoin, aliasMap);
             /*
             if (countParams) {
                 groupByParams.forEach((p) => {
@@ -759,10 +787,10 @@ class PostgresConnector extends RelationalConnector {
         let orderByClause = '';
 
         if ($assoc) {
-            this._pushOrderBy($assoc, orderBys, model, aliasMap);
+            this._pushOrderBy($assoc, orderBys, mainEntityForJoin, aliasMap);
             orderByClause = this._sortAndJoinOrderByClause(orderBys);
         } else if (findOptions.$orderBy) {
-            orderByClause += ' ' + this._buildOrderBy(findOptions.$orderBy, model, aliasMap);
+            orderByClause += ' ' + this._buildOrderBy(findOptions.$orderBy, mainEntityForJoin, aliasMap);
         }
 
         // Build limit & offset clause

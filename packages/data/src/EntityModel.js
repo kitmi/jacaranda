@@ -5,6 +5,7 @@ import Features from './entityFeatures';
 import Rules from './Rules';
 import defaultGenerator from './TypeGenerators';
 import { hasValueInAny } from './helpers';
+import { OpCompleted } from './utils/errors';
 
 const featureRules = _.reduce(
     Features,
@@ -329,12 +330,6 @@ class EntityModel {
         return this.cached_(this.meta.keyField, associations, connOptions);
     }
 
-    toDictionary(entityCollection, key, transformer) {
-        key || (key = this.meta.keyField);
-
-        return Convertors.toKVPairs(entityCollection, key, transformer);
-    }
-
     async applyRules_(ruleName, context) {
         for (const featureName in this.meta.features) {
             const key = featureName + '.' + ruleName;
@@ -352,12 +347,9 @@ class EntityModel {
                     featureInfo = { ...featureInfo, ...customFeatureInfo };
                 }
 
-                const asExpected = await action(featureInfo, this, context);
-                if (!asExpected) return false;
+                await action(featureInfo, this, context);
             }
         }
-
-        return true;
     }
 
     /**
@@ -365,7 +357,6 @@ class EntityModel {
      * @param {object} [findOptions] - findOptions
      * @property {object} [findOptions.$relation] - Joinings
      * @property {object} [findOptions.$select] - Selected fields
-     * @property {object} [findOptions.$jsx] - Transform fields with jsx syntax before returning
      * @property {object} [findOptions.$where] - Extra condition
      * @property {object} [findOptions.$groupBy] - Group by fields
      * @property {object} [findOptions.$orderBy] - Order by fields
@@ -377,47 +368,7 @@ class EntityModel {
      * @returns {*}
      */
     async findOne_(findOptions) {
-        findOptions = this._wrapCtx(findOptions);
-        findOptions = this._normalizeQuery(findOptions, true /* for single record */);
-
-        const context = {
-            op: 'find',
-            options: findOptions,
-        };
-
-        const opOptions = context.options;
-
-        await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
-
-        this._preProcessOptions(opOptions, true /* for single record */);
-
-        const record = await this._safeExecute_(async () => {
-            const result = await this.db.connector.find_(this.meta.name, opOptions, this.db.transaction);
-
-            if (opOptions.$assoc && !opOptions.$skipOrm) {
-                // rows, coloumns, aliasMap
-                if (result.data.length === 0) return undefined;
-
-                result.data = this._mapRecordsToObjects(result, opOptions.$assoc, opOptions.$nestedKeyGetter);
-            } else if (result.data.length === 0) {
-                return undefined;
-            }
-
-            if (result.data.length !== 1) {
-                this.db.app.log('warn', `"findOne_" returns more than one record.`, {
-                    entity: this.meta.name,
-                    options: _.omit(opOptions, ['$assoc']),
-                });
-            }
-
-            return result.data[0];
-        }, context);
-
-        if (opOptions.$jsx) {
-            return JES.evaluate(record, opOptions.$jsx);
-        }
-
-        return record;
+        return this._find_(findOptions, true);
     }
 
     /**
@@ -425,7 +376,6 @@ class EntityModel {
      * @param {object} [findOptions] - findOptions
      * @property {object} [findOptions.$relation] - Joinings
      * @property {object} [findOptions.$select] - Selected fields
-     * @property {object} [findOptions.$jsx] - Transform fields with jsx syntax before returning
      * @property {object} [findOptions.$where] - Extra condition
      * @property {object} [findOptions.$groupBy] - Group by fields
      * @property {object} [findOptions.$orderBy] - Order by fields
@@ -433,71 +383,52 @@ class EntityModel {
      * @property {number} [findOptions.$limit] - Limit
      * @property {number} [findOptions.$totalCount] - Return totalCount
      * @property {bool} [findOptions.$includeDeleted=false] - Include those marked as logical deleted.
+     * @property {bool} [findOptions.$skipOrm=false] - Skip ORM mapping
      * @returns {array}
      */
     async findMany_(findOptions) {
+        return this._find_(findOptions, false);
+    }
+
+    async _find_(findOptions, isOne) {
         findOptions = this._wrapCtx(findOptions);
-        findOptions = this._normalizeQuery(findOptions);
+        findOptions = this._normalizeQuery(findOptions, isOne /* for single record */);
 
         const context = {
             op: 'find',
             options: findOptions,
+            isOne,
         };
 
         const opOptions = context.options;
 
         await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
 
-        this._preProcessOptions(opOptions, false /* for single record */);
+        this._preProcessOptions(opOptions, isOne /* for single record */);
 
-        let totalCount;
+        return this._safeExecute_(async () => {
+            const result = await this.db.connector.find_(this.meta.name, opOptions, this.db.transaction);
+            let data = result.data;
 
-        let rows = await this._safeExecute_(async () => {
-            let result = await this.db.connector.find_(this.meta.name, opOptions, this.db.transaction);
-
-            console.log(result);
-
-            if (opOptions.$assoc) {
-                if (opOptions.$totalCount) {
-                    totalCount = result.totalCount;
-                }
-
-                if (!opOptions.$skipOrm) {
-                    result = this._mapRecordsToObjects(result, opOptions.$assoc, opOptions.$nestedKeyGetter);
-                } else {
-                    result = result.data;
-                }
-            } else {
-                if (opOptions.$totalCount) {
-                    totalCount = result.totalCount;
-                    records = result.data;
-                } else if (opOptions.$skipOrm) {
-                    records = result.data;
+            if (opOptions.$assoc && !opOptions.$skipOrm) {
+                // rows, coloumns, aliasMap
+                if (data.length > 0) {
+                    data = this._mapRecordsToObjects(result, opOptions.$assoc, opOptions.$nestedGet);
                 }
             }
 
-            return this.afterFindAll_(context, result);
+            if (isOne && data.length > 1) {
+                this.db.app.log('warn', `"findOne_" returns more than one record.`, {
+                    entity: this.meta.name,
+                    options: _.omit(opOptions, ['$assoc']),
+                });
+            }
+
+            result.data = isOne ? (data.length ? data[0] : null) : data ?? [];
+            delete result.fields;
+            context.latest = context.result = result;
+            return isOne ? result.data : result;
         }, context);
-
-        if (opOptions.$jsx) {
-            rows = rows.map((row) => JES.evaluate(row, opOptions.$jsx));
-        }
-
-        if (opOptions.$totalCount) {
-            const ret = { totalItems: totalCount, items: rows };
-
-            if (opOptions.$offset != null) {
-                ret.offset = opOptions.$offset;
-            }
-
-            if (opOptions.$limit != null) {
-                ret.limit = opOptions.$limit;
-            }
-
-            return ret;
-        }
-
-        return rows;
     }
 
     /**
@@ -559,6 +490,11 @@ class EntityModel {
         }
     }
 
+    /**
+     * Safely execute a function with transaction support, returns false to cancel at anytime.
+     * @param {*} executor
+     * @returns {Promise<boolean> | boolean}
+     */
     async _safeExecute_(executor) {
         executor = executor.bind(this);
 
@@ -575,8 +511,12 @@ class EntityModel {
 
             return result;
         } catch (error) {
-            await this._rollbackOwnedTransaction_();
+            if (error instanceof OpCompleted) {
+                await this._commitOwnedTransaction_();
+                return error.payload;
+            }
 
+            await this._rollbackOwnedTransaction_();
             throw error;
         } finally {
             this._safeFlag = false;
@@ -688,9 +628,7 @@ class EntityModel {
 
             await this._prepareEntityData_(context);
 
-            if (!(await this.applyRules_(Rules.RULE_BEFORE_CREATE, context))) {
-                return false;
-            }
+            await this.applyRules_(Rules.RULE_BEFORE_CREATE, context);
 
             if (!opOptions.$dryRun) {
                 if (opOptions.$upsert) {
@@ -730,7 +668,7 @@ class EntityModel {
             await this.applyRules_(Rules.RULE_AFTER_CREATE, context);
         });
 
-        if (!context.options.$dryRun) {
+        if (!opOptions.$dryRun) {
             await this.afterCreate_(context);
         }
 
@@ -779,12 +717,12 @@ class EntityModel {
 
     /**
      * Update implementation.
-     * @param {*} data 
-     * @param {*} updateOptions 
-     * @param {boolean} isOne 
+     * @param {*} data
+     * @param {*} updateOptions
+     * @param {boolean} isOne
      * @returns {object}
      */
-    async _update_(data, updateOptions, isOne) {     
+    async _update_(data, updateOptions, isOne) {
         // see if there is associated entity data provided together
         let [raw, associations, references] = this._extractAssociations(data);
 
@@ -811,7 +749,7 @@ class EntityModel {
         const opOptions = context.options;
         this._preProcessOptions(opOptions, isOne /* for single record */);
 
-        const success = await this._safeExecute_(async () => {
+        await this._safeExecute_(async () => {
             if (!isEmpty(references)) {
                 await this.ensureTransaction_();
                 await this._populateReferences_(context, references);
@@ -823,21 +761,14 @@ class EntityModel {
             if (needUpdateAssocs) {
                 await this.ensureTransaction_();
 
-                associations = await this._updateAssocs_(
-                    context,
-                    associations,
-                    true /* before update */,
-                    isOne
-                );
+                associations = await this._updateAssocs_(context, associations, true /* before update */, isOne);
                 needUpdateAssocs = !isEmpty(associations);
                 doneUpdateAssocs = true;
             }
 
             await this._prepareEntityData_(context, true /* is updating */, isOne);
 
-            if (!(await this.applyRules_(Rules.RULE_BEFORE_UPDATE, context))) {
-                return false;
-            }
+            await this.applyRules_(Rules.RULE_BEFORE_UPDATE, context);
 
             if (isEmpty(context.latest)) {
                 if (!doneUpdateAssocs && !needUpdateAssocs) {
@@ -867,6 +798,8 @@ class EntityModel {
 
                 if (isOne) {
                     context.result.data = context.result.data[0] ?? {};
+                } else {
+                    context.result.data = context.result.data ?? [];
                 }
 
                 delete context.result.fields;
@@ -877,11 +810,9 @@ class EntityModel {
             if (needUpdateAssocs) {
                 await this._updateAssocs_(context, associations, false, isOne);
             }
-
-            return true;
         }, context);
 
-        if (success && !context.options.$dryRun) {
+        if (!opOptions.$dryRun) {
             if (isOne) {
                 await this.afterUpdate_(context);
             } else {
@@ -929,23 +860,21 @@ class EntityModel {
      * @property {bool} [deleteOptions.$physicalDeletion=false] - When $physicalDeletion = true, deletetion will not take into account logicaldeletion feature
      */
     async _delete_(deleteOptions, isOne) {
-        const rawOptions = deleteOptions;
-
         deleteOptions = this._normalizeQuery(deleteOptions, isOne /* for single record */);
 
         if (isEmpty(deleteOptions.$where) && (isOne || !deleteOptions.$deleteAll)) {
             throw new InvalidArgument(
-                'Empty condition is not allowed for deleting or add { $deleteAll: true } to delete all records.',
+                'Empty condition is not allowed for deleting unless `{ $deleteAll: true }` is set in options.',
                 {
                     entity: this.meta.name,
                     deleteOptions,
+                    isOne,
                 }
             );
         }
 
         const context = {
             op: 'delete',
-            rawOptions,
             options: deleteOptions,
             isOne,
         };
@@ -959,37 +888,22 @@ class EntityModel {
         }
 
         if (!toDelete) {
-            return context.return;
+            return context.result;
         }
 
         const opOptions = context.options;
         this._preProcessOptions(opOptions, isOne /* for single record */);
 
-        const deletedCount = await this._safeExecute_(async () => {
-            if (!(await this.applyRules_(Rules.RULE_BEFORE_DELETE, context))) {
-                return false;
-            }
+        await this._safeExecute_(async () => {
+            await this.applyRules_(Rules.RULE_BEFORE_DELETE, context);
 
-            if (isOne) {
-                toDelete = await this._internalBeforeDelete_(context);
-            } else {
-                toDelete = await this._internalBeforeDeleteMany_(context);
-            }
-
-            if (!toDelete) {
-                return false;
-            }
-
-            const { $where, ...otherOptions } = context.options;
-
-            context.result = await this.db.connector.delete_(this.meta.name, $where, otherOptions, context.connOptions);
+            context.result = await this.db.connector.delete_(this.meta.name, opOptions, this.db.transaction);
+            delete context.result.fields;
 
             await this.applyRules_(Rules.RULE_AFTER_DELETE, context);
-
-            return this.db.connector.deletedCount(context);
         }, context);
 
-        if (deletedCount && !context.options.$dryRun) {
+        if (!opOptions.$dryRun) {
             if (isOne) {
                 await this.afterDelete_(context);
             } else {
@@ -997,7 +911,7 @@ class EntityModel {
             }
         }
 
-        return context.return || deletedCount;
+        return context.result;
     }
 
     /**
@@ -1568,35 +1482,6 @@ class EntityModel {
      * @param {*} context
      */
     async afterDeleteMany_(context) {}
-
-    /**
-     * Post findAll processing
-     * @param {*} context
-     * @param {*} records
-     */
-    async afterFindAll_(context, records) {
-        if (context.options.$toDictionary) {
-            let keyField = this.meta.keyField;
-
-            if (typeof context.options.$toDictionary === 'string') {
-                keyField = context.options.$toDictionary;
-
-                if (!(keyField in this.meta.fields)) {
-                    throw new InvalidArgument(
-                        `The key field "${keyField}" provided to index the cached dictionary is not a field of entity "${this.meta.name}".`,
-                        {
-                            entity: this.meta.name,
-                            inputKeyField: keyField,
-                        }
-                    );
-                }
-            }
-
-            return this.toDictionary(records, keyField);
-        }
-
-        return records;
-    }
 
     _prepareAssociations() {
         throw new Error(NEED_OVERRIDE);

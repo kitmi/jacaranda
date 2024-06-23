@@ -3,6 +3,7 @@ import { _ } from '@kitmi/utils';
 import Rules from '../Rules';
 import { mergeWhere } from '../helpers';
 import defaultGenerator from '../TypeGenerators';
+import { OpCompleted } from '../utils/errors';
 
 /**
  * A rule specifies the entity will not be deleted physically.
@@ -17,8 +18,6 @@ module.exports = {
                 [feature.field]: { $ne: feature.value },
             });
         }
-
-        return true;
     },
     [Rules.RULE_BEFORE_DELETE]: async (feature, entityModel, context) => {
         const options = context.options;
@@ -36,18 +35,16 @@ module.exports = {
                 $where: options.$where,
                 $getUpdated: options.$getDeleted,
                 $bypassReadOnly: new Set([field, timestampField]),
-                ..._.pick(options, ['$getDeleted', '$fullResult']),
+                ..._.pick(options, ['$getDeleted']),
             };
 
-            context.return = await entityModel._update_(
+            context.result = await entityModel._update_(
                 updateTo,
                 updateOpts,
                 context.isOne
             );
 
-            return false;
+            throw new OpCompleted(context.result);
         }
-
-        return true;
     },
 };

@@ -27,7 +27,7 @@ The `Connector` class is responsible for managing connections to the database.
 
 ### Interface
 
-```javascript
+```js
 class Connector {
   async connect_(); // Get a connection from the pool or create a new one, depending on the driver
   async disconnect_(); // Release the connection back to the pool or close it
@@ -38,9 +38,10 @@ class Connector {
   async commit_(); // Commit a transaction
   async rollback_(); // Rollback a transaction
 
-  async create_(model, data, options, connection);
-  async update_(model, data, options, connection);
-
+  async create_(model, data, options, connection) -> ({ data, affectedRows })
+  async find_(model, options, connection) -> ({ data })
+  async update_(model, data, options, connection) -> ({ data, affectedRows })
+  async delete_(model, options, connection) -> ({ data, affectedRows })
 }
 ```
 

@@ -53,66 +53,6 @@ class PostgresEntityModel extends EntityModel {
         return value;
     }
 
-    /**
-     * Before deleting an entity.
-     * @param {*} context
-     * @property {object} [context.options] - Delete options
-     * @property {bool} [context.options.$getDeleted] - Retrieve the recently deleted record from db.
-     */
-    async _internalBeforeDelete_(context) {
-        if (context.options.$getDeleted) {
-            await this.ensureTransaction_(context);
-
-            const retrieveOptions = _.isPlainObject(context.options.$getDeleted)
-                ? {
-                      ...context.options.$getDeleted,
-                      $where: context.options.$where,
-                  }
-                : { $where: context.options.$where };
-
-            if (context.options.$physicalDeletion) {
-                retrieveOptions.$includeDeleted = true;
-            }
-
-            context.return = context.existing = await this.findOne_(retrieveOptions, context.connOptions);
-        }
-
-        return true;
-    }
-
-    async _internalBeforeDeleteMany_(context) {
-        if (context.options.$getDeleted) {
-            await this.ensureTransaction_(context);
-
-            const retrieveOptions = _.isPlainObject(context.options.$getDeleted)
-                ? {
-                      ...context.options.$getDeleted,
-                      $where: context.options.$where,
-                  }
-                : { $where: context.options.$where };
-
-            if (context.options.$physicalDeletion) {
-                retrieveOptions.$includeDeleted = true;
-            }
-
-            context.return = context.existing = await this.findAll_(retrieveOptions, context.connOptions);
-        }
-
-        return true;
-    }
-
-    /**
-     * Post delete processing.
-     * @param {*} context
-     */
-    _internalAfterDelete_(context) {}
-
-    /**
-     * Post delete processing.
-     * @param {*} context
-     */
-    _internalAfterDeleteMany_(context) {}
-
     _buildSelectTable(select) {
         if (select == null) {
             return [['*'], { '*': true }];
