@@ -79,7 +79,7 @@ export default {
                     throw new ApplicationError(
                         `"${DbModel.meta.schemaName}" is not matching with the dbName "${dbName}". Please rebuild the model and make sure you configured the correct schema name.`
                     );
-                } 
+                }
 
                 db = new DbModel(app, connector);
                 dbClasses[dbName] = db;

@@ -205,7 +205,7 @@ class RelationalEntityModel extends EntityModel {
 
                 const assocQuery = assocModel.getUniqueKeyValuePairsFrom(data);
 
-                created = await assocModel.findOne_({ $query: assocQuery }, context.connOptions);
+                created = await assocModel.findOne_({ $where: assocQuery }, context.connOptions);
                 if (!created) {
                     throw new ApplicationError(
                         'The assoicated entity is duplicated on unique keys different from the pair of keys used to query',
@@ -229,13 +229,13 @@ class RelationalEntityModel extends EntityModel {
         return pendingAssocs;
     }
 
-    async _updateAssocs_(context, assocs, beforeEntityUpdate, forSingleRecord) {
+    async _updateAssocs_(context, assocs, beforeEntityUpdate, isOne) {
         const meta = this.meta.associations;
 
         let currentKeyValue;
 
         if (!beforeEntityUpdate) {
-            currentKeyValue = getValueFromAny([context.options.$query, context.return], this.meta.keyField);
+            currentKeyValue = getValueFromAny([context.options.$where, context.return], this.meta.keyField);
             if (currentKeyValue == null) {
                 // should have in updating
                 throw new ApplicationError('Missing required primary key field value. Entity: ' + this.meta.name);
@@ -288,7 +288,7 @@ class RelationalEntityModel extends EntityModel {
                                   [assocMeta.field]: currentKeyValue,
                               },
                               {
-                                  $query: {
+                                  $where: {
                                       [assocMeta.key]: item[assocMeta.key],
                                   },
                                   ...passOnOptions,
@@ -322,14 +322,14 @@ class RelationalEntityModel extends EntityModel {
                 if (isEmpty(data)) return;
 
                 // refersTo or belongsTo
-                let destEntityId = getValueFromAny([context.existing, context.options.$query, context.raw], anchor);
+                let destEntityId = getValueFromAny([context.existing, context.options.$where, context.raw], anchor);
 
                 if (destEntityId == null) {
                     if (isEmpty(context.existing)) {
-                        context.existing = await this.findOne_(context.options.$query, context.connOptions);
+                        context.existing = await this.findOne_(context.options.$where, context.connOptions);
                         if (!context.existing) {
                             throw new ValidationError(`Specified "${this.meta.name}" not found.`, {
-                                query: context.options.$query,
+                                query: context.options.$where,
                             });
                         }
                         destEntityId = context.existing[anchor];
@@ -343,7 +343,7 @@ class RelationalEntityModel extends EntityModel {
                                     anchor,
                                     data,
                                     existing: context.existing,
-                                    query: context.options.$query,
+                                    query: context.options.$where,
                                     raw: context.raw,
                                 }
                             );
@@ -357,7 +357,7 @@ class RelationalEntityModel extends EntityModel {
                             // insert ignored
 
                             const assocQuery = assocModel.getUniqueKeyValuePairsFrom(data);
-                            created = await assocModel.findOne_({ $query: assocQuery }, context.connOptions);
+                            created = await assocModel.findOne_({ $where: assocQuery }, context.connOptions);
                             if (!created) {
                                 throw new ApplicationError(
                                     'The assoicated entity is duplicated on unique keys different from the pair of keys used to query',
@@ -388,7 +388,7 @@ class RelationalEntityModel extends EntityModel {
 
             await assocModel.deleteMany_({ [assocMeta.field]: currentKeyValue }, context.connOptions);
 
-            if (forSingleRecord) {
+            if (isOne) {
                 return assocModel.create_(
                     { ...data, [assocMeta.field]: currentKeyValue },
                     passOnOptions,

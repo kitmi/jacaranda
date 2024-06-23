@@ -1,7 +1,6 @@
 {
     "skip": {
-        "suites": {            
-        }
+        "suites": {}
     },
     "fixturePath": "test/fixtures",
     "fixtureType": "yaml",
@@ -9,13 +8,13 @@
     "enableAllure": true,
     "servers": {
         "server1": {
-            "configType": "yaml",            
+            "configType": "yaml",
             "logLevel": "info",
             "appModulesPath": "src/apps"
         }
     },
     "workers": {
-        "tester": { 
+        "tester": {
             "configName": "worker",
             "configType": "yaml",
             "configPath": "test/conf",

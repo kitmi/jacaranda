@@ -13,6 +13,6 @@ const defaultGenerator = (info, i18n) => {
     }
 
     return typeObject.defaultValue;
-}
+};
 
 export default defaultGenerator;

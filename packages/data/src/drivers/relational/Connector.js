@@ -278,6 +278,16 @@ class RelationalConnector extends Connector {
         return fieldName === '*' ? fieldName : this.escapeId(fieldName);
     }
 
+    _splitColumnsAsInput(data, params, mainEntity, aliasMap) {
+        return _.map(data, (v, fieldName) => {
+            return (
+                this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                '=' +
+                this._packValue(v, params, mainEntity, aliasMap)
+            );
+        });
+    }
+
     /**
      * Pack an array of values into params and return the parameterized string with placeholders
      * @param {*} array

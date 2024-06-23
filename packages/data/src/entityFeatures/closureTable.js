@@ -11,14 +11,14 @@ export default {
         const RelatedEntity = entity.getRalatedEntity(feature.relation);
         const assocInfo = this.meta.associations[feature.relation];
 
-        const data = ({
+        const data = {
             ...feature.initData,
-        });
+        };
 
         if (!assocInfo.type) {
             data[assocInfo.field] = context.latest[assocInfo.key];
         }
 
         await RelatedEntity.create_(data);
-    }        
+    },
 };

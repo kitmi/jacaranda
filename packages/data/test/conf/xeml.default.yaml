@@ -4,7 +4,7 @@ logger:
 dataSource:
     postgres:
         testConnector:
-            connection: 'postgres://postgres:postgres@localhost:5432/wisley'
+            connection: 'postgres://postgres:postgres@localhost:5432/jc-testdb'
             adminCredential:
                 username: 'postgres'
                 password: 'postgres'
@@ -13,6 +13,7 @@ dataSource:
             logTransaction: true
 
 dataModel:
+    schemaPath: './xeml'
     schemaSet:
         test:
             dataSource: postgres.testConnector

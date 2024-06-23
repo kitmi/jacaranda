@@ -27,7 +27,7 @@ class DbModel {
      * Get the driver.
      * @returns {string}
      */
-     get driver() {
+    get driver() {
         return this.connector.driver;
     }
 
@@ -70,7 +70,7 @@ class DbModel {
             await transactionFunc(db);
             await db.connector.commit_(db.transaction);
         } catch (error) {
-            db && await db.connector.rollback_(db.transaction);
+            db && (await db.connector.rollback_(db.transaction));
             throw error;
         } finally {
             db.end();

@@ -54,99 +54,6 @@ class PostgresEntityModel extends EntityModel {
     }
 
     /**
-     * Post create processing.
-     * @param {*} context
-     * @property {object} [context.options] - Create options
-     * @property {bool} [options.$getCreated] - Retrieve the newly created record from db.
-     */
-    async _internalAfterCreate_(context) {
-        // nothing to do with postgres since it can return directly in insert clause
-    }
-
-    /**
-     * Post update processing.
-     * @param {*} context
-     * @property {object} [context.options] - Update options
-     * @property {bool} [context.options.$getUpdated] - Retrieve the newly updated record from db.
-     */
-    async _internalAfterUpdate_(context) {
-        const options = context.options;
-
-        let retrieveUpdated = options.$getUpdated;
-
-        if (!retrieveUpdated) {
-            if (options.$retrieveActualUpdated && context.result.affectedRows > 0) {
-                retrieveUpdated = options.$retrieveActualUpdated;
-            } else if (options.$retrieveNotUpdate && context.result.affectedRows === 0) {
-                retrieveUpdated = options.$retrieveNotUpdate;
-            }
-        }
-
-        if (retrieveUpdated) {
-            const condition = {
-                $query: this.getUniqueKeyValuePairsFrom(options.$query),
-            };
-            if (options.$skipUniqueCheck) {
-                condition.$skipUniqueCheck = options.$skipUniqueCheck;
-            }
-
-            let retrieveOptions = {};
-
-            if (_.isPlainObject(retrieveUpdated)) {
-                retrieveOptions = retrieveUpdated;
-            } else if (options.$assoc) {
-                retrieveOptions.$assoc = options.$assoc;
-            }
-
-            context.return = await this.findOne_(
-                {
-                    ...condition,
-                    $includeDeleted: options.$getDeleted,
-                    ...retrieveOptions,
-                },
-                context.connOptions
-            );
-
-            if (context.return) {
-                context.queryKey = this.getUniqueKeyValuePairsFrom(context.return);
-            } else {
-                context.queryKey = condition.$query;
-            }
-        }
-    }
-
-    /**
-     * Post update processing.
-     * @param {*} context
-     * @param {object} [options] - Update options
-     * @property {bool} [options.$getUpdated] - Retrieve the newly updated record from db.
-     */
-    async _internalAfterUpdateMany_(context) {
-        const options = context.options;
-
-        if (options.$getUpdated) {
-            let retrieveOptions = {};
-
-            if (_.isPlainObject(options.$getUpdated)) {
-                retrieveOptions = options.$getUpdated;
-            } else if (options.$assoc) {
-                retrieveOptions.$assoc = options.$assoc;
-            }
-
-            context.return = await this.findAll_(
-                {
-                    $query: options.$query,
-                    $includeDeleted: options.$getDeleted,
-                    ...retrieveOptions,
-                },
-                context.connOptions
-            );
-        }
-
-        context.queryKey = options.$query;
-    }
-
-    /**
      * Before deleting an entity.
      * @param {*} context
      * @property {object} [context.options] - Delete options
@@ -159,9 +66,9 @@ class PostgresEntityModel extends EntityModel {
             const retrieveOptions = _.isPlainObject(context.options.$getDeleted)
                 ? {
                       ...context.options.$getDeleted,
-                      $query: context.options.$query,
+                      $where: context.options.$where,
                   }
-                : { $query: context.options.$query };
+                : { $where: context.options.$where };
 
             if (context.options.$physicalDeletion) {
                 retrieveOptions.$includeDeleted = true;
@@ -180,9 +87,9 @@ class PostgresEntityModel extends EntityModel {
             const retrieveOptions = _.isPlainObject(context.options.$getDeleted)
                 ? {
                       ...context.options.$getDeleted,
-                      $query: context.options.$query,
+                      $where: context.options.$where,
                   }
-                : { $query: context.options.$query };
+                : { $where: context.options.$where };
 
             if (context.options.$physicalDeletion) {
                 retrieveOptions.$includeDeleted = true;
@@ -212,7 +119,7 @@ class PostgresEntityModel extends EntityModel {
         }
 
         const mainTable = [];
-        const joiningTable = {}; 
+        const joiningTable = {};
         select.forEach((field) => {
             if (field.indexOf('.') === -1) {
                 mainTable.push(field);

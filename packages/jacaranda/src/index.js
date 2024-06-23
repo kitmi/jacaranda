@@ -1,4 +1,4 @@
-export { default as ServiceContainer } from './ServiceContainer';
+export { default as ServiceContainer, getNodeEnv } from './ServiceContainer';
 export { default as Feature } from './Feature';
 export * from './helpers';
 export * from './starters';

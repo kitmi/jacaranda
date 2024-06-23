@@ -139,18 +139,9 @@ function main() {
                             inquire: true,
                             promptDefault: true,
                         },
-                        allow: {
-                            desc: 'Allow features',
-                            alias: ['allow-feature'],
-                            type: 'list',
-                        },
-                        fp: {
-                            desc: 'Feature(s) path',
-                            alias: ['feature-path', 'features-path'],
-                        },
-                        mp: {
-                            desc: 'Model(s) path',
-                            alias: ['model-path', 'models-path'],
+                        w: {
+                            desc: 'Working directory',
+                            alias: ['work-dir', 'working-dir'],
                         },
                     },
                     silentMode: (cli) => cli.argv['silent'] || cli.argv['version'] || cli.argv['help'],

@@ -1,3 +1,4 @@
+require('@swc-node/register');
 const path = require('node:path');
 const { _, eachAsync_, esmCheck } = require('@kitmi/utils');
 const { requireFrom } = require('@kitmi/sys');
@@ -16,7 +17,18 @@ module.exports = async (app) => {
     const modelService = app.getService('dataModel');
     const packageJsonFile = path.resolve('package.json');
     const packageJson = require(packageJsonFile);    
-    const targetModule = requireFrom(packageJson.name, process.cwd());
+
+    let targetModule;
+
+    try {
+        targetModule = requireFrom(packageJson.name, process.cwd());        
+    } catch (error) {
+        if (error.code !== 'MODULE_NOT_FOUND') {
+            throw error;
+        }
+
+        targetModule = require(path.resolve(packageJson.main));
+    }    
 
     app.registry.db = { ...app.registry.db, ...targetModule.databases };
 

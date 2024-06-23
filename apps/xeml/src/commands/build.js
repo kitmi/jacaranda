@@ -1,6 +1,7 @@
 const path = require('node:path');
 const { fs, cmd } = require("@kitmi/sys");
 const { _, eachAsync_, isEmpty, sleep_ } = require('@kitmi/utils');
+const { InvalidArgument } = require('@kitmi/types');
 const { hash } = require('@kitmi/feat-cipher');
 const Linker = require('../lang/Linker');
 
@@ -22,7 +23,10 @@ module.exports = async (app) => {
         let schema = schemaObjects[schemaName];
 
         if (!schema) {
-            throw new Error(`Schema "${schemaName}" not found in xeml entry files."`);
+            throw new InvalidArgument(`Schema "${schemaName}" not found in xeml entry files."`, {
+                schemaName,
+                schemaPath: path.resolve(modelService.config.schemaPath)
+            });
         }
 
         const connector = modelService.getConnector(schemaName);

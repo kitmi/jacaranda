@@ -37,6 +37,10 @@ class Connector {
   async beginTransaction_(); // Begin a transaction
   async commit_(); // Commit a transaction
   async rollback_(); // Rollback a transaction
+
+  async create_(model, data, options, connection);
+  async update_(model, data, options, connection);
+
 }
 ```
 

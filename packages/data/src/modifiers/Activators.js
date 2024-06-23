@@ -2,21 +2,26 @@ import typeSystem from '@kitmi/validators/allSync';
 import { _ } from '@kitmi/utils';
 import { ApplicationError } from '@kitmi/types';
 
-import { v4 } from "@napi-rs/uuid";
+import { v4 } from '@napi-rs/uuid';
 
 // Activator will only be called when the field value is null
 // Activator signature: (entity, field, context, ...args) => value
 const activatorTable = typeSystem.handlers.activator;
 activatorTable['isEqual'] = (args) => args[0] === args[1];
 activatorTable['isNotEqual'] = (args) => args[0] !== args[1];
-activatorTable['setValueWhen'] = ([value, condition]) => condition ? value : null;
+activatorTable['setValueWhen'] = ([value, condition]) => (condition ? value : null);
 activatorTable['concat'] = ([sep = '', ...strs]) => strs.join(sep);
 activatorTable['sum'] = (args) => args.reduce((sum, v) => (sum += v), 0);
 activatorTable['multiply'] = ([multiplier, multiplicand]) => multiplier * multiplicand;
 activatorTable['uuid'] = () => v4();
-activatorTable['timeOfValueSet'] = ([value]) => value != null ? new Date() : null;
+activatorTable['timeOfValueSet'] = ([value]) => (value != null ? new Date() : null);
 
-export const _Activators = _.mapValues(activatorTable, (activator) => (entity, field, context, ...options) => activator(options, field, context));
+export const _Activators = _.mapValues(
+    activatorTable,
+    (activator) =>
+        (entity, field, context, ...options) =>
+            activator(options, field, context)
+);
 
 _Activators.fetch_ = async (entity, field, context, assoc, options) => {
     const parts = assoc.split('.');
@@ -35,7 +40,7 @@ _Activators.fetch_ = async (entity, field, context, assoc, options) => {
     }
 
     const assocValue = context.latest[localAssoc];
-    if (assocValue == null) {        
+    if (assocValue == null) {
         throw new ApplicationError(
             `The value of referenced association "${localAssoc}" of entity "${entity.meta.name}" should not be null.`
         );
@@ -43,9 +48,7 @@ _Activators.fetch_ = async (entity, field, context, assoc, options) => {
 
     const assocMeta = entity.meta.associations[localAssoc];
     if (!assocMeta) {
-        throw new ApplicationError(
-            `"${localAssoc}" is not an association field of entity "${entity.meta.name}".`
-        );
+        throw new ApplicationError(`"${localAssoc}" is not an association field of entity "${entity.meta.name}".`);
     }
 
     if (assocMeta.list) {
@@ -59,15 +62,10 @@ _Activators.fetch_ = async (entity, field, context, assoc, options) => {
     if (!remoteEntity) {
         if (options && options.useCache) {
             remoteEntity = (
-                await entity.db
-                    .entity(assocMeta.entity)
-                    .cached_(
-                        assocMeta.key,
-                        interAssoc ? [interAssoc] : null
-                    )
+                await entity.db.entity(assocMeta.entity).cached_(assocMeta.key, interAssoc ? [interAssoc] : null)
             )[assocValue];
         } else {
-            const findOptions = { $select: [ selectedField ], $where: { [assocMeta.key]: assocValue } };
+            const findOptions = { $select: [selectedField], $where: { [assocMeta.key]: assocValue } };
 
             if (interAssoc) {
                 findOptions.$relation = [interAssoc];
@@ -75,9 +73,7 @@ _Activators.fetch_ = async (entity, field, context, assoc, options) => {
 
             await entity.ensureTransaction_(context);
 
-            remoteEntity = await entity.db
-                .entity(assocMeta.entity)
-                .findOne_(findOptions);
+            remoteEntity = await entity.db.entity(assocMeta.entity).findOne_(findOptions);
         }
 
         if (!remoteEntity) {

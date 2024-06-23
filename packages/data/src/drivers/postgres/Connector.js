@@ -1,11 +1,11 @@
-import { _, isEmpty } from '@kitmi/utils';
+import { _, isEmpty, isInteger } from '@kitmi/utils';
 import { InvalidArgument } from '@kitmi/types';
 import { runtime, NS_MODULE } from '@kitmi/jacaranda';
 
 import { connectionStringToObject } from '../../Connector';
 import RelationalConnector from '../relational/Connector';
 
-import { xrCol } from '../../helpers';
+import { xrCol, concateParams } from '../../helpers';
 
 const pg = runtime.get(NS_MODULE, 'pg');
 if (!pg) {
@@ -315,7 +315,7 @@ class PostgresConnector extends RelationalConnector {
                     meta.transactionId = connection[tranSym];
                 }
 
-                this.app.log('verbose', sql, meta);
+                this.app.log('info', sql, meta);
             }
 
             if ($preparedKey) {
@@ -396,7 +396,9 @@ class PostgresConnector extends RelationalConnector {
         }
 
         if (options.$getCreated) {
-            sql += ` RETURNING ${options.$getCreated.map((col) => this.escapeId(col)).join(', ')}`;
+            sql += ` RETURNING ${options.$getCreated
+                .map((col) => (col === '*' ? '*' : this.escapeId(col)))
+                .join(', ')}`;
         }
 
         return this.execute_(sql, params, options, connection);
@@ -411,15 +413,15 @@ class PostgresConnector extends RelationalConnector {
      * @param {object} dataOnInsert - When no duplicate record exists, extra data for inserting
      * @returns {object}
      */
-    async upsertOne_(model, data, uniqueKeys, options, dataOnInsert) {
-        if (!data || _.isEmpty(data)) {
+    async upsert_(model, data, uniqueKeys, options, dataOnInsert) {
+        if (!data || isEmpty(data)) {
             throw new ApplicationError(`Creating with empty "${model}" data.`);
         }
 
         const dataWithoutUK = _.omit(data, uniqueKeys);
         const insertData = { ...data, ...dataOnInsert };
 
-        if (_.isEmpty(dataWithoutUK)) {
+        if (isEmpty(dataWithoutUK)) {
             // if dupliate, dont need to update
             return this.create_(model, insertData, {
                 ...options,
@@ -450,7 +452,7 @@ class PostgresConnector extends RelationalConnector {
      * @returns {object}
      */
     async upsertMany_(model, fieldsOnInsert, dataArrayOnInsert, dataExprOnUpdate, options) {
-        if (!dataArrayOnInsert || _.isEmpty(dataArrayOnInsert)) {
+        if (!dataArrayOnInsert || isEmpty(dataArrayOnInsert)) {
             throw new ApplicationError(`Upserting with empty "${model}" insert data.`);
         }
 
@@ -458,7 +460,7 @@ class PostgresConnector extends RelationalConnector {
             throw new ApplicationError('"data" to bulk upsert should be an array of records.');
         }
 
-        if (!dataExprOnUpdate || _.isEmpty(dataExprOnUpdate)) {
+        if (!dataExprOnUpdate || isEmpty(dataExprOnUpdate)) {
             throw new ApplicationError(`Upserting with empty "${model}" update data.`);
         }
 
@@ -485,7 +487,7 @@ class PostgresConnector extends RelationalConnector {
      * @returns {object}
      */
     async insertMany_(model, fields, data, options) {
-        if (!data || _.isEmpty(data)) {
+        if (!data || isEmpty(data)) {
             throw new ApplicationError(`Creating with empty "${model}" data.`);
         }
 
@@ -514,102 +516,87 @@ class PostgresConnector extends RelationalConnector {
      * Update an existing entity.
      * @param {string} model
      * @param {object} data
-     * @param {*} query
-     * @param {*} queryOptions
-     * @property {object} [queryOptions.$assoc] - Parsed relatinships
-     * @property {boolean} [queryOptions.$requireSplitColumn] - Whether to use set field=value
-     * @property {integer} [queryOptions.$limit]
-     * @param {*} connOptions
+     * @param {*} options
+     * @property {object} [options.$where] - Where conditions
+     * @property {object} [options.$assoc] - Parsed relatinships
+     * @property {boolean} [options.$requireSplitColumn] - Whether to use set field=value
+     * @property {integer} [options.$limit]
      * @return {object}
      */
-    async update_(model, data, query, queryOptions, connOptions) {
-        if (_.isEmpty(data)) {
+    async update_(model, data, options, connection) {
+        if (isEmpty(data)) {
             throw new InvalidArgument('Data record is empty.', {
                 model,
-                query,
+                options,
             });
         }
 
-        const params = [];
+        if (!options.$where) {
+            throw new InvalidArgument('"$where" is required for updating.', {
+                model,
+                options,
+            });
+        }
+
         const aliasMap = { [model]: 'A' };
-        let joinings;
-        let hasJoining = false;
-        const joiningParams = [];
+        let mainEntityForJoin;
 
-        if (queryOptions && queryOptions.$assoc) {
-            joinings = this._joinAssociations(queryOptions.$assoc, model, aliasMap, 1, joiningParams);
-            hasJoining = model;
+        let childQuery, childJoinings, subJoinings;
+        let sql = '';
+        let params;
+
+        if (options.$assoc) {
+            mainEntityForJoin = model;
+            [childQuery, childJoinings, subJoinings] = this._joinAssociations(
+                options.$assoc,
+                mainEntityForJoin,
+                aliasMap,
+                aliasMap,
+                1
+            );
+
+            const [withSql, withParams] = this._joinWithTableClause(childQuery, true);
+            sql = withSql;
+            params = withParams;
         }
 
-        let sql = 'UPDATE ' + mysql.escapeId(model);
+        sql += 'UPDATE ' + this.escapeId(model);
 
-        if (hasJoining) {
-            joiningParams.forEach((p) => params.push(p));
-            sql += ' A ' + joinings.join(' ');
-        }
-
-        if ((queryOptions && queryOptions.$requireSplitColumns) || hasJoining) {
-            sql += ' SET ' + this._splitColumnsAsInput(data, params, hasJoining, aliasMap).join(',');
-        } else {
-            params.push(data);
-            sql += ' SET ?';
-        }
-
-        let hasWhere = false;
-
-        if (query) {
-            const whereClause = this._joinCondition(query, params, null, hasJoining, aliasMap);
-            if (whereClause) {
-                sql += ' WHERE ' + whereClause;
-                hasWhere = true;
+        if (mainEntityForJoin) {
+            sql += ' A ';
+            if (subJoinings.clause) {
+                sql += subJoinings.clause;
+            }
+            if (childJoinings.clause) {
+                sql += childJoinings.clause;
             }
         }
 
-        if (!hasWhere) {
-            throw new ApplicationError('Update without where clause is not allowed.');
+        const updateParams = [];
+        sql += ' SET ' + this._splitColumnsAsInput(data, updateParams, mainEntityForJoin, aliasMap).join(', ');
+
+        const whereParams = [];
+        const whereClause = this._joinCondition(options.$where, whereParams, null, mainEntityForJoin, aliasMap);
+        if (whereClause) {
+            sql += ' WHERE ' + whereClause;
         }
 
-        if (connOptions && connOptions.returnUpdated) {
-            if (connOptions.connection) {
-                throw new ApplicationError(
-                    'Since "returnUpdated" will create a new connection with "multipleStatements" enabled, it cannot be used within a transaction.'
-                );
+        if (options.$getUpdated) {
+            let returningFields = options.$getUpdated;
+
+            if (returningFields === true) {
+                returningFields = Object.keys(data);
             }
 
-            connOptions = { ...connOptions, multipleStatements: 1 };
-
-            let { keyField } = connOptions.returnUpdated;
-            keyField = this.escapeId(keyField);
-
-            if (queryOptions && _.isInteger(queryOptions.$limit)) {
-                sql += ` AND (SELECT @key := ${keyField})`;
-                sql += ` LIMIT ${queryOptions.$limit}`;
-                sql = `SET @key := null; ${sql}; SELECT @key;`;
-
-                const [_1, _result, [_changedKeys]] = await this.execute_(sql, params, connOptions);
-
-                return [_result, _changedKeys['@key']];
-            }
-
-            const { separator = ',' } = connOptions.returnUpdated;
-            const quotedSeparator = this.escape(separator);
-
-            sql += ` AND (SELECT find_in_set(${keyField}, @keys := CONCAT_WS(${quotedSeparator}, ${keyField}, @keys)))`;
-            sql = `SET @keys := null; ${sql}; SELECT @keys;`;
-
-            const [_1, _result, [_changedKeys]] = await this.execute_(sql, params, connOptions);
-
-            return [_result, _changedKeys['@keys'] ? _changedKeys['@keys'].toString().split(separator) : []];
+            sql += ` RETURNING ${returningFields.map((col) => (col === '*' ? '*' : this.escapeId(col))).join(', ')}`;
         }
 
-        if (queryOptions && _.isInteger(queryOptions.$limit)) {
-            sql += ` LIMIT ${queryOptions.$limit}`;
-        }
+        params = concateParams(params, subJoinings?.params, childJoinings?.params, updateParams, whereParams);
 
-        return this.execute_(sql, params, connOptions);
+        sql = this._replaceParamToken(sql, params);
+
+        return this.execute_(sql, params, options, connection);
     }
-
-    updateOne_ = this.update_;
 
     /**
      * Replace an existing entity or create a new one.
@@ -693,13 +680,15 @@ class PostgresConnector extends RelationalConnector {
 
         const aliasMap = { [model]: 'A' };
 
+        let mainEntityForJoin;
         let childQuery, childJoinings, subSelects, subJoinings, orderBys;
         let select;
 
         if ($assoc) {
+            mainEntityForJoin = model;
             [childQuery, childJoinings, subSelects, subJoinings, orderBys] = this._joinAssociations(
                 $assoc,
-                model,
+                mainEntityForJoin,
                 aliasMap,
                 aliasMap,
                 1
@@ -708,31 +697,29 @@ class PostgresConnector extends RelationalConnector {
             select = $assoc.$select;
         } else {
             select = findOptions.$select ? Array.from(findOptions.$select) : '*';
-        }       
+        }
 
         // count does not require selectParams
         //const countParams = hasTotalCount ? joiningParams.concat() : null;
 
         // Build select columns
-        let { clause: selectClause, params: selectParams } = this._buildSelect(
-            select,
-            model,
-            aliasMap,
-            subSelects
-        );
+        let { clause: selectClause, params: selectParams } = this._buildSelect(select, model, aliasMap, subSelects);
 
         if (childQuery?.length > 0) {
             selectClause += ', ' + childQuery.map((q) => `${q.alias}.*`).join(', ');
         }
 
         // Build from clause
-        let fromClause = ' FROM ' + fromTable;
-        let fromAndJoin = fromClause + ' A ';
-        if (subJoinings?.clause) {
-            fromAndJoin += subJoinings.clause;
-        }
-        if (childJoinings?.clause) {
-            fromAndJoin += childJoinings.clause;
+        let fromAndJoin = ' FROM ' + fromTable;
+
+        if (mainEntityForJoin) {
+            fromAndJoin += ' A ';
+            if (subJoinings.clause) {
+                fromAndJoin += subJoinings.clause;
+            }
+            if (childJoinings.clause) {
+                fromAndJoin += childJoinings.clause;
+            }
         }
 
         // Build where clause
@@ -776,7 +763,7 @@ class PostgresConnector extends RelationalConnector {
             orderByClause = this._sortAndJoinOrderByClause(orderBys);
         } else if (findOptions.$orderBy) {
             orderByClause += ' ' + this._buildOrderBy(findOptions.$orderBy, model, aliasMap);
-        }             
+        }
 
         // Build limit & offset clause
         const limitOffetParams = [];
@@ -854,21 +841,26 @@ class PostgresConnector extends RelationalConnector {
                 orderByClause +
                 limitOffset;
 
-            result.params = withParams.concat(
+            result.params = concateParams(
+                withParams,
                 selectParams,
-                subJoinings ? subJoinings.params : [],
-                childJoinings ? childJoinings.params : [],
+                subJoinings?.params,
+                childJoinings?.params,
                 whereParams,
                 groupByParams,
                 limitOffetParams
             );
 
-            result.sql = result.params.reduce((_sql, p, i) => {
-                return _sql.replace(`$?`, `$${i + 1}`);
-            }, sql);
+            result.sql = this._replaceParamToken(sql, result.params);
         }
 
         return result;
+    }
+
+    _replaceParamToken(sql, params) {
+        return params.reduce((_sql, p, i) => {
+            return _sql.replace(`$?`, `$${i + 1}`);
+        }, sql);
     }
 
     /**

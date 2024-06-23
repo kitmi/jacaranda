@@ -1,6 +1,6 @@
-import { isPlainObject } from "@kitmi/utils";
-import Rules from "../Rules";
-import defaultGenerator from "../TypeGenerators";
+import { isPlainObject } from '@kitmi/utils';
+import Rules from '../Rules';
+import defaultGenerator from '../TypeGenerators';
 
 /**
  * A rule specifies the change of state will be tracked automatically.

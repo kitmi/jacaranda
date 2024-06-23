@@ -21,21 +21,25 @@ export default {
      * @returns {Promise.<*>}
      */
     load_: async (app, dataSources, name) => {
-        dataSources = app.featureConfig(dataSources, {
-            type: 'object',
-            valueSchema: {
+        dataSources = app.featureConfig(
+            dataSources,
+            {
                 type: 'object',
                 valueSchema: {
                     type: 'object',
-                    schema: {
-                        connection: { type: 'text' },
-                        logStatement: { type: 'boolean', optional: true },
-                        logConnection: { type: 'boolean', optional: true },
+                    valueSchema: {
+                        type: 'object',
+                        schema: {
+                            connection: { type: 'text' },
+                            logStatement: { type: 'boolean', optional: true },
+                            logConnection: { type: 'boolean', optional: true },
+                        },
+                        keepUnsanitized: true,
                     },
-                    keepUnsanitized: true,
                 },
             },
-        }, name);
+            name
+        );
 
         _.forOwn(dataSources, (dataSource, dbms) => {
             _.forOwn(dataSource, (config, connectorName) => {
@@ -48,8 +52,8 @@ export default {
                         `dataSource.${dbms}.${connectorName}`
                     );
                 }
-                
-                let { connection: connectionString, ...other } = config;  
+
+                let { connection: connectionString, ...other } = config;
 
                 if (!(dbms in drivers)) {
                     throw new Error(`Unsupported connector driver: "${dbms}"!`);
@@ -57,14 +61,14 @@ export default {
 
                 const Connector = drivers[dbms].Connector;
                 other.connectorName = connectorName;
-                
+
                 const connectorService = new Connector(app, connectionString, other);
                 app.registerService(serviceName, connectorService);
 
                 app.on('stopping', async () => {
-                   await connectorService.end_();
+                    await connectorService.end_();
                 });
-            });            
-        });   
+            });
+        });
     },
 };

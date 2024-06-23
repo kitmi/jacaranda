@@ -21,7 +21,7 @@ async function createLogEntry_(entityModel, feature, context, operation) {
     const logEntry = {
         entity: entityModel.meta.name,
         operation,
-        which: context.queryKey,
+        which: context.options.$where,
         changedAt: Types.DATETIME.typeObject.local(),
     };
 

@@ -1,6 +1,6 @@
-import Rules from "../Rules";
-import { InvalidArgument } from "@kitmi/types";
-import { doInc } from "../helpers";
+import Rules from '../Rules';
+import { InvalidArgument } from '@kitmi/types';
+import { doInc } from '../helpers';
 
 function addCreatedBy_(entityModel, feature, context) {
     if (context.options.$migration) {
@@ -10,9 +10,7 @@ function addCreatedBy_(entityModel, feature, context) {
 
     const uid = entityModel.getValueFromContext(context, feature.uidSource);
     if (uid == null) {
-        throw new InvalidArgument(
-            `Request context "${feature.uidSource}" not found. Entity: ${entityModel.meta.name}`
-        );
+        throw new InvalidArgument(`Request context "${feature.uidSource}" not found. Entity: ${entityModel.meta.name}`);
     }
     context.latest[feature.fields.createdBy] = uid;
     return true;

@@ -394,8 +394,6 @@ class EntityModel {
         const record = await this._safeExecute_(async () => {
             const result = await this.db.connector.find_(this.meta.name, opOptions, this.db.transaction);
 
-            console.log('result', result);
-
             if (opOptions.$assoc && !opOptions.$skipOrm) {
                 // rows, coloumns, aliasMap
                 if (result.data.length === 0) return undefined;
@@ -408,7 +406,7 @@ class EntityModel {
             if (result.data.length !== 1) {
                 this.db.app.log('warn', `"findOne_" returns more than one record.`, {
                     entity: this.meta.name,
-                    options: _.omit(opOptions, ['$relationship']),
+                    options: _.omit(opOptions, ['$assoc']),
                 });
             }
 
@@ -617,7 +615,7 @@ class EntityModel {
                 'Invalid value for "$getCreated", expected: column, column array or boolean for returning all.',
                 {
                     $getCreated: opOptions.$getCreated,
-                    type: t
+                    type: t,
                 }
             );
         }
@@ -631,7 +629,11 @@ class EntityModel {
         if (this.hasAutoIncrement) {
             if (!opOptions.$getCreated) {
                 opOptions.$getCreated = [this.meta.features.autoId.field];
-            } else {
+            } else if (Array.isArray(opOptions.$getCreated)) {
+                if (opOptions.$getCreated.length === 1 && opOptions.$getCreated[0] === '*') {
+                    return;
+                }
+
                 opOptions.$getCreated = [this.meta.features.autoId.field, ...opOptions.$getCreated];
             }
         }
@@ -694,7 +696,7 @@ class EntityModel {
                 if (opOptions.$upsert) {
                     const dataForUpdating = _.pick(context.latest, Object.keys(context.raw)); // only update the raw part
 
-                    context.result = await this.db.connector.upsertOne_(
+                    context.result = await this.db.connector.upsert_(
                         this.meta.name,
                         dataForUpdating,
                         this.getUniqueKeyFieldsFrom(context.latest),
@@ -715,18 +717,14 @@ class EntityModel {
                         context.result.insertId = context.latest[this.meta.features.autoId.field];
                     }
                 }
+
+                delete context.result.fields;
             } else {
                 context.result = { data: context.latest, affectedRows: 1 };
             }
 
             if (needCreateAssocs) {
                 await this._createAssocs_(context, associations);
-            }
-
-            await this._internalAfterCreate_(context);
-
-            if (!context.queryKey) {
-                context.queryKey = this.getUniqueKeyValuePairsFrom(context.latest);
             }
 
             await this.applyRules_(Rules.RULE_AFTER_CREATE, context);
@@ -748,23 +746,6 @@ class EntityModel {
      * @returns {object}
      */
     async updateOne_(data, updateOptions) {
-        updateOptions = this._wrapCtx(updateOptions);
-        return this._update_(data, updateOptions);
-    }
-
-    /**
-     * Update many existing entites with given data.
-     * @param {*} data
-     * @param {*} updateOptions
-     */
-    async updateMany_(data, updateOptions) {
-        updateOptions = this._wrapCtx(updateOptions);
-        return this._update_(data, updateOptions, false);
-    }
-
-    async _update_(data, updateOptions, forSingleRecord) {
-        const rawOptions = updateOptions;
-
         if (!updateOptions) {
             // if no condition given, extract from data
             const conditionFields = this.getUniqueKeyFieldsFrom(data);
@@ -781,21 +762,43 @@ class EntityModel {
             data = _.omit(data, conditionFields);
         }
 
+        updateOptions = this._wrapCtx(updateOptions);
+        return this._update_(data, updateOptions, true);
+    }
+
+    /**
+     * Update many existing entites with given data.
+     * @param {*} data
+     * @param {*} updateOptions
+     * @returns {object}
+     */
+    async updateMany_(data, updateOptions) {
+        updateOptions = this._wrapCtx(updateOptions);
+        return this._update_(data, updateOptions, false);
+    }
+
+    /**
+     * Update implementation.
+     * @param {*} data 
+     * @param {*} updateOptions 
+     * @param {boolean} isOne 
+     * @returns {object}
+     */
+    async _update_(data, updateOptions, isOne) {     
         // see if there is associated entity data provided together
         let [raw, associations, references] = this._extractAssociations(data);
 
         const context = {
             op: 'update',
             raw,
-            rawOptions,
-            options: this._normalizeQuery(updateOptions, forSingleRecord /* for single record */),
-            forSingleRecord,
+            options: this._normalizeQuery(updateOptions, isOne /* for single record */),
+            isOne,
         };
 
         // see if there is any runtime feature stopping the update
         let toUpdate;
 
-        if (forSingleRecord) {
+        if (isOne) {
             toUpdate = await this.beforeUpdate_(context);
         } else {
             toUpdate = await this.beforeUpdateMany_(context);
@@ -806,7 +809,7 @@ class EntityModel {
         }
 
         const opOptions = context.options;
-        this._preProcessOptions(opOptions, forSingleRecord /* for single record */);
+        this._preProcessOptions(opOptions, isOne /* for single record */);
 
         const success = await this._safeExecute_(async () => {
             if (!isEmpty(references)) {
@@ -824,29 +827,17 @@ class EntityModel {
                     context,
                     associations,
                     true /* before update */,
-                    forSingleRecord
+                    isOne
                 );
                 needUpdateAssocs = !isEmpty(associations);
                 doneUpdateAssocs = true;
             }
 
-            await this._prepareEntityData_(context, true /* is updating */, forSingleRecord);
+            await this._prepareEntityData_(context, true /* is updating */, isOne);
 
             if (!(await this.applyRules_(Rules.RULE_BEFORE_UPDATE, context))) {
                 return false;
             }
-
-            if (forSingleRecord) {
-                toUpdate = await this._internalBeforeUpdate_(context);
-            } else {
-                toUpdate = await this._internalBeforeUpdateMany_(context);
-            }
-
-            if (!toUpdate) {
-                return false;
-            }
-
-            const { $where, ...otherOptions } = context.options;
 
             if (isEmpty(context.latest)) {
                 if (!doneUpdateAssocs && !needUpdateAssocs) {
@@ -855,57 +846,50 @@ class EntityModel {
             } else {
                 if (
                     needUpdateAssocs &&
-                    !hasValueInAny([$where, context.latest], this.meta.keyField) &&
-                    !otherOptions.$getUpdated
+                    !hasValueInAny([opOptions.$where, context.latest], this.meta.keyField) &&
+                    !opOptions.$getUpdated
                 ) {
                     // has associated data depending on this record
                     // should ensure the latest result will contain the key of this record
-                    otherOptions.$getUpdated = true;
+                    opOptions.$getUpdated = true;
                 }
 
-                if (forSingleRecord && !otherOptions.$limit) {
-                    otherOptions.$limit = 1;
+                if (isOne && !opOptions.$limit) {
+                    opOptions.$limit = 1;
                 }
 
                 context.result = await this.db.connector.update_(
                     this.meta.name,
                     context.latest,
-                    $where,
-                    otherOptions,
-                    context.connOptions
+                    opOptions,
+                    this.db.transaction
                 );
 
-                context.return = context.latest;
-            }
-
-            if (forSingleRecord) {
-                await this._internalAfterUpdate_(context);
-
-                if (!context.queryKey) {
-                    context.queryKey = this.getUniqueKeyValuePairsFrom($where);
+                if (isOne) {
+                    context.result.data = context.result.data[0] ?? {};
                 }
-            } else {
-                await this._internalAfterUpdateMany_(context);
+
+                delete context.result.fields;
             }
 
             await this.applyRules_(Rules.RULE_AFTER_UPDATE, context);
 
             if (needUpdateAssocs) {
-                await this._updateAssocs_(context, associations, false, forSingleRecord);
+                await this._updateAssocs_(context, associations, false, isOne);
             }
 
             return true;
         }, context);
 
         if (success && !context.options.$dryRun) {
-            if (forSingleRecord) {
+            if (isOne) {
                 await this.afterUpdate_(context);
             } else {
                 await this.afterUpdateMany_(context);
             }
         }
 
-        return context.return;
+        return context.result;
     }
 
     /**
@@ -944,12 +928,12 @@ class EntityModel {
      * @property {bool} [deleteOptions.$getDeleted=false] - Retrieve the deleted entity from database
      * @property {bool} [deleteOptions.$physicalDeletion=false] - When $physicalDeletion = true, deletetion will not take into account logicaldeletion feature
      */
-    async _delete_(deleteOptions, forSingleRecord) {
+    async _delete_(deleteOptions, isOne) {
         const rawOptions = deleteOptions;
 
-        deleteOptions = this._normalizeQuery(deleteOptions, forSingleRecord /* for single record */);
+        deleteOptions = this._normalizeQuery(deleteOptions, isOne /* for single record */);
 
-        if (isEmpty(deleteOptions.$where) && (forSingleRecord || !deleteOptions.$deleteAll)) {
+        if (isEmpty(deleteOptions.$where) && (isOne || !deleteOptions.$deleteAll)) {
             throw new InvalidArgument(
                 'Empty condition is not allowed for deleting or add { $deleteAll: true } to delete all records.',
                 {
@@ -963,12 +947,12 @@ class EntityModel {
             op: 'delete',
             rawOptions,
             options: deleteOptions,
-            forSingleRecord,
+            isOne,
         };
 
         let toDelete;
 
-        if (forSingleRecord) {
+        if (isOne) {
             toDelete = await this.beforeDelete_(context);
         } else {
             toDelete = await this.beforeDeleteMany_(context);
@@ -979,14 +963,14 @@ class EntityModel {
         }
 
         const opOptions = context.options;
-        this._preProcessOptions(opOptions, forSingleRecord /* for single record */);
+        this._preProcessOptions(opOptions, isOne /* for single record */);
 
         const deletedCount = await this._safeExecute_(async () => {
             if (!(await this.applyRules_(Rules.RULE_BEFORE_DELETE, context))) {
                 return false;
             }
 
-            if (forSingleRecord) {
+            if (isOne) {
                 toDelete = await this._internalBeforeDelete_(context);
             } else {
                 toDelete = await this._internalBeforeDeleteMany_(context);
@@ -1000,27 +984,13 @@ class EntityModel {
 
             context.result = await this.db.connector.delete_(this.meta.name, $where, otherOptions, context.connOptions);
 
-            if (forSingleRecord) {
-                await this._internalAfterDelete_(context);
-            } else {
-                await this._internalAfterDeleteMany_(context);
-            }
-
-            if (!context.queryKey) {
-                if (forSingleRecord) {
-                    context.queryKey = this.getUniqueKeyValuePairsFrom(context.options.$where);
-                } else {
-                    context.queryKey = context.options.$where;
-                }
-            }
-
             await this.applyRules_(Rules.RULE_AFTER_DELETE, context);
 
             return this.db.connector.deletedCount(context);
         }, context);
 
         if (deletedCount && !context.options.$dryRun) {
-            if (forSingleRecord) {
+            if (isOne) {
                 await this.afterDelete_(context);
             } else {
                 await this.afterDeleteMany_(context);
@@ -1077,7 +1047,7 @@ class EntityModel {
      * @property {object} context.raw - Raw input data.
      * @param {bool} isUpdating - Flag for updating existing entity.
      */
-    async _prepareEntityData_(context, isUpdating = false, forSingleRecord = true) {
+    async _prepareEntityData_(context, isUpdating = false, isOne = true) {
         const i18n = this.i18n;
         const { name, fields } = this.meta;
 
@@ -1100,7 +1070,7 @@ class EntityModel {
         if (isUpdating && isEmpty(existing) && (this._dependsOnExistingData(raw) || opOptions.$getExisting)) {
             await this.ensureTransaction_();
 
-            if (forSingleRecord) {
+            if (isOne) {
                 existing = await this.findOne_({ $where: opOptions.$where });
             } else {
                 existing = await this.findAll_({ $where: opOptions.$where });
@@ -1379,12 +1349,12 @@ class EntityModel {
     /**
      * Normalize options including moving entries with key not starting with '$' into $where, interpolating variables and building relationship structure.
      * @param {object} options
-     * @param {boolean} [forSingleRecord=false]
+     * @param {boolean} [isOne=false]
      * @returns {object}
      */
-    _normalizeQuery(options, forSingleRecord = false) {
+    _normalizeQuery(options, isOne = false) {
         if (!isPlainObject(options)) {
-            if (forSingleRecord && options == null) {
+            if (isOne && options == null) {
                 throw new InvalidArgument(
                     'Primary key value or at least one unique key value pair is required for single record operation.',
                     {
@@ -1479,14 +1449,15 @@ class EntityModel {
         return qOptions;
     }
 
-    _preProcessOptions(qOptions, forSingleRecord) {
+    _preProcessOptions(qOptions, isOne) {
         const extraSelect = [];
         qOptions.$where = this._translateValue(qOptions.$where, qOptions, true, extraSelect);
         if (extraSelect.length) {
+            qOptions.$select || (qOptions.$select = new Set());
             extraSelect.forEach((v) => qOptions.$select.add(v));
         }
 
-        if (forSingleRecord && !qOptions.$skipUniqueCheck) {
+        if (isOne && !qOptions.$skipUniqueCheck) {
             this._ensureContainsUniqueKey(qOptions.$where);
         }
 

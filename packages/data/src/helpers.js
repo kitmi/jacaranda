@@ -42,6 +42,16 @@ export function mergeWhere(condition1, condition2, operator = '$and') {
     return { [operator]: [condition1, condition2] };
 }
 
+export function concateParams(...params) {
+    const result = [];
+    params.forEach((param) => {
+        if (param != null) {
+            result.push(...param);
+        }
+    });
+    return result;
+}
+
 /**
  * Check if any one of collection as the element of given array has a value in the specified key.
  * @param {*} arrayOfColl

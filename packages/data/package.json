@@ -1,77 +1,77 @@
 {
-  "name": "@kitmi/data",
-  "version": "0.3.1",
-  "description": "Jacaranda Framework Data Access Model",
-  "publishConfig": {
-    "access": "public"
-  },
-  "main": "cjs/index.js",
-  "module": "src/index.js",
-  "react-native": "src/index.js",
-  "exports": {
-    ".": {
-      "import": "./src/index.js",
-      "require": "./cjs/index.js"
+    "name": "@kitmi/data",
+    "version": "0.3.1",
+    "description": "Jacaranda Framework Data Access Model",
+    "publishConfig": {
+        "access": "public"
     },
-    "./*": {
-      "import": "./src/*.js",
-      "require": "./cjs/*.js"
+    "main": "cjs/index.js",
+    "module": "src/index.js",
+    "react-native": "src/index.js",
+    "exports": {
+        ".": {
+            "import": "./src/index.js",
+            "require": "./cjs/index.js"
+        },
+        "./*": {
+            "import": "./src/*.js",
+            "require": "./cjs/*.js"
+        },
+        "./**/*": {
+            "import": "./src/**/*.js",
+            "require": "./cjs/**/*.js"
+        }
     },
-    "./**/*": {
-      "import": "./src/**/*.js",
-      "require": "./cjs/**/*.js"
+    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "license": "MIT",
+    "scripts": {
+        "pre-test": "xeml build -c ./conf/xeml.default.yaml -w ./test && xeml migrate -r -c ./conf/xeml.default.yaml -w ./test",
+        "test": "pnpm build && SWCRC=true mocha --recursive test/**/*.spec.js",
+        "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
+        "report": "allure generate allure-results --clean -o allure-report && serve ./allure-report",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && pnpm prepack",
+        "prettier": "prettier --write .",
+        "lint": "eslint \"**/*.js\"",
+        "lint-fix": "eslint \"**/*.js\" --fix",
+        "clean": "shx rm -rf cjs coverage .nyc_output",
+        "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
+    },
+    "keywords": [
+        "jacaranda",
+        "crypto",
+        "cipher",
+        "hash"
+    ],
+    "nyc": {
+        "exclude": [
+            ".*",
+            "cjs",
+            "test",
+            "**/*.spec.js"
+        ]
+    },
+    "dependencies": {
+        "@kitmi/jacaranda": "workspace:*",
+        "@kitmi/sys": "workspace:*",
+        "@kitmi/types": "workspace:*",
+        "@kitmi/utils": "workspace:*",
+        "@kitmi/validators": "workspace:*",
+        "number-to-letter": "^1.0.1",
+        "@napi-rs/uuid": "^0.2.2",
+        "yaml": "^2.3.4"
+    },
+    "devDependencies": {
+        "@kitmi/tester": "workspace:*",
+        "@kitmi/xeml": "workspace:*",
+        "@xgent/xem-commons": "workspace:*"
+    },
+    "peerDependencies": {},
+    "prettier": {
+        "quoteProps": "consistent",
+        "printWidth": 120,
+        "singleQuote": true,
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "useTabs": false
     }
-  },
-  "author": "Rockie Guo <rockie@kitmi.com.au>",
-  "license": "MIT",
-  "scripts": {
-    "build-test-model": "xeml build -c ./test/conf/xeml.default.yaml",
-    "test": "SWCRC=true mocha --recursive test/**/*.spec.js",
-    "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
-    "report": "allure generate allure-results --clean -o allure-report && serve ./allure-report",
-    "doc": "jsdoc --configure .jsdoc.json --verbose && pnpm prepack",
-    "prettier": "prettier --write .",
-    "lint": "eslint \"**/*.js\"",
-    "lint-fix": "eslint \"**/*.js\" --fix",
-    "clean": "shx rm -rf cjs coverage .nyc_output",
-    "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
-  },
-  "keywords": [
-    "jacaranda",
-    "crypto",
-    "cipher",
-    "hash"
-  ],
-  "nyc": {
-    "exclude": [
-      ".*",
-      "cjs",
-      "test",
-      "**/*.spec.js"
-    ]
-  },
-  "dependencies": {
-    "@kitmi/jacaranda": "workspace:*",
-    "@kitmi/sys": "workspace:*",
-    "@kitmi/types": "workspace:*",
-    "@kitmi/utils": "workspace:*",
-    "@kitmi/validators": "workspace:*",
-    "number-to-letter": "^1.0.1",
-    "@napi-rs/uuid": "^0.2.2",
-    "yaml": "^2.3.4"
-  },
-  "devDependencies": {
-    "@kitmi/tester": "workspace:*",
-    "@kitmi/xeml": "workspace:*",
-    "@xgent/xem-commons": "workspace:*"
-  },
-  "peerDependencies": {},
-  "prettier": {
-    "quoteProps": "consistent",
-    "printWidth": 120,
-    "singleQuote": true,
-    "trailingComma": "es5",
-    "tabWidth": 4,
-    "useTabs": false
-  }
 }

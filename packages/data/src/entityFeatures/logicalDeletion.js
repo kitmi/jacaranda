@@ -1,8 +1,8 @@
-import { _ } from "@kitmi/utils";
+import { _ } from '@kitmi/utils';
 
-import Rules from "../Rules";
-import { mergeWhere } from "../helpers";
-import defaultGenerator from "../TypeGenerators";
+import Rules from '../Rules';
+import { mergeWhere } from '../helpers';
+import defaultGenerator from '../TypeGenerators';
 
 /**
  * A rule specifies the entity will not be deleted physically.
@@ -29,14 +29,11 @@ module.exports = {
             };
 
             if (timestampField) {
-                updateTo[timestampField] = defaultGenerator(
-                    entityModel.meta.fields[timestampField],
-                    context.i18n
-                );
+                updateTo[timestampField] = defaultGenerator(entityModel.meta.fields[timestampField], context.i18n);
             }
 
             const updateOpts = {
-                $query: options.$query,
+                $where: options.$where,
                 $getUpdated: options.$getDeleted,
                 $bypassReadOnly: new Set([field, timestampField]),
                 ..._.pick(options, ['$getDeleted', '$fullResult']),
@@ -45,8 +42,7 @@ module.exports = {
             context.return = await entityModel._update_(
                 updateTo,
                 updateOpts,
-                context.connOptions,
-                context.forSingleRecord
+                context.isOne
             );
 
             return false;

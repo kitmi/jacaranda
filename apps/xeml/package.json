@@ -57,6 +57,7 @@
         "@kitmi/utils": "workspace:*",
         "@kitmi/validators": "workspace:*",
         "@kitmi/feat-cipher": "workspace:*",
+        "@swc-node/register": "^1.9.0",
         "chalk": "^4.1.2",
         "del": "^6.1.1",
         "escodegen": "2.1.0",

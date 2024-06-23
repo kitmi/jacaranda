@@ -1,0 +1,12 @@
+{
+    "name": "test",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "prettier": "prettier --write ."
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+}

@@ -70,7 +70,7 @@ class PostgresMigration {
         return eachAsync_(sqlFiles, async (file) => {
             let sqlFile = path.join(this.dbScriptPath, file);
             if (!fs.existsSync(sqlFile)) {
-                throw new Error(`Database script "${sqlFile}" not found.`);
+                return;
             }
 
             let sql = _.trim(fs.readFileSync(sqlFile, { encoding: 'utf8' }));

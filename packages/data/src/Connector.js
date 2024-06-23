@@ -63,8 +63,8 @@ class Connector {
                                 port: { type: 'integer', optional: true },
                             },
                         },
-                    ],                    
-                }
+                    ],
+                },
             }
         );
 

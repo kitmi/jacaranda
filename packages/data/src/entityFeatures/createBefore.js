@@ -10,7 +10,7 @@ export default {
     [Rules.RULE_BEFORE_CREATE]: async (feature, entity, context) => {
         const RelatedEntity = entity.getRalatedEntity(feature.relation);
         const result = await RelatedEntity.create_({
-            ...feature.initData
+            ...feature.initData,
         });
 
         const assocInfo = this.meta.associations[feature.relation];
@@ -18,6 +18,6 @@ export default {
         // only belongsTo and refersTo has type
         if (assocInfo.type) {
             context.latest[feature.relation] = result.data[assocInfo.field];
-        }        
-    }        
+        }
+    },
 };

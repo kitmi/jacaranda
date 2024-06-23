@@ -1,6 +1,6 @@
 # Todo Features
 
-## inherit hasMany
+## inherit hasMany (abstract)
 
 ## closureTable
 

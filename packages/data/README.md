@@ -2,7 +2,7 @@
 
 ## Jacaranda Framework Data Access Model
 
-`@kitmi/data` 
+`@kitmi/data`
 
 ## Installation
 
@@ -20,7 +20,7 @@ npm install @kitmi/data
 
 ## Usage
 
-
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD
