@@ -1,5 +1,12 @@
 # @kitmi/jacaranda
 
+## 3.1.1
+
+### Patch Changes
+
+-   Complete postgres ORM feature.
+    -   @kitmi/adapters@1.1.2
+
 ## 3.1.0
 
 ### Minor Changes

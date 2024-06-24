@@ -1,5 +1,14 @@
 # @kitmi/xeml
 
+## 0.3.2
+
+### Patch Changes
+
+-   Complete postgres ORM feature.
+-   Updated dependencies
+    -   @kitmi/data@0.4.0
+    -   @kitmi/jacaranda@3.1.1
+
 ## 0.3.1
 
 ### Patch Changes
