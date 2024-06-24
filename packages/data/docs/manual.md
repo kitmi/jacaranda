@@ -43,8 +43,15 @@
 ## Hooks
 
 - async beforeCreate_(context) -> boolean
+- async beforeUpdate_(context) -> boolean
+- async beforeUpdateMany_(context) -> boolean
 - async beforeDelete_(context) -> boolean
 - async beforeDeleteMany_(context) -> boolean
+- async afterCreate_(context) -> boolean
+- async afterUpdate_(context) -> boolean
+- async afterUpdateMany_(context) -> boolean
+- async afterDelete_(context) -> boolean
+- async afterDeleteMany_(context) -> boolean
 
 ## Operation options
 
@@ -68,6 +75,7 @@ The `koa` like `ctx` object passed in to interpolate into query condition, will 
 ```js
 $select: [
     '*',
+    'user.* -password -passwordSalt',
     'offices.bookableResources.type'
 ]
 // SELECT A.*, X.`type` ... JOIN `OfficeBookableResource` as X
@@ -81,6 +89,8 @@ Note: The output columns may have some automatically added fields especially key
 $select: [ { $xr: 'Function', name: 'MAX', alias: 'max', args: ['order'] } ]
 // SELECT MAX(`order`) as max
 ```
+
+Available $xr types refers to [Runtime Types](dev-runtime-type.md)
 
 #### $relation
 

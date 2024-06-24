@@ -310,7 +310,7 @@ class PostgresConnector extends RelationalConnector {
             };
 
             if (this.options.logStatement && !connOptions.createDatabase) {
-                const meta = { ..._.omit(options, ['$assoc']), params };
+                const meta = { ..._.omit(options, ['$assoc', '$data']), params };
                 if (connection) {
                     meta.transactionId = connection[tranSym];
                 }
@@ -325,11 +325,11 @@ class PostgresConnector extends RelationalConnector {
                     );
                 }
 
-                query.name = $preparedKey;
+                query.name = $preparedKey;                
+            }
 
-                if ($asArray) {
-                    query.rowMode = 'array';
-                }
+            if ($asArray) {
+                query.rowMode = 'array';
             }
 
             const res = await conn.query(query);
@@ -413,9 +413,9 @@ class PostgresConnector extends RelationalConnector {
      * @param {object} dataOnInsert - When no duplicate record exists, extra data for inserting
      * @returns {object}
      */
-    async upsert_(model, data, uniqueKeys, options, dataOnInsert) {
+    async upsert_(model, data, uniqueKeys, dataOnInsert, options, connection) {
         if (!data || isEmpty(data)) {
-            throw new ApplicationError(`Creating with empty "${model}" data.`);
+            throw new InvalidArgument(`Creating with empty "${model}" data.`);
         }
 
         const dataWithoutUK = _.omit(data, uniqueKeys);
@@ -423,23 +423,31 @@ class PostgresConnector extends RelationalConnector {
 
         if (isEmpty(dataWithoutUK)) {
             // if dupliate, dont need to update
-            return this.create_(model, insertData, {
-                ...options,
-                insertIgnore: true,
-            });
+            return this.create_(model, insertData, { ...options, $ignore: true }, connection);
         }
 
-        const sql = `INSERT INTO ?? SET ? ON DUPLICATE KEY UPDATE ?`;
-        const params = [model];
-        params.push(insertData);
-        params.push(dataWithoutUK);
+        let columns = '';
+        let values = '';
+        let params = [];
 
-        const result = await this.execute_(sql, params, options);
+        _.each(insertData, (v, k) => {
+            columns += this.escapeId(k) + ',';
+            values += `$?,`;
+            params.push(v);
+        });
 
-        return {
-            upsert: true,
-            ...result,
-        };
+        let sql = `INSERT INTO ${this.escapeId(model)} (${columns.slice(0, -1)}) VALUES (${values.slice(0, -1)})`;
+        sql += ' ON CONFLICT DO UPDATE SET ' + this._splitColumnsAsInput(dataWithoutUK, params).join(', ');
+
+        if (options.$getCreated) {
+            sql += ` RETURNING ${options.$getCreated
+                .map((col) => (col === '*' ? '*' : this.escapeId(col)))
+                .join(', ')}`;
+        }
+
+        sql = this._replaceParamToken(sql, params);
+
+        return this.execute_(sql, params, options, connection);
     }
 
     /**
@@ -797,7 +805,7 @@ class PostgresConnector extends RelationalConnector {
         const limitOffetParams = [];
         let limitOffset = this._buildLimitOffset($limit, $offset, limitOffetParams);
 
-        const result = { aliasMap };
+        const result = { aliasMap, hasJoining: mainEntityForJoin != null };
 
         // The field used as the key of counting or pagination
         let distinctFieldRaw;
@@ -1006,7 +1014,7 @@ class PostgresConnector extends RelationalConnector {
 
         // Build select
         const { clause: selectClause, params: selectParams } = this._buildSelect(
-            assocInfo.$select,
+            assocInfo.$select.map((f) => xrCol(f, `${alias}_${f}`)),
             aliasKey,
             innerAliasMap,
             extraSelects
@@ -1027,6 +1035,8 @@ class PostgresConnector extends RelationalConnector {
         subParams.push(...subJoinings.params);
         childQuery.push({ alias: outerAlias, sql, params: subParams });
 
+        aliasMap[aliasKey] = { outer: outerAlias, inner: alias };
+
         const joinings = this._buildJoin(
             assocInfo,
             outerAlias,
@@ -1045,7 +1055,7 @@ class PostgresConnector extends RelationalConnector {
                 }
                 aliasMap[k] = v;
             }
-        });
+        });        
 
         return [childQuery, joinings, startId];
     }
@@ -1242,17 +1252,22 @@ class PostgresConnector extends RelationalConnector {
             options = { ...queryOptions, $asArray: true };
             //todo: changed to json_build_object
             //const wrappedSql = `SELECT row_to_json(_row) FROM (${query.sql}) _row`;
-            result = await this.execute_(query.sql, query.params, options, connection);
-            console.dir(result, { depth: 10 });
+            result = await this.execute_(query.sql, query.params, options, connection);            
 
             const reverseAliasMap = _.reduce(
                 query.aliasMap,
                 (result, alias, nodePath) => {
-                    result[alias] = nodePath
+                    const _path = nodePath
                         .split('.')
                         .slice(
                             1
                         ) /* .map(n => ':' + n) changed to be padding by orm and can be customized with other key getter */;
+                    if (typeof alias === 'object') {
+                        result[alias.outer] = _path;
+                        result[alias.inner] = _path;
+                    } else {
+                        result[alias] = _path;
+                    }
                     return result;
                 },
                 {}

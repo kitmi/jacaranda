@@ -1,0 +1,50 @@
+import 'commons:**'
+import product
+
+//----------------------------------------------------------------------------------------------------
+
+entity productAttribute 
+  -- "Product Attribute"  
+  with
+    autoId
+    createTimestamp
+    updateTimestamp
+  has
+    value : json optional
+  associations
+    belongsTo product
+    belongsTo productAttributeType as type
+
+//----------------------------------------------------------------------------------------------------
+
+entity productAttributeType is dictionaryByCode
+  -- "Product Attribute Type"  
+  has
+    dataType optional
+    metadata: json optional
+  associations
+    hasMany productAttribute as attributes
+    hasMany productCategoryAttributeType as categories
+
+  data [
+    { code: 'duration', name: 'Duration', dataType: 'integer', desc: 'How many seconds?' },
+    { code: 'publisher', name: 'Publisher', dataType: 'text' },
+    { code: 'instructor', name: 'Instructor', dataType: 'text' },
+    { code: 'dimension', name: 'Dimension', dataType: 'text' },
+    { code: 'origin', name: 'Country of Origin', dataType: 'text' }  
+  ]
+
+//----------------------------------------------------------------------------------------------------
+
+entity productCategoryAttributeType is manyToMany
+  -- "Product Category Attribute Type"
+  associations
+    belongsTo productCategory as category
+    belongsTo productAttributeType as attribute
+  data [
+    { category: PROD_CAT_DEMO_ID, attribute: 'duration' },
+    { category: PROD_CAT_DEMO_ID, attribute: 'publisher' },
+    { category: PROD_CAT_DEMO_ID, attribute: 'instructor' },
+    { category: PROD_CAT_GOOD_ID, attribute: 'dimension' }, 
+    { category: PROD_CAT_GOOD_ID, attribute: 'origin' }      
+  ]

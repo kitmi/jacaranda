@@ -13,7 +13,7 @@ import { OpCompleted } from '../utils/errors';
 module.exports = {
     [Rules.RULE_BEFORE_FIND]: (feature, entityModel, context) => {
         const findOptions = context.options;
-        if (!findOptions.$includeDeleted) {
+        if (!findOptions.$includeDeleted) {            
             findOptions.$where = mergeWhere(findOptions.$where, {
                 [feature.field]: { $ne: feature.value },
             });

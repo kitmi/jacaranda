@@ -1,0 +1,30 @@
+import 'commons:**'
+
+//----------------------------------------------------------------------------------------------------     
+
+type
+  // 这里document是指文档文件类型的，如pdf, docx, pptx等，直接保存内容到content字段的文档请使用content
+  mediaType: text enum('image', 'video', 'audio', 'document', 'content', 'other')
+
+//----------------------------------------------------------------------------------------------------       
+
+entity resource 
+  -- "Resource"
+  with
+    autoId({ type: 'bigint' })
+    createTimestamp
+    updateTimestamp
+    logicalDeletion
+  
+  has
+    mediaType : mediaType           -- "Media Type"
+    fileSize : int optional
+    name optional            -- "Display Name"
+    mimeType : text optional        -- "Mime Type" // 同一媒体例如图片，可能会有多种mimeType，例如image/jpeg, image/png
+    url optional
+    accessToken : text optional
+    cachedUrl : url optional
+    storedName : text optional      -- "Stored Name"
+    checksum : text maxLength(200) optional 
+    desc                            -- "Description"
+    content : text optional         -- "Content"

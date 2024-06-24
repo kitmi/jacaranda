@@ -37,8 +37,6 @@ function minifyAssocs(assocs) {
     return minified;
 }
 
-const DB_RUNTIME_OBJ = new Set(['Column', 'Function', 'BinExpr', 'Query', 'Raw', 'DataSet']);
-
 /**
  * Base entity model class.
  * @class
@@ -424,7 +422,7 @@ class EntityModel {
                 });
             }
 
-            result.data = isOne ? (data.length ? data[0] : null) : data ?? [];
+            result.data = isOne ? data[0] : data ?? [];
             delete result.fields;
             context.latest = context.result = result;
             return isOne ? result.data : result;
@@ -574,7 +572,7 @@ class EntityModel {
                     return;
                 }
 
-                opOptions.$getCreated = [this.meta.features.autoId.field, ...opOptions.$getCreated];
+                opOptions.$getCreated = _.uniq([this.meta.features.autoId.field, ...opOptions.$getCreated]);
             }
         }
     }
@@ -638,7 +636,9 @@ class EntityModel {
                         this.meta.name,
                         dataForUpdating,
                         this.getUniqueKeyFieldsFrom(context.latest),
-                        context.latest
+                        context.latest,
+                        opOptions,
+                        this.db.transaction
                     );
                 } else {
                     context.result = await this.db.connector.create_(
@@ -647,19 +647,21 @@ class EntityModel {
                         opOptions,
                         this.db.transaction
                     );
+                }
 
-                    context.result.data = { ...context.latest, ...context.result.data[0] };
-                    context.latest = context.result.data;
+                context.result.data = { ...context.latest, ...context.result.data[0] };
+                context.latest = context.result.data;
 
-                    if (this.hasAutoIncrement) {
-                        context.result.insertId = context.latest[this.meta.features.autoId.field];
-                    }
+                if (this.hasAutoIncrement) {
+                    context.result.insertId = context.latest[this.meta.features.autoId.field];
                 }
 
                 delete context.result.fields;
             } else {
                 context.result = { data: context.latest, affectedRows: 1 };
             }
+
+            delete opOptions.$data;
 
             if (needCreateAssocs) {
                 await this._createAssocs_(context, associations);
@@ -806,6 +808,8 @@ class EntityModel {
             }
 
             await this.applyRules_(Rules.RULE_AFTER_UPDATE, context);
+
+            delete opOptions.$data;
 
             if (needUpdateAssocs) {
                 await this._updateAssocs_(context, associations, false, isOne);
@@ -1368,7 +1372,9 @@ class EntityModel {
         qOptions.$where = this._translateValue(qOptions.$where, qOptions, true, extraSelect);
         if (extraSelect.length) {
             qOptions.$select || (qOptions.$select = new Set());
-            extraSelect.forEach((v) => qOptions.$select.add(v));
+            if (!qOptions.$select.has('*')) {
+                extraSelect.forEach((v) => qOptions.$select.add(v));
+            }
         }
 
         if (isOne && !qOptions.$skipUniqueCheck) {

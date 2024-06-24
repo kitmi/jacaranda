@@ -1,5 +1,6 @@
 import { dataSource, dataModel, db } from '../..';
 import TestDb from '../src/models/Test';
+import Test2Db from '../src/models/Test2';
 
 const start_ = async (test) => {
     return jacat.startWorker_(test, {
@@ -14,6 +15,7 @@ const start_ = async (test) => {
             },
             db: {
                 test: TestDb,
+                test2: Test2Db,
             },
         },
     });

@@ -3,7 +3,7 @@ const testData = {
     desc: 'Book 1 desc',
 };
 
-describe('crud bvt', function () {    
+describe('crud bvt', function () {
     before(async function () {
         await tester.start_(async (app) => {
             const db = app.db();

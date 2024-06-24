@@ -4,3 +4,7 @@ import 'entities/*'
 schema test
   entities
     book
+
+schema test2
+  entities
+    product    

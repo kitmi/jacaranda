@@ -9,7 +9,3 @@ There are predefined context properties which can be accessed in an entity opera
 -   i18n - I18n object.
 -   connector - Existing connector for chained operation.
 -   result - Operation result.
--   return - Data to return, if retrieveCreated or retrieveUpdated or retrieveDeleted is true, return will be the just create/updated/deleted data.
--   entities - Access other entity models in the same schema
--   schemas - Access other schema models in the same application
--   state - Current request state

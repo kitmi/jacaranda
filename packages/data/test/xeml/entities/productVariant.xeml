@@ -1,0 +1,44 @@
+import 'commons:**'
+import product
+
+//----------------------------------------------------------------------------------------------------
+
+entity productVariant
+  -- "Product Variant"
+  with
+    autoId
+    createTimestamp
+    updateTimestamp
+    logicalDeletion
+  has
+    value : json optional
+  associations
+    belongsTo product
+    belongsTo productVariantType as type
+
+//----------------------------------------------------------------------------------------------------
+
+entity productVariantType is dictionaryByCode
+  -- "Product Variant Type"
+  associations
+    hasMany productVariant as variants
+    hasMany productCategoryVariantType as categories
+  data [
+    { code: 'color', name: 'Color' },
+    { code: 'size', name: 'Size' },
+    { code: 'language', name: 'Language' }
+  ]
+
+//----------------------------------------------------------------------------------------------------
+
+entity productCategoryVariantType is manyToMany
+  -- "Product Category Variant Type"
+  associations
+    belongsTo productCategory as category
+    belongsTo productVariantType as variantType
+  data [
+    { category: PROD_CAT_GOOD_ID, variantType: 'color' },
+    { category: PROD_CAT_GOOD_ID, variantType: 'size' },
+    { category: PROD_CAT_DEMO_ID, variantType: 'language' },
+    { category: PROD_CAT_DEMO_ID, variantType: 'color' }
+  ]    

@@ -254,7 +254,7 @@ class RelationalConnector extends Connector {
             });
         }
 
-        if (isPlainObject(alias)) {
+        if (typeof alias === 'object') {
             return (
                 alias.outer + '.' + (actualFieldName === '*' ? '*' : this.escapeId(`${alias.inner}_${actualFieldName}`))
             );

@@ -176,6 +176,10 @@ class PostgresEntityModel extends EntityModel {
             $order: mainOrderTable,
         };
 
+        if (mainSelectTable.length === 1 && mainSelectTable[0] === '*' && isEmpty(selectTable)) {
+            selectTable['*'] = true;
+        }
+
         associations.forEach((assoc) => {
             if (isPlainObject(assoc)) {
                 throw new Error('To be implemented.');
@@ -209,11 +213,19 @@ class PostgresEntityModel extends EntityModel {
             }
         });
 
-        console.dir(selectTable, { depth: 10 });
-        console.dir(orderByTable, { depth: 10 });
-        console.dir(assocTable, { depth: 10 });
-
         return assocTable;
+    }
+
+    _pushJoinFields(selects, joinsOn, assoc) {
+        const prefix = assoc + '.';
+        _.each(joinsOn, (value, key) => {
+            if (key.startsWith(prefix)) {
+                key = key.substring(prefix.length);
+                if (!selects.includes(key)) {
+                    selects.push(key);
+                }
+            }
+        });
     }
 
     /**
@@ -254,9 +266,11 @@ class PostgresEntityModel extends EntityModel {
                     if (!hasSelect.includes(assocInfo.key)) {
                         assocInfo.$select.push(assocInfo.key);
                     }
+                    this._pushJoinFields(assocInfo.$select, assocInfo.on, assoc);
                 }
             } else {
                 assocInfo.$select = [assocInfo.key];
+                this._pushJoinFields(assocInfo.$select, assocInfo.on, assoc);
             }
 
             const hasOrderBy = _get(orderByTable, bucketKey); // array of { f, o, d }
@@ -300,23 +314,22 @@ class PostgresEntityModel extends EntityModel {
      * @returns {*}
      */
     _mapRecordsToObjects(result, hierarchy, nestedKeyGetter) {
-        //console.dir(result, { depth: 10 });
-
         const { data, fields, aliases } = result;
+
         nestedKeyGetter == null && (nestedKeyGetter = defaultNestedKeyGetter);
         const aliasMap = _.mapValues(aliases, (chain) => chain.map((anchor) => nestedKeyGetter(anchor)));
 
         const mainIndex = {};
         const self = this;
 
-        // map mysql column result into array of { table <table alias>, name: <column name> }
+        // map postgres fields result into array of { table <table alias>, name: <column name> }
         const columns = fields.map((col) => {
             //if (col.table === '') {
-            const pos = col.name.indexOf('$');
+            const pos = col.name.indexOf('_');
             if (pos > 0) {
                 return {
-                    table: col.name.substr(0, pos),
-                    name: col.name.substr(pos + 1),
+                    table: col.name.substring(0, pos),
+                    name: col.name.substring(pos + 1),
                 };
             }
 
@@ -324,22 +337,14 @@ class PostgresEntityModel extends EntityModel {
                 table: 'A',
                 name: col.name,
             };
-            //}
-            /*
-            return {
-                table: col.table,
-                name: col.name,
-            };
-            */
         });
 
         // map flat record into hierachy
-        function mergeRecord(existingRow, rowObject, associations, nodePath) {
-            return _.each(associations, ({ sql, key, list, subAssocs }, anchor) => {
-                if (sql) return;
+        function mergeRecord(existingRow, rowObject, associations, nodePath) {            
+            return _.each(associations, ({ sql, key, list, $agg, $join }, anchor) => {
+                if (sql) return;                
 
-                const currentPath = nodePath.concat();
-                currentPath.push(anchor);
+                const currentPath = [ ...nodePath, anchor ];
 
                 const objKey = nestedKeyGetter(anchor);
                 const subObj = rowObject[objKey];
@@ -367,8 +372,12 @@ class PostgresEntityModel extends EntityModel {
 
                 const existingSubRow = subIndexes && subIndexes[rowKeyValue];
                 if (existingSubRow) {
-                    if (subAssocs) {
-                        return mergeRecord(existingSubRow, subObj, subAssocs, currentPath);
+                    if ($agg) {
+                        mergeRecord(existingSubRow, subObj, $agg, currentPath);
+                    }
+
+                    if ($join) {
+                        mergeRecord(existingSubRow, subObj, $join, currentPath);
                     }
                 } else {
                     if (!list) {
@@ -390,8 +399,12 @@ class PostgresEntityModel extends EntityModel {
                         rowObject: subObj,
                     };
 
-                    if (subAssocs) {
-                        subIndex.subIndexes = buildSubIndexes(subObj, subAssocs);
+                    if ($agg) {
+                        subIndex.subIndexes = buildSubIndexes(subObj, $agg);
+                    }
+
+                    if ($join) {
+                        subIndex.subIndexes = { ...subIndex.subIndexes, ...buildSubIndexes(subObj, $join) };
                     }
 
                     if (!subIndexes) {
@@ -411,8 +424,11 @@ class PostgresEntityModel extends EntityModel {
         // build sub index for list member
         function buildSubIndexes(rowObject, associations) {
             const indexes = {};
+            if (!associations) {
+                return indexes;
+            }
 
-            _.each(associations, ({ sql, key, list, subAssocs }, anchor) => {
+            _.each(associations, ({ sql, key, list, $agg, $join }, anchor) => {
                 if (sql) {
                     return;
                 }
@@ -440,8 +456,12 @@ class PostgresEntityModel extends EntityModel {
                 }
 
                 if (subObject) {
-                    if (subAssocs) {
-                        subIndex.subIndexes = buildSubIndexes(subObject, subAssocs);
+                    if ($agg) {
+                        subIndex.subIndexes = buildSubIndexes(subObject, $agg);
+                    }
+
+                    if ($join) {
+                        subIndex.subIndexes = { ...subIndex.subIndexes, ...buildSubIndexes(subObject, $join) };
                     }
 
                     indexes[objKey] = subObject[key]
@@ -498,7 +518,7 @@ class PostgresEntityModel extends EntityModel {
                 return result;
             }, {});
 
-            _.forOwn(tableCache, (obj, table) => {
+            _.each(tableCache, (obj, table) => {
                 const nodePath = aliasMap[table];
                 _.set(rowObject, nodePath, obj);
             });
@@ -506,13 +526,22 @@ class PostgresEntityModel extends EntityModel {
             const rowKey = rowObject[self.meta.keyField];
             const existingRow = mainIndex[rowKey];
             if (existingRow) {
-                return mergeRecord(existingRow, rowObject, hierarchy, []);
+                if (hierarchy.$agg) {
+                    mergeRecord(existingRow, rowObject, hierarchy.$agg, []);
+                }
+                if (hierarchy.$join) {
+                    mergeRecord(existingRow, rowObject, hierarchy.$join, []);
+                }
+                return;
             }
 
             arrayOfObjs.push(rowObject);
             mainIndex[rowKey] = {
                 rowObject,
-                subIndexes: buildSubIndexes(rowObject, hierarchy),
+                subIndexes: {
+                    ...buildSubIndexes(rowObject, hierarchy.$agg),
+                    ...buildSubIndexes(rowObject, hierarchy.$join),
+                },
             };
         });
 

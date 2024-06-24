@@ -17,11 +17,15 @@ dataModel:
     schemaSet:
         test:
             dataSource: postgres.testConnector
+        test2:
+            dataSource: postgres.testConnector
     dependencies:
-        commons: '@xgent/xem-common'
+        commons: '@xgent/xem-commons'
 
 db:
     test:
+        dataSource: postgres.testConnector
+    test2:
         dataSource: postgres.testConnector
 
 settings:

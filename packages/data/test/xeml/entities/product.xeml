@@ -1,0 +1,154 @@
+import 'commons:**'
+import productAttribute
+import productVariant
+import resource
+
+//----------------------------------------------------------------------------------------------------     
+
+type
+    productType : text enum("service", "good", "virtual", "other")
+    productStatus : text enum("draft", "pending", "published", "unpublished", "archived") 
+
+//----------------------------------------------------------------------------------------------------     
+
+const
+    PROD_CAT_DEMO_ID = 1
+    PROD_CAT_GOOD_ID = 2
+
+//----------------------------------------------------------------------------------------------------     
+
+entity product
+  -- "Product"
+  with
+    autoId
+    createTimestamp
+    updateTimestamp
+    logicalDeletion
+
+  has
+    type: productType
+    name
+    desc    
+    image: url optional                 -- "Cover Image"
+    thumbnail: url optional             -- "Thumbnail Image"
+    free: boolean optional
+    openToGuest: boolean optional
+    isPackage: boolean optional
+    hasVariants: boolean optional
+
+  associations
+    belongsTo productCategory as category   
+    hasMany productAsset as assets 
+    hasMany productAttribute as attributes
+    hasMany productVariant as variants
+
+  data [
+    {        
+        type: 'service',
+        name: 'Demo Product',
+        desc: 'Demo Product Description',
+        image: 'https://example.com/demo.jpg',
+        thumbnail: 'https://example.com/demo-thumb.jpg',
+        free: true,
+        openToGuest: true,
+        isPackage: false,
+        hasVariants: false,
+        category: PROD_CAT_DEMO_ID,
+        :assets: [
+            { tag: 'snapshots', :resource: { mediaType: 'image', url: 'https://example.com/demo-asset.jpg' } },
+            { tag: 'snapshots', :resource: { mediaType: 'image', url: 'https://example.com/demo-asset2.jpg' } },
+            { tag: 'poster', :resource: { mediaType: 'image', url: 'https://example.com/demo-poster.jpg' } },
+        ],
+        :attributes: [
+            { type: 'duration', value: 3600 },
+            { type: 'publisher', value: 'Demo Publisher' },
+            { type: 'instructor', value: 'Demo Instructor' }
+        ],
+        :variants: [
+            { type: 'color', value: 'red' },
+            { type: 'color', value: 'blue' },
+            { type: 'color', value: 'green' },
+            { type: 'language', value: 'en' },
+            { type: 'language', value: 'zh-CN' }
+        ]
+    },
+    {        
+        type: 'good',
+        name: 'Demo Product',
+        desc: 'Demo Product Description',
+        image: 'https://example.com/demo.jpg',
+        thumbnail: 'https://example.com/demo-thumb.jpg',
+        free: true,
+        openToGuest: true,
+        isPackage: false,
+        hasVariants: false,
+        category: PROD_CAT_GOOD_ID,
+        :assets: [
+            { tag: 'snapshots', :resource: { mediaType: 'image', url: 'https://example.com/demo-asset.jpg' } },
+            { tag: 'snapshots', :resource: { mediaType: 'image', url: 'https://example.com/demo-asset2.jpg' } },
+            { tag: 'poster', :resource: { mediaType: 'image', url: 'https://example.com/demo-poster.jpg' } },
+        ],
+        :attributes: [
+            { type: 'dimension', value: '10x10x10' },
+            { type: 'origin', value: 'China' }
+        ],
+        :variants: [
+            { type: 'color', value: 'red' },
+            { type: 'color', value: 'blue' },
+            { type: 'color', value: 'green' },
+            { type: 'size', value: 'L' },
+            { type: 'size', value: 'M' },
+            { type: 'size', value: 'S' }
+        ]
+    }
+  ]
+    
+//----------------------------------------------------------------------------------------------------         
+
+entity productCategory is dictionaryByAutoId
+    -- "Product Catetory"    
+    associations
+        hasMany product being category
+        hasMany productCategoryAttributeType as attributeTypes
+        hasMany productCategoryTree being ancestorId as descendants
+        hasMany productCategoryTree being descendantId as ancestors
+    data [
+        {
+            id: PROD_CAT_DEMO_ID,
+            name: 'CAT1',
+            desc: 'Demo Category'
+        },
+        {
+            id: PROD_CAT_GOOD_ID,
+            name: 'CAT2',
+            desc: 'Good Category'
+        }
+    ]
+
+//----------------------------------------------------------------------------------------------------
+
+entity productCategoryTree is closureTable('integer')
+    -- "Product Catetory Tree"
+    associations
+        belongsTo productCategory on ancestorId 
+        belongsTo productCategory on descendantId
+
+//----------------------------------------------------------------------------------------------------
+
+entity productAsset 
+    -- "Product Asset"
+    with
+        autoId({ type: 'bigint' })
+        createTimestamp
+        updateTimestamp
+
+    has
+        tag: idString optional
+
+    associations
+        belongsTo product
+        refersTo resource    
+
+    index
+        [product, resource] is unique
+

@@ -618,8 +618,8 @@ regexp_char             [^\\\n\/]
 regexp_flag             "i"|"g"|"m"|"y"
 
 // path literal
-route_literal            ("/"{route_identifier})+
-route_identifier         (":")?{id_start}{id_continue}*
+route_literal            ("/"({identifier}|{nested_key}))+
+nested_key              (":"){id_start}{id_continue}*
 
 symbol_operators        {relation_operators}|{syntax_operators}|{math_operators}
 word_operators          {logical_operators}|{relation_operators2}|{predicate_operators}
@@ -886,6 +886,10 @@ escapeseq               \\.
                             yytext = parseInt(yytext);
                             return 'INTEGER';
                         %}
+<INLINE>{nested_key}   %{
+                            state.matchAnyExceptNewline();                            
+                            return 'NESTED_KEY';  
+                        %}                      
 <INLINE>{element_access}   %{     
                                 state.matchAnyExceptNewline();
 
@@ -1775,6 +1779,7 @@ inline_object
 
 kv_pair_item
     : identifier_or_string ":" modifiable_value -> {[$1]: $3}
+    | NESTED_KEY ":" modifiable_value -> {[$1]: $3}
     | identifier non_exist -> {[$1]: state.normalizeReference($1)}
     | INTEGER ":" modifiable_value -> {[$1]: $3}
     ;
