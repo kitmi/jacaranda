@@ -85,6 +85,8 @@ describe('crud complex', function () {
                 $relation: ['category', 'assets.resource', 'attributes', 'variants'],
             });
 
+            should.not.exist(result.updatedAt);
+
             const ProductCategory = db.entity('productCategory');
             const category = await ProductCategory.findOne_({ $select: ['*'], id: 2 });
 
@@ -102,6 +104,7 @@ describe('crud complex', function () {
 
             rows2.should.equal(1);
             data2.name.should.eql('Demo Product 200');
+            should.exist(data2.updatedAt);
         });
     });
 
@@ -114,7 +117,7 @@ describe('crud complex', function () {
             });
 
             result.op.should.equal('SELECT');
-            result.data.length.should.be.above(1);            
+            result.data.length.should.be.above(1);
         });
     });
 });

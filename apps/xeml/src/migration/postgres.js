@@ -41,7 +41,7 @@ class PostgresMigration {
     }
 
     async create_(extraOptions) {
-        let sqlFiles = ['entities.sql', 'sequence.sql', 'relations.sql', 'procedures.sql'];
+        let sqlFiles = ['entities.sql', 'sequence.sql', 'relations.sql', 'procedures.sql', 'triggers.sql'];
 
         let sqlCreate = `CREATE DATABASE ${this.db.connector.escapeId(this.db.connector.database)}`;
 

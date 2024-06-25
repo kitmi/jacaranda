@@ -97,6 +97,8 @@ class PostgresModeler {
             data = {};
 
         //let mapOfEntityNameToCodeName = {};
+        const extraFunctions = [];
+        const triggers = [];
 
         _.each(modelingSchema.entities, (entity, entityName) => {
             if (entityName !== entity.name) {
@@ -125,6 +127,28 @@ class PostgresModeler {
                         f.forEach((ff) => this._featureReducer(modelingSchema, entity, featureName, ff));
                     } else {
                         this._featureReducer(modelingSchema, entity, featureName, f);
+                    }
+
+                    if (featureName === 'updateTimestamp') {
+                        const entitiAsPrefix = naming.snakeCase(entityName);
+                        let tsField = f.field;
+                        let callFunction = `update_timestamp`;
+                        if (tsField !== 'updatedAt') {
+                            // non-default field name
+                            callFunction = `${entitiAsPrefix}_update_ts`;
+                            extraFunctions.push(`CREATE OR REPLACE FUNCTION ${entitiAsPrefix}_update_ts()
+RETURNS TRIGGER AS $$
+BEGIN    
+    NEW.${this.connector.escapeId(tsField)} = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;`)
+                        }
+                        
+                        triggers.push(`CREATE TRIGGER ${entitiAsPrefix}_set_update_ts
+BEFORE UPDATE ON ${this.connector.escapeId(entityName)}
+FOR EACH ROW
+EXECUTE FUNCTION ${callFunction}();`)
                     }
                 });
             }
@@ -297,7 +321,20 @@ class PostgresModeler {
                 this._writeFile(idxFilePath, list.concat(manual).join('\n'));
             });
 
-            let funcSQL = '';
+            let funcSQL = '-- ON UPDATE SET CURRENT_TIMESTAMP\n\n';//'CREATE LANGUAGE plpgsql; \n\n';
+
+            // update timestamp
+            funcSQL += `CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN    
+    NEW."updatedAt" = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;\n\n`;
+
+            if (!isEmpty(extraFunctions)) {
+                funcSQL += extraFunctions.join('\n\n') + '\n\n';
+            }
 
             //process view
             /*
@@ -325,6 +362,12 @@ class PostgresModeler {
 
             let spFilePath = path.join(sqlFilesDir, 'procedures.sql');
             this._writeFile(path.join(this.outputPath, spFilePath), funcSQL);
+
+            if (!isEmpty(triggers)) {
+                let triggerSQL = triggers.join('\n\n');
+                let triggerFilePath = path.join(sqlFilesDir, 'triggers.sql');
+                this._writeFile(path.join(this.outputPath, triggerFilePath), triggerSQL);
+            }
         }
 
         return modelingSchema;
@@ -437,8 +480,9 @@ class PostgresModeler {
         }
 
         let destKeyField = destEntity.getKeyField();
-        assert: destKeyField,
-            `Empty key field "${destEntity.keyField}". Dest entity: ${destEntityName}, current entity: ${entity.name}`;
+        if (!destKeyField) {
+            throw new Error(`Empty key field "${destEntity.keyField}". Dest entity: ${destEntityName}, current entity: ${entity.name}`);
+        }            
 
         if (Array.isArray(destKeyField)) {
             throw new Error(`Destination entity "${destEntityName}" with combination primary key is not supported.`);
@@ -870,7 +914,9 @@ class PostgresModeler {
     }
 
     _xemlConditionToQueryCondition(context, xemlCon) {
-        assert: xemlCon.$xt;
+        if (!xemlCon.$xt) {
+            throw new Error('Unknown syntax: ' + JSON.stringify(xemlCon));
+        }
 
         if (xemlCon.$xt === 'BinaryExpression') {
             if (xemlCon.operator === '==') {
