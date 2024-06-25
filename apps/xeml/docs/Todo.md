@@ -9,11 +9,12 @@
 
 ## Developing features
 
-- [] closureTable general procedures
-- [] predefined view
-- [] add triggers for calculated fields 
-- [] triggers for insert and update - (update timestamp finished)
-- [] data template
+- [ ] closureTable general procedures
+- [ ] predefined view
+- [ ] add triggers for calculated fields 
+- [ ] triggers for insert and update - (update timestamp finished)
+- [ ] data template
+- [ ] api generation
 
 ## Planned features
 
