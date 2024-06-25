@@ -1,5 +1,13 @@
 # @kitmi/xeml
 
+## 0.3.3
+
+### Patch Changes
+
+-   Add auto update timestamp trigger.
+-   Updated dependencies
+    -   @kitmi/data@0.4.2
+
 ## 0.3.2
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @kitmi/data
 
+## 0.4.2
+
+### Patch Changes
+
+-   Add $between and $notBetween operators.
+
+## 0.4.1
+
+### Patch Changes
+
+-   Bug fixes.
+
 ## 0.4.0
 
 ### Minor Changes
