@@ -200,41 +200,6 @@ class EntityModel {
     }
 
     /**
-     * Get nested object of an entity.
-     * @param {*} entityObj
-     * @param {*} keyPath
-     */
-    getNestedObject(entityObj, keyPath, defaultValue) {
-        const nodes = (Array.isArray(keyPath) ? keyPath : keyPath.split('.')).map((key) =>
-            key[0] === ':' ? key : ':' + key
-        );
-        return _get(entityObj, nodes, defaultValue);
-    }
-
-    /**
-     * Ensure the entity object containing required fields, if not, it will automatically fetched from db and return.
-     * @param {*} entityObj
-     * @param {Array} fields
-     * @param {*} connOpts
-     * @returns {Object}
-     */
-    async ensureFields_(entityObj, fields, connOpts) {
-        if (_.find(fields, (field) => !_.has(entityObj, field))) {
-            const uk = this.getUniqueKeyValuePairsFrom(entityObj);
-
-            if (isEmpty(uk)) {
-                throw new ApplicationError('None of the unique keys found from the data set.');
-            }
-
-            const findOptions = { $where: uk, /* $projection: fields,*/ $association: this.assocFrom(fields) };
-
-            return this.findOne_(findOptions, connOpts);
-        }
-
-        return entityObj;
-    }
-
-    /**
      * Ensure context.latest be the just created entity.
      * @param {*} context
      * @param {*} customOptions
@@ -1326,10 +1291,10 @@ class EntityModel {
             qOptions.$select.forEach((value) => {
                 if (typeof value === 'string') {
                     let fpos = value.indexOf('* -');
-                    if (fpos > 0) {
+                    if (fpos >= 0) {
                         // exclude syntax
-                        const parts = value.split(' -');
-                        const baseAssoc = parts[0].substring(0, fpos - 1);
+                        const parts = value.split(' -');                        
+                        const baseAssoc = parts[0];
                         value = {
                             $xr: 'ExclusiveSelect',
                             columnSet: baseAssoc,
@@ -1349,7 +1314,16 @@ class EntityModel {
                 }
 
                 if (isPlainObject(value) && value.$xr === 'ExclusiveSelect') {
-                    this._translateExclSelect(value).forEach((v) => converted.add(v));
+                    this._translateExclSelect(value).forEach((v) => {
+                        let pos;
+
+                        if ((pos = v.lastIndexOf('.')) > 0) {
+                            // auto-add relation if select includes a field from related entity
+                            relFromSelect.add(v.substring(0, pos));
+                        }
+
+                        converted.add(v);
+                    });
                     return;
                 }
 
@@ -1404,22 +1378,22 @@ class EntityModel {
 
     _translateExclSelect(value) {
         const { columnSet, excludes } = value;
-        let targetEntity;
 
         if (columnSet === '*') {
-            targetEntity = this;
-        } else {
-            const base = columnSet.split('.');
-            const right = base.pop();
-
-            if (right !== '*') {
-                throw new ApplicationError('Invalid column set syntax in exclusive select: ' + columnSet);
-            }
-
-            targetEntity = this.getChainedRelatedEntity(base);
+            return Object.keys(_.omit(this.meta.fields, excludes));
         }
 
-        return Object.keys(_.omit(targetEntity.meta.fields, excludes));
+        const base = columnSet.split('.');
+        const right = base.pop();
+
+        if (right !== '*') {
+            throw new ApplicationError('Invalid column set syntax in exclusive select: ' + columnSet);
+        }
+
+        const basePrefix = base.join('.');
+        const targetEntity = this.getChainedRelatedEntity(base);
+
+        return Object.keys(_.omit(targetEntity.meta.fields, excludes)).map((f) => basePrefix + '.' + f);
     }
 
     /**

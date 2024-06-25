@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.4.3
+
+### Patch Changes
+
+-   Fix select with exclusive columns.
+
 ## 0.4.2
 
 ### Patch Changes
