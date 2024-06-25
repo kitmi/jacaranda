@@ -462,6 +462,58 @@ class RelationalConnector extends Connector {
                                     ` <= ${this._packValue(v, params, mainEntity, aliasMap)}`
                                 );
 
+                            case '$between':
+                                if (!Array.isArray(v) || v.length !== 2) {
+                                    throw new InvalidArgument(
+                                        'The value should be an array with 2 elements when using "$between" operator.',
+                                        {
+                                            value: v,
+                                        }
+                                    );
+                                }
+
+                                if (inject) {
+                                    return (
+                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                        ` BETWEEN ${v[0]} AND ${v[1]}`
+                                    );
+                                }
+
+                                params.push(v[0]);
+                                params.push(v[1]);
+                                return (
+                                    this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                    ` BETWEEN ${this.specParamToken(params.length - 1)} AND ${this.specParamToken(
+                                        params.length
+                                    )}`
+                                );
+
+                            case '$notBetween':
+                                if (!Array.isArray(v) || v.length !== 2) {
+                                    throw new InvalidArgument(
+                                        'The value should be an array with 2 elements when using "$notBetween" operator.',
+                                        {
+                                            value: v,
+                                        }
+                                    );
+                                }
+
+                                if (inject) {
+                                    return (
+                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                        ` NOT BETWEEN ${v[0]} AND ${v[1]}`
+                                    );
+                                }
+
+                                params.push(v[0]);
+                                params.push(v[1]);
+                                return (
+                                    this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                    ` NOT BETWEEN ${this.specParamToken(params.length - 1)} AND ${this.specParamToken(
+                                        params.length
+                                    )}`
+                                );
+
                             case '$in':
                                 if (isPlainObject(v) && v.$xr === 'DataSet') {
                                     const sqlInfo = this.buildQuery(v.model, v.query);
@@ -473,8 +525,11 @@ class RelationalConnector extends Connector {
                                     );
                                 } else {
                                     if (!Array.isArray(v)) {
-                                        throw new Error(
-                                            'The value should be a dataset or an array when using "$in" operator.'
+                                        throw new InvalidArgument(
+                                            'The value should be a dataset or an array when using "$in" operator.',
+                                            {
+                                                value: v,
+                                            }
                                         );
                                     }
 
@@ -501,7 +556,12 @@ class RelationalConnector extends Connector {
                                     );
                                 } else {
                                     if (!Array.isArray(v)) {
-                                        throw new Error('The value should be an array when using "$in" operator.');
+                                        throw new InvalidArgument(
+                                            'The value should be an array when using "$notIn" operator.',
+                                            {
+                                                value: v,
+                                            }
+                                        );
                                     }
 
                                     if (inject) {
@@ -520,7 +580,12 @@ class RelationalConnector extends Connector {
                             case '$startWith':
                             case '$startsWith':
                                 if (typeof v !== 'string') {
-                                    throw new Error('The value should be a string when using "$startWith" operator.');
+                                    throw new InvalidArgument(
+                                        'The value should be a string when using "$startWith" operator.',
+                                        {
+                                            value: v,
+                                        }
+                                    );
                                 }
 
                                 params.push(`${v}%`);
@@ -529,7 +594,12 @@ class RelationalConnector extends Connector {
                             case '$endWith':
                             case '$endsWith':
                                 if (typeof v !== 'string') {
-                                    throw new Error('The value should be a string when using "$endWith" operator.');
+                                    throw new InvalidArgument(
+                                        'The value should be a string when using "$endWith" operator.',
+                                        {
+                                            value: v,
+                                        }
+                                    );
                                 }
 
                                 params.push(`%${v}`);
@@ -538,7 +608,12 @@ class RelationalConnector extends Connector {
                             case '$like':
                             case '$likes':
                                 if (typeof v !== 'string') {
-                                    throw new Error('The value should be a string when using "$like" operator.');
+                                    throw new InvalidArgument(
+                                        'The value should be a string when using "$like" operator.',
+                                        {
+                                            value: v,
+                                        }
+                                    );
                                 }
 
                                 params.push(`%${v}%`);
