@@ -7,7 +7,7 @@ processorTable.normalizePhone = (value, options) => normalizePhone(value, option
 
 export const _Processors = _.mapValues(
     processorTable,
-    (processor) => (entity, field, context, value, options) => processor(value, options, meta, context)
+    (processor) => (entity, field, context, value, options) => processor(value, options, field, context)
 );
 
 export default processorTable;

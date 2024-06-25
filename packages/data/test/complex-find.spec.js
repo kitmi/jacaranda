@@ -1,5 +1,5 @@
 describe('crud complex', function () {
-    it('create & find', async function () {
+    it('create, find & update', async function () {
         await tester.start_(async (app) => {
             const db = app.db('test2');
             const Product = db.entity('product');
@@ -85,17 +85,36 @@ describe('crud complex', function () {
                 $relation: ['category', 'assets.resource', 'attributes', 'variants'],
             });
 
-            console.log(result);
-
             const ProductCategory = db.entity('productCategory');
             const category = await ProductCategory.findOne_({ $select: ['*'], id: 2 });
-
-            console.log(category);
 
             result[':category'].should.eql(category);
             result[':assets'].length.should.eql(3);
             result[':attributes'].length.should.eql(2);
             result[':variants'].length.should.eql(6);
+
+            const { data: data2, affectedRows: rows2 } = await Product.updateOne_(
+                {
+                    name: 'Demo Product 200',
+                },
+                { $where: { id: insertId }, $getUpdated: true }
+            );
+
+            rows2.should.equal(1);
+            data2.name.should.eql('Demo Product 200');
+        });
+    });
+
+    it('find many', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db('test2');
+            const Product = db.entity('product');
+            const result = await Product.findMany_({
+                $relation: ['category', 'assets.resource', 'attributes', 'variants'],
+            });
+
+            result.op.should.equal('SELECT');
+            result.data.length.should.be.above(1);            
         });
     });
 });

@@ -16,6 +16,7 @@ function initialize(entity, args = []) {
         type: 'datetime',
         readOnly: true,
         forceUpdate: true,
+        updateByDb: true,
         optional: true,
     };
 

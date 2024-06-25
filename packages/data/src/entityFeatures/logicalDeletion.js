@@ -10,7 +10,7 @@ import { OpCompleted } from '../utils/errors';
  * @module EntityFeatureRuntime_LogicalDeletion
  */
 
-module.exports = {
+export default {
     [Rules.RULE_BEFORE_FIND]: (feature, entityModel, context) => {
         const findOptions = context.options;
         if (!findOptions.$includeDeleted) {            

@@ -1,4 +1,4 @@
-import { ApplicationError, DatabaseError, InvalidArgument, ValidationError } from '@kitmi/types';
+import { ApplicationError, InvalidArgument, ValidationError, HttpCode } from '@kitmi/types';
 import { _, eachAsync_, isPlainObject, isEmpty, get as _get } from '@kitmi/utils';
 import typeSystem, { Types } from '@kitmi/validators/allSync';
 import Features from './entityFeatures';
@@ -223,7 +223,7 @@ class EntityModel {
             const uk = this.getUniqueKeyValuePairsFrom(entityObj);
 
             if (isEmpty(uk)) {
-                throw new UnexpectedState('None of the unique keys found from the data set.');
+                throw new ApplicationError('None of the unique keys found from the data set.');
             }
 
             const findOptions = { $where: uk, /* $projection: fields,*/ $association: this.assocFrom(fields) };
@@ -424,6 +424,8 @@ class EntityModel {
 
             result.data = isOne ? data[0] : data ?? [];
             delete result.fields;
+            delete result.aliases;
+            delete result.affectedRows;
             context.latest = context.result = result;
             return isOne ? result.data : result;
         }, context);
@@ -1317,9 +1319,10 @@ class EntityModel {
         qOptions.$where = { ...query, ...qOptions.$where };
 
         let relFromSelect = new Set();
-        const converted = new Set();
 
         if (qOptions.$select) {
+            const converted = new Set();
+
             qOptions.$select.forEach((value) => {
                 if (typeof value === 'string') {
                     let fpos = value.indexOf('* -');
@@ -1350,11 +1353,11 @@ class EntityModel {
                     return;
                 }
 
-                converted.add(this._translateValue(v, qOptions));
+                converted.add(this._translateValue(value, qOptions));
             });
-        }
 
-        qOptions.$select = converted; // will be unique in prepareAssociations
+            qOptions.$select = converted; // will be unique in prepareAssociations
+        }
 
         if (relFromSelect.size) {
             // merge with existing relations
@@ -1371,7 +1374,7 @@ class EntityModel {
         const extraSelect = [];
         qOptions.$where = this._translateValue(qOptions.$where, qOptions, true, extraSelect);
         if (extraSelect.length) {
-            qOptions.$select || (qOptions.$select = new Set());
+            qOptions.$select || (qOptions.$select = new Set(['*']));
             if (!qOptions.$select.has('*')) {
                 extraSelect.forEach((v) => qOptions.$select.add(v));
             }

@@ -1,5 +1,5 @@
-import { _, isEmpty, isInteger } from '@kitmi/utils';
-import { InvalidArgument } from '@kitmi/types';
+import { _, isEmpty } from '@kitmi/utils';
+import { InvalidArgument, ApplicationError } from '@kitmi/types';
 import { runtime, NS_MODULE } from '@kitmi/jacaranda';
 
 import { connectionStringToObject } from '../../Connector';
@@ -817,18 +817,23 @@ class PostgresConnector extends RelationalConnector {
             }
 
             distinctFieldRaw = $totalCount;
-            distinctField = this._escapeIdWithAlias(distinctFieldRaw, mainEntity, aliasMap);
+            distinctField = this._escapeIdWithAlias(distinctFieldRaw, mainEntityForJoin, aliasMap);
         }
 
         if (hasTotalCount) {
+            throw new Error('Not implemented yet.');
+            /*
             const countSubject = 'DISTINCT(' + distinctField + ')';
 
             result.countSql =
                 withTables + `SELECT COUNT(${countSubject}) AS count` + fromAndJoin + whereClause + groupByClause;
             result.countParams = countParams;
+            */
         }
 
         if (needDistinctForLimit) {
+            throw new Error('Not implemented yet.');
+            /*
             const distinctFieldWithAlias = `${distinctField} AS key_`;
             const keysSql = orderByClause
                 ? `WITH records_ AS (SELECT ${distinctFieldWithAlias}, ROW_NUMBER() OVER(${orderByClause}) AS row_${fromAndJoin}${whereClause}${groupByClause}) SELECT key_ FROM records_ GROUP BY key_ ORDER BY row_${limitOffset}`
@@ -863,6 +868,7 @@ class PostgresConnector extends RelationalConnector {
             result.sql =
                 withTables + 'SELECT ' + selectClause + fromAndJoin + whereClause + groupByClause + orderByClause;
             result.params = selectParams.concat(joiningParams, whereParams);
+            */
         } else {
             const [withSql, withParams] = this._joinWithTableClause(childQuery, !withTables);
 
@@ -1085,6 +1091,7 @@ class PostgresConnector extends RelationalConnector {
 
         if (assocInfo.sql) {
             throw new Error('Not implemented.');
+            /*
             if (assocInfo.output) {
                 aliasMap[parentAliasKey + '.' + alias] = alias;
             }
@@ -1101,6 +1108,7 @@ class PostgresConnector extends RelationalConnector {
             );
 
             return startId;
+            */
         }
 
         // Build join

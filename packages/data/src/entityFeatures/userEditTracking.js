@@ -34,7 +34,7 @@ function addUpdatedBy_(entityModel, feature, context) {
  * @module EntityFeatureRuntime_ChangeLog
  */
 
-module.exports = {
+export default {
     [Rules.RULE_BEFORE_VALIDATION]: (feature, entityModel, context) =>
         context.op === 'create'
             ? addCreatedBy_(entityModel, feature, context)

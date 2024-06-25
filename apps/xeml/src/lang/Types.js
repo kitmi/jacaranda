@@ -11,6 +11,7 @@ const commonQualifiers = [
     'generator',
     'readOnly',
     'writeOnce',
+    'updateByDb',
     'plain',
     'forceUpdate',
     'freezeAfterNonDefault',

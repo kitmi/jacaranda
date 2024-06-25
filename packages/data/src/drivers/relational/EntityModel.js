@@ -212,7 +212,7 @@ class RelationalEntityModel extends EntityModel {
                 const assocQuery = assocModel.getUniqueKeyValuePairsFrom(data);
 
                 const _data = await assocModel.findOne_({ $select: [assocModel.meta.keyField], $where: assocQuery });
-                if (!_data == null) {
+                if (_data == null) {
                     throw new ApplicationError('The child entity cannot be found using the unique key(s) from data.', {
                         entity: assocModel.meta.name,
                         query: assocQuery,
@@ -274,7 +274,7 @@ class RelationalEntityModel extends EntityModel {
                 }
 
                 return batchAsync_(data, (item) =>
-                    assocModel.create_({ ...item, [assocMeta.field]: keyValue }, { ...passOnOptions, $upsert: true, $getCreated: null })
+                    assocModel.create_({ ...item, [assocMeta.field]: currentKeyValue }, { ...passOnOptions, $upsert: true, $getCreated: null })
                 );
             }
 

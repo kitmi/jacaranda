@@ -1,4 +1,4 @@
-import { dataSource, dataModel, db } from '../..';
+import { dataSource, dataModel, db } from '../../src';
 import TestDb from '../src/models/Test';
 import Test2Db from '../src/models/Test2';
 

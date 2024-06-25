@@ -213,6 +213,8 @@ class PostgresEntityModel extends EntityModel {
             }
         });
 
+        //console.dir(assocTable, { depth: 10 });
+
         return assocTable;
     }
 

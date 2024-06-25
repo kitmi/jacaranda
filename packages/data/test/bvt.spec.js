@@ -35,6 +35,9 @@ describe('crud bvt', function () {
                 id: insertId,
                 ...testData,
             });
+
+            const result2 = await Book.findOne_(insertId);
+            result2.should.be.eql(result);
         });
     });
 

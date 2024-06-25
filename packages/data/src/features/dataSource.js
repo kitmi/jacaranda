@@ -5,6 +5,7 @@
 
 import { Feature } from '@kitmi/jacaranda';
 import { _ } from '@kitmi/utils';
+import { InvalidConfiguration } from '@kitmi/types';
 import * as drivers from '../drivers';
 
 export default {

@@ -7,7 +7,7 @@ import defaultGenerator from '../TypeGenerators';
  * @module EntityFeatureRuntime_StateTracking
  */
 
-module.exports = {
+export default {
     [Rules.RULE_AFTER_VALIDATION]: (feature, entityModel, context) => {
         feature.forEach((featureItem) => {
             if (featureItem.field in context.latest) {
