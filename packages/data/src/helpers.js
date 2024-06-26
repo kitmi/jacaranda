@@ -9,7 +9,7 @@ export const xrRaw = xrRawValue;
 export const xrColumn = (name, alias) => ({ $xr: 'Column', name, alias });
 export const xrCol = xrColumn;
 
-export const xrFunction = (name, args) => ({ $xr: 'Function', name, args });
+export const xrFunction = (name, ...args) => ({ $xr: 'Function', name, args });
 export const xrCall = xrFunction;
 
 export const xrExpression = (left, op, right) => ({ $xr: 'BinExpr', left, op, right });
@@ -20,8 +20,6 @@ export const xrDataSet = (model, query) => ({ $xr: 'DataSet', model, query });
 
 export const doInc = (field, increment) => xrExpr(xrCol(field), '+', increment);
 export const doDec = (field, decrement) => xrExpr(xrCol(field), '-', decrement);
-
-//export const callCount = (alias, fieldName) => xrCall('COUNT', )
 
 /**
  * Merge two query conditions using given operator.

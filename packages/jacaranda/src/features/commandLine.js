@@ -139,7 +139,7 @@ class CommandLine {
     }
 
     async inquire_() {
-        const inquirer = await this.app.tryRequire_('inquirer');
+        const inquirer = await this.app.tryRequire_('inquirer', true);
 
         const doInquire_ = (item, argIndex) =>
             inquirer.prompt([item]).then((answers) => {

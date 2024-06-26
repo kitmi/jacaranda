@@ -148,7 +148,17 @@ entity productAsset
     associations
         belongsTo product
         refersTo resource    
+        hasMany productAssetSomething as somethings
 
     index
         [product, resource] is unique
 
+//----------------------------------------------------------------------------------------------------
+
+entity productAssetSomething
+  with 
+    autoId
+  has
+    something: text optional
+  associations
+    belongsTo productAsset

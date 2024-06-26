@@ -23,7 +23,7 @@ export default {
      * @returns {Promise.<*>}
      */
     load_: async function (app, settings, name) {
-        const superagent = await app.tryRequire_('superagent');
+        const superagent = await app.tryRequire_('superagent', true);
         const { superagent: adapter } = app.tryRequire('@kitmi/adapters');
 
         let client = new HttpClient(adapter(superagent), settings);

@@ -105,4 +105,21 @@ describe('query operators', function () {
             result.data.length.should.be.exactly(count - 2);
         });
     });
+
+    it('like', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db();
+            const Book = db.entity('book');
+
+            const result = await Book.findMany_({
+                $where: {
+                    name: {
+                        $like: '3',
+                    },
+                },
+            });
+
+            result.data.length.should.be.exactly(1);
+        });
+    });
 });

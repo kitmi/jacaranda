@@ -38,15 +38,15 @@ describe('crud bvt', function () {
                 $select: ['*', 'category.*'],
             });
 
-            should.exist(result.data[0][":category"].name);
-            should.exist(result.data[0][":category"].desc);
+            should.exist(result.data[0][':category'].name);
+            should.exist(result.data[0][':category'].desc);
 
             const result2 = await Product.findMany_({
                 $select: ['*', 'category.name'],
             });
 
-            should.exist(result2.data[0][":category"].name);
-            should.not.exist(result2.data[0][":category"].desc);
+            should.exist(result2.data[0][':category'].name);
+            should.not.exist(result2.data[0][':category'].desc);
         });
     });
 
@@ -58,8 +58,8 @@ describe('crud bvt', function () {
                 $select: ['*', 'category.* -desc'],
             });
 
-            should.exist(result.data[0][":category"].name);
-            should.not.exist(result.data[0][":category"].desc);
+            should.exist(result.data[0][':category'].name);
+            should.not.exist(result.data[0][':category'].desc);
         });
     });
 });

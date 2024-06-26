@@ -321,7 +321,6 @@ class ServiceContainer extends AsyncEmitter {
             return this.tryRequire(pkgName);
         } catch (error) {
             if (error.code === 'ERR_REQUIRE_ESM') {
-                console.log('ERR_REQUIRE_ESM', pkgName);
                 try {
                     const esmModule = await import(pkgName);
                     
@@ -330,7 +329,6 @@ class ServiceContainer extends AsyncEmitter {
                     }
                     return esmModule;
                 } catch (error) {
-                    console.log(error);
                     throw error;
                 }
             }
@@ -675,7 +673,7 @@ class ServiceContainer extends AsyncEmitter {
                     }
 
                     featurePath = loadOption[0];
-                    featureObject = await this.tryRequire_(featurePath);
+                    featureObject = await this.tryRequire_(featurePath, true);
 
                     if (loadOption.length > 1) {
                         //one module may contains more than one feature
@@ -683,7 +681,7 @@ class ServiceContainer extends AsyncEmitter {
                     }
                 } else {
                     featurePath = loadOption;
-                    featureObject = await this.tryRequire_(featurePath);
+                    featureObject = await this.tryRequire_(featurePath, true);
                 }
             } else {
                 //load by fallback paths

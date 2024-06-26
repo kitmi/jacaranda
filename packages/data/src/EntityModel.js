@@ -258,41 +258,6 @@ class EntityModel {
         return options ?? {};
     }
 
-    /**
-     * Get a pk-indexed hashtable with all undeleted data
-     * {string} [key] - The key field to used by the hashtable.
-     * {array} [associations] - With an array of associations.
-     * {object} [connOptions] - Connection options, e.g. transaction handle
-     */
-    async cached_(key, associations, connOptions) {
-        if (key) {
-            let combinedKey = key;
-
-            if (!isEmpty(associations)) {
-                combinedKey += '/' + minifyAssocs(associations).join('&');
-            }
-
-            let cachedData;
-
-            if (!this._cachedData) {
-                this._cachedData = {};
-            } else if (this._cachedData[combinedKey]) {
-                cachedData = this._cachedData[combinedKey];
-            }
-
-            if (!cachedData) {
-                cachedData = this._cachedData[combinedKey] = await this.findAll_(
-                    { $association: associations, $toDictionary: key },
-                    connOptions
-                );
-            }
-
-            return cachedData;
-        }
-
-        return this.cached_(this.meta.keyField, associations, connOptions);
-    }
-
     async applyRules_(ruleName, context) {
         for (const featureName in this.meta.features) {
             const key = featureName + '.' + ruleName;
@@ -394,33 +359,6 @@ class EntityModel {
             context.latest = context.result = result;
             return isOne ? result.data : result;
         }, context);
-    }
-
-    /**
-     * Regenerate creation data and try again if duplicate record exists
-     * @param {Function} dataGenerator_
-     * @param {Object} connOptions
-     */
-    async retryCreateOnDuplicate_(dataGenerator_, maxRery, createOptions, connOptions) {
-        let counter = 0;
-        let errorRet;
-        maxRery || (maxRery = 10);
-
-        while (counter++ < maxRery) {
-            const data = await dataGenerator_();
-
-            try {
-                return await this.create_(data, createOptions, connOptions);
-            } catch (error) {
-                if (error.code !== 'E_DUPLICATE') {
-                    throw error;
-                }
-
-                errorRet = error;
-            }
-        }
-
-        return errorRet;
     }
 
     async ensureTransaction_() {
@@ -1125,7 +1063,7 @@ class EntityModel {
                 // there is special input column which maybe a function or an expression
                 // postgres only support split columns, i.e. INSERT INTO VALUES
                 // mysql support INSERT INTO SET ??
-                opOptions.$requireSplitColumns = true;
+                //opOptions.$requireSplitColumns = true;
                 return value;
             }
 
@@ -1293,7 +1231,7 @@ class EntityModel {
                     let fpos = value.indexOf('* -');
                     if (fpos >= 0) {
                         // exclude syntax
-                        const parts = value.split(' -');                        
+                        const parts = value.split(' -');
                         const baseAssoc = parts[0];
                         value = {
                             $xr: 'ExclusiveSelect',

@@ -17,8 +17,6 @@
 
 import path from 'node:path';
 import { _, batchAsync_ } from '@kitmi/utils';
-import { fs, isDir_ } from '@kitmi/sys';
-import { InvalidConfiguration } from '@kitmi/types';
 import Feature from '../Feature';
 import LibModule from '../LibModule';
 
@@ -43,20 +41,12 @@ export default {
                 ...config.options,
             };
 
-            let appPath;
-            let moduleMeta; 
-            
-            if (config.npmModule) {                
-                moduleMeta = await app.requireModule(name); 
-                appPath = moduleMeta.appPath;
-            } else {
-                appPath = path.join(app.libModulesPath, name);
-            }
-
-            let exists = (await fs.pathExists(appPath)) && (await isDir_(appPath));
-            if (!exists) {
-                throw new InvalidConfiguration(`Lib [${name}] not exists.`, app, `libModules.${name}`);
-            }
+            let { appPath, moduleMeta } = await app.tryLoadModule_(
+                config,
+                name,
+                app.libModulesPath,
+                `libs.[${name}]`
+            );
 
             let lib = new LibModule(app, name, appPath, { ...moduleMeta?.options, registry: moduleMeta?.registry, ...options });       
 
@@ -77,3 +67,4 @@ export default {
         });
     },
 };
+

@@ -1,6 +1,7 @@
-import { _, sleep_, batchAsync_, isRunAsEsm } from '@kitmi/utils';
+import { _, sleep_, batchAsync_ } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
 import { defaultRunnableOpts } from './defaultOpts';
+import { fs, isDir_ } from '@kitmi/sys';
 import path from 'node:path';
 import minimist from 'minimist';
 
@@ -29,10 +30,10 @@ const Runnable = (T) =>
             if (this.started) {
                 if (this._logCache.length) {
                     this.flushLogCache();
-                }                
+                }
             }
 
-            this.stop_().catch(this.logError);                
+            this.stop_().catch(this.logError);
         };
 
         /**
@@ -49,15 +50,15 @@ const Runnable = (T) =>
             if (process.argv.length > 2) {
                 const { _, ...cliOptions } = minimist(process.argv.slice(2));
                 options = { ...cliOptions, ...options };
-            }            
+            }
 
             super(name, {
                 ...defaultRunnableOpts,
                 ...options,
-            });            
+            });
 
             this.runnable = true;
-            this.libModulesPath = this.toAbsolutePath(this.options.libModulesPath);            
+            this.libModulesPath = this.toAbsolutePath(this.options.libModulesPath);
         }
 
         /**
@@ -126,10 +127,52 @@ const Runnable = (T) =>
             }
         }
 
+        /**
+         * Visit child modules
+         * @param {function} vistor
+         */
         visitChildModules(vistor) {
             if (this.libModules) {
                 _.each(this.libModules, vistor);
             }
+        }
+
+        /**
+         * Try to load a module.
+         * @param {object} config
+         * @param {string} name
+         * @param {string} fromFeature
+         * @returns {object} { appPath, moduleMeta }
+         */
+        async tryLoadModule_(config, name, defaultBasePath, configItemName) {
+            let appPath;
+            let moduleMeta;
+
+            if (config.npmModule || config.source === 'runtime') {
+                moduleMeta = await this.requireModule(name);
+                appPath = moduleMeta.appPath;
+            } else if (config.source === 'registry') {
+                moduleMeta = this.registry.modules?.[name];
+                if (moduleMeta == null) {
+                    throw new InvalidConfiguration(`Module [${name}] not found in registry.`, app, configItemName);
+                }                
+                appPath = moduleMeta.appPath;
+            } else if (config.source === 'npm') {
+                if (!config.packageName) {
+                    throw new InvalidConfiguration(`Missing "packageName" for npm module [${name}].`, app, configItemName);
+                }
+
+                moduleMeta = await this.tryRequire_(config.packageName, true);
+                appPath = moduleMeta.appPath;            
+            } else {
+                appPath = path.join(defaultBasePath, name);
+            }
+
+            let exists = (await fs.pathExists(appPath)) && (await isDir_(appPath));
+            if (!exists) {
+                throw new InvalidConfiguration(`Module [${name}] not found at "${appPath}".`, app, configItemName);
+            }
+            return { appPath, moduleMeta };
         }
 
         /**
@@ -139,7 +182,7 @@ const Runnable = (T) =>
          */
         getLib(libName) {
             if (!this.libModules) {
-                throw new Error('"libModules" feature is required to access lib among modules.');
+                throw new Error('"libs" feature is required to access lib among modules.');
             }
 
             let libModule = this.libModules[libName];
@@ -232,7 +275,7 @@ const Runnable = (T) =>
         _getFeatureFallbackPath() {
             let pathArray = super._getFeatureFallbackPath();
             pathArray.splice(1, 0, path.resolve(__dirname, 'appFeatures'));
-    
+
             return pathArray;
         }
     };

@@ -60,21 +60,15 @@ _Activators.fetch_ = async (entity, field, context, assoc, options) => {
     // local cache in context, shared by other fields if any
     let remoteEntity = context.populated && context.populated[remoteAssoc];
     if (!remoteEntity) {
-        if (options && options.useCache) {
-            remoteEntity = (
-                await entity.db.entity(assocMeta.entity).cached_(assocMeta.key, interAssoc ? [interAssoc] : null)
-            )[assocValue];
-        } else {
-            const findOptions = { $select: [selectedField], $where: { [assocMeta.key]: assocValue } };
+        const findOptions = { $select: [selectedField], $where: { [assocMeta.key]: assocValue } };
 
-            if (interAssoc) {
-                findOptions.$relation = [interAssoc];
-            }
-
-            await entity.ensureTransaction_(context);
-
-            remoteEntity = await entity.db.entity(assocMeta.entity).findOne_(findOptions);
+        if (interAssoc) {
+            findOptions.$relation = [interAssoc];
         }
+
+        await entity.ensureTransaction_(context);
+
+        remoteEntity = await entity.db.entity(assocMeta.entity).findOne_(findOptions);
 
         if (!remoteEntity) {
             throw new ApplicationError(

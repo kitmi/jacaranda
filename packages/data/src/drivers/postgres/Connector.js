@@ -112,11 +112,11 @@ class PostgresConnector extends RelationalConnector {
         /*
          * @see https://github.com/brianc/node-postgres/wiki/FAQ#11-how-do-i-build-a-where-foo-in--query-to-find-rows-matching-an-array-of-values
          */
-        return ` = ANY ($${index})`; // mysql ' IN (?)'
+        return ` = ANY ($?)`; // mysql ' IN (?)'
     }
 
     specNotInClause(index) {
-        return ` <> ALL ($${index})`; // mysql ' NOT IN (?)'
+        return ` <> ALL ($?)`; // mysql ' NOT IN (?)'
     }
 
     specCsvSetHas(fieldName, value) {
@@ -325,7 +325,7 @@ class PostgresConnector extends RelationalConnector {
                     );
                 }
 
-                query.name = $preparedKey;                
+                query.name = $preparedKey;
             }
 
             if ($asArray) {
@@ -626,7 +626,7 @@ class PostgresConnector extends RelationalConnector {
      * @param {*} deleteOptions
      * @param {*} options
      */
-    async delete_(model, options, connection) {       
+    async delete_(model, options, connection) {
         const aliasMap = { [model]: 'A' };
         let mainEntityForJoin;
 
@@ -739,7 +739,12 @@ class PostgresConnector extends RelationalConnector {
         //const countParams = hasTotalCount ? joiningParams.concat() : null;
 
         // Build select columns
-        let { clause: selectClause, params: selectParams } = this._buildSelect(select, mainEntityForJoin, aliasMap, subSelects);
+        let { clause: selectClause, params: selectParams } = this._buildSelect(
+            select,
+            mainEntityForJoin,
+            aliasMap,
+            subSelects
+        );
 
         if (childQuery?.length > 0) {
             selectClause += ', ' + childQuery.map((q) => `${q.alias}.*`).join(', ');
@@ -900,6 +905,8 @@ class PostgresConnector extends RelationalConnector {
     }
 
     _replaceParamToken(sql, params) {
+        console.log(sql, params);
+
         return params.reduce((_sql, p, i) => {
             return _sql.replace(`$?`, `$${i + 1}`);
         }, sql);
@@ -1008,6 +1015,8 @@ class PostgresConnector extends RelationalConnector {
         const alias = assocInfo.alias || this._generateAlias(startId++, anchor);
         const innerAliasMap = { [aliasKey]: alias };
 
+        aliasMap[aliasKey] = { outer: outerAlias, inner: alias };
+
         // Build join
         const [childQuery, childJoinings, extraSelects, subJoinings, orderBys, nextId] = this._joinAssociations(
             assocInfo,
@@ -1041,8 +1050,6 @@ class PostgresConnector extends RelationalConnector {
         subParams.push(...subJoinings.params);
         childQuery.push({ alias: outerAlias, sql, params: subParams });
 
-        aliasMap[aliasKey] = { outer: outerAlias, inner: alias };
-
         const joinings = this._buildJoin(
             assocInfo,
             outerAlias,
@@ -1061,7 +1068,7 @@ class PostgresConnector extends RelationalConnector {
                 }
                 aliasMap[k] = v;
             }
-        });        
+        });
 
         return [childQuery, joinings, startId];
     }
@@ -1260,7 +1267,7 @@ class PostgresConnector extends RelationalConnector {
             options = { ...queryOptions, $asArray: true };
             //todo: changed to json_build_object
             //const wrappedSql = `SELECT row_to_json(_row) FROM (${query.sql}) _row`;
-            result = await this.execute_(query.sql, query.params, options, connection);            
+            result = await this.execute_(query.sql, query.params, options, connection);
 
             const reverseAliasMap = _.reduce(
                 query.aliasMap,
@@ -1269,7 +1276,7 @@ class PostgresConnector extends RelationalConnector {
                         .split('.')
                         .slice(
                             1
-                        ) /* .map(n => ':' + n) changed to be padding by orm and can be customized with other key getter */;
+                        ); /* .map(n => ':' + n) changed to be padding by orm and can be customized with other key getter */
                     if (typeof alias === 'object') {
                         result[alias.outer] = _path;
                         result[alias.inner] = _path;

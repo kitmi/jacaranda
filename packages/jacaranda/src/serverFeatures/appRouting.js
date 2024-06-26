@@ -48,33 +48,25 @@ export default {
             let options = {
                 configType: server.options.configType,
                 logLevel: server.options.logLevel,
-                traceMiddlewares: server.options.traceMiddlewares,   
-                logMiddlewareRegistry: server.options.logMiddlewareRegistry,     
-                sourcePath: server.options.sourcePath,           
+                traceMiddlewares: server.options.traceMiddlewares,
+                logMiddlewareRegistry: server.options.logMiddlewareRegistry,
+                sourcePath: server.options.sourcePath,
                 ...config.options,
-            };            
+            };
 
-            let appPath;
-            let moduleMeta; 
-            
-            if (config.npmModule) {
-                moduleMeta = await server.requireModule(config.name); 
-                appPath = moduleMeta.appPath;
-            } else {
-                appPath = path.join(server.appModulesPath, config.name);
-            }
+            let { appPath, moduleMeta } = await server.tryLoadModule_(
+                config,
+                config.name,
+                server.appModulesPath,
+                `appRouting.[${baseRoute}]`
+            );
 
-            let exists = (await fs.pathExists(appPath)) && (await isDir_(appPath));
-            if (!exists) {
-                throw new InvalidConfiguration(
-                    `App [${config.name}] not found at ${appPath}`,
-                    server,
-                    `appRouting[${baseRoute}].name`
-                );
-            }
-
-            let app = new WebModule(server, config.name, baseRoute, appPath, { ...moduleMeta?.options, registry: moduleMeta?.registry, ...options });
-            app.now = server.now;            
+            let app = new WebModule(server, config.name, baseRoute, appPath, {
+                ...moduleMeta?.options,
+                registry: moduleMeta?.registry,
+                ...options,
+            });
+            app.now = server.now;
 
             app.once('configLoaded', () => {
                 if (!_.isEmpty(config.overrides)) {

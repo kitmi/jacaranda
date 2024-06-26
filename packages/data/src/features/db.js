@@ -53,7 +53,7 @@ export default {
                         );
                     }
 
-                    sourceApp = app.server.getLib(dbConfig.fromLib);
+                    sourceApp = (app.server ? app.server : app).getLib(dbConfig.fromLib);
                     connector = sourceApp.getService(dbConfig.dataSource, true);
                 } else {
                     sourceApp = app;

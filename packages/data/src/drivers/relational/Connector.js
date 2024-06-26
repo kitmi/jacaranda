@@ -617,7 +617,7 @@ class RelationalConnector extends Connector {
                                 }
 
                                 params.push(`%${v}%`);
-                                return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' LIKE ?';
+                                return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' LIKE ' + this.specParamToken(params.length);
 
                             default:
                                 throw new Error(`Unsupported condition operator: "${k}"!`);
