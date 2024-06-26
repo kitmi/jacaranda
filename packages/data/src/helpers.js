@@ -64,7 +64,7 @@ export const hasValueInAny = (arrayOfColl, key) => getValueFromAny(arrayOfColl, 
  * @param {*} key
  * @returns {*}
  */
-export const getValueFromAny = (arrayOfColl, key) => _.find(arrayOfColl, (coll) => coll?.[key] != null);
+export const getValueFromAny = (arrayOfColl, key) => _.find(arrayOfColl, (coll) => coll?.[key] != null)?.[key];
 
 export const extractTableAndField = (path) => {
     let lastPos = path.lastIndexOf('.');

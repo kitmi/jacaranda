@@ -119,9 +119,9 @@ When an app with the `db` feature enabled, database operation can be done as bel
 - async afterDelete_(context) -> boolean
 - async afterDeleteMany_(context) -> boolean
 
-## Operation options
+## Operation Options
 
-### common options
+### Common Options
 
 #### $ctx 
 
@@ -296,7 +296,7 @@ To physically delete a record.
 
 When executing transactions, `DbModel` (i.e. `entity.db` or `app.db()`) will fork a new instance containing a dedicated connection for a transaction.
 
-The business logic of the whole transaction should be wrapped in a async function and should use the newly given `db` object as **_db** in below example.
+The business logic of the whole transaction should be wrapped in an async function and should use the newly given `db` object as **_db** in below example.
 
 ```js
   // Transaction
@@ -308,3 +308,5 @@ The business logic of the whole transaction should be wrapped in a async functio
       return ret;
   });
 ```
+
+## Create W

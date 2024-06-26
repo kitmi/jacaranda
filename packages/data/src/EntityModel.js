@@ -536,15 +536,24 @@ class EntityModel {
             if (!opOptions.$dryRun) {
                 if (opOptions.$upsert) {
                     const dataForUpdating = _.pick(context.latest, Object.keys(context.raw)); // only update the raw part
+                    const uniqueKeys = this.getUniqueKeyFieldsFrom(context.latest);
 
-                    context.result = await this.db.connector.upsert_(
+                    let result = await this.db.connector.upsert_(
                         this.meta.name,
                         dataForUpdating,
-                        this.getUniqueKeyFieldsFrom(context.latest),
+                        uniqueKeys,
                         context.latest,
                         opOptions,
                         this.db.transaction
                     );
+                    
+                    if (result.affectedRows === 0) {
+                        // insert ignored
+                        const _data = await this.findOne_({ $where: _.pick(context.latest, uniqueKeys) });
+                        result = { data: [ _data ], affectedRows: 0 };
+                    }
+
+                    context.result = result;
                 } else {
                     context.result = await this.db.connector.create_(
                         this.meta.name,
@@ -680,6 +689,14 @@ class EntityModel {
             if (isEmpty(context.latest)) {
                 if (!doneUpdateAssocs && !needUpdateAssocs) {
                     throw new InvalidArgument('Cannot do the update with empty record. Entity: ' + this.meta.name);
+                }
+
+                if (isOne) {
+                    const data = await this.findOne_(opOptions.$where);
+                    context.result = { data };
+                } else {
+                    const result = await this.findMany_(opOptions.$where);
+                    context.result = result;
                 }
             } else {
                 if (
@@ -896,7 +913,8 @@ class EntityModel {
             if (isOne) {
                 existing = await this.findOne_({ $where: opOptions.$where });
             } else {
-                existing = await this.findAll_({ $where: opOptions.$where });
+                const { data: _data  } = await this.findMany_({ $where: opOptions.$where });
+                existing = _data;
             }
             context.existing = existing;
         }
@@ -991,6 +1009,7 @@ class EntityModel {
                             entity: name,
                             fieldInfo: fieldInfo,
                             value,
+                            context: JSON.stringify(context),
                             error: error.stack,
                         });
                     }

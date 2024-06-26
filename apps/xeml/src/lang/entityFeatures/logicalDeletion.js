@@ -17,7 +17,8 @@ function feature(entity, args = []) {
         name: 'isDeleted',
         type: 'boolean',
         'default': false,
-        readOnly: true
+        readOnly: true,
+        autoByDb: true
     }, fieldName, featureSetting;
 
     let [ options ] = args;

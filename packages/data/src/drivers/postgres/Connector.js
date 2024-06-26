@@ -905,8 +905,6 @@ class PostgresConnector extends RelationalConnector {
     }
 
     _replaceParamToken(sql, params) {
-        console.log(sql, params);
-
         return params.reduce((_sql, p, i) => {
             return _sql.replace(`$?`, `$${i + 1}`);
         }, sql);
