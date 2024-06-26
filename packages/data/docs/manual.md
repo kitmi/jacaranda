@@ -210,6 +210,81 @@ $relation: [ 'profile.address', 'roles.role' ];
 
 The where clause object.
 
+- Condition with AND
+
+```js
+{
+    $where: {
+        key1: value1,
+        key2: value2
+    } 
+    // key1 == value1 AND key2 == value2
+}
+
+{
+    $where: {
+        $and: [ { key1: value1 }, { key2: value2 } ]
+    } 
+    // key1 == value1 AND key2 == value2
+}
+```
+
+- Condition with OR
+
+```js
+{
+    $where: {
+        $or: [ { key1: value1 }, { key2: value2 } ],
+        $or_2: [ { key3: value3, key4: value4 }, { key5: value5 } ],
+    }
+    // (key1 == value1 OR key2 == value2) AND ((key3 == value3 AND key4 == value4) OR (key5 == value5))
+}
+```
+
+- Condition with NOT
+
+```js
+{
+    $where: {
+        $not: {
+            key1: value1,
+            key2: value2
+        }
+    }
+    // NOT (key1 == value1 AND key2 == value2)
+}
+```
+
+- Condition with Expressions
+
+```js
+{
+    $where: {
+        $expr: xrExpr(xrCol('someField'), '==', xrCol('someField2')),
+        $expr_2: xrExpr(xrCol('metadata'), '@>', obj)
+    }
+    // someField == someField2 AND metadata @> $1
+    // $1: obj
+}
+```
+
+##### Condition Operators
+
+- $gt: >
+- $lt: <
+- $gte: >=
+- $lte: <=
+- $exist
+    - { $exist: true } = IS NOT NULL
+    - { $exist: false } = IS NULL
+- $eq: ==
+- $neq: <>
+- $in, $notIn
+- $between, $notBetween
+- $startsWith: LIKE %S
+- $endsWith: LIKE S%
+- $like: LIKE %S%
+
 #### $orderBy
 
 Order by condition
