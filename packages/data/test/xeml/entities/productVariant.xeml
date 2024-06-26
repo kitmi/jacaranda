@@ -11,7 +11,7 @@ entity productVariant
     updateTimestamp
     logicalDeletion
   has
-    value : json optional
+    value : text optional
   associations
     belongsTo product
     belongsTo productVariantType as type

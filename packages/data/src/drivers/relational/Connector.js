@@ -332,15 +332,13 @@ class RelationalConnector extends Connector {
                     case 'BinExpr': {
                         const left = this._packValue(value.left, params, mainEntity, aliasMap);
                         const right = this._packValue(value.right, params, mainEntity, aliasMap);
-                        return left + ` ${value.op} ` + right;
+                        return '(' + left + ` ${value.op} ` + right + ')';
                     }
 
                     default:
                         throw new Error(`Unknown xeml runtime type: ${value.$xr}, value: ${JSON.stringify(value)}`);
                 }
             }
-
-            value = JSON.stringify(value);
         }
 
         params.push(value);
@@ -618,6 +616,18 @@ class RelationalConnector extends Connector {
 
                                 params.push(`%${v}%`);
                                 return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' LIKE ' + this.specParamToken(params.length);
+
+                            case '$filter':
+                                if (typeof v !== 'object') {
+                                    throw new InvalidArgument(
+                                        'The value should be an object when using "$filter" operator.',
+                                        {
+                                            value: v,
+                                        }
+                                    );
+                                }
+                                params.push(v);                                
+                                return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' @> ' + this.specParamToken(params.length);
 
                             default:
                                 throw new Error(`Unsupported condition operator: "${k}"!`);

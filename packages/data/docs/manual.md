@@ -284,6 +284,7 @@ The where clause object.
 - $startsWith: LIKE %S
 - $endsWith: LIKE S%
 - $like: LIKE %S%
+- $fitler: jsonb_field @> filter
 
 #### $orderBy
 

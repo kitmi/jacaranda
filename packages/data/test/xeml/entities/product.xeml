@@ -34,7 +34,7 @@ entity product
     free: boolean optional
     openToGuest: boolean optional
     isPackage: boolean optional
-    hasVariants: boolean optional
+    hasVariants: boolean optional    
 
   associations
     belongsTo productCategory as category   
@@ -53,7 +53,7 @@ entity product
         openToGuest: true,
         isPackage: false,
         hasVariants: false,
-        category: PROD_CAT_DEMO_ID,
+        category: PROD_CAT_DEMO_ID,        
         :assets: [
             { tag: 'snapshots', :resource: { mediaType: 'image', url: 'https://example.com/demo-asset.jpg' } },
             { tag: 'snapshots', :resource: { mediaType: 'image', url: 'https://example.com/demo-asset2.jpg' } },

@@ -6,3 +6,4 @@ entity book
   has
     name
     desc
+    testJson: object jsonb optional

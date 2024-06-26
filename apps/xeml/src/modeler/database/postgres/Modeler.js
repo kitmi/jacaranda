@@ -1618,11 +1618,11 @@ $$ LANGUAGE plpgsql;\n\n`;
                     break;
 
                 case 'object':
-                    if (field.jsonb) {
+                    //if (field.jsonb) {
                         col = this.jsonbColumnDefinition(field);
-                    } else {
-                        col = this.textColumnDefinition(field);
-                    }
+                    //} else {
+                    //   col = this.textColumnDefinition(field);
+                    //}
                     break;
 
                 case 'text':

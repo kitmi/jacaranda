@@ -122,4 +122,33 @@ describe('query operators', function () {
             result.data.length.should.be.exactly(1);
         });
     });
+
+    it('filter', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db();
+            const Book = db.entity('book');
+
+            const { insertId } = await Book.create_({
+                name: 'JSON Book',
+                desc: "This is a book with 'JSON' in its name",
+                testJson: {
+                    key: 'value',
+                    ke2: 'value2',
+                },
+            });
+
+            const result = await Book.findMany_({
+                $where: {
+                    testJson: {
+                        $filter: {
+                            key: 'value',
+                        },
+                    },
+                },
+            });
+
+            result.data.length.should.be.exactly(1);
+            result.data[0].id.should.be.exactly(insertId);
+        });
+    });
 });

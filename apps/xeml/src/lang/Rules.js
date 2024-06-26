@@ -3,6 +3,7 @@ exports.FunctionalQualifiers = [
     'default',
     'auto',
     'autoByDb',
+    'updateByDb',
     'generator',
     'readOnly',
     'writeOnce',

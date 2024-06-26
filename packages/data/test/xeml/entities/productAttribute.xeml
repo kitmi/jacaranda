@@ -10,7 +10,7 @@ entity productAttribute
     createTimestamp
     updateTimestamp
   has
-    value : json optional
+    value : text optional
   associations
     belongsTo product
     belongsTo productAttributeType as type
