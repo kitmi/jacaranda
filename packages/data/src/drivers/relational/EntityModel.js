@@ -22,6 +22,14 @@ class RelationalEntityModel extends EntityModel {
         return autoId && this.meta.fields[autoId.field].autoIncrementId;
     }
 
+    _ensureNoAssociations(data) {
+        for (const k in data) {
+            if (k[0] === ':' || k[0] === '@') {
+                throw new ValidationError(`Association data "${k}" is not allowed in entity "${this.meta.name}".`);
+            }
+        }
+    }
+
     /**
      * Pre-process assoicated db operation
      * @param {*} data
@@ -183,7 +191,7 @@ class RelationalEntityModel extends EntityModel {
                 }
 
                 return batchAsync_(data, (item) =>
-                    assocModel.create_({ ...item, [assocMeta.field]: keyValue }, passOnOptions)
+                    assocModel.create_({ ...item, [assocMeta.field]: keyValue }, { ...passOnOptions })
                 );
             }
 
@@ -200,7 +208,7 @@ class RelationalEntityModel extends EntityModel {
                 data = { ...data, [assocMeta.field]: keyValue };
             }
 
-            let created = await assocModel.create_(data, passOnOptions);
+            let created = await assocModel.create_(data, { ...passOnOptions });
 
             if (!beforeEntityCreate) {
                 return;
@@ -266,7 +274,107 @@ class RelationalEntityModel extends EntityModel {
             if (assocMeta.list) {
                 // has many
                 if (!Array.isArray(data)) {
-                    throw new InvalidArgument(`Association "${anchor}" is a list, array is expected.`, {
+                    if (typeof data === 'object') {
+                        const { $delete, $update, $create, ...others } = data;
+                        if (!isEmpty(others)) {
+                            throw new InvalidArgument(
+                                `Association "${anchor}" is a list and array or object with { $delete, $update, $create } is expected.`,
+                                {
+                                    entity: this.meta.name,
+                                    anchor,
+                                    remote: assocMeta.entity,
+                                }
+                            );
+                        }
+
+                        if ($delete) {
+                            if (!Array.isArray($delete)) {
+                                throw new InvalidArgument(
+                                    `"$delete" operation of "hasMany" association "${anchor}" requires an array.`,
+                                    {
+                                        entity: this.meta.name,
+                                        anchor,
+                                        remote: assocMeta.entity,
+                                    }
+                                );
+                            }
+
+                            const keysToDelete = $delete.map((item, index) => {
+                                const keyValue = item[assocModel.meta.keyField];
+                                if (keyValue == null) {
+                                    throw new InvalidArgument(
+                                        `The key field "${assocModel.meta.keyField}" is required for deletion.`,
+                                        {
+                                            mainEntity: this.meta.name,
+                                            childEntity: assocModel.meta.name,
+                                            index,
+                                            item,
+                                        }
+                                    );
+                                }
+                                return keyValue;
+                            });
+
+                            await assocModel.deleteMany_({ [assocModel.meta.keyField]: { $in: keysToDelete } }, {...passOnOptions});
+                        }
+
+                        if ($update) {
+                            if (!Array.isArray($update)) {
+                                throw new InvalidArgument(
+                                    `"$update" operation of "hasMany" association "${anchor}" requires an array.`,
+                                    {
+                                        entity: this.meta.name,
+                                        anchor,
+                                        remote: assocMeta.entity,
+                                    }
+                                );
+                            }
+
+                            await batchAsync_($update, async (item) => {
+                                const keyValue = item[assocModel.meta.keyField];
+                                if (keyValue == null) {
+                                    throw new InvalidArgument(
+                                        `The key field "${assocModel.meta.keyField}" is required for updating.`,
+                                        {
+                                            mainEntity: this.meta.name,
+                                            childEntity: assocModel.meta.name,
+                                            index,
+                                            item,
+                                        }
+                                    );
+                                }
+
+                                await assocModel.updateOne_(
+                                    { ...item, [assocModel.meta.keyField]: undefined },
+                                    { ...passOnOptions, $where: { [assocModel.meta.keyField]: keyValue } }
+                                );
+                            });
+                        }
+
+                        if ($create) {
+                            if (!Array.isArray($create)) {
+                                throw new InvalidArgument(
+                                    `"$create" operation of "hasMany" association "${anchor}" requires an array.`,
+                                    {
+                                        entity: this.meta.name,
+                                        anchor,
+                                        remote: assocMeta.entity,
+                                    }
+                                );
+                            }
+
+                            await batchAsync_($create, (item) =>
+                                assocModel.create_(
+                                    { ...item, [assocMeta.field]: currentKeyValue },
+                                    { ...passOnOptions, $getCreated: null }
+                                )
+                            );
+                        }
+
+                        return;
+                    }
+
+                    throw new InvalidArgument(`Association "${anchor}" is a list and array is expected.`, {
                         entity: this.meta.name,
                         anchor,
                         remote: assocMeta.entity,
@@ -274,7 +382,10 @@ class RelationalEntityModel extends EntityModel {
                 }
 
                 return batchAsync_(data, (item) =>
-                    assocModel.create_({ ...item, [assocMeta.field]: currentKeyValue }, { ...passOnOptions, $upsert: true, $getCreated: null })
+                    assocModel.create_(
+                        { ...item, [assocMeta.field]: currentKeyValue },
+                        { ...passOnOptions, $upsert: true, $getCreated: null }
+                    )
                 );
             }
 

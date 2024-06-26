@@ -34,6 +34,7 @@ describe('crud bvt', function () {
             result.should.be.eql({
                 id: insertId,
                 ...testData,
+                testJson: null
             });
 
             const result2 = await Book.findOne_(insertId);

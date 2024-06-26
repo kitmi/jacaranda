@@ -20,23 +20,6 @@ const featureRules = _.reduce(
 
 const NEED_OVERRIDE = 'Should be overrided by driver-specific subclass.';
 
-function minifyAssocs(assocs) {
-    const sorted = _.uniq(assocs).sort().reverse();
-
-    const minified = _.take(sorted, 1);
-    const l = sorted.length - 1;
-
-    for (let i = 1; i < l; i++) {
-        const k = sorted[i] + '.';
-
-        if (!_.find(minified, (a) => a.startsWith(k))) {
-            minified.push(sorted[i]);
-        }
-    }
-
-    return minified;
-}
-
 /**
  * Base entity model class.
  * @class
@@ -127,29 +110,8 @@ class EntityModel {
         return (this._cachedSchema[key] = schemaGenerator(options));
     }
 
-    /**
-     * Helper to combine explicit required associations and associations required by query fields or projection fields.
-     * @param {array} [fields]
-     * @param {array} [extraArray]
-     * @returns {Array}
-     */
-    assocFrom(fields, extraArray) {
-        const result = new Set(extraArray ?? []);
-
-        if (fields) {
-            fields.forEach((keyPath) => {
-                const keyNodes = keyPath.split('.');
-                if (keyNodes.length > 1) {
-                    const assoc = keyNodes
-                        .slice(0, -1)
-                        .map((p) => (p.startsWith(':') ? p.substring(1) : p))
-                        .join('.');
-                    result.add(assoc);
-                }
-            });
-        }
-
-        return Array.from(result);
+    omitReadOnly(data) {
+        return _.omitBy(data, (value, key) => !this.meta.fields[key] || this.meta.fields[key].readOnly);
     }
 
     /**
@@ -332,7 +294,7 @@ class EntityModel {
 
         await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
 
-        this._preProcessOptions(opOptions, isOne /* for single record */);
+        this._preProcessOptions(opOptions, isOne /* for single record */, true);
 
         return this._safeExecute_(async () => {
             const result = await this.db.connector.find_(this.meta.name, opOptions, this.db.transaction);
@@ -546,11 +508,11 @@ class EntityModel {
                         opOptions,
                         this.db.transaction
                     );
-                    
+
                     if (result.affectedRows === 0) {
                         // insert ignored
                         const _data = await this.findOne_({ $where: _.pick(context.latest, uniqueKeys) });
-                        result = { data: [ _data ], affectedRows: 0 };
+                        result = { data: [_data], affectedRows: 0 };
                     }
 
                     context.result = result;
@@ -617,30 +579,10 @@ class EntityModel {
         }
 
         updateOptions = this._wrapCtx(updateOptions);
-        return this._update_(data, updateOptions, true);
-    }
 
-    /**
-     * Update many existing entites with given data.
-     * @param {*} data
-     * @param {*} updateOptions
-     * @returns {object}
-     */
-    async updateMany_(data, updateOptions) {
-        updateOptions = this._wrapCtx(updateOptions);
-        return this._update_(data, updateOptions, false);
-    }
-
-    /**
-     * Update implementation.
-     * @param {*} data
-     * @param {*} updateOptions
-     * @param {boolean} isOne
-     * @returns {object}
-     */
-    async _update_(data, updateOptions, isOne) {
         // see if there is associated entity data provided together
         let [raw, associations, references] = this._extractAssociations(data);
+        const isOne = true;
 
         const context = {
             op: 'update',
@@ -650,13 +592,7 @@ class EntityModel {
         };
 
         // see if there is any runtime feature stopping the update
-        let toUpdate;
-
-        if (isOne) {
-            toUpdate = await this.beforeUpdate_(context);
-        } else {
-            toUpdate = await this.beforeUpdateMany_(context);
-        }
+        const toUpdate = await this.beforeUpdate_(context);
 
         if (!toUpdate) {
             return context.result;
@@ -691,13 +627,8 @@ class EntityModel {
                     throw new InvalidArgument('Cannot do the update with empty record. Entity: ' + this.meta.name);
                 }
 
-                if (isOne) {
-                    const data = await this.findOne_(opOptions.$where);
-                    context.result = { data };
-                } else {
-                    const result = await this.findMany_(opOptions.$where);
-                    context.result = result;
-                }
+                const data = await this.findOne_(opOptions.$where);
+                context.result = { data };
             } else {
                 if (
                     needUpdateAssocs &&
@@ -709,7 +640,7 @@ class EntityModel {
                     opOptions.$getUpdated = true;
                 }
 
-                if (isOne && !opOptions.$limit) {
+                if (!opOptions.$limit) {
                     opOptions.$limit = 1;
                 }
 
@@ -720,12 +651,7 @@ class EntityModel {
                     this.db.transaction
                 );
 
-                if (isOne) {
-                    context.result.data = context.result.data[0] ?? {};
-                } else {
-                    context.result.data = context.result.data ?? [];
-                }
-
+                context.result.data = context.result.data[0] ?? {};
                 delete context.result.fields;
             }
 
@@ -739,11 +665,66 @@ class EntityModel {
         }, context);
 
         if (!opOptions.$dryRun) {
-            if (isOne) {
-                await this.afterUpdate_(context);
-            } else {
-                await this.afterUpdateMany_(context);
+            await this.afterUpdate_(context);
+        }
+
+        return context.result;
+    }
+
+    /**
+     * Update many existing entites with given data.
+     * @param {*} data
+     * @param {*} updateOptions
+     * @returns {object}
+     */
+    async updateMany_(data, updateOptions) {
+        updateOptions = this._wrapCtx(updateOptions);
+        this._ensureNoAssociations(data);
+
+        const isOne = false;
+
+        const context = {
+            op: 'update',
+            raw: data,
+            options: this._normalizeQuery(updateOptions, isOne /* for single record */),
+            isOne,
+        };
+
+        // see if there is any runtime feature stopping the update
+        const toUpdate = await this.beforeUpdateMany_(context);
+
+        if (!toUpdate) {
+            return context.result;
+        }
+
+        const opOptions = context.options;
+        this._preProcessOptions(opOptions, isOne /* for single record */);
+
+        await this._safeExecute_(async () => {
+            await this._prepareEntityData_(context, true /* is updating */, isOne);
+
+            await this.applyRules_(Rules.RULE_BEFORE_UPDATE, context);
+
+            if (isEmpty(context.latest)) {
+                throw new InvalidArgument('Cannot do the update with empty record. Entity: ' + this.meta.name);
             }
+
+            context.result = await this.db.connector.update_(
+                this.meta.name,
+                context.latest,
+                opOptions,
+                this.db.transaction
+            );
+
+            context.result.data = context.result.data ?? [];
+            delete context.result.fields;
+
+            await this.applyRules_(Rules.RULE_AFTER_UPDATE, context);
+            delete opOptions.$data;
+        }, context);
+
+        if (!opOptions.$dryRun) {
+            await this.afterUpdateMany_(context);
         }
 
         return context.result;
@@ -913,7 +894,7 @@ class EntityModel {
             if (isOne) {
                 existing = await this.findOne_({ $where: opOptions.$where });
             } else {
-                const { data: _data  } = await this.findMany_({ $where: opOptions.$where });
+                const { data: _data } = await this.findMany_({ $where: opOptions.$where });
                 existing = _data;
             }
             context.existing = existing;
@@ -1301,9 +1282,9 @@ class EntityModel {
         return qOptions;
     }
 
-    _preProcessOptions(qOptions, isOne) {
+    _preProcessOptions(qOptions, isOne, isFind) {
         const extraSelect = [];
-        qOptions.$where = this._translateValue(qOptions.$where, qOptions, true, extraSelect);
+        qOptions.$where = this._translateValue(qOptions.$where, qOptions, true, isFind ? extraSelect : undefined);
         if (extraSelect.length) {
             qOptions.$select || (qOptions.$select = new Set(['*']));
             if (!qOptions.$select.has('*')) {
@@ -1466,20 +1447,19 @@ class EntityModel {
      */
     _translateValue(value, opPayload, arrayToInOperator, extraSelect) {
         if (isPlainObject(value)) {
-            if (value.$xr) {
-                // todo: check if any properties need translate
+            if (value.$xr) {                
                 switch (value.$xr) {
                     case 'Column':
                         if (extraSelect) {
                             extraSelect.push(value.name);
                         }
-                        return;
+                        return value;
 
                     case 'Function':
                         if (value.args) {
                             return { ...value, args: this._translateValue(value.args, opPayload, false, extraSelect) };
                         }
-                        return;
+                        return value;
 
                     case 'BinExpr':
                         return {
