@@ -1,5 +1,15 @@
 # @kitmi/data
 
+## 0.5.0
+
+### Minor Changes
+
+-   Add $delete, $update & $create for associated update
+-   Add $filter query operator for JSON field
+-   Remove associated update for updateMany_
+-   Fix xrCol helper bug
+-   Update manual
+
 ## 0.4.5
 
 ### Patch Changes
