@@ -1,5 +1,13 @@
 # @kitmi/data
 
+## 0.4.4
+
+### Patch Changes
+
+-   Fix $like, $in query operator bugs 
+-   Updated dependencies
+    -   @kitmi/jacaranda@3.1.2
+
 ## 0.4.3
 
 ### Patch Changes

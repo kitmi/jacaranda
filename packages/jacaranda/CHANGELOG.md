@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.1.2
+
+### Patch Changes
+
+-   Refine module loading source
+
 ## 3.1.1
 
 ### Patch Changes
