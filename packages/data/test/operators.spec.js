@@ -1,3 +1,5 @@
+import { xrRaw } from '../src';
+
 let firstId;
 let lastId;
 
@@ -149,6 +151,46 @@ describe('query operators', function () {
 
             result.data.length.should.be.exactly(1);
             result.data[0].id.should.be.exactly(insertId);
+        });
+    });
+
+    it('raw json', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db();
+            const Book = db.entity('book');
+
+            const { insertId } = await Book.create_({
+                name: 'JSON Book',
+                desc: "This is a book with 'JSON' in its name",
+                testJson: {
+                    duration: 20,
+                },
+            });
+
+            const quizCount = [10, 30];
+
+            const result = await Book.findMany_({
+                $where: {
+                    $and: [
+                        xrRaw(
+                            `("testJson"->>'duration')::INTEGER > ${quizCount[0]} AND ("testJson"->>'duration')::INTEGER < ${quizCount[1]}`
+                        ),
+                    ],
+                },
+            });
+
+            result.data.length.should.be.exactly(1);
+
+            const result2 = await Book.findMany_({
+                $where: {
+                    $expr: xrRaw(
+                        `("testJson"->>'duration')::INTEGER > ${Book.db.paramToken} AND ("testJson"->>'duration')::INTEGER < ${Book.db.paramToken}`,
+                        quizCount
+                    ),
+                },
+            });
+
+            result2.data.should.be.eql(result.data);
         });
     });
 });

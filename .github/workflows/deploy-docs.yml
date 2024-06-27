@@ -43,6 +43,8 @@ jobs:
       - name: Build with mdBook
         run: |
           cp ./README.md ./docs/src/index.md
+          cp ./packages/data/docs/tech-design.md ./docs/src/data-access-models.md
+          cp ./packages/data/docs/manual.md ./docs/src/data-manual.md
           cd docs
           mdbook build
       - name: Copy project docs

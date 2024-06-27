@@ -3,7 +3,7 @@ import { _, isWrappedWith, isEmpty, unwrap } from '@kitmi/utils';
 export const isRawSql = (value) => isWrappedWith(value, 'r#"', '"#');
 export const extractRawSql = (value) => unwrap(value, 'r#"', '"#');
 
-export const xrRawValue = (value) => ({ $xr: 'Raw', value });
+export const xrRawValue = (value, params) => ({ $xr: 'Raw', value, params });
 export const xrRaw = xrRawValue;
 
 export const xrColumn = (name, alias) => ({ $xr: 'Column', name, alias });

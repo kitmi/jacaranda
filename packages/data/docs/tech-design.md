@@ -42,6 +42,7 @@ class Connector {
   async find_(model, options, connection) -> ({ data })
   async update_(model, data, options, connection) -> ({ data, affectedRows })
   async delete_(model, options, connection) -> ({ data, affectedRows })
+  async upsert_(model, data, uniqueKeys, dataOnInsert, options, connection) -> ({ data, affectedRows })
 }
 ```
 
@@ -53,6 +54,7 @@ The `EntityModel` class serves as a base class for data entities with static `me
 
 ```javascript
 class EntityModel {
+  get meta(); // Entity metadata, { name, keyField, associations, features }
   async findOne_(criteria); // Implement find one logic
   async findMany_(criteria); // Implement find many logic
   async findAll_(); // Implement find all logic
@@ -71,13 +73,8 @@ The `DbModel` class manages the lifecycle of a connection created from the conne
 
 ```javascript
 class DbModel {
-  static meta;
-  entity(name) {
-    if (!this._cache[name]) {
-      this._cache[name] = new meta.Entities[name](this);
-    }
-    return this._cache[name];
-  }
+  get meta(); // Database metadata, { schemaName, Entities }
+  entity(name); // Get an entity instance
   async transaction_(async function(anotherDbInstance));
 }
 ```
@@ -90,11 +87,15 @@ The `BusinessLogic` class encapsulates the business logic of the system. It inte
 
 ```javascript
 class BusinessLogic {
-  async validateUserPassword() {
+  constructor(db) {    
+    this.db = db;
+  }
+
+  async validateUserPassword(username, password) {
     // Example business operation logic
-    await this.db.transaction_(async (db) => {
-      const user = await db.entity('User').findOne_({ id: 1039 });
-      await db.entity('UserProfile').updateOne_({ ref: user.ref }, { avatar: 'xxx' });
+    await this.db.transaction_(async (db) => { // !! the passed in db instance is different with this.db
+      const user = await db.entity('User').findOne_({ username });
+      // verify user password with hashed password
     });
   }
 
@@ -116,14 +117,6 @@ const businessLogic = new BusinessLogic(db);
 ```javascript
 const User = db.entity('User');
 const user = await User.findOne_({ id: 1837 });
-```
-
-- Transaction Management
-
-```javascript
-async function performTransaction() {
-  await businessLogic.performOperation();
-}
 ```
 
 # Summary

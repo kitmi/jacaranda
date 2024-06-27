@@ -242,9 +242,9 @@ class PostgresEntityModel extends EntityModel {
     _buildAssocTable(parentTable, cache, assoc, fullPath, selectTable, orderByTable) {
         if (cache[fullPath]) return cache[fullPath];
 
-        const firstPos = assoc.indexOf('.');
+        const lastPos = assoc.lastIndexOf('.');
 
-        if (firstPos === -1) {
+        if (lastPos === -1) {
             // direct association
             const assocInfo = { ...this.meta.associations[assoc] };
             if (isEmpty(assocInfo)) {
@@ -296,8 +296,8 @@ class PostgresEntityModel extends EntityModel {
             return assocInfo;
         }
 
-        const base = assoc.substr(0, firstPos);
-        const remain = assoc.substr(firstPos + 1);
+        const base = assoc.substring(0, lastPos);
+        const remain = assoc.substring(lastPos + 1);
 
         let baseNode = cache[base];
         if (!baseNode) {

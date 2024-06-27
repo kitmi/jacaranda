@@ -1,24 +1,17 @@
-# @kitmi/data
+# @kitmi/data 
 
-## Jacaranda Framework Data Access Model
+Jacaranda Framework Data Access Layer
 
-`@kitmi/data`
+## Docs
 
-## Installation
+- Design
 
-To install `@kitmi/data`, run the following command:
+https://kitmi.github.io/jacaranda/data-access-models.html
 
-```bash
-bun add @kitmi/data
-```
+- Manual
 
-Or if you're using npm:
+https://kitmi.github.io/jacaranda/data-manual.html
 
-```bash
-npm install @kitmi/data
-```
-
-## Usage
 
 ## License
 

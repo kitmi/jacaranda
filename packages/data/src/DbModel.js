@@ -9,6 +9,18 @@ class DbModel {
         this._entities = {};
     }
 
+    get paramToken() {
+        return this.connector.specParamToken;
+    }
+
+    escapeId(id) {
+        return this.connector.escapeId(id);
+    }
+
+    escapeValue(val) {
+        return this.connector.escapeValue(val);
+    }
+
     /**
      * Get the db model metadata, e.g. Entity classes.
      */

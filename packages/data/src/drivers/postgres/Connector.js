@@ -104,24 +104,15 @@ class PostgresConnector extends RelationalConnector {
         return this.collection;
     }
 
-    specParamToken(index) {
-        return `$?`;
-    }
-
-    specInClause(index) {
+    get specInClause() {
         /*
          * @see https://github.com/brianc/node-postgres/wiki/FAQ#11-how-do-i-build-a-where-foo-in--query-to-find-rows-matching-an-array-of-values
          */
-        return ` = ANY ($?)`; // mysql ' IN (?)'
+        return ` = ANY (${this.specParamToken})`; // mysql ' IN (?)'
     }
 
-    specNotInClause(index) {
-        return ` <> ALL ($?)`; // mysql ' NOT IN (?)'
-    }
-
-    specCsvSetHas(fieldName, value) {
-        // mysql 'FIND_IN_SET(?, ?) > 0'
-        return `(${fieldName} @> ARRAY[${value}])`;
+    get specNotInClause() {
+        return ` <> ALL (${this.specParamToken})`; // mysql ' NOT IN (?)'
     }
 
     /**

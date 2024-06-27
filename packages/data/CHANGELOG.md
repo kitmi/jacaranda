@@ -1,12 +1,18 @@
 # @kitmi/data
 
+## 0.5.1
+
+### Patch Changes
+
+-   Fix query builder bugs
+
 ## 0.5.0
 
 ### Minor Changes
 
 -   Add $delete, $update & $create for associated update
 -   Add $filter query operator for JSON field
--   Remove associated update for updateMany_
+-   Remove associated update for updateMany\_
 -   Fix xrCol helper bug
 -   Update manual
 
@@ -20,7 +26,7 @@
 
 ### Patch Changes
 
--   Fix $like, $in query operator bugs 
+-   Fix $like, $in query operator bugs
 -   Updated dependencies
     -   @kitmi/jacaranda@3.1.2
 

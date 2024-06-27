@@ -1,8 +1,10 @@
-# @kitmi/data Manual
+# @kitmi/data 
+
+Jacaranda Framework Data Access Layer
 
 ## Built-in Jacaranda Features
 
-Below features can be configured in both `@kitmi/jacaranda` server config and app module config.
+Below features come with `@kitmi/data` can be configured in both `@kitmi/jacaranda` server config file and app module config file.
 
 - `dataSource` - Defines connector of a database
 
@@ -100,7 +102,7 @@ When an app with the `db` feature enabled, database operation can be done as bel
 -   async deleteMany_(deleteOptions)
 -   async deleteAll_()
    
--   To be implemented
+-   Not implemented yet
     -   async createMany_(data /* array of object */, createOptions) 
     -   async createMany_(fieldNames, data /* array of array */, createOptions)
     -   async aggregate_(...)
@@ -155,14 +157,23 @@ Note: The output columns may have some automatically added fields especially key
 
 - Select by function
 
-```javascript
+```js
 $select: [ { $xr: 'Function', name: 'MAX', alias: 'max', args: ['order'] } ]
 // SELECT MAX(`order`) as max
 ```
 
-Available $xr types refers to [Runtime Types](dev-runtime-type.md)
+- Using the xrXXX helpers.
 
-Helper functions:
+```js
+import { xrCall, xrCol } from '@kitmi/data';
+//...
+{
+    $select: [ xrCall('COUNT', '*'),  xrCall('SUM', xrCol('field1')) ]
+    // SELECT COUNT(*), SUM("field1")
+}
+```
+
+##### Helper Functions
 
 - `xrCall`: call a SQL function
   
@@ -173,6 +184,14 @@ Helper functions:
 ```
 
 - `xrCol`: reference to a table column
+
+Difference between using xrCol and string:
+
+```
+postgres: 
+    xrCol('abc') -> quote_ident('abc') -> "abc"
+    direct string "abc" or 'abc' -> 'abc'
+```
   
 - `xrExpr`: binary expression
 
@@ -182,14 +201,27 @@ Helper functions:
 }
 ```
 
-- `doInc(field, n)`: shorthand for field + n
-- `doDec(field, n)`: shorthand for field - n
-  
-```js
-entity.updateOne_({
-    version: doInc('version', 1)  // version = version + 1
-}, { $where: { id: xxx } })
+- `xrRaw`: raw expression
+
+Note: Directly inject into the SQL statement, should use it carefully.
+
 ```
+xrRaw(<raw-statement>, [params])
+```
+
+In the raw statement, you can put a `db.paramToken` as the placeholders of params and separately pass the params array as the second argument.
+
+e.g.
+```js
+xrRaw(
+    `("testJson"->>'duration')::INTEGER > ${Book.db.paramToken} AND ("testJson"->>'duration')::INTEGER < ${Book.db.paramToken}`,
+    quizCount
+)
+```
+
+- Others
+
+More usage samples can be found in the [`Data to Update`](#data-to-update) section below.
 
 #### $relation
 
@@ -266,6 +298,22 @@ The where clause object.
     // someField == someField2 AND metadata @> $1
     // $1: obj
 }
+```
+
+- Condition with Raw Statement
+
+Had better put a `db.paramToken` as the placeholders of params and separately pass the params array as the second argument.
+
+```js
+const duration = [10, 20];
+await Book.findMany_({
+    $where: {
+        $expr: xrRaw(
+            `("testJson"->>'duration')::INTEGER > ${Book.db.paramToken} AND ("testJson"->>'duration')::INTEGER < ${Book.db.paramToken}`,
+            duration
+        ),
+    },
+});
 ```
 
 ##### Condition Operators
@@ -368,6 +416,33 @@ To delete all records with `deleteMany_`
 
 To physically delete a record.
 
+## Data to Update
+
+- Plain Object
+
+```js
+const data = {
+    field1: 'value1',
+    field2: 'value2'
+};
+
+await Entity.updateOne_(data, { $where, ... });
+```
+
+- Special Values
+    - `xrCol` - Set the value to another column
+    - `xrCall` - Set the value to the result of a function call
+    - `xrExpr` - Set the value to the result of an expression
+    - `xrRaw` - Set the value to a raw SQL statement
+    - `doInc(field, n)`: shorthand for field + n using xrExpr and xrCol
+    - `doDec(field, n)`: shorthand for field - n using xrExpr and xrCol
+  
+```js
+entity.updateOne_({
+    version: doInc('version', 1)  // version = version + 1
+}, { $where: { id: xxx } })
+```
+
 ## Transaction
 
 When executing transactions, `DbModel` (i.e. `entity.db` or `app.db()`) will fork a new instance containing a dedicated connection for a transaction.
@@ -385,4 +460,85 @@ The business logic of the whole transaction should be wrapped in an async functi
   });
 ```
 
-## Create W
+## Create with Associations
+
+- 1:many as array and reference as object
+
+```js
+const { op, data, affectedRows, insertId } = await Product.create_({
+    'type': 'good',
+    'name': 'Demo Product 2',
+    'desc': 'Demo Product Description 2',
+    'image': 'https://example.com/demo.jpg',
+    'thumbnail': 'https://example.com/demo-thumb.jpg',
+    'free': true,
+    'openToGuest': true,
+    'isPackage': false,
+    'hasVariants': false,
+    'category': 2,
+    ':assets': [
+        {
+            'tag': 'snapshots',
+            ':resource': {
+                mediaType: 'image',
+                url: 'https://example.com/demo-asset.jpg',
+            },
+        },
+        {
+            'tag': 'snapshots',
+            ':resource': {
+                mediaType: 'image',
+                url: 'https://example.com/demo-asset2.jpg',
+            },
+        },
+        {
+            'tag': 'poster',
+            ':resource': {
+                mediaType: 'image',
+                url: 'https://example.com/demo-poster.jpg',
+            },
+        },
+    ],
+    ':attributes': [
+        {
+            type: 'dimension',
+            value: '10x10x10',
+        },
+        {
+            type: 'origin',
+            value: 'China',
+        },
+    ],
+    ':variants': [
+        {
+            type: 'color',
+            value: 'red',
+        },
+        {
+            type: 'color',
+            value: 'blue',
+        },
+        {
+            type: 'color',
+            value: 'green',
+        },
+        {
+            type: 'size',
+            value: 'L',
+        },
+        {
+            type: 'size',
+            value: 'M',
+        },
+        {
+            type: 'size',
+            value: 'S',
+        },
+    ],
+});
+```
+
+## License
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

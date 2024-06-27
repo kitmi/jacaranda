@@ -1,5 +1,5 @@
 import ntol from 'number-to-letter';
-import { isPlainObject, isEmpty, snakeCase, isInteger, _ } from '@kitmi/utils';
+import { isPlainObject, isEmpty, snakeCase, isInteger, _, countOfChar } from '@kitmi/utils';
 import { ApplicationError, InvalidArgument } from '@kitmi/types';
 
 import Connector from '../../Connector';
@@ -20,6 +20,10 @@ class RelationalConnector extends Connector {
         super(app, driver, connectionString, options);
 
         this.relational = true;
+    }
+
+    get specParamToken() {
+        return `$?`;
     }
 
     /**
@@ -172,10 +176,28 @@ class RelationalConnector extends Connector {
                     return 'NOT (' + condition + ')';
                 }
 
-                if ((key === '$expr' || key.startsWith('$expr_')) && value.$xr && value.$xr === 'BinExpr') {
-                    const left = this._packValue(value.left, params, mainEntity, aliasMap);
-                    const right = this._packValue(value.right, params, mainEntity, aliasMap);
-                    return left + ` ${value.op} ` + right;
+                if ((key === '$expr' || key.startsWith('$expr_')) && value.$xr) {
+                    if (value.$xr === 'BinExpr') {
+                        const left = this._packValue(value.left, params, mainEntity, aliasMap);
+                        const right = this._packValue(value.right, params, mainEntity, aliasMap);
+                        return left + ` ${value.op} ` + right;
+                    }
+
+                    if (value.$xr === 'Raw') {
+                        if (value.params) {
+                            const numParamTokens = countOfChar(value.value, this.specParamToken);
+                            if (numParamTokens !== value.params.length) {
+                                throw new InvalidArgument('Parameter placeholder count mismatch in raw SQL expression.', {
+                                    expected: value.params.length,
+                                    actual: numParamTokens
+                                });
+                            }
+
+                            params.push(...value.params);
+                        }
+                        
+                        return value.value;
+                    }
                 }
 
                 return this._wrapCondition(key, value, params, mainEntity, aliasMap);
@@ -202,15 +224,15 @@ class RelationalConnector extends Connector {
         if (isInteger($limit) && $limit > 0) {
             if (isInteger($offset) && $offset > 0) {
                 params.push($offset);
-                sql = ` OFFSET ${this.specParamToken(params.length)} LIMIT ${this.specParamToken(params.length + 1)}`;
+                sql = ` OFFSET ${this.specParamToken} LIMIT ${this.specParamToken}`;
                 params.push($limit);
             } else {
                 params.push($limit);
-                sql = ` LIMIT ${this.specParamToken(params.length)}`;
+                sql = ` LIMIT ${this.specParamToken}`;
             }
         } else if (isInteger($offset) && $offset > 0) {
             params.push($offset);
-            sql = ` OFFSET ${this.specParamToken(params.length)}`;
+            sql = ` OFFSET ${this.specParamToken}`;
         }
 
         return sql;
@@ -342,7 +364,7 @@ class RelationalConnector extends Connector {
         }
 
         params.push(value);
-        return this.specParamToken(params.length);
+        return this.specParamToken;
     }
 
     /**
@@ -481,9 +503,7 @@ class RelationalConnector extends Connector {
                                 params.push(v[1]);
                                 return (
                                     this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                    ` BETWEEN ${this.specParamToken(params.length - 1)} AND ${this.specParamToken(
-                                        params.length
-                                    )}`
+                                    ` BETWEEN ${this.specParamToken} AND ${this.specParamToken}`
                                 );
 
                             case '$notBetween':
@@ -507,9 +527,7 @@ class RelationalConnector extends Connector {
                                 params.push(v[1]);
                                 return (
                                     this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                    ` NOT BETWEEN ${this.specParamToken(params.length - 1)} AND ${this.specParamToken(
-                                        params.length
-                                    )}`
+                                    ` NOT BETWEEN ${this.specParamToken} AND ${this.specParamToken}`
                                 );
 
                             case '$in':
@@ -538,7 +556,7 @@ class RelationalConnector extends Connector {
                                     params.push(v);
                                     return (
                                         this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                        this.specInClause(params.length)
+                                        this.specInClause
                                     );
                                 }
 
@@ -571,7 +589,7 @@ class RelationalConnector extends Connector {
                                     params.push(v);
                                     return (
                                         this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                        this.specNotInClause(params.length)
+                                        this.specNotInClause
                                     );
                                 }
 
@@ -615,7 +633,7 @@ class RelationalConnector extends Connector {
                                 }
 
                                 params.push(`%${v}%`);
-                                return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' LIKE ' + this.specParamToken(params.length);
+                                return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' LIKE ' + this.specParamToken;
 
                             case '$filter':
                                 if (typeof v !== 'object') {
@@ -627,7 +645,7 @@ class RelationalConnector extends Connector {
                                     );
                                 }
                                 params.push(v);                                
-                                return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' @> ' + this.specParamToken(params.length);
+                                return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' @> ' + this.specParamToken;
 
                             default:
                                 throw new Error(`Unsupported condition operator: "${k}"!`);
@@ -640,7 +658,7 @@ class RelationalConnector extends Connector {
 
             params.push(JSON.stringify(value));
             return (
-                this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + this.specParamToken(params.length)
+                this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + this.specParamToken
             );
         }
 
@@ -649,7 +667,7 @@ class RelationalConnector extends Connector {
         }
 
         params.push(value);
-        return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + this.specParamToken(params.length);
+        return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + this.specParamToken;
     }
 
     /**
