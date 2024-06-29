@@ -60,6 +60,98 @@ class RelationalConnector extends Connector {
     }
 
     /**
+     * Build sql statement without ORM.
+     * @param {*} model
+     * @param {*} condition
+     */
+    buildQueryNoOrm(model, { $assoc, $select, $where, $groupBy, $orderBy, $offset, $limit }) {
+        const { fromTable, withTables, model: _model } = this._buildCTEHeader(model);
+        model = _model;
+
+        const aliasMap = { [model]: 'A' };
+
+        let joinings;
+        let hasJoining = false;
+        const joiningParams = [];
+        let directJoinings;
+
+        // build alias map first
+        // cache params
+        if ($assoc) {
+            [ joinings, directJoinings ] = this._joinAssociationsNoOrm($assoc, model, aliasMap, 1, joiningParams);
+            hasJoining = model;
+        }
+
+        // Build select columns
+        const selectParams = [];
+        const selectColomns = $select ? this._buildColumns($select, selectParams, hasJoining, aliasMap) : '*';
+
+        // Build from clause
+        let fromClause = ' FROM ' + fromTable;
+        let fromAndJoin = fromClause;
+        if (hasJoining) {
+            fromAndJoin += ' A ';
+            
+            if (directJoinings.length) {
+                directJoinings.forEach((dj) => {
+                    fromAndJoin += `, ${this.escapeId(dj.entity)} ${dj.alias}`;
+                });
+            }
+            
+            if (joinings.length) {
+                fromAndJoin += joinings.join(' ');
+            }
+        }
+
+        // Build where clause
+        let whereClause = '';
+        const whereParams = [];
+
+        if ($where) {
+            whereClause = this._joinCondition($where, whereParams, null, hasJoining, aliasMap);
+
+            if (whereClause) {
+                whereClause = ' WHERE ' + whereClause;
+            }
+        }
+
+        // Build group by clause
+        let groupByClause = '';
+        const groupByParams = [];
+
+        if ($groupBy) {
+            groupByClause += ' ' + this._buildGroupBy($groupBy, groupByParams, hasJoining, aliasMap);
+        }
+
+        // Build order by clause
+        let orderByClause = '';
+        if ($orderBy) {
+            orderByClause += ' ' + this._buildOrderBy($orderBy, hasJoining, aliasMap);
+        }
+
+        // Build limit & offset clause
+        const limitOffetParams = [];
+        let limitOffset = this._buildLimitOffset($limit, $offset, limitOffetParams);
+
+        const result = { hasJoining, aliasMap };
+
+        const sql =
+            withTables +
+            'SELECT ' +
+            selectColomns +
+            fromAndJoin +
+            whereClause +
+            groupByClause +
+            orderByClause +
+            limitOffset;
+
+        result.params = selectParams.concat(joiningParams, whereParams, groupByParams, limitOffetParams);
+        result.sql = this._replaceParamToken(sql, result.params);
+
+        return result;
+    }
+
+    /**
      * Build CTE header and return the select from target and CTE header
      * @param {string} model
      * @returns {object} { fromTable, withTables, model }
@@ -92,6 +184,112 @@ class RelationalConnector extends Connector {
         }
 
         return ntol(index);
+    }
+
+    /**
+     * Extract associations into joining clauses.
+     *  {
+     *      entity: <remote entity>
+     *      joinType: 'LEFT JOIN|INNER JOIN|FULL OUTER JOIN'
+     *      anchor: 'local property to place the remote entity'
+     *      localField: <local field to join>
+     *      remoteField: <remote field to join>
+     *      subAssociations: { ... }
+     *  }
+     *
+     * @param {*} associations
+     * @param {*} parentAliasKey
+     * @param {*} aliasMap
+     * @param {*} params
+     * @param {*} startId
+     * @param {*} params
+     * @returns {object}
+     */
+    _joinAssociationsNoOrm(associations, parentAliasKey, aliasMap, startId, params) {
+        let joinings = [];
+        let directJoinings = [];
+
+        _.each(associations, (assocInfo, anchor) => {
+            startId = this._joinAssociationNoOrm(
+                assocInfo,
+                anchor,
+                joinings,
+                directJoinings,
+                parentAliasKey,
+                aliasMap,
+                startId,
+                params
+            );
+        });
+
+        return [joinings, directJoinings];
+    }
+
+    _joinAssociationNoOrm(assocInfo, anchor, joinings, directJoinings, parentAliasKey, aliasMap, startId, params) {
+        const alias = assocInfo.alias || this._generateAlias(startId++, anchor);
+        let { joinType, on } = assocInfo;
+
+        joinType || (joinType = 'LEFT JOIN');
+
+        /*
+        if (assocInfo.sql) {
+            if (assocInfo.output) {
+                aliasMap[parentAliasKey + '.' + alias] = alias;
+            }
+
+            assocInfo.params.forEach((p) => params.push(p));
+            joinings.push(
+                `${joinType} (${assocInfo.sql}) ${alias} ON ${this._joinCondition(on, params, null, parentAliasKey, aliasMap)}`
+            );
+
+            return startId;
+        }
+        */
+
+        const { entity, subAssocs } = assocInfo;
+        const aliasKey = parentAliasKey + '.' + anchor;
+        aliasMap[aliasKey] = alias;
+
+        let subJoinings;
+        const subJoiningParams = [];
+
+        if (subAssocs) {
+            let _directJoinings = [];
+            [subJoinings, _directJoinings] = this._joinAssociationsNoOrm(
+                subAssocs,
+                aliasKey,
+                aliasMap,
+                startId,
+                subJoiningParams
+            );
+            startId += subJoinings.length;
+
+            if (_directJoinings.length) {
+                throw new InvalidArgument('Direct joining without "on" is not supported in sub-associations.', {
+                    entity: entity,
+                    mainEntity: parentAliasKey,
+                });
+            }
+        }
+
+        if (on == null) {
+            directJoinings.push({
+                entity,
+                alias,
+            });
+        } else {
+            joinings.push(
+                `${joinType} ${this.escapeId(entity)} ${alias}` +
+                    (on != null ? `ON ${this._joinCondition(on, params, null, parentAliasKey, aliasMap)}` : '')
+            );
+        }
+
+        if (subJoinings) {
+            subJoinings.forEach((sj) => joinings.push(sj));
+            params.push(...subJoiningParams);
+        }
+
+        return startId;
     }
 
     /**
@@ -187,15 +385,18 @@ class RelationalConnector extends Connector {
                         if (value.params) {
                             const numParamTokens = countOfChar(value.value, this.specParamToken);
                             if (numParamTokens !== value.params.length) {
-                                throw new InvalidArgument('Parameter placeholder count mismatch in raw SQL expression.', {
-                                    expected: value.params.length,
-                                    actual: numParamTokens
-                                });
+                                throw new InvalidArgument(
+                                    'Parameter placeholder count mismatch in raw SQL expression.',
+                                    {
+                                        expected: value.params.length,
+                                        actual: numParamTokens,
+                                    }
+                                );
                             }
 
                             params.push(...value.params);
                         }
-                        
+
                         return value.value;
                     }
                 }
@@ -554,10 +755,7 @@ class RelationalConnector extends Connector {
                                     }
 
                                     params.push(v);
-                                    return (
-                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                        this.specInClause
-                                    );
+                                    return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + this.specInClause;
                                 }
 
                             case '$nin':
@@ -588,8 +786,7 @@ class RelationalConnector extends Connector {
 
                                     params.push(v);
                                     return (
-                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                        this.specNotInClause
+                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + this.specNotInClause
                                     );
                                 }
 
@@ -633,7 +830,11 @@ class RelationalConnector extends Connector {
                                 }
 
                                 params.push(`%${v}%`);
-                                return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' LIKE ' + this.specParamToken;
+                                return (
+                                    this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                    ' LIKE ' +
+                                    this.specParamToken
+                                );
 
                             case '$filter':
                                 if (typeof v !== 'object') {
@@ -644,8 +845,12 @@ class RelationalConnector extends Connector {
                                         }
                                     );
                                 }
-                                params.push(v);                                
-                                return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' @> ' + this.specParamToken;
+                                params.push(v);
+                                return (
+                                    this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                    ' @> ' +
+                                    this.specParamToken
+                                );
 
                             default:
                                 throw new Error(`Unsupported condition operator: "${k}"!`);
@@ -657,9 +862,7 @@ class RelationalConnector extends Connector {
             }
 
             params.push(JSON.stringify(value));
-            return (
-                this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + this.specParamToken
-            );
+            return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + this.specParamToken;
         }
 
         if (inject) {
@@ -679,7 +882,9 @@ class RelationalConnector extends Connector {
      * @returns {string}
      */
     _buildColumns(columns, params, mainEntity, aliasMap) {
-        return _.map(_.castArray(columns), (col) => this._buildColumn(col, params, mainEntity, aliasMap)).join(', ');
+        let colList = '';
+        columns.forEach((col) => (colList += this._buildColumn(col, params, mainEntity, aliasMap) + ', '));
+        return colList.substring(0, colList.length - 2);
     }
 
     /**
@@ -792,9 +997,9 @@ class RelationalConnector extends Connector {
                 return funcClause;
             }
 
-            // Condition
-            if (col.$xr.startsWith('Con')) {
-                return this._joinCondition(col.expr, params, null, mainEntity, aliasMap);
+            // BinExpr
+            if (col.$xr.startsWith('Bin')) {
+                return this._packValue(col, params, mainEntity, aliasMap);
             }
 
             // Column

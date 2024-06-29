@@ -21,7 +21,7 @@ export default {
     },
     [Rules.RULE_BEFORE_DELETE]: async (feature, entityModel, context) => {
         const options = context.options;
-        if (!options.$physicalDeletion) {
+        if (!options.$physical) {
             const { field, value, timestampField } = feature;
             const updateTo = {
                 [field]: value,
@@ -38,11 +38,17 @@ export default {
                 ..._.pick(options, ['$getDeleted']),
             };
 
-            context.result = await entityModel._update_(
-                updateTo,
-                updateOpts,
-                context.isOne
-            );
+            if (context.isOne) {
+                context.result = await entityModel.updateOne_(
+                    updateTo,
+                    updateOpts
+                );
+            } else {
+                context.result = await entityModel.updateMany_(
+                    updateTo,
+                    updateOpts
+                );
+            }            
 
             throw new OpCompleted(context.result);
         }

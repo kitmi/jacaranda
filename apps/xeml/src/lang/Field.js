@@ -1,7 +1,6 @@
 const { _ } = require("@kitmi/utils");
 const { generateDisplayName, deepCloneField, Clonable, fieldNaming } = require("./XemlUtils");
 const Types = require("./Types");
-const RESERVED_KEYS = new Set(['name', 'type', 'modifiers', 'subClass', 'values']);
 
 /**
  * Geml entity field class.
@@ -32,7 +31,7 @@ class Field extends Clonable {
         let typeObject = Types[this.info.type];
 
         _.forOwn(this.info, (value, key) => {
-            if (RESERVED_KEYS.has(key)) {
+            if (Types.RESERVED_QUALIFIERS.has(key)) {
                 this[key] = value;
                 return;
             }       

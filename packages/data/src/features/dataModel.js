@@ -34,6 +34,8 @@ export default {
                         type: 'object',
                         optional: true,
                     },
+                    useJsonSource: { type: 'boolean', optional: true },
+                    saveIntermediate: { type: 'boolean', optional: true },
                 },
             },
             name

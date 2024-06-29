@@ -8,7 +8,7 @@ describe('crud bvt', function () {
         await tester.start_(async (app) => {
             const db = app.db();
             const Book = db.entity('book');
-            await Book.deleteAll_();
+            await Book.deleteAll_({ $physical: true });
 
             const result = await Book.findMany_({});
             result.data.length.should.be.exactly(0);
@@ -34,7 +34,7 @@ describe('crud bvt', function () {
             result.should.be.eql({
                 id: insertId,
                 ...testData,
-                testJson: null
+                testJson: null,
             });
 
             const result2 = await Book.findOne_(insertId);

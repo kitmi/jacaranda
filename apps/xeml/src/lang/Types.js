@@ -7,13 +7,12 @@ const commonQualifiers = [
     'code',
     'optional',
     'default',
-    'auto',
-    'generator',
-    'readOnly',
-    'writeOnce',
-    'autoByDb',
+    'auto',    
+    'autoByDb',    
     'updateByDb',
-    'plain',
+    'fillByRule',
+    'readOnly',
+    'writeOnce',    
     'forceUpdate',
     'freezeAfterNonDefault',
     'comment',
@@ -21,6 +20,24 @@ const commonQualifiers = [
     'constraintOnUpdate',
     'constraintOnDelete',
 ];
+
+Types.ASSOC_EXCLUDE_QUALIFIERS = [
+    'code',
+    'optional',
+    'default',
+    'auto',
+    'autoByDb',
+    'updateByDb',
+    'fillByRule',
+    'readOnly',
+    'writeOnce',
+    'forceUpdate',
+    'freezeAfterNonDefault',
+    'constraintOnUpdate',
+    'constraintOnDelete',
+];
+
+Types.RESERVED_QUALIFIERS = new Set(['name', 'type', 'modifiers', 'subClass']);
 
 // array1: @kitmi/types qualifiers, array2: modeler qualifiers
 Types.array.qualifiers = commonQualifiers.concat(['csv', 'delimiter', 'element'], ['fixedLength', 'vector']);

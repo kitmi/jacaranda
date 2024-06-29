@@ -8,3 +8,5 @@ schema test
 schema test2
   entities
     product    
+    tag
+    

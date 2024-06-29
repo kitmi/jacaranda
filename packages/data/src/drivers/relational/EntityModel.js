@@ -30,6 +30,118 @@ class RelationalEntityModel extends EntityModel {
         }
     }
 
+    _uniqueRelations(relations) {
+        const [normalAssocs, customAssocs] = _.partition(relations, (assoc) => typeof assoc === 'string');
+
+        return customAssocs.concat(_.uniq(normalAssocs).sort());
+    }
+
+    /**
+     * Preprocess relationships for non-ORM operations.
+     * @param {*} findOptions
+     */
+    _prepareAssociationsNoOrm(findOptions) {
+        const associations = this._uniqueRelations(findOptions.$relation);
+        const assocTable = {};
+        const cache = {};
+
+        associations.forEach((assoc) => {
+            if (typeof assoc === 'object') {
+                const { anchor, alias, ...override } = assoc;
+                if (anchor) {
+                    this._loadAssocIntoTable(assocTable, cache, anchor, override);
+                    return;
+                }
+
+                if (!alias) {
+                    throw new InvalidArgument('Missing "alias" for custom association.', {
+                        entity: this.meta.name,
+                        assoc,
+                    });
+                }
+
+                if (alias in this.meta.associations) {
+                    throw new InvalidArgument(`Alias "${alias}" conflicts with a predefined association.`, {
+                        entity: this.meta.name,
+                        alias,
+                    });
+                }
+
+                if (!assoc.entity) {
+                    throw new InvalidArgument('Missing "entity" for custom association.', {
+                        entity: this.meta.name,
+                        alias,
+                    });
+                }
+
+                cache[alias] = assocTable[alias] = {
+                    ...assoc   
+                };
+            } else {
+                this._loadAssocIntoTable(assocTable, cache, assoc);
+            }            
+        });
+
+        return assocTable;
+    }
+
+    /**
+     * Load association into table 
+     * @param {*} assocTable - Hierarchy with subAssocs
+     * @param {*} cache - Dotted path as key
+     * @param {*} assoc - Dotted path
+     */
+    _loadAssocIntoTable(assocTable, cache, assoc, override) {
+        if (!override && cache[assoc]) return cache[assoc];
+
+        const lastPos = assoc.lastIndexOf('.');
+        let result;
+
+        if (lastPos === -1) {
+            // direct association
+            const assocInfo = { ...this.meta.associations[assoc], ...override };
+            if (isEmpty(assocInfo)) {
+                throw new InvalidArgument(`Entity "${this.meta.name}" does not have the association "${assoc}".`);
+            }
+
+            result = assocTable[assoc] = assocInfo;
+            if (!override) {
+                cache[assoc] = result;
+            }
+        } else {
+            const base = assoc.substring(0, lastPos);
+            const last = assoc.substring(lastPos + 1);
+
+            let baseNode = cache[base];
+            if (!baseNode) {
+                baseNode = this._loadAssocIntoTable(assocTable, cache, base);
+            }
+
+            const entity = this.db.entity(baseNode.entity);
+            const assocInfo = { ...entity.meta.associations[last], ...override };
+            if (isEmpty(assocInfo)) {
+                throw new InvalidArgument(`Entity "${entity.meta.name}" does not have the association "${assoc}".`);
+            }
+
+            result = assocInfo;
+
+            if (!baseNode.subAssocs) {
+                baseNode.subAssocs = {};
+            }
+
+            baseNode.subAssocs[last] = result;
+            if (!override) {
+                cache[assoc] = result;
+            }
+        }
+
+        if (result.assoc) {
+            this._loadAssocIntoTable(assocTable, cache, assoc + '.' + result.assoc);
+        }
+
+        return result;
+    }
+
     /**
      * Pre-process assoicated db operation
      * @param {*} data
@@ -315,7 +427,10 @@ class RelationalEntityModel extends EntityModel {
                                 return keyValue;
                             });
 
-                            await assocModel.deleteMany_({ [assocModel.meta.keyField]: { $in: keysToDelete } }, {...passOnOptions});
+                            await assocModel.deleteMany_(
+                                { [assocModel.meta.keyField]: { $in: keysToDelete } },
+                                { ...passOnOptions }
+                            );
                         }
 
                         if ($update) {
@@ -330,7 +445,7 @@ class RelationalEntityModel extends EntityModel {
                                 );
                             }
 
-                            await batchAsync_($update, async (item) => {
+                            await batchAsync_($update, async (item, index) => {
                                 const keyValue = item[assocModel.meta.keyField];
                                 if (keyValue == null) {
                                     throw new InvalidArgument(

@@ -21,6 +21,7 @@ dataModel:
             dataSource: postgres.testConnector
     dependencies:
         commons: '@xgent/xem-commons'
+    saveIntermediate: true
 
 db:
     test:

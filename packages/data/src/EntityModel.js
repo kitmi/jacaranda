@@ -1,7 +1,7 @@
 import { ApplicationError, InvalidArgument, ValidationError, HttpCode } from '@kitmi/types';
 import { _, eachAsync_, isPlainObject, isEmpty, get as _get } from '@kitmi/utils';
 import typeSystem, { Types } from '@kitmi/validators/allSync';
-import Features from './entityFeatures';
+import * as Features from './entityFeatures';
 import Rules from './Rules';
 import defaultGenerator from './TypeGenerators';
 import { hasValueInAny } from './helpers';
@@ -119,7 +119,7 @@ class EntityModel {
      * @param {string} anchor
      * @returns {EntityModel}
      */
-    getRalatedEntity(anchor) {
+    getRelatedEntity(anchor) {
         const assocInfo = this.meta.associations[anchor];
         if (!assocInfo) {
             throw new InvalidArgument(`Unknown association "${anchor}" of entity "${this.meta.name}".`);
@@ -138,7 +138,7 @@ class EntityModel {
         let base = this;
 
         while (dotPath.length) {
-            base = base.getRalatedEntity(dotPath.shift());
+            base = base.getRelatedEntity(dotPath.shift());
         }
 
         return base;
@@ -292,7 +292,7 @@ class EntityModel {
 
         const opOptions = context.options;
 
-        await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
+        await this.applyRules_(Rules.RULE_BEFORE_FIND, context);        
 
         this._preProcessOptions(opOptions, isOne /* for single record */, true);
 
@@ -553,6 +553,40 @@ class EntityModel {
         return context.result;
     }
 
+    async createFrom_(columnMapping, findOptions) {
+        findOptions = this._wrapCtx(findOptions);
+        findOptions = this._normalizeQuery(findOptions, false /* for single record */);
+
+        const context = {
+            op: 'find',
+            options: findOptions,
+            isOne: false,
+        };
+
+        const opOptions = context.options;
+        opOptions.$skipOrm = true;
+
+        await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
+
+        this._preProcessOptions(opOptions, false /* for single record */, false);
+
+        _.each(columnMapping, (v, key) => {
+            if (!key.startsWith('::') && !opOptions.$select.has(key)) {
+                throw new InvalidArgument('Column mapping key not found in the select list.', {
+                    key,
+                    select: opOptions.$select,
+                });
+            }
+        });        
+
+        return this._safeExecute_(async () => {
+            context.result = await this.db.connector.createFrom_(this.meta.name, opOptions, columnMapping, this.db.transaction);
+            context.latest = context.result.data;
+            delete context.result.fields;   
+            return context.result;         
+        }, context);
+    }
+
     /**
      * Update an existing entity with given data.
      * @param {object} data - Entity data with at least one unique key (pair) given
@@ -735,7 +769,7 @@ class EntityModel {
      * @param {object} [deleteOptions] - Update options
      * @property {object} [deleteOptions.$where] - Extra condition
      * @property {bool} [deleteOptions.$getDeleted=false] - Retrieve the deleted entity from database
-     * @property {bool} [deleteOptions.$physicalDeletion=false] - When $physicalDeletion = true, deletetion will not take into account logicaldeletion feature
+     * @property {bool} [deleteOptions.$physical=false] - When $physical = true, deletetion will not take into account logicaldeletion feature
      */
     async deleteOne_(deleteOptions) {
         deleteOptions = this._wrapCtx(deleteOptions);
@@ -747,7 +781,7 @@ class EntityModel {
      * @param {object} [deleteOptions] - Update options
      * @property {object} [deleteOptions.$where] - Extra condition
      * @property {bool} [deleteOptions.$getDeleted=false] - Retrieve the deleted entity from database
-     * @property {bool} [deleteOptions.$physicalDeletion=false] - When $physicalDeletion = true, deletetion will not take into account logicaldeletion feature
+     * @property {bool} [deleteOptions.$physical=false] - When $physical = true, deletetion will not take into account logicaldeletion feature
      * @property {bool} [deleteOptions.$deleteAll=false] - When $deleteAll = true, the operation will proceed even empty condition is given
      */
     async deleteMany_(deleteOptions) {
@@ -755,8 +789,8 @@ class EntityModel {
         return this._delete_(deleteOptions, false);
     }
 
-    async deleteAll_() {
-        return this.deleteMany_({ $deleteAll: true });
+    async deleteAll_(deleteOptions) {
+        return this.deleteMany_({ ...deleteOptions, $deleteAll: true });
     }
 
     /**
@@ -764,7 +798,7 @@ class EntityModel {
      * @param {object} [deleteOptions] - Update options
      * @property {object} [deleteOptions.$where] - Extra condition
      * @property {bool} [deleteOptions.$getDeleted=false] - Retrieve the deleted entity from database
-     * @property {bool} [deleteOptions.$physicalDeletion=false] - When $physicalDeletion = true, deletetion will not take into account logicaldeletion feature
+     * @property {bool} [deleteOptions.$physical=false] - When $physical = true, deletetion will not take into account logicaldeletion feature
      */
     async _delete_(deleteOptions, isOne) {
         deleteOptions = this._normalizeQuery(deleteOptions, isOne /* for single record */);
@@ -1310,7 +1344,7 @@ class EntityModel {
                 throw new Error('To be implemented');
             }
 
-            qOptions.$assoc = this._prepareAssociations(qOptions);
+            qOptions.$assoc = qOptions.$skipOrm ? this._prepareAssociationsNoOrm(qOptions) : this._prepareAssociations(qOptions);
         }
     }
 

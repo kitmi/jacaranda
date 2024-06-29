@@ -141,7 +141,12 @@ describe('crud bvt', function () {
             });
 
             const result = await Product.findMany_({
-                $select: ['* -image', 'category.*', 'category.attributeTypes.attribute', 'category.attributeTypes.attribute.dataType'],
+                $select: [
+                    '* -image',
+                    'category.*',
+                    'category.attributeTypes.attribute',
+                    'category.attributeTypes.attribute.dataType',
+                ],
                 $where: { id: insertId },
             });
 

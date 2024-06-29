@@ -107,6 +107,8 @@ entity product
 
 entity productCategory is dictionaryByAutoId
     -- "Product Catetory"    
+    with
+        hasClosureTable('productCategoryTree')
     associations
         hasMany product being category
         hasMany productCategoryAttributeType as attributeTypes

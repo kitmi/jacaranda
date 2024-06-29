@@ -8,7 +8,7 @@ import Rules from '../Rules';
 
 export default {
     [Rules.RULE_BEFORE_CREATE]: async (feature, entity, context) => {
-        const RelatedEntity = entity.getRalatedEntity(feature.relation);
+        const RelatedEntity = entity.getRelatedEntity(feature.relation);
         const result = await RelatedEntity.create_({
             ...feature.initData,
         });

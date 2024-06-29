@@ -43,7 +43,6 @@ function feature(entity, args = []) {
                 case 'uuid':
                     typeInfo['type'] = 'text';
                     typeInfo['fixedLength'] = 36;
-                    typeInfo['generator'] = 'uuid';
                     break;
 
                 default:

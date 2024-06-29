@@ -132,17 +132,16 @@ with
 
 - 通用
     - code: 未作实现，预留用作数据库中的字段名称，目前默认用模型定义的名称
-    - optional
-    - default
-    - auto
-    - autoByDb: 如为true，则为数据库内部生成机制，如`mysql`的UPDATE_TIMESTAMP，如为**运行时对象**，则通常代表数据库函数调用，`{ $xr: 'Function', ... }`
-    - generator: 根据不同的数据库，generator可能被实现为数据库的函数调用，或者JS的activator，如最终为数据库调用，则`autoByDb`为true或为特殊对象，如为JS调用，则`auto`为true或特殊标记，（todo: updateByDb）
-    - fillByRule
-    - readOnly
-    - writeOnce
-    - plain
-    - forceUpdate
-    - freezeAfterNonDefault
+    - optional: 表示该字段是可选值
+    - default: 默认值
+    - auto: 根据不同的数据库，auto字段，可能被实现为数据库的函数调用，或者JS的activator，如最终为数据库调用，则会再添加一个`autoByDb`为true
+    - autoByDb: 如为true，则为数据库内部生成机制，如`CREATE_TIMESTAMP`，如为**运行时对象**，则通常代表数据库函数调用，`{ $xr: 'Function', ... }`
+    - updateByDb: 如为true，表示该字段在更新时是由DB自动设置，比如`ON UPDATE CURRENT_TIMESTAMP`，跟`autoByDb`的区别是，`autoByDb`只有在值为NULL的时候才会填充
+    - fillByRule: 标记该字段在执行规则时会填充
+    - readOnly: 只读字段，通常由规则和数据库提供值
+    - writeOnce: 可写一次的字段
+    - forceUpdate: 每一次对entity的修改都会触发该字段更新，如修改版本
+    - freezeAfterNonDefault: 当该字段的值被改变成非默认值后，该字段锁定
     - `-- "注释"`: 目前需要加双引号或单引号，用作数据库中的字段注释，如果只是在定义中注释，可以用 `// 注释`
     - displayName
     - constraintOnUpdate

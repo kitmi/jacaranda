@@ -1,4 +1,4 @@
-import { xrExpr, xrCol } from "../src";
+import { xrExpr, xrCol } from '../src';
 
 describe('crud complex', function () {
     it('complex update', async function () {
@@ -75,7 +75,7 @@ describe('crud complex', function () {
                         value: 'S',
                     },
                 ],
-            });           
+            });
 
             const existing = await Product.findOne_({
                 id: insertId,
@@ -85,14 +85,14 @@ describe('crud complex', function () {
 
             await Product.updateOne_(
                 {
-                    name: 'Demo Product 200',
+                    'name': 'Demo Product 200',
                     ':assets': {
-                        $delete: [
-                            existing[':assets'][0],
-                            existing[':assets'][1]
-                        ],
+                        $delete: [existing[':assets'][0], existing[':assets'][1]],
                         $update: [
-                            { ...Product.getRalatedEntity('assets').omitReadOnly(existing[':assets'][2]), tag: 'poster2' }
+                            {
+                                ...Product.getRelatedEntity('assets').omitReadOnly(existing[':assets'][2]),
+                                tag: 'poster2',
+                            },
                         ],
                         $create: [
                             {
@@ -101,9 +101,9 @@ describe('crud complex', function () {
                                     mediaType: 'image',
                                     url: 'https://example.com/demo-poster2.jpg',
                                 },
-                            }
-                        ]
-                    }                    
+                            },
+                        ],
+                    },
                 },
                 { $where: { id: insertId }, $getUpdated: true }
             );
@@ -197,8 +197,8 @@ describe('crud complex', function () {
                         value: 'S',
                     },
                 ],
-            });      
-            
+            });
+
             const { insertId: id2 } = await Product.create_({
                 'type': 'good',
                 'name': 'Demo Product 2',
@@ -269,12 +269,12 @@ describe('crud complex', function () {
                         value: 'S',
                     },
                 ],
-            });    
+            });
 
             const result = await Product.updateMany_(
                 {
-                    name:  xrExpr(xrExpr(xrCol('name'), "||", " "), "||", xrCol('id'))
-                    // name || " " || id                
+                    name: xrExpr(xrExpr(xrCol('name'), '||', ' '), '||', xrCol('id')),
+                    // name || " " || id
                 },
                 { $where: { id: { $in: [id1, id2] } }, $getUpdated: true }
             );

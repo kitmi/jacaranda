@@ -395,6 +395,34 @@ class PostgresConnector extends RelationalConnector {
         return this.execute_(sql, params, options, connection);
     }
 
+     /**
+     * Create a new entity from a select result.
+     * @param {string} model
+     * @param {object} data
+     * @param {object} options
+     * @param {Client} connection
+     * @returns {object}
+     */
+     async createFrom_(model, findOptions, insertColumns, connection) {        
+        const sqlInfo = this.buildQueryNoOrm(model, findOptions);
+
+        let columns = '';
+
+        _.each(insertColumns, (v) => {
+            columns += this.escapeId(v) + ',';
+        });
+
+        let sql = `INSERT INTO ${this.escapeId(model)} (${columns.slice(0, -1)}) ${sqlInfo.sql}`;
+
+        if (findOptions.$getCreated) {
+            sql += ` RETURNING ${findOptions.$getCreated
+                .map((col) => (col === '*' ? '*' : this.escapeId(col)))
+                .join(', ')}`;
+        }
+
+        return this.execute_(sql, sqlInfo.params, findOptions, connection);
+    }
+
     /**
      * Create a new entity or update the old one if duplicate key found.
      * @param {*} model
@@ -682,7 +710,7 @@ class PostgresConnector extends RelationalConnector {
      * @param {Client} connection
      */
     async find_(model, findOptions, connection) {
-        const sqlInfo = this.buildQuery(model, findOptions);
+        const sqlInfo = findOptions.$skipOrm ? this.buildQueryNoOrm(model, findOptions) : this.buildQuery(model, findOptions);
         return this._executeQuery_(sqlInfo, findOptions, connection);
     }
 
@@ -723,7 +751,7 @@ class PostgresConnector extends RelationalConnector {
 
             select = $assoc.$select;
         } else {
-            select = findOptions.$select ? Array.from(findOptions.$select) : '*';
+            select = findOptions.$select ? Array.from(findOptions.$select) : ['*'];
         }
 
         // count does not require selectParams
@@ -1170,9 +1198,13 @@ class PostgresConnector extends RelationalConnector {
      */
     _buildSelect(selectColumns, aliasKey, innerAliasMap, extraSelects) {
         const params = [];
-        let clause = this._buildColumns(selectColumns, params, aliasKey, innerAliasMap);
+        
+        let clause = selectColumns ? this._buildColumns(selectColumns, params, aliasKey, innerAliasMap) : '';
         if (extraSelects?.clause) {
-            clause += ', ' + extraSelects.clause;
+            if (clause) {
+                clause += ', '    
+            }
+            clause += extraSelects.clause;
             params.push(...extraSelects.params);
         }
         return { clause, params };

@@ -863,7 +863,7 @@ $$ LANGUAGE plpgsql;\n\n`;
                     this.linker.log('verbose', `Processed week reference: ${tag}`);
                 }
 
-                let joinOn = { [localField]: this._toColumnReference(localField + '.' + destFieldName) };
+                let joinOn = { [localField]: this._toColumnReference(assoc.anchor ?? localField + '.' + destFieldName) };
 
                 if (assoc.with) {
                     Object.assign(
@@ -876,13 +876,24 @@ $$ LANGUAGE plpgsql;\n\n`;
                     entity.addAssocField(localField, destEntity, referencedField, assoc.fieldProps);
                 }
 
-                entity.addAssociation(localField, {
-                    type: assoc.type,
-                    entity: destEntityName,
-                    key: destEntity.key,
-                    field: destFieldName,
-                    on: joinOn,
-                });
+                if (assoc.anchor) {
+                    entity.addAssociation(assoc.anchor, {
+                        type: assoc.type,
+                        entity: destEntityName,
+                        key: destEntity.key,
+                        field: destFieldName,
+                        local: localField,
+                        on: joinOn,
+                    });
+                } else {
+                    entity.addAssociation(localField, {
+                        type: assoc.type,
+                        entity: destEntityName,
+                        key: destEntity.key,
+                        field: destFieldName,
+                        on: joinOn,
+                    });
+                }
 
                 //foreign key constraits
                 let localFieldObj = entity.fields[localField];
@@ -1096,8 +1107,9 @@ $$ LANGUAGE plpgsql;\n\n`;
             case 'autoId':
                 field = entity.fields[feature.field];
 
-                if (field.type === 'integer' && !field.generator) {
+                if (field.type === 'integer') {
                     field.autoIncrementId = true;
+                    field.autoByDb = true;
                     if ('startFrom' in feature) {
                         const seqId = `${entity.name}_${feature.field}_seq`;
                         this._sequenceRestart.push(
@@ -1124,9 +1136,6 @@ $$ LANGUAGE plpgsql;\n\n`;
                 break;
 
             case 'atLeastOneNotNull':
-                break;
-
-            case 'validateAllFieldsOnCreation':
                 break;
 
             case 'stateTracking':
@@ -1157,7 +1166,7 @@ $$ LANGUAGE plpgsql;\n\n`;
             case 'createAfter':
                 break;
 
-            case 'closureTable':
+            case 'hasClosureTable':                
                 break;
 
             default:

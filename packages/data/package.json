@@ -25,7 +25,8 @@
     "author": "Rockie Guo <rockie@kitmi.com.au>",
     "license": "MIT",
     "scripts": {
-        "pre-test": "xeml build -c ./conf/xeml.default.yaml -w ./test && xeml migrate -r -c ./conf/xeml.default.yaml -w ./test",
+        "build-model": "xeml build -c ./conf/xeml.default.yaml -w ./test",
+        "pre-test": "pnpm build-model && xeml migrate -r -c ./conf/xeml.default.yaml -w ./test",
         "test": "pnpm build && SWCRC=true mocha --recursive test/**/*.spec.js",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
         "report": "allure generate allure-results --clean -o allure-report && serve ./allure-report",
@@ -33,7 +34,7 @@
         "prettier": "prettier --write .",
         "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",
         "lint-fix": "pnpm lint --fix",
-        "clean": "shx rm -rf cjs coverage .nyc_output",
+        "clean": "shx rm -rf cjs coverage .nyc_output allure-results allure-report",
         "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
     },
     "keywords": [
@@ -64,7 +65,11 @@
         "@kitmi/tester": "workspace:*",
         "@kitmi/xeml": "workspace:*",
         "@xgent/xem-commons": "workspace:*",
-        "oxlint": "^0.4.4"
+        "oxlint": "^0.4.4",
+        "allure-commandline": "^2.22.0",
+        "allure-js-commons": "^2.3.0",
+        "allure-mocha": "^2.3.0",
+        "serve": "^14.2.3"
     },
     "prettier": {
         "quoteProps": "consistent",

@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const { _, isPlainObject, isEmpty } = require('@kitmi/utils');
 const { generateDisplayName, deepCloneField, Clonable, entityNaming } = require('./XemlUtils');
-const { FunctionalQualifiers } = require('./Rules');
+const Types = require('./Types');
 const Field = require('./Field');
 
 /**
@@ -424,7 +424,7 @@ class Entity extends Clonable {
             throw new Error(`Field "${name}" already exists in entity "${this.name}".`);
         }
 
-        let destFieldInfo = _.omit(destField.toJSON(), FunctionalQualifiers);
+        let destFieldInfo = _.omit(destField.toJSON(), Types.ASSOC_EXCLUDE_QUALIFIERS);
         Object.assign(destFieldInfo, extraProps);
 
         this.addField(name, destFieldInfo);

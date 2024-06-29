@@ -412,7 +412,7 @@ Return the deleted records
 
 To delete all records with `deleteMany_`
 
-#### $physicalDeletion - {boolean}
+#### $physical - {boolean}
 
 To physically delete a record.
 
@@ -474,7 +474,7 @@ const { op, data, affectedRows, insertId } = await Product.create_({
     'free': true,
     'openToGuest': true,
     'isPackage': false,
-    'hasVariants': false,
+    'hasVariants': true,
     'category': 2,
     ':assets': [
         {

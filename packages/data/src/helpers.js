@@ -1,7 +1,9 @@
-import { _, isWrappedWith, isEmpty, unwrap } from '@kitmi/utils';
+import { _, isWrappedWith, isEmpty, unwrap, isPlainObject } from '@kitmi/utils';
 
 export const isRawSql = (value) => isWrappedWith(value, 'r#"', '"#');
 export const extractRawSql = (value) => unwrap(value, 'r#"', '"#');
+
+export const xrAlias = (xrValue, alias) => ({ ...xrValue, alias });
 
 export const xrRawValue = (value, params) => ({ $xr: 'Raw', value, params });
 export const xrRaw = xrRawValue;
@@ -35,6 +37,10 @@ export function mergeWhere(condition1, condition2, operator = '$and') {
 
     if (isEmpty(condition2)) {
         return condition1;
+    }
+
+    if (operator === '$and' && isPlainObject(condition1) && isPlainObject(condition2)) {
+        return { ...condition1, ...condition2 };    
     }
 
     return { [operator]: [condition1, condition2] };

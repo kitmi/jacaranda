@@ -1,7 +1,7 @@
 // v.{{ schemaVersion }} by xeml
 import { _ } from '@kitmi/utils';
 import { ValidationError } from '@kitmi/types';
-import { _Activators, _Processors, _Validators } from '@kitmi/data';
+import { _Activators, _Processors, _Validators, xrCol, xrExpr, xrCall, xrRaw, xrAlias } from '@kitmi/data';
 import EntityModel from '@kitmi/data/drivers/{{ driver }}/EntityModel';
 {{ imports|safe }}
 
@@ -9,6 +9,7 @@ import EntityModel from '@kitmi/data/drivers/{{ driver }}/EntityModel';
 
 class {{ className }} extends EntityModel {    
     {{ classBody|safe }}
+    {{ extraMethods|safe }}
 }
     
 {{ className }}.meta = {{ entityMeta|safe }};

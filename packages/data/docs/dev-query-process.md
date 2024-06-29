@@ -6,10 +6,11 @@
 
 ```js
 {
+    '*': true,
     'table1': {
-        'table2$': [ field1, field2 ]
+        'table2$': new Set([ field1, field2, { $xr } ])
     },
-    'table1$': [ field1, field2 ]
+    'table1$': new Set([ field1, field2, { $xr } ])
 }
 ```
 
@@ -27,7 +28,7 @@
 - Associatons Table
 
 ```js
-$select: [ 'field1', 'field2' ], // fields of main entity
+$select: [ 'field1', 'field2', { $xr } ], // fields of main entity
 $join: {
     rootDoc: {
         type: 'refersTo',
@@ -41,7 +42,7 @@ $join: {
             },
         },
 
-        $select: [ 'field1', 'field2' ], // fields of this entity
+        $select: [ 'field1', 'field2', { $xr } ], // fields of this entity
 
         $join: {},
 

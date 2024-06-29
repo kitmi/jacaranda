@@ -32,3 +32,7 @@ e.g.
 ```
 
 - Offline SQL generation
+
+## Known issues
+
+- [ ] saveIntermediate should not save JSON to dependency package

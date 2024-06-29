@@ -1378,6 +1378,7 @@ association_item_belong_refer_to_base
 
 association_item_existing_field    
     : association_item_belong_refer_to_base "on" identifier_or_string -> { ...$1, srcField: $3, existingField: true }
+    | association_item_belong_refer_to_base "on" identifier_or_string "as" identifier_or_string -> { ...$1, srcField: $3, existingField: true, anchor: $5 }
     ;
 
 association_item_new_field

@@ -7,6 +7,9 @@
     "scripts": {
         "prettier": "prettier --write ."
     },
+    "dependencies": {
+        "@kitmi/data": ".."
+    },
     "keywords": [],
     "author": "",
     "license": "ISC"

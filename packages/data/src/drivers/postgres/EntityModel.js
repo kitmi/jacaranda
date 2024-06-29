@@ -6,6 +6,8 @@ import { extractTableAndField } from '../../helpers';
 
 const defaultNestedKeyGetter = (anchor) => ':' + anchor;
 
+const MainTableAsRoot = Symbol('MainTableAsRoot');
+
 /**
  * PostgresEntityModel entity model class.
  */
@@ -53,6 +55,13 @@ class PostgresEntityModel extends EntityModel {
         return value;
     }
 
+    /**
+     * Split select fields into main table and joining table.
+     * @param {*} select
+     * @returns {array} [ mianTable, joiningTable ]
+     *
+     *
+     */
     _buildSelectTable(select) {
         if (select == null) {
             return [['*'], { '*': true }];
@@ -60,7 +69,91 @@ class PostgresEntityModel extends EntityModel {
 
         const mainTable = [];
         const joiningTable = {};
-        select.forEach((field) => {
+        select.forEach(processField);
+
+        return [mainTable, joiningTable];
+
+        function getShortestCommon(args) {
+            let shortestCommon;
+
+            args.find((arg) => {
+                if (typeof arg === 'object' && arg.$xr) {
+                    const root = getXrFieldRootTable(arg);
+                    if (root == null) return false;
+
+                    if (root === MainTableAsRoot) {
+                        shortestCommon = MainTableAsRoot;
+                        return true;
+                    }
+
+                    if (!shortestCommon) {
+                        shortestCommon = root;
+                        return false;
+                    }
+
+                    if (shortestCommon.startsWith(root)) {
+                        shortestCommon = root;
+                        return false;
+                    }
+
+                    return false;
+                }
+            });
+
+            return shortestCommon;
+        }
+
+        function getXrFieldRootTable(xrField) {
+            let tableKey;
+
+            switch (xrField.$xr) {
+                case 'Column':
+                    if (xrField.name.indexOf('.') === -1) {
+                        return MainTableAsRoot;
+                    }
+
+                    [tableKey] = extractTableAndField(xrField.name);
+                    return tableKey + '$';
+
+                case 'Function':
+                    if (xrField.args) {
+                        return getShortestCommon(xrField.args);
+                    }
+                    return null;
+
+                case 'BinExpr':
+                    return getShortestCommon([xrField.left, xrField.right]);
+            }
+
+            throw new Error('Not supported xrField: ' + xrField.$xr);
+        }
+
+        function processField(field) {
+            if (typeof field === 'object') {
+                if (!field.$xr) {
+                    throw new InvalidArgument('Invalid field in $select clause.', { field });
+                }
+
+                const root = getXrFieldRootTable(field);
+                if (root != null) {
+                    if (root === MainTableAsRoot) {
+                        mainTable.push(field);
+                        return;
+                    }
+
+                    let existing = _get(joiningTable, root);
+                    if (!existing) {
+                        existing = new Set();
+                        _set(joiningTable, root, existing);
+                    }
+                    existing.add(fieldName);
+                    return;
+                }
+
+                mainTable.push(field);
+                return;
+            }
+
             if (field.indexOf('.') === -1) {
                 mainTable.push(field);
                 return;
@@ -69,24 +162,28 @@ class PostgresEntityModel extends EntityModel {
             let [tableKey, fieldName] = extractTableAndField(field);
             tableKey += '$';
 
-            if (fieldName === '*') {
-                _set(joiningTable, tableKey, '*');
-                return;
-            }
-
             let existing = _get(joiningTable, tableKey);
             if (!existing) {
-                existing = [];
-            } else if (existing === '*') {
+                existing = new Set();
+                _set(joiningTable, tableKey, existing);
+            } else if (existing.has('*')) {
+                // ignore if already select all
+                return;
+            } else if (fieldName === '*') {
+                // select all fields
+                const newSet = new Set();
+                newSet.add('*');
+                // copy existing fields if the field is an object. i.e { $xr }
+                existing.forEach((f) => {
+                    if (typeof f === 'object') newSet.add(f);
+                });
+                _set(joiningTable, tableKey, newSet);
                 return;
             }
 
-            existing.push(fieldName);
-            _set(joiningTable, tableKey, existing);
+            existing.add(fieldName);
             return;
-        }, {});
-
-        return [mainTable, joiningTable];
+        }
     }
 
     // f for field, o for order, d for direction
@@ -164,9 +261,8 @@ class PostgresEntityModel extends EntityModel {
      * @param {*} findOptions
      */
     _prepareAssociations(findOptions) {
-        const [normalAssocs, customAssocs] = _.partition(findOptions.$relation, (assoc) => typeof assoc === 'string');
+        const associations = this._uniqueRelations(findOptions.$relation);
 
-        const associations = _.uniq(normalAssocs).sort().concat(customAssocs);
         let counter = 0;
         const cache = {};
         const [mainSelectTable, selectTable] = this._buildSelectTable(findOptions.$select);
@@ -213,6 +309,7 @@ class PostgresEntityModel extends EntityModel {
             }
         });
 
+        //console.dir(selectTable, { depth: 10 });
         //console.dir(assocTable, { depth: 10 });
 
         return assocTable;
@@ -223,9 +320,7 @@ class PostgresEntityModel extends EntityModel {
         _.each(joinsOn, (value, key) => {
             if (key.startsWith(prefix)) {
                 key = key.substring(prefix.length);
-                if (!selects.includes(key)) {
-                    selects.push(key);
-                }
+                selects.add(key);
             }
         });
     }
@@ -254,26 +349,24 @@ class PostgresEntityModel extends EntityModel {
             cache[fullPath] = assocInfo;
 
             const bucketKey = fullPath + '$';
-            const hasSelect = _get(selectTable, bucketKey) ?? (selectTable['*'] ? '*' : false);
+            const hasSelect = _get(selectTable, bucketKey) ?? (selectTable['*'] ? new Set(['*']) : false);
+            const mergeSelect = new Set();
 
             if (hasSelect) {
                 const targetEntity = this.db.entity(assocInfo.entity);
 
-                if (hasSelect === '*') {
-                    assocInfo.$select = Object.keys(targetEntity.meta.fields);
-                } else {
-                    // hasSelect [ f1, f2 ]
-                    // does not check if the field is valid
-                    assocInfo.$select = hasSelect;
-                    if (!hasSelect.includes(assocInfo.key)) {
-                        assocInfo.$select.push(assocInfo.key);
+                hasSelect.forEach((field) => {
+                    if (field === '*') {
+                        Object.keys(targetEntity.meta.fields).forEach((f) => mergeSelect.add(f));
+                        return;
                     }
-                    this._pushJoinFields(assocInfo.$select, assocInfo.on, assoc);
-                }
-            } else {
-                assocInfo.$select = [assocInfo.key];
-                this._pushJoinFields(assocInfo.$select, assocInfo.on, assoc);
+
+                    mergeSelect.add(field);
+                });
             }
+
+            mergeSelect.add(assocInfo.key);
+            this._pushJoinFields(mergeSelect, assocInfo.on, assoc);
 
             const hasOrderBy = _get(orderByTable, bucketKey); // array of { f, o, d }
             if (hasOrderBy) {
@@ -282,13 +375,12 @@ class PostgresEntityModel extends EntityModel {
 
             // same level joining
             if (assocInfo.type) {
+                assocInfo.$select = [...mergeSelect];
                 parentTable.$join || (parentTable.$join = {});
                 parentTable.$join[assoc] = assocInfo;
             } else {
-                if (!assocInfo.$select.includes(assocInfo.field)) {
-                    assocInfo.$select.push(assocInfo.field);
-                }
-
+                mergeSelect.add(assocInfo.field);
+                assocInfo.$select = [...mergeSelect];
                 parentTable.$agg || (parentTable.$agg = {});
                 parentTable.$agg[assoc] = assocInfo;
             }
@@ -342,11 +434,11 @@ class PostgresEntityModel extends EntityModel {
         });
 
         // map flat record into hierachy
-        function mergeRecord(existingRow, rowObject, associations, nodePath) {            
+        function mergeRecord(existingRow, rowObject, associations, nodePath) {
             return _.each(associations, ({ sql, key, list, $agg, $join }, anchor) => {
-                if (sql) return;                
+                if (sql) return;
 
-                const currentPath = [ ...nodePath, anchor ];
+                const currentPath = [...nodePath, anchor];
 
                 const objKey = nestedKeyGetter(anchor);
                 const subObj = rowObject[objKey];
