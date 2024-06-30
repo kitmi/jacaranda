@@ -92,7 +92,7 @@ class RelationalEntityModel extends EntityModel {
      * @param {*} assoc - Dotted path
      */
     _loadAssocIntoTable(assocTable, cache, assoc, override) {
-        if (!override && cache[assoc]) return cache[assoc];
+        if (cache[assoc]) return cache[assoc];
 
         const lastPos = assoc.lastIndexOf('.');
         let result;
@@ -105,9 +105,7 @@ class RelationalEntityModel extends EntityModel {
             }
 
             result = assocTable[assoc] = assocInfo;
-            if (!override) {
-                cache[assoc] = result;
-            }
+            cache[assoc] = result;
         } else {
             const base = assoc.substring(0, lastPos);
             const last = assoc.substring(lastPos + 1);
@@ -130,13 +128,7 @@ class RelationalEntityModel extends EntityModel {
             }
 
             baseNode.subAssocs[last] = result;
-            if (!override) {
-                cache[assoc] = result;
-            }
-        }
-
-        if (result.assoc) {
-            this._loadAssocIntoTable(assocTable, cache, assoc + '.' + result.assoc);
+            cache[assoc] = result;
         }
 
         return result;

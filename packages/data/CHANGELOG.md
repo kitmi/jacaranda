@@ -1,5 +1,17 @@
 # @kitmi/data
 
+## 0.5.2
+
+### Patch Changes
+
+-   Add closureTable methods 
+    -   getAllDescendants_, 
+    -   getAllAncestors_,
+    -   addChildNode_,
+    -   getTopNodes_,
+-   Add noORM query 
+-   Minor bug fixes
+
 ## 0.5.1
 
 ### Patch Changes

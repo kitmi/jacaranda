@@ -553,7 +553,7 @@ class EntityModel {
         return context.result;
     }
 
-    async createFrom_(columnMapping, findOptions) {
+    async createFrom_(findOptions, columnMapping) {
         findOptions = this._wrapCtx(findOptions);
         findOptions = this._normalizeQuery(findOptions, false /* for single record */);
 
@@ -909,7 +909,7 @@ class EntityModel {
         let { raw } = context;
         let latest = {};
         // returned by $getExisting
-        let existing = context.options.$existing;
+        let existing = context.existing;
         context.latest = latest;
 
         if (!context.i18n) {
@@ -932,10 +932,6 @@ class EntityModel {
                 existing = _data;
             }
             context.existing = existing;
-        }
-
-        if (opOptions.$getExisting && !opOptions.$existing) {
-            opOptions.$existing = existing;
         }
 
         await this.applyRules_(Rules.RULE_BEFORE_VALIDATION, context);

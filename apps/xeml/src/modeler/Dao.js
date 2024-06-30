@@ -146,6 +146,8 @@ class DaoModeler {
                     Methods.getAllDescendants(feature.reverse),
                     Methods.getAllAncestors(feature.relation),
                     Methods.addChildNode(feature.relation, feature.closureTable),
+                    Methods.getTopNodes(entity.name, entity.key, feature.closureTable),
+                    Methods.moveNode(feature.closureTable, feature.relation),
                 ];
 
             default:

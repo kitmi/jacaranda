@@ -1,5 +1,13 @@
 # @kitmi/xeml
 
+## 0.4.0
+
+### Minor Changes
+
+-   Add closureTable methods.
+-   Updated dependencies
+    -   @kitmi/data@0.5.2
+
 ## 0.3.3
 
 ### Patch Changes

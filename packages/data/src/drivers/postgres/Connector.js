@@ -1,4 +1,5 @@
-import { _, isEmpty } from '@kitmi/utils';
+import ntol from 'number-to-letter';
+import { _, isEmpty, prefixKeys } from '@kitmi/utils';
 import { InvalidArgument, ApplicationError } from '@kitmi/types';
 import { runtime, NS_MODULE } from '@kitmi/jacaranda';
 
@@ -289,6 +290,10 @@ class PostgresConnector extends RelationalConnector {
      * @returns {Promise.<object>}
      */
     async execute_(sql, params, options, connection) {
+        if (params && params.length) {
+            sql = this._replaceParamToken(sql, params);
+        }
+
         let conn;
         const { $preparedKey, $asArray, ...connOptions } = options ?? {};
 
@@ -395,7 +400,7 @@ class PostgresConnector extends RelationalConnector {
         return this.execute_(sql, params, options, connection);
     }
 
-     /**
+    /**
      * Create a new entity from a select result.
      * @param {string} model
      * @param {object} data
@@ -403,7 +408,7 @@ class PostgresConnector extends RelationalConnector {
      * @param {Client} connection
      * @returns {object}
      */
-     async createFrom_(model, findOptions, insertColumns, connection) {        
+    async createFrom_(model, findOptions, insertColumns, connection) {
         const sqlInfo = this.buildQueryNoOrm(model, findOptions);
 
         let columns = '';
@@ -463,8 +468,6 @@ class PostgresConnector extends RelationalConnector {
                 .map((col) => (col === '*' ? '*' : this.escapeId(col)))
                 .join(', ')}`;
         }
-
-        sql = this._replaceParamToken(sql, params);
 
         return this.execute_(sql, params, options, connection);
     }
@@ -620,8 +623,6 @@ class PostgresConnector extends RelationalConnector {
 
         params = concateParams(params, subJoinings?.params, childJoinings?.params, updateParams, whereParams);
 
-        sql = this._replaceParamToken(sql, params);
-
         return this.execute_(sql, params, options, connection);
     }
 
@@ -698,8 +699,6 @@ class PostgresConnector extends RelationalConnector {
 
         params = concateParams(params, subJoinings?.params, childJoinings?.params, whereParams);
 
-        sql = this._replaceParamToken(sql, params);
-
         return this.execute_(sql, params, options, connection);
     }
 
@@ -710,7 +709,9 @@ class PostgresConnector extends RelationalConnector {
      * @param {Client} connection
      */
     async find_(model, findOptions, connection) {
-        const sqlInfo = findOptions.$skipOrm ? this.buildQueryNoOrm(model, findOptions) : this.buildQuery(model, findOptions);
+        const sqlInfo = findOptions.$skipOrm
+            ? this.buildQueryNoOrm(model, findOptions)
+            : this.buildQuery(model, findOptions);
         return this._executeQuery_(sqlInfo, findOptions, connection);
     }
 
@@ -726,14 +727,16 @@ class PostgresConnector extends RelationalConnector {
      * @returns {object} { sql, params, countSql, countParams, hasJoining, aliasMap }
      */
     buildQuery(model, findOptions) {
-        const { $assoc, $where, $groupBy, $offset, $limit, $totalCount } = findOptions;
+        const { $assoc, $where, $groupBy, $offset, $limit, $totalCount, $hasSubQuery, $aliasMap } =
+            findOptions;
         const hasTotalCount = $totalCount != null;
         let needDistinctForLimit = ($limit != null && $limit > 0) || ($offset != null && $offset > 0);
 
         const { fromTable, withTables, model: _model } = this._buildCTEHeader(model);
         model = _model; // replaced with CTE alias
 
-        const aliasMap = { [model]: 'A' };
+        let startId = $aliasMap ? Object.keys($aliasMap).length : 0;
+        const aliasMap = { ...($aliasMap && prefixKeys($aliasMap, '_.')), [model]: ntol(startId++) };
 
         let mainEntityForJoin;
         let childQuery, childJoinings, subSelects, subJoinings, orderBys;
@@ -746,11 +749,15 @@ class PostgresConnector extends RelationalConnector {
                 mainEntityForJoin,
                 aliasMap,
                 aliasMap,
-                1
+                startId
             );
 
             select = $assoc.$select;
         } else {
+            if ($hasSubQuery) {
+                mainEntityForJoin = model;
+            }
+
             select = findOptions.$select ? Array.from(findOptions.$select) : ['*'];
         }
 
@@ -774,10 +781,10 @@ class PostgresConnector extends RelationalConnector {
 
         if (mainEntityForJoin) {
             fromAndJoin += ' A ';
-            if (subJoinings.clause) {
+            if (subJoinings?.clause) {
                 fromAndJoin += subJoinings.clause;
             }
-            if (childJoinings.clause) {
+            if (childJoinings?.clause) {
                 fromAndJoin += childJoinings.clause;
             }
         }
@@ -829,7 +836,7 @@ class PostgresConnector extends RelationalConnector {
         const limitOffetParams = [];
         let limitOffset = this._buildLimitOffset($limit, $offset, limitOffetParams);
 
-        const result = { aliasMap, hasJoining: mainEntityForJoin != null };
+        const result = { aliasMap, hasJoining: $assoc != null };
 
         // The field used as the key of counting or pagination
         let distinctFieldRaw;
@@ -896,7 +903,7 @@ class PostgresConnector extends RelationalConnector {
         } else {
             const [withSql, withParams] = this._joinWithTableClause(childQuery, !withTables);
 
-            const sql =
+            result.sql =
                 withTables +
                 withSql +
                 'SELECT ' +
@@ -916,8 +923,6 @@ class PostgresConnector extends RelationalConnector {
                 groupByParams,
                 limitOffetParams
             );
-
-            result.sql = this._replaceParamToken(sql, result.params);
         }
 
         return result;
@@ -1198,11 +1203,11 @@ class PostgresConnector extends RelationalConnector {
      */
     _buildSelect(selectColumns, aliasKey, innerAliasMap, extraSelects) {
         const params = [];
-        
+
         let clause = selectColumns ? this._buildColumns(selectColumns, params, aliasKey, innerAliasMap) : '';
         if (extraSelects?.clause) {
             if (clause) {
-                clause += ', '    
+                clause += ', ';
             }
             clause += extraSelects.clause;
             params.push(...extraSelects.params);
@@ -1282,10 +1287,12 @@ class PostgresConnector extends RelationalConnector {
             totalCount = res.data[0].count;
         }
 
-        let options;
+        let options = queryOptions;
 
-        if (query.hasJoining) {
-            options = { ...queryOptions, $asArray: true };
+        if (query.hasJoining && !queryOptions.$skipOrm) {
+            // force to return as array
+            options.$asArray = true;
+
             //todo: changed to json_build_object
             //const wrappedSql = `SELECT row_to_json(_row) FROM (${query.sql}) _row`;
             result = await this.execute_(query.sql, query.params, options, connection);
@@ -1314,8 +1321,6 @@ class PostgresConnector extends RelationalConnector {
             }
 
             return { ...result, aliases: reverseAliasMap };
-        } else if (queryOptions.$skipOrm) {
-            options = { ...queryOptions, $asArray: true };
         }
 
         result = await this.execute_(query.sql, query.params, options, connection);

@@ -45,6 +45,7 @@ jobs:
           cp ./README.md ./docs/src/index.md
           cp ./packages/data/docs/tech-design.md ./docs/src/data-access-models.md
           cp ./packages/data/docs/manual.md ./docs/src/data-manual.md
+          cp ./packages/data/docs/how-to.md ./docs/src/data-how-to.md
           cd docs
           mdbook build
       - name: Copy project docs

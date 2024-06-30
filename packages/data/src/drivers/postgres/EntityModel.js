@@ -263,7 +263,6 @@ class PostgresEntityModel extends EntityModel {
     _prepareAssociations(findOptions) {
         const associations = this._uniqueRelations(findOptions.$relation);
 
-        let counter = 0;
         const cache = {};
         const [mainSelectTable, selectTable] = this._buildSelectTable(findOptions.$select);
         const [mainOrderTable, orderByTable] = this._buildOrderByTable(findOptions.$orderBy);
@@ -277,40 +276,49 @@ class PostgresEntityModel extends EntityModel {
         }
 
         associations.forEach((assoc) => {
-            if (isPlainObject(assoc)) {
-                throw new Error('To be implemented.');
-                // todo: to review later
-                assoc = this._translateSchemaNameToDb(assoc);
-
-                let alias = assoc.alias;
-                if (!assoc.alias) {
-                    alias = ':join' + ++counter;
+            if (typeof assoc === 'object') {
+                const { anchor, alias, select, ...override } = assoc;
+                if (anchor) {                    
+                    this._buildAssocTable(assocTable, cache, anchor, anchor, selectTable, orderByTable, override);
+                    return;
                 }
 
-                assocTable[alias] = {
-                    entity: assoc.entity,
-                    joinType: assoc.type,
-                    output: assoc.output,
-                    key: assoc.key,
-                    alias,
-                    on: assoc.on,
-                    ...(assoc.dataset
-                        ? this.db.connector.buildQuery(
-                              assoc.entity,
-                              assoc.model._normalizeQuery({
-                                  ...assoc.dataset,
-                                  $variables: findOptions.$variables,
-                              })
-                          )
-                        : {}),
-                };
+                if (!alias) {
+                    throw new InvalidArgument('Missing "alias" for custom association.', {
+                        entity: this.meta.name,
+                        assoc,
+                    });
+                }
+
+                if (alias in this.meta.associations) {
+                    throw new InvalidArgument(`Alias "${alias}" conflicts with a predefined association.`, {
+                        entity: this.meta.name,
+                        alias,
+                    });
+                }
+
+                if (!assoc.entity) {
+                    throw new InvalidArgument('Missing "entity" for custom association.', {
+                        entity: this.meta.name,
+                        alias,
+                    });
+                }
+
+                const result = {
+                    ...assoc   
+                };  
+
+                cache[alias] = result;
+                
+                assocTable.$join || (assocTable.$join = {});                
+                assocTable.$join[alias] = result;
             } else {
                 this._buildAssocTable(assocTable, cache, assoc, assoc, selectTable, orderByTable);
             }
         });
 
         //console.dir(selectTable, { depth: 10 });
-        //console.dir(assocTable, { depth: 10 });
+        //console.dir(assocTable, { depth: 10 });       
 
         return assocTable;
     }
@@ -334,14 +342,14 @@ class PostgresEntityModel extends EntityModel {
      * @param {*} orderByTable - Order by table
      * @return {object} Association info of the specified assoc
      */
-    _buildAssocTable(parentTable, cache, assoc, fullPath, selectTable, orderByTable) {
+    _buildAssocTable(parentTable, cache, assoc, fullPath, selectTable, orderByTable, override) {
         if (cache[fullPath]) return cache[fullPath];
 
         const lastPos = assoc.lastIndexOf('.');
 
         if (lastPos === -1) {
             // direct association
-            const assocInfo = { ...this.meta.associations[assoc] };
+            const assocInfo = { ...this.meta.associations[assoc], ...override };
             if (isEmpty(assocInfo)) {
                 throw new InvalidArgument(`Entity "${this.meta.name}" does not have the association "${assoc}".`);
             }
@@ -397,7 +405,7 @@ class PostgresEntityModel extends EntityModel {
         }
 
         const baseEntity = this.db.entity(baseNode.entity);
-        return baseEntity._buildAssocTable(baseNode, cache, remain, fullPath, selectTable, orderByTable);
+        return baseEntity._buildAssocTable(baseNode, cache, remain, fullPath, selectTable, orderByTable, override);
     }
 
     /**
