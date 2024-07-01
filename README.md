@@ -50,11 +50,15 @@
     - This library provides a unified interface for interacting with various components that share similar functionalities but may have different underlying implementations or interfaces. By using this library, developers can switch between different components such as HTTP clients or JavaScript package managers without changing the consuming codebase, making the code more modular and easier to maintain. 
     - See [Manual](https://kitmi.github.io/jacaranda/@kitmi/adapters/index.html)
 
+- `@kitmi/data`
+    - This library is the data access layer of the Jacaranda Framework, designed to provide both ORM and non-ORM approaches for database interactions. It encapsulates SQL operations, connection pool management, and routine CRUD (Create, Read, Update, Delete) operations, ensuring efficient and scalable data handling. By offering a flexible and powerful API, @kitmi/data simplifies the complexities of database management, allowing developers to focus on building robust applications without worrying about underlying data access intricacies.
+    - See [Manual](https://kitmi.github.io/jacaranda/data-manual.html)
+
 ## Command-lines
 
 - `@kitmi/xeml`
   - Jacaranda data entity modeling tool
-  - See [Manual](@kitmi/xeml/index.html)
+  - See [Manual](https://kitmi.github.io/jacaranda/@kitmi/xeml/index.html)
 
 ## License
 - MIT

@@ -17,6 +17,7 @@ const {
     extractNamespace,
     isDotSeparateName,
     extractDotSeparateName,
+    uniqNamespace,
 } = require('./XemlUtils');
 
 const ELEMENT_CLASS_MAP = {
@@ -25,7 +26,7 @@ const ELEMENT_CLASS_MAP = {
     [XemlTypes.Element.DATASET]: Dataset,
 };
 
-const ELEMENT_WITH_MODULE = new Set([ XemlTypes.Element.TYPE, XemlTypes.Element.ACTIVATOR, XemlTypes.Element.PROCESSOR, XemlTypes.Element.VALIDATOR ]);
+const ELEMENT_WITH_MODULE = new Set([ XemlTypes.Element.TYPE, XemlTypes.Element.ACTIVATOR, XemlTypes.Element.PROCESSOR, XemlTypes.Element.VALIDATOR, XemlTypes.Element.ENTITY_OVERRIDE ]);
 
 const XEML_SOURCE_EXT = ".xeml";
 const BUILTINS_PATH = path.resolve(__dirname, "builtins");
@@ -148,9 +149,6 @@ class Linker {
          * @private
          */
         this._mapOfReferenceToModuleId = {};
-
-        //this.entryModule
-        //this.customizeEntities
     }
 
     /**
@@ -199,9 +197,29 @@ class Linker {
 
         if (this.entryModule.overrides) {
             if (this.entryModule.overrides.entities) {
-                this.customizeEntities = new Set(
-                    this.entryModule.overrides.entities.map((entityItem) => entityItem.entity)
-                );
+                this.customizeEntities = this.entryModule.overrides.entities.reduce((result, entityItem) => {
+                    if (isIdWithNamespace(entityItem.entity)) {
+                        const [namespace, name] = extractNamespace(entityItem.entity);  
+                        let bucket;
+                        if (result.has(name)) {
+                            bucket = result.get(name);
+                            if (!Array.isArray(bucket)) {
+                                bucket = [bucket];
+                            }
+
+                            bucket.push(entityItem.entity);
+                        } else {
+                            bucket = entityItem.entity;
+                        }                      
+                        result.set(name, bucket);
+                    } else {
+                        if (result.has(entityItem.entity)) {
+                            throw new Error(`Entity "${entityItem.entity}" is duplicated in overrides. Please add a namespace to differentiate. E.g. "namespace:entity"`);
+                        }
+                        result.set(entityItem.entity, entityItem.entity);
+                    }                    
+                    return result;
+                }, new Map());
             }
         }
 
@@ -507,10 +525,18 @@ class Linker {
         let elementInfo = targetModule[elementType][elementName];
         let element;
 
-        if (elementType === XemlTypes.Element.ENTITY && this.customizeEntities?.has(elementName)) {            
-            const overrideElement = this.loadElement(this.entryModule, XemlTypes.Element.ENTITY_OVERRIDE, elementName, true);
-
-            Entity.overrideEntityMeta(elementInfo, overrideElement);
+        if (elementType === XemlTypes.Element.ENTITY && this.customizeEntities?.has(elementName)) {    
+            const entityItem = this.customizeEntities.get(elementName);    
+            if (Array.isArray(entityItem)) {
+                // multiple entities with the same name
+                entityItem.forEach((entityName) => {
+                    const overrideElement = this.loadElement(this.entryModule, XemlTypes.Element.ENTITY_OVERRIDE, entityName, true);
+                    Entity.overrideEntityMeta(elementInfo, overrideElement);
+                });
+            } else {
+                const overrideElement = this.loadElement(this.entryModule, XemlTypes.Element.ENTITY_OVERRIDE, entityItem, true);
+                Entity.overrideEntityMeta(elementInfo, overrideElement);
+            }               
         }
 
         if (elementType in ELEMENT_CLASS_MAP) {
@@ -569,11 +595,11 @@ class Linker {
             searchExt = XEML_SOURCE_EXT;
         }
 
-        let baseName = path.basename(xemlFile, XEML_SOURCE_EXT);
-
-        let namespace = [];
+        let baseName = path.basename(xemlFile, XEML_SOURCE_EXT);        
 
         let currentPath = path.dirname(xemlFile);
+
+        let namespace = [xemlFile];
 
         /**
          *
@@ -648,7 +674,7 @@ class Linker {
             });
         }
 
-        xeml.namespace = namespace;
+        xeml.namespace = uniqNamespace(namespace);
 
         xeml.id = this.getModuleIdByPath(xemlFile);
         if (packageName) {

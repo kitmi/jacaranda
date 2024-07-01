@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/data",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "description": "Jacaranda Framework Data Access Model",
     "publishConfig": {
         "access": "public"

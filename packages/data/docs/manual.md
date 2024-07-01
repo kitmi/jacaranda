@@ -538,6 +538,16 @@ const { op, data, affectedRows, insertId } = await Product.create_({
 });
 ```
 
+## Find with Associations
+
+```js
+const result = await Product.findOne_({
+    id: insertId,   // all k-v pairs without starting with $ will be pushed into $where
+    $select: ['*'],
+    $relation: ['category', 'assets.resource', 'attributes', 'variants'],
+});
+```
+
 ## License
 
 -   MIT

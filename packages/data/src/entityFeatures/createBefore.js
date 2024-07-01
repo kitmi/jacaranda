@@ -9,11 +9,11 @@ import Rules from '../Rules';
 export default {
     [Rules.RULE_BEFORE_CREATE]: async (feature, entity, context) => {
         const RelatedEntity = entity.getRelatedEntity(feature.relation);
-        const result = await RelatedEntity.create_({
-            ...feature.initData,
-        });
+        const initData = entity._translateValue(feature.initData, context.options);
 
-        const assocInfo = this.meta.associations[feature.relation];
+        const result = await RelatedEntity.create_(initData);
+
+        const assocInfo = entity.meta.associations[feature.relation];
 
         // only belongsTo and refersTo has type
         if (assocInfo.type) {

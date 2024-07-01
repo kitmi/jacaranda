@@ -30,6 +30,28 @@ const extractDotSeparateName = (name) => name.split('.');
 
 const extractReferenceBaseName = (name) => extractDotSeparateName(name).pop();
 
+const uniqNamespace = (namespace) => {
+    const _set = new Set();
+    const result = [];
+
+    namespace.forEach((ns) => {
+        let uid;
+
+        if (typeof ns === 'string') {            
+            uid = ns;
+        } else {
+            uid = ns[1] + ':' + ns[0];
+        }
+
+        if (!_set.has(uid)) { 
+            result.push(ns);
+            _set.add(uid);
+        }        
+    });
+
+    return result;
+};
+
 const prefixNaming = (prefix, name) => {
     let leftParts = _.kebabCase(prefix).split('-');
     let rightParts = _.kebabCase(extractReferenceBaseName(name)).split('-');
@@ -175,3 +197,4 @@ exports.prefixNaming = prefixNaming;
 exports.generateDisplayName = name => _.startCase(name);
 exports.formatFields = field => Array.isArray(field) ? field.join(', ') : field;
 exports.Clonable = Clonable;
+exports.uniqNamespace = uniqNamespace;

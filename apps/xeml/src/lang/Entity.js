@@ -2,7 +2,7 @@ const EventEmitter = require('node:events');
 const path = require('node:path');
 
 const { _, isPlainObject, isEmpty } = require('@kitmi/utils');
-const { generateDisplayName, deepCloneField, Clonable, entityNaming } = require('./XemlUtils');
+const { generateDisplayName, deepCloneField, Clonable, entityNaming, uniqNamespace } = require('./XemlUtils');
 const Types = require('./Types');
 const Field = require('./Field');
 
@@ -49,6 +49,10 @@ class Entity extends Clonable {
                 ...sourceInfo.views,
                 ...overrideInfo.views,
             };
+        }        
+
+        if (overrideInfo.xemlModule) {
+            sourceInfo.namespace = overrideInfo.xemlModule.namespace;
         }
     }
 
@@ -90,13 +94,13 @@ class Entity extends Clonable {
          * Owner geml module
          * @member {object}
          */
-        this.xemlModule = xemlModule;
+        this.xemlModule = info.namespace ? { ...xemlModule, namespace: uniqNamespace([ ...(xemlModule.namespace ?? []), ...info.namespace ]) } : xemlModule;
 
         /**
          * Raw metadata
          * @member {Object}
          */
-        this.info = info;
+        this.info = info;        
     }
 
     /**

@@ -9,14 +9,14 @@ import Rules from '../Rules';
 export default {
     [Rules.RULE_AFTER_CREATE]: async (feature, entity, context) => {
         const RelatedEntity = entity.getRelatedEntity(feature.relation);
-        const assocInfo = this.meta.associations[feature.relation];
+        const assocInfo = entity.meta.associations[feature.relation];
 
         const data = {
             ...feature.initData,
         };
 
         if (!assocInfo.type) {
-            data[assocInfo.field] = context.latest[assocInfo.key];
+            data[assocInfo.field] = context.latest[entity.meta.keyField];
         }
 
         await RelatedEntity.create_(data);

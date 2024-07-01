@@ -1900,7 +1900,7 @@ $$ LANGUAGE plpgsql;\n\n`;
                             break;
 
                         case 'text':
-                            sql += ' DEFAULT ' + defaultValue ? this.quoteString(defaultValue) : "''";
+                            sql += ' DEFAULT ' + (defaultValue ? this.quoteString(defaultValue) : "''");
                             break;
 
                         case 'number':

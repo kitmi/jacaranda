@@ -60,7 +60,7 @@ class RelationalEntityModel extends EntityModel {
                     });
                 }
 
-                if (alias in this.meta.associations) {
+                if (this.meta.associations && (alias in this.meta.associations)) {
                     throw new InvalidArgument(`Alias "${alias}" conflicts with a predefined association.`, {
                         entity: this.meta.name,
                         alias,
@@ -150,7 +150,7 @@ class RelationalEntityModel extends EntityModel {
             if (k[0] === ':') {
                 // cascade update
                 const anchor = k.substring(1);
-                const assocMeta = meta[anchor];
+                const assocMeta = meta?.[anchor];
                 if (!assocMeta) {
                     throw new ValidationError(`Unknown association "${anchor}" of entity "${this.meta.name}".`);
                 }
@@ -168,7 +168,7 @@ class RelationalEntityModel extends EntityModel {
             if (k[0] === '@') {
                 // update by reference
                 const anchor = k.substring(1);
-                const assocMeta = meta[anchor];
+                const assocMeta = meta?.[anchor];
                 if (!assocMeta) {
                     throw new ValidationError(`Unknown association "${anchor}" of entity "${this.meta.name}".`);
                 }
@@ -218,7 +218,9 @@ class RelationalEntityModel extends EntityModel {
             const assocMeta = meta[anchor];
             const ReferencedEntity = this.db.entity(assocMeta.entity);
 
-            const { result: created } = await ReferencedEntity.findOne_({ ...refQuery, $select: [assocMeta.field] });
+            const created = await ReferencedEntity.findOne_({ ...refQuery, $select: [assocMeta.field] });
+
+            console.log({ ...refQuery, $select: [assocMeta.field] });
 
             if (created == null) {
                 throw new ReferencedNotExistError(
@@ -274,7 +276,13 @@ class RelationalEntityModel extends EntityModel {
         const passOnOptions = _.pick(opOptions, ['$skipModifiers', '$migration', '$ctx', '$upsert', '$dryRun']);
 
         await eachAsync_(assocs, async (data, anchor) => {
-            const assocMeta = meta[anchor];
+            const assocMeta = meta?.[anchor];
+            if (assocMeta == null) {
+                throw new InvalidArgument(`Association "${anchor}" of entity "${this.meta.name}" not found.`, {
+                    entity: this.meta.name,
+                    anchor,
+                });
+            }
 
             if (beforeEntityCreate && !assocMeta.type) {
                 // reverse reference should be created after the entity is created
@@ -365,7 +373,13 @@ class RelationalEntityModel extends EntityModel {
         const passOnOptions = _.pick(context.options, ['$skipModifiers', '$migration', '$ctx', '$upsert']);
 
         await eachAsync_(assocs, async (data, anchor) => {
-            const assocMeta = meta[anchor];
+            const assocMeta = meta?.[anchor];
+            if (assocMeta == null) {
+                throw new InvalidArgument(`Association "${anchor}" of entity "${this.meta.name}" not found.`, {
+                    entity: this.meta.name,
+                    anchor,
+                });
+            }
 
             if (beforeEntityUpdate && !assocMeta.type) {
                 // reverse reference should be updated after the entity is updated

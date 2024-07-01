@@ -6,15 +6,20 @@
 - [X] type with modifiers and hoisted field reference 
 - [X] add qualifiers into validators
 - [X] create or update by reference to related entity
-
+- [X] closureTable general procedures
+- [X] override entity with multiple namespaces
+ 
 ## Developing features
 
-- [ ] closureTable general procedures
+- [ ] database migration
+- [ ] multiple override
+- [ ] i18n feature
+- [ ] input schema
+- [ ] api generation
 - [ ] predefined view
 - [ ] add triggers for calculated fields 
 - [ ] triggers for insert and update - (update timestamp finished)
 - [ ] data template
-- [ ] api generation
 
 ## Planned features
 

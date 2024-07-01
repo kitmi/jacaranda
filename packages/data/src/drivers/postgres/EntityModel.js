@@ -290,7 +290,7 @@ class PostgresEntityModel extends EntityModel {
                     });
                 }
 
-                if (alias in this.meta.associations) {
+                if (this.meta.associations && (alias in this.meta.associations)) {
                     throw new InvalidArgument(`Alias "${alias}" conflicts with a predefined association.`, {
                         entity: this.meta.name,
                         alias,

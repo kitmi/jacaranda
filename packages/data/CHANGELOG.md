@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.5.3
+
+### Patch Changes
+
+-   Bug fixes
+
 ## 0.5.2
 
 ### Patch Changes
