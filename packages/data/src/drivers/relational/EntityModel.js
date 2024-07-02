@@ -2,7 +2,7 @@ import { _, eachAsync_, batchAsync_, isPlainObject, isEmpty, set as _set, get as
 import EntityModel from '../../EntityModel';
 import {
     ApplicationError,
-    ReferencedNotExistError,
+    ReferencedNotExist,
     ValidationError,
     InvalidArgument,
     DatabaseError,
@@ -220,10 +220,8 @@ class RelationalEntityModel extends EntityModel {
 
             const created = await ReferencedEntity.findOne_({ ...refQuery, $select: [assocMeta.field] });
 
-            console.log({ ...refQuery, $select: [assocMeta.field] });
-
             if (created == null) {
-                throw new ReferencedNotExistError(
+                throw new ReferencedNotExist(
                     `Referenced entity "${ReferencedEntity.meta.name}" with ${JSON.stringify(refQuery)} not exist.`
                 );
             }

@@ -150,7 +150,7 @@ describe('crud bvt', function () {
                 $where: { id: insertId },
             });
 
-            console.dir(result, { depth: 10 });
+            should.not.exist(result.data[0].image);
         });
     });
 });

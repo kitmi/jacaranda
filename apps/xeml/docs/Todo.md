@@ -12,7 +12,6 @@
 ## Developing features
 
 - [ ] database migration
-- [ ] multiple override
 - [ ] i18n feature
 - [ ] input schema
 - [ ] api generation

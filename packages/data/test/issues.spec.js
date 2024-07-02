@@ -24,7 +24,10 @@ describe('issues', function () {
             });
 
             result.op.should.equal('SELECT');
-            console.log(result.data);
         });
+    });
+
+    it('populate reference', async function () {
+        
     });
 });
