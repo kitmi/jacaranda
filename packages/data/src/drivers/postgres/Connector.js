@@ -376,14 +376,12 @@ class PostgresConnector extends RelationalConnector {
         }
 
         let columns = '';
-        let values = '';
-        let counter = 1;
+        let values = '';        
         let params = [];
 
         _.each(data, (v, k) => {
             columns += this.escapeId(k) + ',';
-            values += `$${counter++},`;
-            params.push(v);
+            values += this._packValue(v, params) + ',';
         });
 
         let sql = `INSERT INTO ${this.escapeId(model)} (${columns.slice(0, -1)}) VALUES (${values.slice(0, -1)})`;
@@ -451,13 +449,12 @@ class PostgresConnector extends RelationalConnector {
         }
 
         let columns = '';
-        let values = '';
+        let values = '';        
         let params = [];
 
-        _.each(insertData, (v, k) => {
+        _.each(data, (v, k) => {
             columns += this.escapeId(k) + ',';
-            values += `$?,`;
-            params.push(v);
+            values += this._packValue(v, params) + ',';
         });
 
         let sql = `INSERT INTO ${this.escapeId(model)} (${columns.slice(0, -1)}) VALUES (${values.slice(0, -1)})`;
