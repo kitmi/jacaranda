@@ -7,6 +7,7 @@ import {
     InvalidArgument,
     DatabaseError,
 } from '@kitmi/types';
+import { TopoSort } from '@kitmi/algo';
 
 import { getValueFromAny } from '../../helpers';
 
@@ -45,6 +46,8 @@ class RelationalEntityModel extends EntityModel {
         const assocTable = {};
         const cache = {};
 
+        const topoSort = new TopoSort();
+
         associations.forEach((assoc) => {
             if (typeof assoc === 'object') {
                 const { anchor, alias, ...override } = assoc;
@@ -74,12 +77,48 @@ class RelationalEntityModel extends EntityModel {
                     });
                 }
 
+                addToTopo(assoc, alias);
+    
                 cache[alias] = assocTable[alias] = {
                     ...assoc   
                 };
             } else {
                 this._loadAssocIntoTable(assocTable, cache, assoc);
-            }            
+            }               
+        });
+
+        function addToTopo(assoc, anchor) {
+            if (assoc.on) {
+                _.each(assoc.on, (value, key) => {
+                    const pos = key.indexOf('.');
+                    if (pos > 0) {
+                        const base = key.substring(0, pos);
+                        topoSort.add(base, anchor);
+                    }
+
+                    if (typeof value === 'object' && value.$xr === 'Column') {
+                        const pos2 = value.name.indexOf('.');
+                        if (pos2 > 0) {
+                            const base = value.name.substring(0, pos2);
+                            topoSort.add(base, anchor);
+                        }
+                    }
+                });
+            }
+        }
+
+        const dependencies = topoSort.sort();
+        dependencies.forEach(dep => {
+            const item = assocTable[dep];
+            if (item == null) {
+                throw new InvalidArgument(`Association "${dep}" not found.`, {
+                    entity: this.meta.name,
+                    assoc: dep,
+                });
+            }
+
+            delete assocTable[dep];
+            assocTable[dep] = item;
         });
 
         return assocTable;
@@ -108,7 +147,7 @@ class RelationalEntityModel extends EntityModel {
             cache[assoc] = result;
         } else {
             const base = assoc.substring(0, lastPos);
-            const last = assoc.substring(lastPos + 1);
+            const last = assoc.substring(lastPos + 1);            
 
             let baseNode = cache[base];
             if (!baseNode) {

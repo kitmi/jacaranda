@@ -1314,7 +1314,7 @@ class EntityModel {
 
     _preProcessOptions(qOptions, isOne, isFind) {
         const extraSelect = [];
-        qOptions.$where = this._translateValue(qOptions.$where, qOptions, true, isFind ? extraSelect : undefined);
+        qOptions.$where = this._translateValue(qOptions.$where, qOptions, true, (isFind && !qOptions.$skipOrm) ? extraSelect : undefined);
         if (extraSelect.length) {
             qOptions.$select || (qOptions.$select = new Set(['*']));
             if (!qOptions.$select.has('*')) {

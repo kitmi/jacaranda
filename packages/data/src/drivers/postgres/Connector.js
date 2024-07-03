@@ -311,7 +311,7 @@ class PostgresConnector extends RelationalConnector {
                     meta.transactionId = connection[tranSym];
                 }
 
-                this.app.log('info', _.truncate(sql, { length: 500 }), meta);
+                this.app.log('info', _.truncate(sql, { length: 1000 }), meta);
             }
 
             if ($preparedKey) {
