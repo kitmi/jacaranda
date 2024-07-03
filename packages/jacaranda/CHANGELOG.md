@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.2.0
+
+### Minor Changes
+
+-   Add businessLogic feature.
+
 ## 3.1.3
 
 ### Patch Changes

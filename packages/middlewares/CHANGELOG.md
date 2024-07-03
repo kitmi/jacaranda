@@ -1,5 +1,11 @@
 # @kitmi/middlewares
 
+## 0.2.0
+
+### Minor Changes
+
+-   Add userAgent middleware for parsing user device info from 'user-agent' header
+
 ## 0.1.1
 
 ### Patch Changes

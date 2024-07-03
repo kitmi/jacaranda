@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.5.4
+
+### Patch Changes
+
+-   Fix: insert with function call
+
 ## 0.5.3
 
 ### Patch Changes
