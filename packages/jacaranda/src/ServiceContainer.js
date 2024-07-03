@@ -321,17 +321,14 @@ class ServiceContainer extends AsyncEmitter {
             return this.tryRequire(pkgName);
         } catch (error) {
             if (error.code === 'ERR_REQUIRE_ESM') {
-                try {
-                    const esmModule = await import(pkgName);
+                const esmModule = await import(pkgName);
                     
-                    if (useDefault) {
-                        return esmModule.default;
-                    }
-                    return esmModule;
-                } catch (error) {
-                    throw error;
+                if (useDefault) {
+                    return esmModule.default;
                 }
+                return esmModule;
             }
+            
             throw error;
         }
     }

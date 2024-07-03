@@ -23,9 +23,12 @@ const appendId = (baseEndpoint, idName) => (idName ? `${baseEndpoint}/:${idName}
  *          $errorOptions
  *          $urlDasherize: false
  *          'controller To remap': '/special/:abc/url'
+ *          'video': '/video/abc'
  *          ...
  *      }
  *  }
+ * 
+ *  /video/abc/123
  *
  *  route                          http method    function of ctrl
  *  /:resource                     get            query_

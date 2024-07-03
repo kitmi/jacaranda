@@ -1,0 +1,27 @@
+{
+  "env": {
+    "browser": false,
+    "commonjs": false,
+    "es2022": true
+  },
+  "globals": {
+    "Date": "readonly",
+    "Array": "readonly",
+    "Object": "readonly",
+    "Error": "readonly",
+    "URLSearchParams": "readonly",
+    "undefined": "readonly",
+    "JSON": "readonly",
+    "URL": "readonly",
+    "process": "readonly",
+    "setTimeout": "readonly",
+    "__dirname": "readonly",
+    "Math": "readonly",
+    "Buffer": "readonly",
+    "encodeURIComponent": "readonly"
+  },
+  "settings": {},
+  "rules": {
+    "no-undef": "warn"
+  }
+}

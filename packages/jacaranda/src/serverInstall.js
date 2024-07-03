@@ -23,6 +23,7 @@ function install(options) {
         .start_()
         .then((app) => app.stop_())
         .catch((err) => {
+            // eslint-disable-next-line no-undef
             console.error(err);
         });
 }

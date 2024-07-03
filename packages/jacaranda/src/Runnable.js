@@ -154,12 +154,12 @@ const Runnable = (T) =>
             } else if (config.source === 'registry') {
                 moduleMeta = this.registry.modules?.[name];
                 if (moduleMeta == null) {
-                    throw new InvalidConfiguration(`Module [${name}] not found in registry.`, app, configItemName);
+                    throw new InvalidConfiguration(`Module [${name}] not found in registry.`, this, configItemName);
                 }                
                 appPath = moduleMeta.appPath;
             } else if (config.source === 'npm') {
                 if (!config.packageName) {
-                    throw new InvalidConfiguration(`Missing "packageName" for npm module [${name}].`, app, configItemName);
+                    throw new InvalidConfiguration(`Missing "packageName" for npm module [${name}].`, this, configItemName);
                 }
 
                 moduleMeta = await this.tryRequire_(config.packageName, true);
@@ -170,7 +170,7 @@ const Runnable = (T) =>
 
             let exists = (await fs.pathExists(appPath)) && (await isDir_(appPath));
             if (!exists) {
-                throw new InvalidConfiguration(`Module [${name}] not found at "${appPath}".`, app, configItemName);
+                throw new InvalidConfiguration(`Module [${name}] not found at "${appPath}".`, this, configItemName);
             }
             return { appPath, moduleMeta };
         }

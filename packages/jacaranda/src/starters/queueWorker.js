@@ -26,12 +26,6 @@ async function startQueueWorker(worker, queueService, queueName, options) {
                 return;
             }
 
-            if (info && info.$mock) {
-                app.log('info', 'A mock message is received.\nMessage: ' + raw);
-                channel.ack(msg);
-                return;
-            }
-
             worker(app, info)
                 .then((shouldAck) => {
                     if (shouldAck) {

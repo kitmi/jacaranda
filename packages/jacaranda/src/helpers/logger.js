@@ -42,9 +42,13 @@ export const makeLogger =
 
 export const consoleLogger = (level, args, channel = null) =>
     (level === ERROR
+        // eslint-disable-next-line no-undef
         ? console.error
         : level === WARNING
+        // eslint-disable-next-line no-undef
         ? console.warn
         : level === TRACE
+        // eslint-disable-next-line no-undef
         ? console.trace
+        // eslint-disable-next-line no-undef
         : console.log)(`${channel ? '[' + channel + '] ' : ''}${levelText[level]}:`, ...args);

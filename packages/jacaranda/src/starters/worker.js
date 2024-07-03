@@ -45,6 +45,7 @@ async function startWorker(worker, options) {
             throw error;
         }
 
+        // eslint-disable-next-line no-undef
         console.error(verbose ? error : error.message);
 
         process.exit(1);

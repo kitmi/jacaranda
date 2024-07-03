@@ -20,6 +20,7 @@ function install(options) {
         .start_()
         .then((app) => app.stop_())
         .catch((err) => {
+            /* eslint-disable no-undef */
             console.error(err);
         });
 }

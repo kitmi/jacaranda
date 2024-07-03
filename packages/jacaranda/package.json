@@ -1,6 +1,6 @@
 {
   "name": "@kitmi/jacaranda",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "description": "JavaScript application framework",
   "main": "cjs/index.js",
   "module": "src/index.js",
@@ -33,8 +33,8 @@
     "doc": "jsdoc --configure .jsdoc.json --verbose && pnpm prepack",
     "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
     "prettier": "prettier --write .",
-    "lint": "eslint \"**/*.js\"",
-    "lint-fix": "eslint \"**/*.js\" --fix",
+    "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",
+    "lint-fix": "pnpm lint --fix",
     "clean": "shx rm -rf cjs coverage .nyc_output",
     "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
   },
@@ -83,7 +83,8 @@
     "koa-etag": "^4.0.0",
     "koa-mount": "^4.0.0",
     "koa-static": "^5.0.0",
-    "nanoid": "^3.3.7"
+    "nanoid": "^3.3.7",
+    "oxlint": "^0.4.4"
   },
   "prettier": {
     "quoteProps": "consistent",

@@ -10,6 +10,7 @@ function middleware(...middlewares) {
         let targetFunction,
             isHof = false;
 
+        // eslint-disable-next-line no-undef
         if (arguments.length === 1 && typeof target === 'function') {
             targetFunction = target;
             isHof = true;

@@ -7,7 +7,7 @@ import Feature from '../Feature';
  * @module Feature_ServiceGroup
  */
 
-module.exports = {
+export default {
     /**
      * This feature is loaded at service stage
      * @member {string}

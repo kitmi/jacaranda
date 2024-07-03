@@ -13,5 +13,6 @@ class {{ className }} extends EntityModel {
 }
     
 {{ className }}.meta = {{ entityMeta|safe }};
+{{ statics|safe }}
 
 export default {{ className }};

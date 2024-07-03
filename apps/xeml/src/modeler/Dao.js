@@ -283,6 +283,7 @@ class DaoModeler {
 
             const importLines = [];
             const assignLines = [];
+            const staticLines = [];
             const importBucket = {};
 
             //generate functors if any
@@ -325,6 +326,17 @@ class DaoModeler {
                 });
             }
 
+            //import views
+            if (!isEmpty(entity.views)) {
+                importLines.push(
+                    JsLang.astToCode(
+                        JsLang.astImport('views', './views/' + entity.name + '.json')
+                    )
+                );     
+
+                staticLines.push(JsLang.astToCode(JsLang.astAssign(`${capitalized}.meta.views`, JsLang.astId('views'))));
+            }            
+
             //add package path
             const packageName = entity.xemlModule.packageName;
             if (packageName) {
@@ -341,6 +353,7 @@ class DaoModeler {
                 className: capitalized,
                 entityMeta: indentLines(JSON.stringify(modelMeta, null, 4), 4),
                 classBody: indentLines(astClassMain.map((block) => JsLang.astToCode(block)).join('\n\n'), 8),
+                statics: staticLines.join('\n'),
                 //mixins
             };
 
