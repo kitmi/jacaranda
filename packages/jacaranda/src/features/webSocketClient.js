@@ -26,7 +26,7 @@ export default {
             name
         );
 
-        const WebSocket = app.tryRequire('ws');
+        const WebSocket = await app.tryRequire_('ws', true);
 
         let ws;
         let wsConnected = false;

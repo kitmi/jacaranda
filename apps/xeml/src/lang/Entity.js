@@ -44,6 +44,13 @@ class Entity extends Clonable {
             };
         }
 
+        if (overrideInfo.data) {
+            sourceInfo.data = [
+                ...(sourceInfo.data ?? []),
+                ...overrideInfo.data,
+            ];
+        }
+
         if (overrideInfo.views) {
             sourceInfo.views = {
                 ...sourceInfo.views,

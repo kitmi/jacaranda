@@ -10,8 +10,7 @@ export default {
     load_: async function (app, options, name) {
         const { parser: parserOptions, builder: builderOptions } = options;
 
-        const { XMLParser, XMLBuilder } =
-            app.tryRequire('fast-xml-parser');
+        const { XMLParser, XMLBuilder } = await app.tryRequire_('fast-xml-parser');
 
         const service = {
             parse: (xml) => {
@@ -19,7 +18,7 @@ export default {
                 return parser.parse(xml);
             },
 
-            build: (obj) => {                
+            build: (obj) => {
                 const builder = new XMLBuilder(builderOptions);
                 return builder.build(obj);
             },

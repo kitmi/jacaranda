@@ -29,7 +29,7 @@ export default {
      *
      */
     load_: async function (app, options, name) {
-        const NodeCache = app.tryRequire('node-cache');
+        const NodeCache = await app.tryRequire_('node-cache', true);
         const nodeCache = new NodeCache({
             useClones: false,
             ...options,

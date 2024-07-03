@@ -7,6 +7,7 @@ import path from 'node:path';
 import { _, pushIntoBucket, eachAsync_ } from '@kitmi/utils';
 import { ApplicationError, InvalidConfiguration } from '@kitmi/types';
 import Feature from '../Feature';
+import minimist from 'minimist';
 
 function translateMinimistOptions(opts) {
     let m = {};
@@ -68,7 +69,6 @@ class CommandLine {
     }
 
     parse(options) {
-        const minimist = this.app.tryRequire('minimist');
         const minimistOpts = translateMinimistOptions(options);
         this.argv = minimist(gArgv, minimistOpts);
     }
