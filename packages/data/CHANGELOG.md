@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.5.5
+
+### Patch Changes
+
+-   Fix: add topo sorting for custom joining clauses 
+
 ## 0.5.4
 
 ### Patch Changes
