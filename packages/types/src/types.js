@@ -163,6 +163,8 @@ export class TypeSystem {
     }
 
     verifyEnum(value, meta, opts) {
+        if (value == null && meta.optional) return;
+
         if (meta.enum && !meta.enum.includes(value)) {
             throw new ValidationError('Invalid enum value.', {
                 value,

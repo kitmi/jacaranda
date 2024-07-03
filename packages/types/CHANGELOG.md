@@ -1,10 +1,16 @@
 # @kitmi/types
 
+## 1.3.1
+
+### Patch Changes
+
+-   Fix bug: enum verification ignoring optional flag
+
 ## 1.3.0
 
 ### Minor Changes
 
--   48cb18d: Refactor xeml and data package and minor bug fixing and change on utility libs
+-   48cb18d: Wrong bump triggered by changeset
 
 ### Patch Changes
 

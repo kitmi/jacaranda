@@ -56,6 +56,12 @@ describe("text", () => {
             result.should.equal(value);
         });
 
+        it('enum + optional', () => {
+            const value = null;
+            const result = text.sanitize(value, { enum: [ 'ok', 'ng' ], optional: true});
+            (result == null).should.be.ok;
+        });
+
         it('not in enumerable', () => {
             const value = 'ok';
             (() => text.sanitize(value, { enum: [ 'ng', 'some' ] })).should.throw('Invalid enum value.');
