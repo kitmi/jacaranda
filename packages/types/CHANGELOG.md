@@ -1,5 +1,12 @@
 # @kitmi/types
 
+## 1.3.2
+
+### Patch Changes
+
+-   Add lint
+-   Add prepublish build
+
 ## 1.3.1
 
 ### Patch Changes
