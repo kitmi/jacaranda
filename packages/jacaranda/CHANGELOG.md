@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.2.2
+
+### Patch Changes
+
+-   Fix: cjs build.
+
 ## 3.2.1
 
 ### Patch Changes
