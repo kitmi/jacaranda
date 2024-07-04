@@ -322,13 +322,13 @@ class ServiceContainer extends AsyncEmitter {
         } catch (error) {
             if (error.code === 'ERR_REQUIRE_ESM') {
                 const esmModule = await import(pkgName);
-                    
+
                 if (useDefault) {
                     return esmModule.default;
                 }
                 return esmModule;
             }
-            
+
             throw error;
         }
     }
@@ -497,7 +497,7 @@ class ServiceContainer extends AsyncEmitter {
         }
 
         const topoSort = new TopoSort();
-        features.forEach(([feature]) => {    
+        features.forEach(([feature]) => {
             topoSort.depends(feature.name, feature.depends);
         });
 
@@ -566,7 +566,14 @@ class ServiceContainer extends AsyncEmitter {
                 }
 
                 if (feature && feature.stage === Feature.CONF) {
-                    configStageFeatures.push([feature, featureOptions]);
+                    this.alreadyLoadedFeatures || (this.alreadyLoadedFeatures = new Set());
+
+                    if (!this.alreadyLoadedFeatures.has(name)) {
+                        configStageFeatures.push([feature, featureOptions]);
+
+                        this.alreadyLoadedFeatures.add(name);
+                    }
+
                     delete this.config[name];
                 }
             });

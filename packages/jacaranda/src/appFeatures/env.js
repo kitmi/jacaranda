@@ -13,7 +13,7 @@ export default {
      * This feature is loaded at init stage
      * @member {string}
      */
-    stage: Feature.INIT,
+    stage: Feature.CONF,
 
     /**
      * Load the feature
@@ -47,5 +47,7 @@ export default {
 
         const exposed = _.pick(process.env, Array.from(expose));
         runtime.register(K_ENV, { ...exposed, ...add });
+
+        return app.loadConfig_();
     },
 };

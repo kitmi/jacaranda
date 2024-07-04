@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.2.1
+
+### Patch Changes
+
+-   Fix: env variables does not take effect in the same app.
+  
 ## 3.2.0
 
 ### Minor Changes
