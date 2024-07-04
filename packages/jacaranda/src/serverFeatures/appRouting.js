@@ -19,9 +19,9 @@
  */
 
 import path from 'node:path';
-import { _, batchAsync_ } from '@kitmi/utils';
-import { fs, isDir_ } from '@kitmi/sys';
+import { _, batchAsync_, eachAsync_, pushIntoBucket } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
+import { TopoSort } from '@kitmi/algo';
 import Feature from '../Feature';
 
 import WebModule from '../WebModule';
@@ -39,8 +39,11 @@ export default {
      * @param {object} routes - Routes and configuration.
      * @returns {Promise.<*>}
      */
-    load_: async (server, routes) =>
-        batchAsync_(routes, async (config, baseRoute) => {
+    load_: async (server, routes) => {
+        const topoSort = new TopoSort();
+        const modules = {};
+
+        await batchAsync_(routes, async (config, baseRoute) => {
             if (!config.name) {
                 throw new InvalidConfiguration('Missing app name.', app, `appRouting.${baseRoute}.name`);
             }
@@ -61,9 +64,13 @@ export default {
                 `appRouting.[${baseRoute}]`
             );
 
+            if (!moduleMeta) {
+                moduleMeta = {};
+            }
+
             let app = new WebModule(server, config.name, baseRoute, appPath, {
-                ...moduleMeta?.options,
-                registry: moduleMeta?.registry,
+                ...moduleMeta.options,
+                registry: moduleMeta.registry,
                 ...options,
             });
             app.now = server.now;
@@ -86,16 +93,32 @@ export default {
                 }
             });
 
-            let relativePath = path.relative(server.workingPath, appPath);
-            server.log('verbose', `Loading app [${app.name}] from "${relativePath}" ...`);
+            pushIntoBucket(modules, config.name, { appPath, app });
 
-            await app.start_();
+            if (moduleMeta.depends) {
+                topoSort.depends(config.name, moduleMeta.depends);
+            } else {
+                topoSort.add(config.name);
+            }
+        });
 
-            server.log('verbose', `App [${app.name}] is loaded.`);
+        const sorted = topoSort.sort();
 
-            //delayed the app routes mounting after all plugins of the server are loaded
-            server.on('before:' + Feature.FINAL, () => {
-                server.mountApp(app);
+        return eachAsync_(sorted, async (name) => {
+            const bucket = modules[name];
+            return batchAsync_(bucket, async ({ appPath, app }) => {
+                let relativePath = path.relative(server.workingPath, appPath);
+                server.log('verbose', `Loading app [${app.name}] from "${relativePath}" ...`);
+
+                await app.start_();
+
+                server.log('verbose', `App [${app.name}] is loaded.`);
+
+                //delayed the app routes mounting after all plugins of the server are loaded
+                server.on('before:' + Feature.FINAL, () => {
+                    server.mountApp(app);
+                });
             });
-        }),
+        });
+    },
 };
