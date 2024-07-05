@@ -23,6 +23,8 @@ export const xrDataSet = (model, query) => ({ $xr: 'DataSet', model, query: { $s
 export const doInc = (field, increment) => xrExpr(xrCol(field), '+', increment);
 export const doDec = (field, decrement) => xrExpr(xrCol(field), '-', decrement);
 
+export const isSelectAll = (select) => !select || (select.size === 1 && select.has('*'));
+
 /**
  * Merge two query conditions using given operator.
  * @param {*} condition1

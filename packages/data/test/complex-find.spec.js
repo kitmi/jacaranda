@@ -85,10 +85,12 @@ describe('crud complex', function () {
                 $relation: ['category', 'assets.resource', 'attributes', 'variants'],
             });
 
+            console.log(result);
+
             should.not.exist(result.updatedAt);
 
             const ProductCategory = db.entity('productCategory');
-            const category = await ProductCategory.findOne_({ $select: ['*'], id: 2 });
+            const category = await ProductCategory.findOne_({ $select: ['*'], id: 2 });            
 
             result[':category'].should.eql(category);
             result[':assets'].length.should.eql(3);

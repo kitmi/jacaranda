@@ -31,6 +31,8 @@ export default {
                         : context.existing && context.existing[fieldName] == null
                 )
             ) {
+                console.log(context);
+
                 throw new ValidationError(
                     `At least one of these fields ${item.map((f) => quote(f)).join(', ')} should not be null.`,
                     {

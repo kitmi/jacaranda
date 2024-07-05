@@ -17,6 +17,8 @@ describe('closureTable', function () {
 
             const result = await TagCategory.getAllDescendants_(insertId);
 
+            console.log(result.data);
+
             result.data.length.should.equal(1);
             result.data[0].id.should.equal(insertId);
             result.data[0].depth.should.equal(0);

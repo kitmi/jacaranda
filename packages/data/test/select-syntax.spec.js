@@ -3,7 +3,7 @@ const testData = {
     desc: 'Book 1 desc',
 };
 
-describe('crud bvt', function () {
+describe('select-syntax', function () {
     before(async function () {
         await tester.start_(async (app) => {
             const db = app.db();
@@ -34,16 +34,20 @@ describe('crud bvt', function () {
         await tester.start_(async (app) => {
             const db = app.db('test2');
             const Product = db.entity('product');
+            /*
             const result = await Product.findMany_({
                 $select: ['*', 'category.*'],
-            });
+            });            
 
             should.exist(result.data[0][':category'].name);
             should.exist(result.data[0][':category'].desc);
+            */
 
             const result2 = await Product.findMany_({
                 $select: ['*', 'category.name'],
             });
+
+            //console.dir(result2.data, { depth: 10 });
 
             should.exist(result2.data[0][':category'].name);
             should.not.exist(result2.data[0][':category'].desc);

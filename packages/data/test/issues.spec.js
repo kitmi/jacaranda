@@ -27,7 +27,5 @@ describe('issues', function () {
         });
     });
 
-    it('populate reference', async function () {
-        
-    });
+    it('populate reference', async function () {});
 });

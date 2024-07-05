@@ -48,6 +48,10 @@ export default {
         const exposed = _.pick(process.env, Array.from(expose));
         runtime.register(K_ENV, { ...exposed, ...add });
 
+        app.once('stopped', () => {
+            runtime.deregister(K_ENV);
+        });
+
         return app.loadConfig_();
     },
 };

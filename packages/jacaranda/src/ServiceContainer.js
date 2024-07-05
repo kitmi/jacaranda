@@ -572,7 +572,7 @@ class ServiceContainer extends AsyncEmitter {
                         configStageFeatures.push([feature, featureOptions]);
 
                         this.alreadyLoadedFeatures.add(name);
-                    }
+                    } 
 
                     delete this.config[name];
                 }

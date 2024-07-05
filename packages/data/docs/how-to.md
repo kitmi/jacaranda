@@ -50,7 +50,7 @@ const ret = await Video.findMany_({
             entity: 'course',
             joinType: 'INNER JOIN',
             on: {
-                rootDoc: xrCol('rootDoc.knowledges.knowledge.documents.document.id'),
+                'course.rootDoc': xrCol('rootDoc.knowledges.knowledge.documents.document.id'),
             },
         },
         'course.branches.branch.subject',

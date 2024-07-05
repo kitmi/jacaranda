@@ -52,6 +52,21 @@ class RuntimeRegistry {
 
         return this;
     }
+
+    /**
+     * Deregister a runtime module.
+     * @param {string} [ns] - The namespace of the module.
+     * @param {string} moduleName - The name of the module.
+     */
+    deregister(...args) {
+        let [ns, moduleName] = fxargs(args, ['string?', 'string']);
+        if (ns != null) {
+            moduleName = `${ns}:${moduleName}`;
+        }
+
+        delete this.modulesRegistry[moduleName];
+    }
+
 }
 
 export default RuntimeRegistry;

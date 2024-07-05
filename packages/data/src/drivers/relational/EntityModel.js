@@ -9,7 +9,31 @@ import {
 } from '@kitmi/types';
 import { TopoSort } from '@kitmi/algo';
 
-import { getValueFromAny } from '../../helpers';
+import { getValueFromAny, isSelectAll } from '../../helpers';
+
+export function putInTopoSort(topoSort, assoc, anchor) {
+    if (assoc.on) {
+        _.each(assoc.on, (value, key) => {
+            const pos = key.indexOf('.');
+            if (pos > 0) {
+                const base = key.substring(0, pos);
+                if (base !== anchor) {
+                    topoSort.add(base, anchor);
+                }
+            }
+
+            if (typeof value === 'object' && value.$xr === 'Column') {
+                const pos2 = value.name.indexOf('.');
+                if (pos2 > 0) {
+                    const base = value.name.substring(0, pos2);
+                    if (base !== anchor) {
+                        topoSort.add(base, anchor);
+                    }
+                }
+            }
+        });
+    }
+}
 
 /**
  * Relational entity model class.
@@ -41,26 +65,23 @@ class RelationalEntityModel extends EntityModel {
      * Preprocess relationships for non-ORM operations.
      * @param {*} findOptions
      */
-    _prepareAssociationsNoOrm(findOptions) {
+    _prepareAssociations(findOptions) {
         const associations = this._uniqueRelations(findOptions.$relation);
         const assocTable = {};
         const cache = {};
 
-        const topoSort = new TopoSort();
+        const topoSort = new TopoSort();        
 
         associations.forEach((assoc) => {
             if (typeof assoc === 'object') {
-                const { anchor, alias, ...override } = assoc;
+                let { anchor, alias, ...override } = assoc;
                 if (anchor) {
-                    this._loadAssocIntoTable(assocTable, cache, anchor, override);
+                    this._loadAssocIntoTable(findOptions, assocTable, cache, anchor, override);
                     return;
                 }
 
                 if (!alias) {
-                    throw new InvalidArgument('Missing "alias" for custom association.', {
-                        entity: this.meta.name,
-                        assoc,
-                    });
+                    alias = assoc.entity;
                 }
 
                 if (this.meta.associations && (alias in this.meta.associations)) {
@@ -77,35 +98,15 @@ class RelationalEntityModel extends EntityModel {
                     });
                 }
 
-                addToTopo(assoc, alias);
+                putInTopoSort(topoSort, assoc, alias);
     
                 cache[alias] = assocTable[alias] = {
                     ...assoc   
                 };
             } else {
-                this._loadAssocIntoTable(assocTable, cache, assoc);
+                this._loadAssocIntoTable(findOptions, assocTable, cache, assoc);
             }               
         });
-
-        function addToTopo(assoc, anchor) {
-            if (assoc.on) {
-                _.each(assoc.on, (value, key) => {
-                    const pos = key.indexOf('.');
-                    if (pos > 0) {
-                        const base = key.substring(0, pos);
-                        topoSort.add(base, anchor);
-                    }
-
-                    if (typeof value === 'object' && value.$xr === 'Column') {
-                        const pos2 = value.name.indexOf('.');
-                        if (pos2 > 0) {
-                            const base = value.name.substring(0, pos2);
-                            topoSort.add(base, anchor);
-                        }
-                    }
-                });
-            }
-        }
 
         const dependencies = topoSort.sort();
         dependencies.forEach(dep => {
@@ -130,7 +131,7 @@ class RelationalEntityModel extends EntityModel {
      * @param {*} cache - Dotted path as key
      * @param {*} assoc - Dotted path
      */
-    _loadAssocIntoTable(assocTable, cache, assoc, override) {
+    _loadAssocIntoTable(findOptions, assocTable, cache, assoc, override) {
         if (cache[assoc]) return cache[assoc];
 
         const lastPos = assoc.lastIndexOf('.');
@@ -143,6 +144,10 @@ class RelationalEntityModel extends EntityModel {
                 throw new InvalidArgument(`Entity "${this.meta.name}" does not have the association "${assoc}".`);
             }
 
+            if (assocInfo.list && !findOptions.$skipOrm && !isSelectAll(findOptions.$select)) {                
+                findOptions.$select.add(assoc + '.' + assocInfo.key);
+            }
+
             result = assocTable[assoc] = assocInfo;
             cache[assoc] = result;
         } else {
@@ -151,7 +156,7 @@ class RelationalEntityModel extends EntityModel {
 
             let baseNode = cache[base];
             if (!baseNode) {
-                baseNode = this._loadAssocIntoTable(assocTable, cache, base);
+                baseNode = this._loadAssocIntoTable(findOptions, assocTable, cache, base);
             }
 
             const entity = this.db.entity(baseNode.entity);
@@ -161,6 +166,10 @@ class RelationalEntityModel extends EntityModel {
             }
 
             result = assocInfo;
+
+            if (assocInfo.list && !findOptions.$skipOrm && !isSelectAll(findOptions.$select)) {
+                findOptions.$select.add(assoc + '.' + assocInfo.key);
+            }
 
             if (!baseNode.subAssocs) {
                 baseNode.subAssocs = {};
@@ -563,7 +572,7 @@ class RelationalEntityModel extends EntityModel {
 
                 if (destEntityId == null) {
                     if (isEmpty(context.existing)) {
-                        context.existing = await this.findOne_({ $select: [anchor], $where: context.options.$where });
+                        context.existing = await this.findOne_({ $where: context.options.$where });
                         if (!context.existing) {
                             throw new ValidationError(`The entity "${this.meta.name}" to be update is not found.`, {
                                 query: context.options.$where,

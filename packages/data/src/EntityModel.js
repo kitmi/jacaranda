@@ -1340,7 +1340,8 @@ class EntityModel {
                 throw new Error('To be implemented');
             }
 
-            qOptions.$assoc = qOptions.$skipOrm ? this._prepareAssociationsNoOrm(qOptions) : this._prepareAssociations(qOptions);
+            //qOptions.$assoc = qOptions.$skipOrm ? this._prepareAssociations(qOptions) : this._prepareAssociations(qOptions);
+            qOptions.$assoc = this._prepareAssociations(qOptions);
         }
     }
 

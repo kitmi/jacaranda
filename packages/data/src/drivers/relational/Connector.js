@@ -3,7 +3,7 @@ import { isPlainObject, isEmpty, snakeCase, isInteger, _, countOfChar, prefixKey
 import { ApplicationError, InvalidArgument } from '@kitmi/types';
 
 import Connector from '../../Connector';
-import { isRawSql, extractRawSql } from '../../helpers';
+import { isRawSql, extractRawSql, isSelectAll } from '../../helpers';
 
 class RelationalConnector extends Connector {
     /**
@@ -60,13 +60,13 @@ class RelationalConnector extends Connector {
     }
 
     /**
-     * Build sql statement without ORM.
+     * Build sql statement.
      * @param {*} model
      * @param {*} condition
      */
-    buildQueryNoOrm(
+    buildQuery(
         model,
-        { $assoc, $select, $where, $groupBy, $orderBy, $offset, $limit, $hasSubQuery, $aliasMap }
+        { $assoc, $select, $where, $groupBy, $orderBy, $offset, $limit, $hasSubQuery, $aliasMap, $skipOrm }
     ) {
         const { fromTable, withTables, model: _model } = this._buildCTEHeader(model);
         model = _model;
@@ -77,7 +77,7 @@ class RelationalConnector extends Connector {
         let joinings;
         let mainEntityForJoin;
         const joiningParams = [];
-        let directJoinings;        
+        let directJoinings;
 
         // build alias map first
         // cache params
@@ -85,7 +85,7 @@ class RelationalConnector extends Connector {
             mainEntityForJoin = model;
             let nextId;
 
-            [joinings, directJoinings, nextId] = this._joinAssociationsNoOrm(
+            [joinings, directJoinings, nextId] = this._joinAssociations(
                 $assoc,
                 mainEntityForJoin,
                 aliasMap,
@@ -98,8 +98,22 @@ class RelationalConnector extends Connector {
         }
 
         // Build select columns
+        if (!$skipOrm) {
+            if (isSelectAll($select)) {
+                const l = model.length + 1;
+                _.each(aliasMap, (v, k) => {
+                    if (k !== model) {
+                        $select.add(k.substring(l) + '.*');
+                    }
+                });
+            }
+        }
         const selectParams = [];
-        const selectColomns = $select ? this._buildColumns($select, selectParams, mainEntityForJoin, aliasMap) : '*';
+        const selectColomns = $select
+            ? $skipOrm
+                ? this._buildColumns($select, selectParams, mainEntityForJoin, aliasMap)
+                : this._buildOrmColumns($select, selectParams, mainEntityForJoin, aliasMap)
+            : '*';
 
         // Build from clause
         let fromClause = ' FROM ' + fromTable;
@@ -107,14 +121,14 @@ class RelationalConnector extends Connector {
         if (mainEntityForJoin) {
             fromAndJoin += ' A ';
 
-            if (directJoinings.length) {
+            if ($assoc) {
                 directJoinings.forEach((dj) => {
                     fromAndJoin += `, ${this.escapeId(dj.entity)} ${dj.alias}`;
                 });
-            }
 
-            if (joinings.length) {
-                fromAndJoin += joinings.join(' ');
+                if (joinings.length) {
+                    fromAndJoin += joinings.join(' ');
+                }
             }
         }
 
@@ -219,12 +233,12 @@ class RelationalConnector extends Connector {
      * @param {*} params
      * @returns {object}
      */
-    _joinAssociationsNoOrm(associations, parentAliasKey, aliasMap, startId, params) {
+    _joinAssociations(associations, parentAliasKey, aliasMap, startId, params) {
         let joinings = [];
         let directJoinings = [];
 
         _.each(associations, (assocInfo, anchor) => {
-            startId = this._joinAssociationNoOrm(
+            startId = this._joinAssociation(
                 assocInfo,
                 anchor,
                 joinings,
@@ -239,7 +253,7 @@ class RelationalConnector extends Connector {
         return [joinings, directJoinings, startId];
     }
 
-    _joinAssociationNoOrm(assocInfo, anchor, joinings, directJoinings, parentAliasKey, aliasMap, startId, params) {
+    _joinAssociation(assocInfo, anchor, joinings, directJoinings, parentAliasKey, aliasMap, startId, params) {
         const alias = assocInfo.alias || this._generateAlias(startId++, anchor);
         let { joinType, on } = assocInfo;
 
@@ -254,7 +268,7 @@ class RelationalConnector extends Connector {
 
         if (subAssocs) {
             let _directJoinings = [];
-            [subJoinings, _directJoinings] = this._joinAssociationsNoOrm(
+            [subJoinings, _directJoinings] = this._joinAssociations(
                 subAssocs,
                 aliasKey,
                 aliasMap,
@@ -431,7 +445,7 @@ class RelationalConnector extends Connector {
                     }
 
                     if (typeof dataSet === 'object' && dataSet.$xr === 'DataSet') {
-                        const sqlInfo = this.buildQueryNoOrm(dataSet.model, { ...dataSet.query, $aliasMap: aliasMap });
+                        const sqlInfo = this.buildQuery(dataSet.model, { ...dataSet.query, $aliasMap: aliasMap });
                         sqlInfo.params && params.push(...sqlInfo.params);
 
                         return `(${exists ? 'EXISTS' : 'NOT EXISTS'} (${sqlInfo.sql}))`;
@@ -489,7 +503,7 @@ class RelationalConnector extends Connector {
      * @param {*} aliasMap
      * @returns {string}
      */
-    _replaceFieldNameWithAlias(fieldName, mainEntity, aliasMap) {
+    _escapeIdWithAlias(fieldName, mainEntity, aliasMap) {
         if (fieldName.startsWith('::')) {
             // ::fieldName for skipping alias padding
             return this.escapeId(fieldName.substring(2));
@@ -500,14 +514,27 @@ class RelationalConnector extends Connector {
             const actualFieldName = fieldName.substring(rpos + 1);
             const basePath = fieldName.substring(0, rpos);
 
-            const aliasKey = basePath.startsWith('_.') ? basePath : mainEntity + '.' + basePath;
+            let aliasKey;
+
+            if (basePath.startsWith('_.')) {
+                aliasKey = basePath;
+            } else {
+                if (!mainEntity) {
+                    throw new InvalidArgument(
+                        'Cascade alias is not allowed when the query has no associated entity populated.',
+                        {
+                            alias: fieldName,
+                        }
+                    );
+                }
+                aliasKey = mainEntity + '.' + basePath;
+            }
 
             return this._buildAliasedColumn(aliasMap, aliasMap[aliasKey], mainEntity, fieldName, actualFieldName);
         }
 
-        if (aliasMap[fieldName] === fieldName) {
-            throw new Error('To be reviewed.');
-            return this.escapeId(fieldName);
+        if (!mainEntity) {
+            return fieldName === '*' ? '*' : this.escapeId(fieldName);
         }
 
         return this._buildAliasedColumn(aliasMap, aliasMap[mainEntity], mainEntity, fieldName, fieldName);
@@ -521,42 +548,7 @@ class RelationalConnector extends Connector {
             });
         }
 
-        if (typeof alias === 'object') {
-            return (
-                alias.outer + '.' + (actualFieldName === '*' ? '*' : this.escapeId(`${alias.inner}_${actualFieldName}`))
-            );
-        }
-
         return alias + '.' + (actualFieldName === '*' ? '*' : this.escapeId(actualFieldName));
-    }
-
-    /**
-     * Escape the field name with alias, skip if the field name is "*"
-     * @param {string} fieldName
-     * @param {string} mainEntity
-     * @param {object} aliasMap
-     * @returns {string}
-     */
-    _escapeIdWithAlias(fieldName, mainEntity, aliasMap) {
-        if (mainEntity) {
-            return this._replaceFieldNameWithAlias(fieldName, mainEntity, aliasMap);
-        }
-
-        const rpos = fieldName.lastIndexOf('.');
-        if (rpos > 0) {
-            if (!fieldName.startsWith('_.')) {
-                throw new InvalidArgument('Cascade field name not supported in query without joining.', {
-                    fieldName,
-                });
-            }
-
-            const actualFieldName = fieldName.substring(rpos + 1);
-            const basePath = fieldName.substring(0, rpos);
-
-            return this._buildAliasedColumn(aliasMap, aliasMap[basePath], mainEntity, fieldName, actualFieldName);
-        }
-
-        return fieldName === '*' ? fieldName : this.escapeId(fieldName);
     }
 
     _splitColumnsAsInput(data, params, mainEntity, aliasMap) {
@@ -826,7 +818,7 @@ class RelationalConnector extends Connector {
                             case '$nin':
                             case '$notIn':
                                 if (isPlainObject(v) && v.$xr === 'DataSet') {
-                                    const sqlInfo = this.buildQueryNoOrm(v.model, v.query);
+                                    const sqlInfo = this.buildQuery(v.model, v.query);
                                     sqlInfo.params && sqlInfo.params.forEach((p) => params.push(p));
 
                                     return (
@@ -979,7 +971,7 @@ class RelationalConnector extends Connector {
             return col;
         }
 
-        if (isPlainObject(col) && col.$xr) {
+        if (typeof col === 'object' && col.$xr) {
             if (col.alias) {
                 /*
                 const lastDotIndex = col.alias.lastIndexOf('.');                
@@ -1010,6 +1002,8 @@ class RelationalConnector extends Connector {
 
                 aliasMap[col.alias] = alias;
                 */
+
+                console.log(col);
 
                 return (
                     this._buildColumn(_.omit(col, ['alias']), params, mainEntity, aliasMap) +

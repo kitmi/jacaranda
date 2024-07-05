@@ -73,4 +73,27 @@ describe('crud bvt', function () {
             should.not.exist(data);
         });
     });
+
+    it('update many', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db();
+            const Book = db.entity('book');
+            const { insertId: id1 } = await Book.create_(testData);
+            const { insertId: id2 } = await Book.create_(testData);
+            const { insertId: id3 } = await Book.create_(testData);
+            const { insertId: id4 } = await Book.create_(testData);
+            const { insertId: id5 } = await Book.create_(testData);
+
+            const { data } = await Book.findMany_({});
+            data.length.should.be.gte(5);
+
+            const result = await Book.updateMany_({
+                name: 'Book 1 - 5'
+            }, {
+                $where: { id: { $in: [ id1, id2, id3, id4, id5 ] } }
+            });
+            
+            result.affectedRows.should.be.exactly(5);
+        });
+    });
 });

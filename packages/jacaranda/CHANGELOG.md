@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.2.3
+
+### Patch Changes
+
+-   Fix: env feature does not refresh the runtime env variables in the same app when loading config.
+
 ## 3.2.2
 
 ### Patch Changes

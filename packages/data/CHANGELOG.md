@@ -1,5 +1,9 @@
 # @kitmi/data
 
+## 0.5.6
+
+-   Fix: wrong orm mapping of query result in some cases.
+
 ## 0.5.5
 
 ### Patch Changes
