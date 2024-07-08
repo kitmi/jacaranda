@@ -1,56 +1,59 @@
 # @kitmi/feat-db
 
-## Jacaranda Framework Database Features
+## Jacaranda Framework Database Add-on Features
 
-`@kitmi/feat-db` 
+`@kitmi/feat-db`
 
 ## Features
 
-- prisma
-- dbImporter
+-   dbImporter
 
-## Installation
+## Helpers
 
-To install `@kitmi/feat-db`, run the following command:
-
-```bash
-bun add @kitmi/feat-db
-```
-
-Or if you're using npm:
-
-```bash
-npm install @kitmi/feat-db
-```
+-   excel
+    -   writeExcelTemplate\_
+    -   loadExcelFile\_
 
 ## Usage
 
+### Features
+
 1. Export the feature in the app module
+
 ```js
-import { prisma, dbImporter } from '@kitmi/feat-db';
+import { dbImporter } from '@kitmi/feat-db';
 
 export default {
-    prisma,
     dbImporter,
 };
 ```
 
 2. Add the feature into config
-```yaml
-prisma:
-    
-    # ...
 
+```yaml
 dbImporter:
     service: 'prisma'
 ```
 
-3. Use anywhere 
+3. Use anywhere
+
 ```js
-const cipher = app.getService('cipher');
-cipher.hash();
+const dbImporter = app.getService('dbImporter');
+await dbImporter.importList_();
+// it dbImporter.import_();
+```
+
+### Helpers
+
+```js
+import { writeExcelTemplate_ } from '@kitmi/feat-db';
+
+export default {
+    dbImporter,
+};
 ```
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

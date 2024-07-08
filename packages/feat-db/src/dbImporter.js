@@ -55,12 +55,18 @@ export default {
 
                 if (pre) {
                     const pipelineService = app.getService('pipeline');
-                    prePipeline_ = pipelineService.create(`${model} Pre-process`, pre, { modelName: model, global: _globalBag });
+                    prePipeline_ = pipelineService.create(`${model} Pre-process`, pre, {
+                        modelName: model,
+                        global: _globalBag,
+                    });
                 }
 
                 if (post) {
                     const pipelineService = app.getService('pipeline');
-                    postPipeline_ = pipelineService.create(`${model} Post-process`, post, { modelName: model, global: _globalBag });
+                    postPipeline_ = pipelineService.create(`${model} Post-process`, post, {
+                        modelName: model,
+                        global: _globalBag,
+                    });
                 }
 
                 for (let record of data) {
@@ -70,12 +76,6 @@ export default {
 
                     const refFields = _.pick(record, refs);
                     const updateFields = _.omit(record, refs);
-
-                    console.log({
-                        where: refFields,
-                        create: record,
-                        update: updateFields,
-                    });
 
                     await dbService[model].upsert({
                         where: refFields,

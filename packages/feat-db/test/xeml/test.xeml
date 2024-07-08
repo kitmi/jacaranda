@@ -1,0 +1,6 @@
+import 'commons:**'
+import 'entities/*'
+
+schema test
+  entities
+    book

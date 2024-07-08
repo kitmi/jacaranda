@@ -1,10 +1,10 @@
-{       
+{
     "spec": {
-        "stdout": "-",        
+        "stdout": "-",
         "options": {
             "verbose": true
         }
-    },     
+    },
     "allure-mocha": {
         "stdout": "-",
         "options": {

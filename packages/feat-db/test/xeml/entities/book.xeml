@@ -1,0 +1,16 @@
+import 'commons:**'
+
+type
+  bookType: text enum('friction', 'novel', 'bio', 'other')
+
+entity book
+  with
+    autoId
+  has
+    name
+    type: bookType
+    desc    
+    numValue: integer optional
+    date: datetime optional
+    percentage: number optional
+    

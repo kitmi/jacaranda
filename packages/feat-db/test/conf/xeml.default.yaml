@@ -1,0 +1,31 @@
+logger:
+    level: info
+
+dataSource:
+    postgres:
+        testConnector:
+            connection: 'postgres://postgres:postgres@localhost:5432/jc-test-featdb'
+            adminCredential:
+                username: 'postgres'
+                password: 'postgres'
+            logStatement: true
+            logConnection: false
+            logTransaction: true
+
+dataModel:
+    schemaPath: './xeml'
+    schemaSet:
+        test:
+            dataSource: postgres.testConnector
+    dependencies:
+        commons: '@xgent/xem-commons'
+    saveIntermediate: false
+
+db:
+    test:
+        dataSource: postgres.testConnector
+    test2:
+        dataSource: postgres.testConnector
+
+settings:
+    defaultDb: test

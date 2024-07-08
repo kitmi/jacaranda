@@ -1,5 +1,11 @@
 # @kitmi/feat-db
 
+## 0.2.0
+
+### Minor Changes
+
+-   Add excel template writer and excel file loader
+
 ## 0.1.1
 
 ### Patch Changes

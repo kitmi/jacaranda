@@ -1,36 +1,7 @@
 {
     "skip": {
-        "suites": {            
-        }
+        "suites": {}
     },
-    "fixturePath": "test/fixtures",
-    "fixtureType": "yaml",
     "enableAsyncDump": false,
-    "enableAllure": true,
-    "servers": {
-        "server1": {
-            "configType": "yaml",            
-            "logLevel": "info",
-            "appModulesPath": "src/apps"
-        }
-    },
-    "workers": {
-        "tester": { 
-            "configName": "worker",
-            "configType": "yaml",
-            "configPath": "test/conf",
-            "featuresPath": "test/features"
-        }
-    },
-    "authentications": {
-        "client1": {
-            "loginType": "password",
-            "accessType": "jwt",
-            "loginOptions": {
-                "endpoint": "/login",
-                "username": "admin",
-                "password": "admin"
-            }
-        }
-    }
+    "enableAllure": true
 }
