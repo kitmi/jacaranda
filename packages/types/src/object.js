@@ -28,7 +28,7 @@ class T_OBJECT {
 
         if (Array.isArray(validationObject)) {
             const errors = [];
-            const foudMatched = validationObject.find((_validationObject) => {
+            const foundMatched = validationObject.find((_validationObject) => {
                 try {
                     _fieldValue = this.system.sanitize(fieldValue, _validationObject, opts.i18n, fieldPath);
                     return true;
@@ -38,7 +38,7 @@ class T_OBJECT {
                 }
             });
 
-            if (foudMatched == null) {
+            if (foundMatched == null) {
                 throw new ValidationError('Object member schema validation failed.', {
                     value: fieldValue,
                     meta: validationObject,

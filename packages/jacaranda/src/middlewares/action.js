@@ -3,16 +3,18 @@
  * @module Middleware_Action
  */
 
+import path from 'node:path';
 import { InvalidConfiguration } from '@kitmi/types';
 import { get as _get, set as _set } from '@kitmi/utils';
+import { tryLoadFrom_ } from '../helpers/loadModuleFrom_';
 
 /**
  * Action middleware creator
  * @param {string} controllerAction
  * @param {Routable} app
  */
-const action = (controllerAction, app) => {
-    app.log('info', 'actions: ', { controllerAction });
+const action = async (controllerAction, app) => {
+    app.log('verbose', 'Loading action: ', { action: controllerAction });
 
     if (typeof controllerAction !== 'string') {
         throw new InvalidConfiguration('Invalid action syntax.', app);
@@ -26,11 +28,16 @@ const action = (controllerAction, app) => {
     let controller = controllerAction.substring(0, pos);
     let action = controllerAction.substring(pos + 1);
 
-    let ctrl = _get(app.registry.controllers?.actions, controller);
-
-    if (ctrl == null) {
-        throw new InvalidConfiguration(`Action controller "${controller}" not found.`, app);
-    }
+    let ctrl = await tryLoadFrom_(app, "Controller", {
+        'registry': {
+            name: controller,
+            path: 'controllers.actions',
+        },
+        'project': {
+            name: controller,
+            path: path.join(app.sourcePath, 'actions')
+        }
+    });  
 
     let isController = false;
 

@@ -1,4 +1,5 @@
 import { naming, text, hasMethod, batchAsync_, get as _get, set as _set } from '@kitmi/utils';
+import { loadControllers_ } from '../helpers/loadModuleFrom_';
 
 /**
  * Simple RESTful router.
@@ -35,13 +36,13 @@ const restRouter = async (app, baseRoute, options) => {
     let resourcesPath = options.$controllerPath ?? 'resources';
     const kebabify = options.$urlDasherize;
 
-    app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.$errorOptions, app), 'jsonError');
+    app.useMiddleware(router, await (await app.getMiddlewareFactory_('jsonError'))(options.$errorOptions, app), 'jsonError');
 
     if (options.$middlewares) {
         await app.useMiddlewares_(router, options.$middlewares);
     }
 
-    const controllers = _get(app.registry.controllers, resourcesPath, []);
+    const controllers = await loadControllers_(app, options.$source, resourcesPath, options.$packageName); 
 
     await batchAsync_(controllers, async (controller, relPath) => {
         let batchUrl = text.ensureStartsWith(
@@ -66,15 +67,15 @@ const restRouter = async (app, baseRoute, options) => {
         }
 
         if (hasMethod(controller, 'detail')) {
-            await app.addRoute_(router, 'get', singleUrl, (ctx) => controller.detail(ctx));
+            await app.addRoute_(router, 'get', singleUrl, (ctx) => controller.detail(ctx, ctx.params.id));
         }
 
         if (hasMethod(controller, 'update')) {
-            await app.addRoute_(router, 'put', singleUrl, (ctx) => controller.update(ctx));
+            await app.addRoute_(router, 'put', singleUrl, (ctx) => controller.update(ctx, ctx.params.id));
         }
 
         if (hasMethod(controller, 'remove')) {
-            await app.addRoute_(router, 'delete', singleUrl, (ctx) => controller.remove(ctx));
+            await app.addRoute_(router, 'delete', singleUrl, (ctx) => controller.remove(ctx, ctx.params.id));
         }
     });
 

@@ -1,5 +1,14 @@
 # @kitmi/jacaranda
 
+## 3.3.0
+
+### Minor Changes
+
+-   Add universal module loading procedures
+-   Add middlewares multiple sources loading
+-   Add router test cases
+-   Bugs fix.
+
 ## 3.2.3
 
 ### Patch Changes

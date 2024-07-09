@@ -3,9 +3,9 @@
  * @module Feature_Routing
  */
 
-import { _, batchAsync_, isPlainObject, esmCheck } from '@kitmi/utils';
-import { InvalidConfiguration } from '@kitmi/types';
+import { _, eachAsync_, isPlainObject, esmCheck } from '@kitmi/utils';
 import Feature from '../Feature';
+import * as routers from '../routers';
 
 export default {
     /**
@@ -27,22 +27,11 @@ export default {
         }
 
         app.once('after:' + Feature.PLUGIN, () =>
-            batchAsync_(routes, async (routersConfig, route) => {
+            eachAsync_(routes, async (routersConfig, route) => {
                 if (isPlainObject(routersConfig)) {
-                    return batchAsync_(routersConfig, async (options, type) => {
-                        let loader_;
-
-                        try {
-                            loader_ = esmCheck(require('../routers/' + type));
-                        } catch (e) {
-                            if (e.code === 'MODULE_NOT_FOUND') {
-                                throw new InvalidConfiguration(`Supported router type: ${type}`, app, `routing[${route}]`);
-                            }
-                        }
-
+                    return eachAsync_(routersConfig, async (options, type) => {
                         app.log('verbose', `A "${type}" router is created at "${route}" in app [${app.name}].`);
-
-                        return loader_(app, route, options);
+                        return routers[type](app, route, options);
                     });
                 } else {
                     // 'route': 'method:/path'
@@ -62,10 +51,9 @@ export default {
                         [mainRoute]: routersConfig,
                     };
 
-                    const loader_ = esmCheck(require('../routers/rule'));
                     app.log('verbose', `A "rule" router is created at "${baseRoute}" in app [${app.name}].`);
 
-                    return loader_(app, baseRoute, { rules: rules });
+                    return routers['rule'](app, baseRoute, { rules: rules });
                 }
             })
         );

@@ -1,5 +1,6 @@
 import Feature from '../Feature';
 import { isEmpty } from '@kitmi/utils';
+import { tryLoadFrom_ } from '../helpers/loadModuleFrom_';
 
 export default {
     stage: Feature.INIT,
@@ -26,7 +27,20 @@ export default {
             name
         );
 
-        const Engine = server.requireModule(`@kitmi/adapters::${type}`);
+        const Engine = await tryLoadFrom_(server, 'Engine adapter', {
+            registry: {
+                name: type,
+                path: 'adapters',
+            },
+            runtime: {
+                name: '@kitmi/adapters',
+                namedExport: type,
+            },
+            direct: {
+                name: '@kitmi/adapters',
+                namedExport: type,
+            },
+        });
 
         server.engine = new Engine(server);
         if (!isEmpty(middlewares)) {

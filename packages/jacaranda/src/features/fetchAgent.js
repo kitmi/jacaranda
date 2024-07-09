@@ -21,7 +21,7 @@ export default {
      * @returns {Promise.<*>}
      */
     load_: async function (app, settings, name) {
-        const { fetchagent: adapter } = app.tryRequire('@kitmi/adapters');
+        const { fetchagent: adapter } = await app.tryRequire_('@kitmi/adapters', false);
 
         let client = new HttpClient(adapter(), settings);
 

@@ -1,4 +1,5 @@
 import { naming, text, hasMethod, batchAsync_, get as _get, set as _set } from '@kitmi/utils';
+import { loadControllers_ } from '../helpers/loadModuleFrom_';
 
 /**
  * Jacaranda Restful API Spec (jacaranda) router.
@@ -19,16 +20,14 @@ const appendId = (baseEndpoint, idName) => (idName ? `${baseEndpoint}/:${idName}
  *  '<base path>': {
  *      jacaranda: {
  *          $controllerPath:
+ *          $source: registry | runtime | direct | project 
  *          $middlewares:
  *          $errorOptions
  *          $urlDasherize: false
  *          'controller To remap': '/special/:abc/url'
- *          'video': '/video/abc'
  *          ...
  *      }
  *  }
- * 
- *  /video/abc/123
  *
  *  route                          http method    function of ctrl
  *  /:resource                     get            query_
@@ -47,25 +46,25 @@ const jaRestRouter = async (app, baseRoute, options) => {
     let resourcesPath = options.$controllerPath || 'resources';
     const kebabify = options.$urlDasherize;
 
-    app.useMiddleware(router, await app.getMiddlewareFactory('jsonError')(options.$errorOptions, app), 'jsonError');
+    app.useMiddleware(router, await (await app.getMiddlewareFactory_('jsonError'))(options.$errorOptions, app), 'jsonError');
 
     if (options.$middlewares) {
         await app.useMiddlewares_(router, options.$middlewares);
-    }
+    }    
 
-    const controllers = _get(app.registry.controllers, resourcesPath, {});
+    const controllers = await loadControllers_(app, options.$source, resourcesPath, options.$packageName); 
 
-    await batchAsync_(controllers, async (controller, entithNameWithPath) => {
+    await batchAsync_(controllers, async (controller, entityNameWithPath) => {
         if (typeof controller === 'function') {
             controller = new controller(app);
         }
 
-        const pathNodes = entithNameWithPath.split('/');
+        const pathNodes = entityNameWithPath.split('/');
         const entityName = pathNodes[pathNodes.length - 1];
 
         let baseEndpoint;
-        if (entithNameWithPath in options) {
-            baseEndpoint = text.ensureStartsWith(text.dropIfEndsWith(options[entithNameWithPath], '/'), '/');
+        if (entityNameWithPath in options) {
+            baseEndpoint = text.ensureStartsWith(text.dropIfEndsWith(options[entityNameWithPath], '/'), '/');
         } else {
             const urlPath = pathNodes
                 .map((p) => kebabify ? naming.kebabCase(p) : p)

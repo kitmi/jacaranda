@@ -1,6 +1,7 @@
 import { Worker } from 'node:worker_threads';
 import { InvalidConfiguration } from '@kitmi/types';
 import Feature from '../Feature';
+import Deque from 'collections/deque';
 
 const recreateWorkerError = (sourceError) => {
     const error = new Error(sourceError.message);
@@ -17,8 +18,7 @@ const recreateWorkerError = (sourceError) => {
 let poolIdCounter = 0;
 
 export class WorkerPool {
-    constructor(app, options) {
-        const Deque = app.tryRequire('collections/deque');
+    constructor(app, options) {        
         const { name, workerFile, lowThreadNum, highThreadNum, workerOptions } = options;
 
         this.app = app;

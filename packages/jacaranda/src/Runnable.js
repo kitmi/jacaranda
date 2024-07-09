@@ -4,6 +4,7 @@ import { defaultRunnableOpts } from './defaultOpts';
 import { fs, isDir_ } from '@kitmi/sys';
 import path from 'node:path';
 import minimist from 'minimist';
+import { loadModuleFrom_ } from './helpers';
 
 /**
  * Runnable app mixin.
@@ -148,22 +149,12 @@ const Runnable = (T) =>
             let appPath;
             let moduleMeta;
 
-            if (config.npmModule || config.source === 'runtime') {
-                moduleMeta = await this.requireModule(name);
-                appPath = moduleMeta.appPath;
-            } else if (config.source === 'registry') {
-                moduleMeta = this.registry.modules?.[name];
-                if (moduleMeta == null) {
-                    throw new InvalidConfiguration(`Module [${name}] not found in registry.`, this, configItemName);
-                }                
-                appPath = moduleMeta.appPath;
-            } else if (config.source === 'npm') {
-                if (!config.packageName) {
-                    throw new InvalidConfiguration(`Missing "packageName" for npm module [${name}].`, this, configItemName);
-                }
+            // { npmModule: true } is a backward compatibility for old config
+            const configSource = config.source || (config.npmModule ? 'runtime' : null);
 
-                moduleMeta = await this.tryRequire_(config.packageName, true);
-                appPath = moduleMeta.appPath;            
+            if (configSource != null) {
+                moduleMeta = await loadModuleFrom_(this, configSource, configSource === 'direct' ? (config.packageName ?? name) : name, configSource === 'registry' ? 'modules' : null);
+                appPath = moduleMeta.appPath;
             } else {
                 appPath = path.join(defaultBasePath, name);
             }

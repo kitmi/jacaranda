@@ -1,6 +1,6 @@
 {
   "name": "@kitmi/jacaranda",
-  "version": "3.2.3",
+  "version": "3.3.0",
   "description": "JavaScript application framework",
   "main": "cjs/index.js",
   "module": "src/index.js",
@@ -29,9 +29,9 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "mocha --recursive test/**/*.spec.js",
+    "test": "NODE_OPTIONS=--enable-source-maps SWCRC=true mocha --recursive test/**/*.spec.js",
     "doc": "jsdoc --configure .jsdoc.json --verbose && pnpm prepack",
-    "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
+    "cover": "NODE_OPTIONS=--enable-source-maps SWCRC=true nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
     "prettier": "prettier --write .",
     "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",
     "lint-fix": "pnpm lint --fix",
@@ -61,6 +61,7 @@
     "@kitmi/types": "workspace:^",
     "@kitmi/utils": "workspace:^",
     "@kitmi/validators": "workspace:^",
+    "collections": "^5.1.13",
     "glob": "^10.3.10",
     "minimist": "^1.2.8",
     "pino": "^8.14.1",

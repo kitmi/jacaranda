@@ -1,0 +1,64 @@
+apiWrapper:
+
+engine:
+    type: koa
+    port: 3000
+
+middlewareFactory:
+    bodyParser:
+        body:
+            multipart: true
+            jsonLimit: 15mb
+            formidable:
+                hashAlgorithm: md5
+
+routing:
+    /simple:
+        rule:
+            'get:/': simple.index_
+
+    /simple2:
+        rule:
+            'get:/': simple2.index_
+
+    /simple-module:
+        module: simpleModule
+
+    /multi-modules:
+        module:
+            $source: 'project'
+            $controllerPath: customModules
+            $middlewares:
+                - custom
+            $urlDasherize: false
+            /abc:
+                - moduleExtendsController
+            /:
+                - module2
+                - moduleWithPost
+
+    /rest1:
+        jacaranda:
+            $middlewares:
+              - bodyParser
+
+    /rest2:
+        jacaranda:
+            $source: 'project'
+            $middlewares:
+              - bodyParser
+            $urlDasherize: true
+            bookOfStore: '/store/:storeId/book'
+
+    /rest3:
+        rest:
+            $controllerPath: 'restful'
+            $middlewares:
+              - bodyParser
+
+    /rest4:
+        rest:
+            $source: 'project'
+            $controllerPath: 'restResources'
+            $middlewares:
+              - bodyParser

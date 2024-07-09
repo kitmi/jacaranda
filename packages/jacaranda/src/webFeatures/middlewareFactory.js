@@ -58,7 +58,7 @@ export default {
                     chains = [];
 
                     await eachAsync_(factoryInfo, async (options, middleware) => {
-                        chains.push(await app.getMiddlewareFactory(middleware)(options, targetApp));
+                        chains.push(await (await app.getMiddlewareFactory_(middleware))(options, targetApp));
                     });
                 } else if (Array.isArray(factoryInfo)) {
                     chains = await eachAsync_(factoryInfo, async (middlewareInfo, i) => {
@@ -71,7 +71,7 @@ export default {
                                 );
                             }
 
-                            return app.getMiddlewareFactory(middlewareInfo.name)(middlewareInfo.options, targetApp);
+                            return (await app.getMiddlewareFactory_(middlewareInfo.name))(middlewareInfo.options, targetApp);
                         }
 
                         if (Array.isArray(middlewareInfo)) {
@@ -87,14 +87,14 @@ export default {
                                 );
                             }
 
-                            return app.getMiddlewareFactory(middlewareInfo[0])(
+                            return (await app.getMiddlewareFactory_(middlewareInfo[0]))(
                                 middlewareInfo.length > 1 ? middlewareInfo[1] : undefined,
                                 targetApp
                             );
                         }
 
                         if (typeof middlewareInfo === 'string') {
-                            return app.getMiddlewareFactory(middlewareInfo)(undefined, targetApp);
+                            return (await app.getMiddlewareFactory_(middlewareInfo))(undefined, targetApp);
                         }
 
                         throw new InvalidConfiguration(

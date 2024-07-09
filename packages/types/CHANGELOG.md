@@ -1,5 +1,11 @@
 # @kitmi/types
 
+## 1.3.3
+
+### Patch Changes
+
+-   Fix validator error inner error bug.
+
 ## 1.3.2
 
 ### Patch Changes

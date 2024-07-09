@@ -34,7 +34,8 @@ describe('jwt', function () {
                 delete obj2.iat;
                 obj2.should.be.eql(obj);
             },
-            {                
+            {
+                throwOnError: true,                
                 loadConfigFromOptions: true,
                 config: {
                     jwt: {  

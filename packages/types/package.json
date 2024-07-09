@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/types",
-    "version": "1.3.2",
+    "version": "1.3.3",
     "description": "JavaScript semantic data types",
     "main": "cjs/index.js",
     "module": "src/index.js",

@@ -2,6 +2,7 @@ import path from 'node:path';
 import { _, url as urlUtil, text, isPlainObject, eachAsync_ } from '@kitmi/utils';
 import { ApplicationError, InvalidConfiguration, InvalidArgument } from '@kitmi/types';
 import { defaultRoutableOpts } from './defaultServerOpts';
+import { tryLoadFrom_ } from './helpers/loadModuleFrom_';
 
 const Routable = (T) =>
     class extends T {
@@ -79,22 +80,32 @@ const Routable = (T) =>
         /**
          * Get the factory method of a middleware from module hierarchy.
          * @param name
-         * @returns {function}
+         * @returns {Promise.<function>}
          */
-        getMiddlewareFactory(name) {
+        async getMiddlewareFactory_(name) {
             const factory = this._middlewareFactories[name];
             if (factory != null) {
                 return factory;
             }
 
-            const registryEntry = this.registry.middlewares?.[name];
+            const registryEntry = await tryLoadFrom_(this, "Middleware", {
+                registry: {
+                    name,
+                    path: 'middlewares'
+                },
+                project: {
+                    name,
+                    path: path.join(this.sourcePath, 'middlewares')
+                }
+            }, true /* no throw */);
+            
             if (registryEntry != null) {
                 this._middlewareFactories[name] = registryEntry;
                 return registryEntry;
             }
 
             if (this.server && !this.isServer) {
-                return this.server.getMiddlewareFactory(name);
+                return this.server.getMiddlewareFactory_(name);
             }
 
             throw new ApplicationError(`Middleware "${name}" not found in middleware registry.`);
@@ -112,7 +123,7 @@ const Routable = (T) =>
 
             if (isPlainObject(middlewares)) {
                 await eachAsync_(middlewares, async (options, name) => {
-                    middlewareFactory = this.getMiddlewareFactory(name);
+                    middlewareFactory = await this.getMiddlewareFactory_(name);
                     middleware = await middlewareFactory(options, this);
                     middlewareFunctions.push({ name, middleware });
                 });
@@ -124,7 +135,7 @@ const Routable = (T) =>
 
                     if (type === 'string') {
                         // [ 'namedMiddleware' ]
-                        middlewareFactory = this.getMiddlewareFactory(middlewareEntry);
+                        middlewareFactory = await this.getMiddlewareFactory_(middlewareEntry);
                         middleware = await middlewareFactory(undefined, this);
                         middlewareFunctions.push({ name: middlewareEntry, middleware });
                     } else if (type === 'function') {
@@ -142,7 +153,7 @@ const Routable = (T) =>
                             );
                         }
 
-                        middlewareFactory = this.getMiddlewareFactory(middlewareEntry[0]);
+                        middlewareFactory = await this.getMiddlewareFactory_(middlewareEntry[0]);
                         middleware = await middlewareFactory(
                             middlewareEntry.length > 1 ? middlewareEntry[1] : null,
                             this
@@ -153,7 +164,7 @@ const Routable = (T) =>
                             throw new InvalidConfiguration('Invalid middleware entry!', this, 'middlewares');
                         }
 
-                        middlewareFactory = this.getMiddlewareFactory(middlewareEntry.name);
+                        middlewareFactory = await this.getMiddlewareFactory_(middlewareEntry.name);
                         middleware = await middlewareFactory(middlewareEntry.options, this);
                         middlewareFunctions.push({ name: middlewareEntry.name, middleware });
                     }
@@ -184,7 +195,7 @@ const Routable = (T) =>
 
             if (isPlainObject(actions)) {
                 await eachAsync_(actions, async (options, name) => {
-                    middlewareFactory = this.getMiddlewareFactory(name);
+                    middlewareFactory = await this.getMiddlewareFactory_(name);
                     handlers.push(this._wrapMiddlewareTracer(await middlewareFactory(options, this), name));
                 });
             } else {
@@ -208,7 +219,7 @@ const Routable = (T) =>
 
                     if (type === 'string') {
                         // [ 'namedMiddleware' ]
-                        middlewareFactory = this.getMiddlewareFactory(action);
+                        middlewareFactory = await this.getMiddlewareFactory_(action);
 
                         let middleware = await middlewareFactory(null, this);
 
@@ -232,7 +243,7 @@ const Routable = (T) =>
                             throw new InvalidConfiguration('Invalid middleware entry!', this, 'middlewares');
                         }
 
-                        middlewareFactory = this.getMiddlewareFactory(action[0]);
+                        middlewareFactory = await this.getMiddlewareFactory_(action[0]);
                         handlers.push(
                             this._wrapMiddlewareTracer(
                                 await middlewareFactory(action.length > 1 ? action[1] : undefined, this)
@@ -243,7 +254,7 @@ const Routable = (T) =>
                             throw new InvalidConfiguration('Invalid middleware entry!', this, 'middlewares');
                         }
 
-                        middlewareFactory = this.getMiddlewareFactory(action.name);
+                        middlewareFactory = await this.getMiddlewareFactory_(action.name);
                         handlers.push(
                             this._wrapMiddlewareTracer(await middlewareFactory(action.options, this), action.name)
                         );

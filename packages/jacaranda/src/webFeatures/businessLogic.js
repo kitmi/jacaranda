@@ -5,7 +5,7 @@
 
 import path from 'node:path';
 import { Feature } from '@kitmi/jacaranda';
-import { _ } from '@kitmi/utils';
+import { _, get as _get } from '@kitmi/utils';
 import { InvalidArgument } from '@kitmi/types';
 
 export default {
@@ -18,7 +18,7 @@ export default {
                 schema: {
                     path: { type: 'text', default: 'business' },
                     defaultSchema: { type: 'text', optional: true },
-                }
+                },
             },
             name
         );
@@ -26,9 +26,9 @@ export default {
         let businessClasses;
 
         app.bus = (businessName, schemaName, fromApp) => {
-            let _app;
-
             if (fromApp) {
+                let _app;
+
                 if (fromApp.startsWith('/')) {
                     _app = app.server.getAppByRoute(fromApp);
                 } else {
@@ -37,10 +37,10 @@ export default {
 
                 return _app.bus(businessName, schemaName);
             }
-            
+
             if (!businessClasses) {
-                businessClasses = app.tryRequire(path.resolve(app.sourcePath, _path), true);
-            }            
+                businessClasses = _get(app.registry, _path, require(path.join(app.sourcePath, _path)));
+            }
 
             const businessClass = businessClasses[businessName];
             if (!businessClass) {

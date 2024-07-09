@@ -1,0 +1,11 @@
+{
+    "skip": {
+        "suites": {            
+        }
+    },
+    "enableAsyncDump": false,
+    "enableAllure": true,
+    "servers": {
+        "server1": "test/testServer.js"
+    }
+}

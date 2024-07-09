@@ -16,8 +16,8 @@ export default {
                         key: { type: 'text' },
                     },
                     {
-                        privateKey: { type: 'text', post: ['|trimLines'] },
-                        publicKey: { type: 'text', post: ['|trimLines'] },
+                        privateKey: { type: 'text', post: ['>trimLines'] },
+                        publicKey: { type: 'text', post: ['>trimLines'] },
                     },
                 ],
             },
@@ -33,7 +33,7 @@ export default {
             asymmetric = true;
         }
 
-        const jwt = app.tryRequire('jsonwebtoken');
+        const jwt = await app.tryRequire_('jsonwebtoken', true);
 
         const service = {
             get publicKey() {

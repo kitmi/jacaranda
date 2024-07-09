@@ -13,16 +13,22 @@ import HttpCode from './HttpCode';
 export class ValidationError extends ExposableError {
     static formatError(error) {
         let fullMessage = error.message;
-        if (error.info.path) {
-            fullMessage += ' Key: ' + error.info.path;
-        }
+        if (error.info) {
+            if (error.info.path) {
+                fullMessage += ' Key: ' + error.info.path;
+            }
 
-        if (error.info.error) {
-            fullMessage += '\n' + error.info.error;
-        }
+            if (error.info.error) {
+                fullMessage += '\n' + error.info.error;
+            }
 
-        if (error.info.errors) {
-            fullMessage += '\nAll of these alternative validations failed:\n' + error.info.errors.map((_error, i) => `Option ${i+1} field "${_error.info.path}": ${_error.message}`).join('\n');
+            if (error.info.errors) {
+                fullMessage +=
+                    '\nAll of these alternative validations failed:\n' +
+                    error.info.errors
+                        .map((_error, i) => `Option ${i + 1}${_error.info?.path ? ' field ' + _error.info.path : ''}: ${_error.message}`)
+                        .join('\n');
+            }
         }
 
         return fullMessage;
@@ -31,7 +37,7 @@ export class ValidationError extends ExposableError {
     static extractFromError(error) {
         const _error = {
             message: error.message,
-            info: error.info
+            info: error.info,
         };
 
         if (error.inner) {

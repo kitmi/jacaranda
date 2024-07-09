@@ -1,6 +1,7 @@
 import { url as urlUtil, naming, text, eachAsync_, batchAsync_, get as _get } from '@kitmi/utils';
 import { InvalidConfiguration } from '@kitmi/types';
 import { supportedMethods } from '../helpers';
+import { loadController_ } from '../helpers/loadModuleFrom_';
 
 /**
  * Module router for mounting a specific controller.
@@ -55,7 +56,7 @@ async function moduleRouter(app, baseRoute, options) {
         }
 
         await batchAsync_(controllers, async (moduleController) => {
-            let controller = _get(app.registry.controllers, `${controllerPath}.${moduleController}`);
+            let controller = await loadController_(app, options.$source, controllerPath, moduleController, options.$packageName); 
 
             if (controller == null) {
                 throw new InvalidConfiguration(

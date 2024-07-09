@@ -1,5 +1,5 @@
 import ConfigLoader, { JsonConfigProvider, YamlConfigProvider } from '@kitmi/config';
-import { _, pushIntoBucket, eachAsync_, batchAsync_, arrayToObject, isEmpty, esmCheck } from '@kitmi/utils';
+import { _, pushIntoBucket, eachAsync_, batchAsync_, arrayToObject, esmCheck, get as _get } from '@kitmi/utils';
 import { fs, tryRequire as _tryRequire } from '@kitmi/sys';
 import { InvalidConfiguration, ValidationError, ApplicationError } from '@kitmi/types';
 import { Types } from '@kitmi/validators/allSync';
@@ -298,16 +298,16 @@ class ServiceContainer extends AsyncEmitter {
      * @param {*} moduleName
      * @returns {*}
      */
-    requireModule(moduleName) {
+    requireModule(moduleName, noThrow) {
         const m = runtime.get(NS_MODULE, moduleName);
-        if (m == null) {
+        if (m == null && !noThrow) {
             throw new ApplicationError(`Module "${moduleName}" not found in runtime registry.`);
         }
         return m;
     }
 
-    tryRequire(pkgName, local) {
-        return esmCheck(local ? require(pkgName) : _tryRequire(pkgName, this.workingPath));
+    tryRequire(pkgName) {
+        return esmCheck(_tryRequire(pkgName, this.workingPath));
     }
 
     /**
@@ -316,21 +316,26 @@ class ServiceContainer extends AsyncEmitter {
      * @param {*} useDefault
      * @returns {*}
      */
-    async tryRequire_(pkgName, useDefault) {
+    async tryRequire_(pkgName, useDefault, noThrow) {
+        let _module;
+
         try {
-            return this.tryRequire(pkgName);
+            _module = _tryRequire(pkgName, this.workingPath);
         } catch (error) {
             if (error.code === 'ERR_REQUIRE_ESM') {
-                const esmModule = await import(pkgName);
-
-                if (useDefault) {
-                    return esmModule.default;
-                }
-                return esmModule;
+                _module = await import(pkgName);                
+            } else if (noThrow && error.code === 'MODULE_NOT_FOUND') {
+                return undefined;
+            } else {
+                throw error;
             }
-
-            throw error;
         }
+
+        if (_module && useDefault) {
+            return esmCheck(_module);
+        }
+
+        return _module;
     }
 
     /**
@@ -665,7 +670,8 @@ class ServiceContainer extends AsyncEmitter {
 
         let featurePath;
 
-        featureObject = this.registry?.features?.[feature];
+        // first try locale registry, then runtime registry
+        featureObject = _get(this.registry, 'features.' + feature);
         if (featureObject == null) {
             if (this._featureRegistry.hasOwnProperty(feature)) {
                 //load by registry entry
@@ -707,7 +713,7 @@ class ServiceContainer extends AsyncEmitter {
                     });
                 }
 
-                featureObject = this.tryRequire(featurePath);
+                featureObject = await this.tryRequire_(featurePath, true);
             }
         }
 
