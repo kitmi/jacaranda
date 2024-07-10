@@ -48,7 +48,7 @@ export default {
                 `libs.[${name}]`
             );
 
-            let lib = new LibModule(app, name, appPath, { ...moduleMeta?.options, registry: moduleMeta?.registry, ...options });       
+            let lib = new LibModule(app, name, appPath, { ...options, ...moduleMeta?.options, registry: moduleMeta?.registry });       
 
             lib.once('configLoaded', () => {
                 if (!_.isEmpty(config.settings)) {

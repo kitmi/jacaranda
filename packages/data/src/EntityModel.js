@@ -20,6 +20,8 @@ const featureRules = _.reduce(
 
 const NEED_OVERRIDE = 'Should be overrided by driver-specific subclass.';
 
+export const FLAG_DRY_RUN_IGNORE = Symbol('dryRun');
+
 /**
  * Base entity model class.
  * @class
@@ -292,7 +294,7 @@ class EntityModel {
 
         const opOptions = context.options;
 
-        await this.applyRules_(Rules.RULE_BEFORE_FIND, context);        
+        await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
 
         this._preProcessOptions(opOptions, isOne /* for single record */, true);
 
@@ -389,37 +391,43 @@ class EntityModel {
     }
 
     /**
-     * Normalize the `$getCreated` query options.
+     * Normalize the `$getXXXed` query options.
      * @param {object} opOptions - [out]
      */
-    _normalizeGetCreated(opOptions) {
-        if (opOptions.$getCreated) {
-            const t = typeof opOptions.$getCreated;
+    _normalizeReturning(opOptions, returningKey) {
+        const returningFields = opOptions[returningKey];
+
+        if (returningFields) {
+            const t = typeof returningFields;
 
             if (t === 'string') {
-                opOptions.$getCreated = [opOptions.$getCreated];
+                // todo: check '.'
+                if (returningFields.indexOf('.') !== -1) {
+                    throw new InvalidArgument(`"${returningKey}" does not support retrieving with associations.`);
+                }
+                opOptions[returningKey] = [returningFields];
                 return;
             }
 
             if (t === 'boolean') {
-                opOptions.$getCreated = ['*'];
+                opOptions[returningKey] = ['*'];
                 return;
             }
 
             if (t === 'object') {
-                if (Array.isArray(opOptions.$getCreated)) {
-                    if (opOptions.$getCreated.every((v) => v.indexOf('.') === -1)) {
+                if (Array.isArray(returningFields)) {
+                    if (returningFields.every((v) => v.indexOf('.') === -1)) {
                         return;
                     }
 
-                    throw new InvalidArgument('"$getCreated" does not support retrieving with associations.');
+                    throw new InvalidArgument(`"${returningKey}" does not support retrieving with associations.`);
                 }
             }
 
             throw new InvalidArgument(
-                'Invalid value for "$getCreated", expected: column, column array or boolean for returning all.',
+                `Invalid value for "${returningKey}", expected: column, column array or boolean for returning all.`,
                 {
-                    $getCreated: opOptions.$getCreated,
+                    [returningKey]: returningFields,
                     type: t,
                 }
             );
@@ -467,7 +475,7 @@ class EntityModel {
         };
 
         const opOptions = context.options;
-        this._normalizeGetCreated(opOptions);
+        this._normalizeReturning(opOptions, '$getCreated');
         this._ensureReturningAutoId(opOptions);
 
         // overrided by the genreated entity model
@@ -478,28 +486,45 @@ class EntityModel {
         await this._safeExecute_(async () => {
             // use foreign data as input
             if (!isEmpty(references)) {
-                await this.ensureTransaction_();
+                if (!opOptions.$dryRun) {
+                    await this.ensureTransaction_();
+                }
                 await this._populateReferences_(context, references);
             }
 
             let needCreateAssocs = !isEmpty(associations);
             if (needCreateAssocs) {
-                await this.ensureTransaction_();
+                if (!opOptions.$dryRun) {
+                    await this.ensureTransaction_();
+                }
 
                 associations = await this._createAssocs_(context, associations, true /* before create */);
                 // check any other associations left
                 needCreateAssocs = !isEmpty(associations);
             }
 
-            await this._prepareEntityData_(context);
+            if (opOptions.$dryRun) {
+                await this._prepareEntityDataDryRun_(context);
+            } else {
+                await this._prepareEntityData_(context);
+            }
 
             await this.applyRules_(Rules.RULE_BEFORE_CREATE, context);
 
             if (!opOptions.$dryRun) {
-                if (opOptions.$upsert) {
-                    const dataForUpdating = _.pick(context.latest, Object.keys(context.raw)); // only update the raw part
-                    const uniqueKeys = this.getUniqueKeyFieldsFrom(context.latest);
+                let shouldUpsert = false;
+                let dataForUpdating;
+                let uniqueKeys;
 
+                if (opOptions.$upsert) {
+                    dataForUpdating = _.pick(context.latest, Object.keys(context.raw)); // only update the raw part
+                    uniqueKeys = this.getUniqueKeyFieldsFrom(context.latest);                    
+                    if (!isEmpty(_.pick(context.latest, uniqueKeys))) {
+                        shouldUpsert = true;
+                    }
+                }
+
+                if (shouldUpsert) {
                     let result = await this.db.connector.upsert_(
                         this.meta.name,
                         dataForUpdating,
@@ -565,6 +590,7 @@ class EntityModel {
 
         const opOptions = context.options;
         opOptions.$skipOrm = true;
+        this._normalizeReturning(opOptions, '$getCreated');
 
         await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
 
@@ -577,13 +603,18 @@ class EntityModel {
                     select: opOptions.$select,
                 });
             }
-        });        
+        });
 
         return this._safeExecute_(async () => {
-            context.result = await this.db.connector.createFrom_(this.meta.name, opOptions, columnMapping, this.db.transaction);
+            context.result = await this.db.connector.createFrom_(
+                this.meta.name,
+                opOptions,
+                columnMapping,
+                this.db.transaction
+            );
             context.latest = context.result.data;
-            delete context.result.fields;   
-            return context.result;         
+            delete context.result.fields;
+            return context.result;
         }, context);
     }
 
@@ -633,11 +664,14 @@ class EntityModel {
         }
 
         const opOptions = context.options;
+        this._normalizeReturning(opOptions, '$getUpdated');
         this._preProcessOptions(opOptions, isOne /* for single record */);
 
         await this._safeExecute_(async () => {
             if (!isEmpty(references)) {
-                await this.ensureTransaction_();
+                if (!opOptions.$dryRun) {
+                    await this.ensureTransaction_();
+                }
                 await this._populateReferences_(context, references);
             }
 
@@ -645,14 +679,20 @@ class EntityModel {
             let doneUpdateAssocs;
 
             if (needUpdateAssocs) {
-                await this.ensureTransaction_();
+                if (!opOptions.$dryRun) {
+                    await this.ensureTransaction_();
+                }
 
                 associations = await this._updateAssocs_(context, associations, true /* before update */, isOne);
                 needUpdateAssocs = !isEmpty(associations);
                 doneUpdateAssocs = true;
             }
 
-            await this._prepareEntityData_(context, true /* is updating */, isOne);
+            if (opOptions.$dryRun) {
+                await this._prepareEntityDataDryRun_(context, true /* is updating */, isOne);
+            } else {
+                await this._prepareEntityData_(context, true /* is updating */, isOne);
+            }
 
             await this.applyRules_(Rules.RULE_BEFORE_UPDATE, context);
 
@@ -732,10 +772,15 @@ class EntityModel {
         }
 
         const opOptions = context.options;
+        this._normalizeReturning(opOptions, '$getUpdated');
         this._preProcessOptions(opOptions, isOne /* for single record */);
 
         await this._safeExecute_(async () => {
-            await this._prepareEntityData_(context, true /* is updating */, isOne);
+            if (opOptions.$dryRun) {
+                await this._prepareEntityDataDryRun_(context, true /* is updating */, isOne);
+            } else {
+                await this._prepareEntityData_(context, true /* is updating */, isOne);
+            }
 
             await this.applyRules_(Rules.RULE_BEFORE_UPDATE, context);
 
@@ -833,6 +878,7 @@ class EntityModel {
         }
 
         const opOptions = context.options;
+        this._normalizeReturning(opOptions, '$getDeleted');
         this._preProcessOptions(opOptions, isOne /* for single record */);
 
         await this._safeExecute_(async () => {
@@ -908,7 +954,7 @@ class EntityModel {
 
         let { raw } = context;
         let latest = {};
-        // returned by $getExisting
+
         let existing = context.existing;
         context.latest = latest;
 
@@ -922,15 +968,15 @@ class EntityModel {
             raw = { ...raw, ...opOptions.$upsert };
         }
 
-        if (isUpdating && isEmpty(existing) && (this._dependsOnExistingData(raw) || opOptions.$getExisting)) {
+        if (isUpdating && isEmpty(existing) && this._dependsOnExistingData(raw)) {
             await this.ensureTransaction_();
 
             if (isOne) {
                 existing = await this.findOne_({ $where: opOptions.$where });
             } else {
-                const { data: _data } = await this.findMany_({ $where: opOptions.$where });
-                existing = _data;
+                throw new InvalidArgument('Cannot access existing record in multiple update.');
             }
+
             context.existing = existing;
         }
 
@@ -1007,7 +1053,7 @@ class EntityModel {
                         latest[fieldName] = null;
                     }
                 } else {
-                    if (isPlainObject(value) && value.$xr) {
+                    if (typeof value === 'object' && value.$xr) {
                         latest[fieldName] = value;
 
                         return;
@@ -1101,6 +1147,244 @@ class EntityModel {
 
             return this._serializeByTypeInfo(value, fieldInfo);
         });
+
+        opOptions.$data = {
+            latest: context.latest,
+            raw: context.raw,
+        };
+
+        if (isUpdating) {
+            opOptions.$data.existing = existing;
+        }
+    }
+
+    async _prepareEntityDataDryRun_(context, isUpdating = false, isOne = true) {
+        const i18n = this.i18n;
+        const { name, fields } = this.meta;
+
+        let { raw } = context;
+        let latest = {};
+
+        let existing = context.existing;
+        context.latest = latest;
+
+        if (!context.i18n) {
+            context.i18n = i18n;
+        }
+
+        const errors = [];
+
+        const opOptions = context.options;
+
+        if (opOptions.$upsert && typeof opOptions.$upsert === 'object') {
+            raw = { ...raw, ...opOptions.$upsert };
+        }
+
+        if (isUpdating && isEmpty(existing) && this._dependsOnExistingData(raw)) {
+            if (isOne) {
+                existing = await this.findOne_({ $where: opOptions.$where });
+            } else {
+                throw new InvalidArgument('Cannot access existing record in multiple update.');
+            }
+
+            context.existing = existing;
+        }
+
+        try {
+            await this.applyRules_(Rules.RULE_BEFORE_VALIDATION, context);
+        } catch (error) {
+            errors.push(error);
+        }
+
+        await eachAsync_(fields, async (fieldInfo, fieldName) => {
+            try {
+                let value;
+                let useRaw = false;
+
+                if (fieldName in raw) {
+                    value = raw[fieldName];
+                    useRaw = true;
+                } else if (fieldName in latest) {
+                    value = latest[fieldName];
+                }                
+
+                if (typeof value !== 'undefined') {
+                    // field value given in raw data
+                    if (fieldInfo.readOnly && useRaw) {
+                        if (
+                            !opOptions.$migration &&
+                            (!opOptions.$bypassReadOnly || !opOptions.$bypassReadOnly.has(fieldName))
+                        ) {
+                            // read only, not allow to set by input value
+                            throw new ValidationError(
+                                `Read-only field "${fieldName}" is not allowed to be set by manual input.`,
+                                {
+                                    entity: name,
+                                    fieldInfo: fieldInfo,
+                                }
+                            );
+                        }
+                    }
+
+                    if (isUpdating && fieldInfo.freezeAfterNonDefault) {
+                        if (!existing) {
+                            throw new Error('"freezeAfterNonDefault" qualifier requires existing data.');
+                        }
+
+                        if (existing[fieldName] !== fieldInfo.default) {
+                            // freezeAfterNonDefault, not allow to change if value is non-default
+                            throw new ValidationError(
+                                `"freezeAfterNonDefault" field "${fieldName}" is not allowed to be changed.`,
+                                {
+                                    entity: name,
+                                    fieldInfo: fieldInfo,
+                                }
+                            );
+                        }
+                    }
+
+                    /**  todo: fix dependency, check writeProtect 
+                    if (isUpdating && fieldInfo.writeOnce) {     
+                        assert: existing, '"writeOnce" qualifier requires existing data.';
+                        if (!_.isNil(existing[fieldName])) {
+                            throw new ValidationError(`Write-once field "${fieldName}" is not allowed to be update once it was set.`, {
+                                entity: name,
+                                fieldInfo: fieldInfo 
+                            });
+                        }
+                    } */
+
+                    // sanitize first
+                    if (value == null) {
+                        if (fieldInfo.default != null) {
+                            // has default setting in meta data
+                            latest[fieldName] = fieldInfo.default;
+                        } else if (!fieldInfo.optional) {
+                            throw new ValidationError(`The "${fieldName}" value of "${name}" entity cannot be null.`, {
+                                entity: name,
+                                fieldInfo: fieldInfo,
+                            });
+                        } else {
+                            latest[fieldName] = null;
+                        }
+                    } else {
+                        if (typeof value === 'object' && value.$xr) {
+                            latest[fieldName] = value;
+                            return;
+                        }
+
+                        if (value === FLAG_DRY_RUN_IGNORE) {
+                            return;
+                        }
+
+                        try {
+                            latest[fieldName] = typeSystem.sanitize(value, fieldInfo, i18n);
+                        } catch (error) {
+                            throw new ValidationError(`Invalid "${fieldName}" value of "${name}" entity.`, {
+                                entity: name,
+                                fieldInfo: JSON.stringify(fieldInfo),
+                                value,
+                                context: JSON.stringify(context),
+                                error: error.message,
+                            });
+                        }
+                    }
+
+                    return;
+                }
+
+                // not given in raw data
+                if (isUpdating) {
+                    if (fieldInfo.forceUpdate) {
+                        // has force update policy, e.g. updateTimestamp
+                        if (fieldInfo.updateByDb || fieldInfo.hasActivator) {
+                            return;
+                        }
+
+                        // require generator to refresh auto generated value
+                        if (fieldInfo.auto) {
+                            latest[fieldName] = await defaultGenerator(fieldInfo, i18n);
+                            return;
+                        }
+
+                        throw new ValidationError(
+                            `Field "${fieldName}" of "${name}" entity is required for each update.`,
+                            {
+                                entity: name,
+                                fieldInfo: fieldInfo,
+                            }
+                        );
+                    }
+
+                    return;
+                }
+
+                // new record
+                if (!fieldInfo.autoByDb) {
+                    if ('default' in fieldInfo) {
+                        // has default setting in meta data
+                        latest[fieldName] = fieldInfo.default;
+                    } else if (fieldInfo.optional) {
+                        // ignore
+                    } else if (fieldInfo.auto) {
+                        // automatically generated
+                        latest[fieldName] = await defaultGenerator(fieldInfo, i18n);
+                    } else if (!fieldInfo.hasActivator && !fieldInfo.fillByRule) {
+                        // skip those have activators or fill by beforeCreate rule
+
+                        throw new ValidationError(`Field "${fieldName}" of "${name}" entity is required.`, {
+                            entity: name,
+                            fieldInfo: fieldInfo,
+                            raw,
+                        });
+                    }
+                } // else default value set by database or by rules
+            } catch (error) {
+                errors.push(error);
+            }
+        });
+
+        latest = context.latest = this._translateValue(latest, opOptions);
+
+        try {
+            await this.applyRules_(Rules.RULE_AFTER_VALIDATION, context);
+        } catch (error) {
+            errors.push(error);
+        }
+
+        try {
+            if (!opOptions.$skipModifiers) {
+                if (opOptions.$skipValidators && Array.isArray(opOptions.$skipValidators)) {
+                    opOptions.$skipValidators = new Set(opOptions.$skipValidators);
+                }
+                await this.applyModifiers_(context, isUpdating);
+            }
+
+            // final round process before entering database
+            context.latest = _.mapValues(latest, (value, key) => {
+                if (value == null) return value;
+
+                if (isPlainObject(value) && value.$xr) {
+                    // there is special input column which maybe a function or an expression
+                    // postgres only support split columns, i.e. INSERT INTO VALUES
+                    // mysql support INSERT INTO SET ??
+                    //opOptions.$requireSplitColumns = true;
+                    return value;
+                }
+
+                const fieldInfo = fields[key];
+
+                return this._serializeByTypeInfo(value, fieldInfo);
+            });
+        } catch (error) {
+            errors.push(error);
+        }
+
+        if (errors.length > 0) {
+            throw new ValidationError('Error preparing entity data.', {
+                errors,
+            });
+        }
 
         opOptions.$data = {
             latest: context.latest,
@@ -1314,7 +1598,12 @@ class EntityModel {
 
     _preProcessOptions(qOptions, isOne, isFind) {
         const extraSelect = [];
-        qOptions.$where = this._translateValue(qOptions.$where, qOptions, true, (isFind && !qOptions.$skipOrm) ? extraSelect : undefined);
+        qOptions.$where = this._translateValue(
+            qOptions.$where,
+            qOptions,
+            true,
+            isFind && !qOptions.$skipOrm ? extraSelect : undefined
+        );
         if (extraSelect.length) {
             qOptions.$select || (qOptions.$select = new Set(['*']));
             if (!qOptions.$select.has('*')) {
@@ -1478,7 +1767,7 @@ class EntityModel {
      */
     _translateValue(value, opPayload, arrayToInOperator, extraSelect) {
         if (isPlainObject(value)) {
-            if (value.$xr) {                
+            if (value.$xr) {
                 switch (value.$xr) {
                     case 'Column':
                         if (extraSelect) {

@@ -69,9 +69,9 @@ export default {
             }
 
             let app = new WebModule(server, config.name, baseRoute, appPath, {
-                ...moduleMeta.options,
-                registry: moduleMeta.registry,
                 ...options,
+                ...moduleMeta.options,
+                registry: moduleMeta.registry,                
             });
             app.now = server.now;
 

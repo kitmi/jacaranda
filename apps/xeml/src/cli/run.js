@@ -14,6 +14,7 @@ async function run(cli, command) {
     let cmdMethod_ = require('../commands/' + command);
 
     await startWorker(cmdMethod_, {
+        workerName: cli.app.name,
         configPath,
         configType,
         configName,

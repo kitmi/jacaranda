@@ -30,7 +30,7 @@ const mappingColumns = {
     '日期字段': 'date',
     '枚举字段': 'type',
     '百分比字段(%)': 'percentage',
-}
+};
 
 describe('excel loaderr', function () {
     before(async () => {
@@ -44,7 +44,6 @@ describe('excel loaderr', function () {
             const result = await Book.findMany_({});
             result.data.length.should.be.exactly(0);
         });
-
     });
 
     it('write template', async function () {
@@ -62,10 +61,17 @@ describe('excel loaderr', function () {
             const result = await Book.findMany_({});
             result.data.length.should.be.exactly(0);
 
-            await loadExcelFile_(db, 'book', dataFile, mappingColumns, async (Entity, record, rowNumber, confirmations) => {
-                // 如果有需要用户确认的信息，就push到confirmations数组
-                return record;
-            });            
+            await loadExcelFile_(
+                db,
+                'book',
+                dataFile,
+                mappingColumns,
+                async (Entity, record, rowNumber, confirmations) => {
+                    // 如果有需要用户确认的信息，就push到confirmations数组
+                    record.store = 1;
+                    return record;
+                }
+            );
 
             const result2 = await Book.findMany_({});
             result2.data.length.should.be.exactly(7);
@@ -77,11 +83,18 @@ describe('excel loaderr', function () {
             const db = app.db();
             const Book = db.entity('book');
 
-            const { errors } = await loadExcelFile_(db, 'book', dataFileWithErrors, mappingColumns, async (Entity, record, rowNumber, confirmations) => {
-                // 如果有需要用户确认的信息，就push到confirmations数组
-                return record;
-            });        
-            
+            const { errors } = await loadExcelFile_(
+                db,
+                'book',
+                dataFileWithErrors,
+                mappingColumns,
+                async (Entity, record, rowNumber, confirmations) => {
+                    // 如果有需要用户确认的信息，就push到confirmations数组
+                    record.store = 1;
+                    return record;
+                }
+            );
+
             errors[0].rowNumber.should.be.exactly(5);
             errors[0].error.should.be.eql('Invalid "type" value of "book" entity.');
             errors[1].rowNumber.should.be.exactly(6);
@@ -94,12 +107,20 @@ describe('excel loaderr', function () {
             const db = app.db();
             const Book = db.entity('book');
 
-            const { confirmations } = await loadExcelFile_(db, 'book', dataFile, mappingColumns, async (Entity, record, rowNumber, confirmations) => {
-                if (rowNumber === 6) {
-                    confirmations.push('提示用户某个数据有问题，需要确认');
-                }
-                return record;
-            }, true /* need confirmation, don't forget */);            
+            const { confirmations } = await loadExcelFile_(
+                db,
+                'book',
+                dataFile,
+                mappingColumns,
+                async (Entity, record, rowNumber, confirmations) => {
+                    if (rowNumber === 6) {
+                        confirmations.push('提示用户某个数据有问题，需要确认');
+                    }
+                    record.store = 1;
+                    return record;
+                },
+                true /* need confirmation, don't forget */
+            );
 
             confirmations[0].rowNumber.should.be.eql(6);
             confirmations[0].message.should.be.eql('提示用户某个数据有问题，需要确认');

@@ -44,7 +44,9 @@ const loadModuleFrom_ = async (app, source, name, payloadPath, namedExport, noTh
     } else if (source === 'project') {  
         _module = await app.tryRequire_(fullPath.join('/'), namedExport == null /* useDefault */, noThrow);
     } else {
-        throw new InvalidArgument(`Invalid module source "${source}".`);
+        throw new InvalidArgument(`Invalid module source "${source}".`, {
+            app: app.name,
+        });
     }
 
     if (_module == null && !noThrow) {

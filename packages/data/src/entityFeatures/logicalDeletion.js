@@ -35,7 +35,7 @@ export default {
                 $where: options.$where,
                 $getUpdated: options.$getDeleted,
                 $bypassReadOnly: new Set([field, timestampField]),
-                ..._.pick(options, ['$getDeleted']),
+                $logicalDeletion: true,
             };
 
             if (context.isOne) {

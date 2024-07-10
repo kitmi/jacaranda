@@ -380,6 +380,12 @@ If already exist (unique key conclicts), just update the record.
 
 Return created records.
 
+### updateOptions
+
+#### $getUpdated - {boolean|array}
+
+Return updated records.
+
 ### createOptions & updateOptions
 
 #### $bypassReadOnly - {Set}

@@ -23,7 +23,7 @@ export default {
     },
 
     [Rules.RULE_BEFORE_UPDATE]: (feature, entityModel, context) => {
-        _.each(feature, (item) => {
+        context.options.$logicalDeletion || _.each(feature, (item) => {
             if (
                 _.every(item, (fieldName) =>
                     fieldName in context.latest
@@ -31,8 +31,6 @@ export default {
                         : context.existing && context.existing[fieldName] == null
                 )
             ) {
-                console.log(context);
-
                 throw new ValidationError(
                     `At least one of these fields ${item.map((f) => quote(f)).join(', ')} should not be null.`,
                     {

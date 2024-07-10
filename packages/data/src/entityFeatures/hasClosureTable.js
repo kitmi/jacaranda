@@ -22,7 +22,10 @@ export default {
         await RelatedEntity.create_(data);
     },          
     [Rules.RULE_BEFORE_DELETE]: async (feature, entity, context) => {
-        await entity.ensureTransaction_();
+        if (!context.options.$dryRun) {
+            await entity.ensureTransaction_();
+        }
+
         const key = entity.meta.keyField;
         const RelatedEntity = entity.getRelatedEntity(feature.relation);
 

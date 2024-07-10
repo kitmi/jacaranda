@@ -1,4 +1,5 @@
 import 'commons:**'
+import store
 
 type
   bookType: text enum('friction', 'novel', 'bio', 'other')
@@ -13,4 +14,6 @@ entity book
     numValue: integer optional
     date: datetime optional
     percentage: number optional
+  associations
+    belongsTo store 
     

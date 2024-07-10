@@ -105,13 +105,21 @@ export const loadExcelFile_ = async (db, mainEntity, dataFile, reverseMapping, p
                         primaryValue: rowValues[0],
                     });
                 }
-            }            
+            }
         });
     });
 
     const errors = [];
     const confirmations = [];
     const rowsResult = [];
+
+    const pushError = (err, rowNumber) => {
+        errors.push({
+            rowNumber,
+            error: err.message,
+            ...(err.info ? { info: _.pick(err.info, ['entity', 'value', 'error']) } : null),
+        });
+    };
 
     const Entity = db.entity(mainEntity);
     const processed = [];
@@ -127,11 +135,11 @@ export const loadExcelFile_ = async (db, mainEntity, dataFile, reverseMapping, p
             processed.push({ rowNumber, record, primaryValue });
             await Entity.create_(record, { $dryRun: true });
         } catch (error) {
-            errors.push({
-                rowNumber,
-                error: error.message,
-                ...(error.info ? { info: error.info } : null),
-            });
+            if (error.info?.errors) {
+                error.info?.errors.forEach((err) => pushError(err, rowNumber));
+            } else {
+                pushError(error, rowNumber)
+            }
         }
     });
 
@@ -148,7 +156,7 @@ export const loadExcelFile_ = async (db, mainEntity, dataFile, reverseMapping, p
             const result = await Entity.create_(record);
             rowsResult.push({
                 rowNumber,
-                [Entity.meta.keyField]: result[Entity.meta.keyField],
+                [Entity.meta.keyField]: result.data[Entity.meta.keyField],
                 primaryValue,
             });
         } catch (error) {

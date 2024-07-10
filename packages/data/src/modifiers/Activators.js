@@ -66,7 +66,9 @@ _Activators.fetch_ = async (entity, field, context, assoc, options) => {
             findOptions.$relation = [interAssoc];
         }
 
-        await entity.ensureTransaction_(context);
+        if (!context.options.$dryRun) {
+            await entity.ensureTransaction_();
+        }
 
         remoteEntity = await entity.db.entity(assocMeta.entity).findOne_(findOptions);
 

@@ -1,5 +1,5 @@
 import { _, eachAsync_, batchAsync_, isPlainObject, isEmpty, set as _set, get as _get } from '@kitmi/utils';
-import EntityModel from '../../EntityModel';
+import EntityModel, { FLAG_DRY_RUN_IGNORE } from '../../EntityModel';
 import {
     ApplicationError,
     ReferencedNotExist,
@@ -319,7 +319,7 @@ class RelationalEntityModel extends EntityModel {
         const finished = {};
 
         // todo: double check to ensure including all required options
-        const passOnOptions = _.pick(opOptions, ['$skipModifiers', '$migration', '$ctx', '$upsert', '$dryRun']);
+        const passOnOptions = _.pick(opOptions, ['$skipModifiers', '$migration', '$ctx', '$dryRun']);
 
         await eachAsync_(assocs, async (data, anchor) => {
             const assocMeta = meta?.[anchor];
@@ -349,7 +349,7 @@ class RelationalEntityModel extends EntityModel {
                 }
 
                 return batchAsync_(data, (item) =>
-                    assocModel.create_({ ...item, [assocMeta.field]: keyValue }, { ...passOnOptions })
+                    assocModel.create_({ ...item, [assocMeta.field]: keyValue }, { ...passOnOptions, '$upsert': true })
                 );
             }
 
@@ -366,7 +366,7 @@ class RelationalEntityModel extends EntityModel {
                 data = { ...data, [assocMeta.field]: keyValue };
             }
 
-            let created = await assocModel.create_(data, { ...passOnOptions });
+            let created = await assocModel.create_(data, { ...passOnOptions, '$upsert': true });
 
             if (!beforeEntityCreate) {
                 return;
@@ -386,7 +386,7 @@ class RelationalEntityModel extends EntityModel {
                 }
             }
 
-            finished[anchor] = created.data[assocMeta.field];
+            finished[anchor] = opOptions.$dryRun ? FLAG_DRY_RUN_IGNORE : created.data[assocMeta.field];
         });
 
         if (beforeEntityCreate) {

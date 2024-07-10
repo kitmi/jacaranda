@@ -451,6 +451,7 @@ class PostgresConnector extends RelationalConnector {
         }
 
         let columns = '';
+        let conflicts = '';
         let values = '';
         let params = [];
 
@@ -459,8 +460,12 @@ class PostgresConnector extends RelationalConnector {
             values += this._packValue(v, params) + ',';
         });
 
+        uniqueKeys.forEach((k) => {
+            conflicts += this.escapeId(k) + ',';
+        });
+
         let sql = `INSERT INTO ${this.escapeId(model)} (${columns.slice(0, -1)}) VALUES (${values.slice(0, -1)})`;
-        sql += ' ON CONFLICT DO UPDATE SET ' + this._splitColumnsAsInput(dataWithoutUK, params).join(', ');
+        sql += ` ON CONFLICT (${conflicts.slice(0, -1)}) DO UPDATE SET ` + this._splitColumnsAsInput(dataWithoutUK, params).join(', ');
 
         if (options.$getCreated) {
             sql += ` RETURNING ${options.$getCreated
