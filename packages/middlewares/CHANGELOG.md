@@ -1,5 +1,12 @@
 # @kitmi/middlewares
 
+## 0.3.0
+
+### Minor Changes
+
+-   Add localeDetect middleware for extract best matched locale with browser settings
+-   Add passportAuth multiple strategies support
+
 ## 0.2.0
 
 ### Minor Changes

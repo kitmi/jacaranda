@@ -18,7 +18,7 @@ const passportAuth = (opt, app) => {
         {
             schema: {
                 passportService: { type: 'text', optional: true, default: 'passport' },
-                strategy: { type: 'text' },
+                strategy: [{ type: 'text' }, { type: 'array', element: { type: 'text' } } ],
                 options: { type: 'object', optional: true },
             },
         },

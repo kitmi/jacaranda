@@ -1,6 +1,6 @@
 {
   "name": "@kitmi/middlewares",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Jacaranda framework common middlewares",
   "publishConfig": {
     "access": "public"
@@ -62,10 +62,11 @@
     "koa-static": "^5.0.0",
     "pino-http": "^9.0.0",
     "request-ip": "^3.3.0",
-    "node-device-detector": "^2.1.2"
+    "node-device-detector": "^2.1.2",
+    "locale": "0.1.0"
   },
   "devDependencies": {
-    "@kitmi/tester": "workspace:^"
+    "@kitmi/tester": "workspace:*"
   },
   "prettier": {
     "quoteProps": "consistent",
