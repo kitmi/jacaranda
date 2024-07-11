@@ -1,5 +1,11 @@
 # @kitmi/feat-db
 
+## 0.2.1
+
+### Patch Changes
+
+- Fix excel loader bugs
+
 ## 0.2.0
 
 ### Minor Changes

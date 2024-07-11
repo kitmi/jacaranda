@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.3.1
+
+### Patch Changes
+
+-   Minor bug fix
+ 
 ## 3.3.0
 
 ### Minor Changes
