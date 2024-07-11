@@ -1,5 +1,9 @@
 # @kitmi/data
 
+## 0.6.1
+
+-   Fix: activator during creation should not be called if dependencies not exist
+
 ## 0.6.0
 
 -   Fix: sub query with relations not correct

@@ -1,5 +1,11 @@
 # @kitmi/middlewares
 
+## 0.3.1
+
+### Patch Changes
+
+-   Fix locale detection bug
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.3.2
+
+### Patch Changes
+
+-   Fix passport feature bug
+
 ## 3.3.1
 
 ### Patch Changes
