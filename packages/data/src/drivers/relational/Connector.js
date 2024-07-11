@@ -854,10 +854,7 @@ class RelationalConnector extends Connector {
                                         const sqlInfo = buildDataSetQuery(opOptions, v, aliasMap);
                                         sqlInfo.params && params.push(...sqlInfo.params);
 
-                                        return (
-                                            this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                            ` IN (${sqlInfo.sql})`
-                                        );
+                                        return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ` IN (${sqlInfo.sql})`;
                                     }
                                 }
 

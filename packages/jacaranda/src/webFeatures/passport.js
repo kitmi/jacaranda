@@ -6,6 +6,7 @@
 import path from 'node:path';
 import { batchAsync_, esmCheck } from '@kitmi/utils';
 import Feature from '../Feature';
+import { tryLoadFrom_ } from '../helpers/loadModuleFrom_';
 
 export default {
     /**
@@ -79,9 +80,17 @@ export default {
         }
 
         return batchAsync_(strategies, async (strategy) => {
-            const strategyScript = path.join(app.sourcePath, 'passports', strategy);
+            const strategyInitiator = await tryLoadFrom_(app, 'Passport strategy', {
+                'registry': {
+                    name: strategy,
+                    path: 'passports'
+                },
+                'project': {
+                    name: strategy,
+                    path: path.join(app.sourcePath, 'passports')
+                }
+            });
             
-            const strategyInitiator = esmCheck(require(strategyScript));
             return strategyInitiator(app, passport);
         });
     },

@@ -458,7 +458,7 @@ const _fieldRequirementCheck = (fieldName, references, content, requireTargetFie
                                   },
                                   property: {
                                       type: 'Identifier',
-                                      name: '_dependencyChanged',
+                                      name: '_dependencyExist',
                                   },
                               },
                               arguments: [
@@ -479,35 +479,64 @@ const _fieldRequirementCheck = (fieldName, references, content, requireTargetFie
                       type: 'LogicalExpression',
                       operator: '&&',
                       left: {
-                          type: 'UnaryExpression',
-                          operator: '!',
-                          argument: {
-                              type: 'Identifier',
-                              name: 'isUpdating',
+                          type: 'LogicalExpression',
+                          operator: '&&',
+                          left: {
+                              type: 'UnaryExpression',
+                              operator: '!',
+                              argument: {
+                                  type: 'Identifier',
+                                  name: 'isUpdating',
+                              },
+                              prefix: true,
                           },
-                          prefix: true,
+                          right: {
+                              type: 'BinaryExpression',
+                              operator: '==',
+                              left: {
+                                  type: 'MemberExpression',
+                                  computed: true,
+                                  object: {
+                                      type: 'Identifier',
+                                      name: 'latest',
+                                  },
+                                  property: {
+                                      type: 'Literal',
+                                      value: fieldName,
+                                      raw: quote(fieldName, "'"),
+                                  },
+                              },
+                              right: {
+                                  type: 'Literal',
+                                  value: null,
+                                  raw: 'null',
+                              },
+                          },
                       },
                       right: {
-                          type: 'BinaryExpression',
-                          operator: '==',
-                          left: {
+                          type: 'CallExpression',
+                          callee: {
                               type: 'MemberExpression',
-                              computed: true,
+                              computed: false,
                               object: {
-                                  type: 'Identifier',
-                                  name: 'latest',
+                                  type: 'ThisExpression',
                               },
                               property: {
+                                  type: 'Identifier',
+                                  name: '_noDependencyOrExist',
+                              },
+                          },
+                          arguments: [
+                              {
                                   type: 'Literal',
                                   value: fieldName,
                                   raw: quote(fieldName, "'"),
                               },
-                          },
-                          right: {
-                              type: 'Literal',
-                              value: null,
-                              raw: 'null',
-                          },
+                              {
+                                  type: 'Identifier',
+                                  name: 'context',
+                              },
+                          ],
                       },
                   },
               },
@@ -1765,7 +1794,7 @@ const processorMethod = (functor) => {
     const args = functor.args.slice(3).map((arg) => ({
         type: 'Identifier',
         name: arg,
-    }))
+    }));
     return {
         type: 'MethodDefinition',
         key: {

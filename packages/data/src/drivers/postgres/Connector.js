@@ -317,7 +317,7 @@ class PostgresConnector extends RelationalConnector {
                     meta.transactionId = connection[tranSym];
                 }
 
-                this.app.log('info', _.truncate(sql, { length: 1000 }), meta);
+                this.app.log('info', sql, meta);
             }
 
             if ($preparedKey) {
@@ -459,7 +459,7 @@ class PostgresConnector extends RelationalConnector {
         let values = '';
         let params = [];
 
-        _.each(data, (v, k) => {
+        _.each(insertData, (v, k) => {
             columns += this.escapeId(k) + ',';
             values += this._packValue(v, params) + ',';
         });
@@ -479,75 +479,7 @@ class PostgresConnector extends RelationalConnector {
 
         return this.execute_(sql, params, options, connection);
     }
-
-    /**
-     * Insert many records or update existings if duplicate key found.
-     * @param {*} model
-     * @param {array} dataArrayOnInsert
-     * @param {*} uniqueKeys
-     * @param {*} options
-     * @param {object} dataExprOnUpdate - When duplicate record exists, the actual data used for updating
-     * @returns {object}
-     */
-    async upsertMany_(model, fieldsOnInsert, dataArrayOnInsert, dataExprOnUpdate, options) {
-        if (!dataArrayOnInsert || isEmpty(dataArrayOnInsert)) {
-            throw new ApplicationError(`Upserting with empty "${model}" insert data.`);
-        }
-
-        if (!Array.isArray(dataArrayOnInsert)) {
-            throw new ApplicationError('"data" to bulk upsert should be an array of records.');
-        }
-
-        if (!dataExprOnUpdate || isEmpty(dataExprOnUpdate)) {
-            throw new ApplicationError(`Upserting with empty "${model}" update data.`);
-        }
-
-        if (!Array.isArray(fieldsOnInsert)) {
-            throw new ApplicationError('"fields" to bulk upsert should be an array of field names.');
-        }
-
-        const sql = `INSERT INTO ?? (${fieldsOnInsert
-            .map((f) => this.escapeId(f))
-            .join(', ')}) VALUES ? ON DUPLICATE KEY UPDATE ?`;
-        const params = [model];
-        params.push(dataArrayOnInsert);
-        params.push(dataExprOnUpdate);
-
-        return this.execute_(sql, params, options);
-    }
-
-    /**
-     * Insert many records in one SQL
-     * @param {*} model
-     * @param {*} fields
-     * @param {*} data
-     * @param {*} options
-     * @returns {object}
-     */
-    async insertMany_(model, fields, data, options) {
-        if (!data || isEmpty(data)) {
-            throw new ApplicationError(`Creating with empty "${model}" data.`);
-        }
-
-        if (!Array.isArray(data)) {
-            throw new ApplicationError('"data" to bulk insert should be an array of records.');
-        }
-
-        if (!Array.isArray(fields)) {
-            throw new ApplicationError('"fields" to bulk insert should be an array of field names.');
-        }
-
-        const { insertIgnore, ...restOptions } = options || {};
-
-        const sql = `INSERT ${insertIgnore ? 'IGNORE ' : ''}INTO ?? (${fields
-            .map((f) => this.escapeId(f))
-            .join(', ')}) VALUES ?`;
-        const params = [model];
-        params.push(data);
-
-        return this.execute_(sql, params, restOptions);
-    }
-
+ 
     insertOne_ = this.create_;
 
     /**
@@ -633,20 +565,6 @@ class PostgresConnector extends RelationalConnector {
         params = concateParams(params, subJoinings?.params, childJoinings?.params, updateParams, whereParams);
 
         return this.execute_(sql, params, options, connection);
-    }
-
-    /**
-     * Replace an existing entity or create a new one.
-     * @param {string} model
-     * @param {object} data
-     * @param {*} options
-     */
-    async replace_(model, data, options) {
-        const params = [model, data];
-
-        const sql = 'REPLACE ?? SET ?';
-
-        return this.execute_(sql, params, options);
     }
 
     /**

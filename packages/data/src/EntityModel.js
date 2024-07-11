@@ -322,8 +322,6 @@ class EntityModel {
 
         this._preProcessOptions(opOptions, false /* for multiple record */, true);
 
-        console.log('findSql', opOptions);
-
         return this.db.connector.buildQuery(this.meta.name, opOptions);
     }
 
@@ -567,6 +565,7 @@ class EntityModel {
                     uniqueKeys = this.getUniqueKeyFieldsFrom(context.latest);
                     if (!isEmpty(_.pick(context.latest, uniqueKeys))) {
                         shouldUpsert = true;
+                        console.log(context.latest, uniqueKeys);
                     }
                 }
 
@@ -1442,12 +1441,20 @@ class EntityModel {
         }
     }
 
-    _dependencyChanged(fieldName, context) {
+    _noDependencyOrExist(fieldName, context) {
+        if (!this.meta.fieldDependencies || !this.meta.fieldDependencies[fieldName]) {
+            return true;
+        }
+
+        return this._dependencyExist(fieldName, context);
+    }
+
+    _dependencyExist(fieldName, context) {
         if (this.meta.fieldDependencies) {
             const deps = this.meta.fieldDependencies[fieldName];
 
             return _.find(deps, (d) =>
-                isPlainObject(d) ? d.reference !== fieldName && _.hasIn(context, d.reference) : _.hasIn(context, d)
+                typeof d === 'object' ? d.reference !== fieldName && _.hasIn(context, d.reference) : _.hasIn(context, d)
             );
         }
 
@@ -1518,15 +1525,6 @@ class EntityModel {
         }
 
         return false;
-    }
-
-    /**
-     * Check if the given object contains reserved keys.
-     * @param {*} obj
-     * @returns {boolean}
-     */
-    _hasReservedKeys(obj) {
-        return _.find(obj, (v, k) => k[0] === '$');
     }
 
     /**
