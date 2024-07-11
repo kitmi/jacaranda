@@ -1,5 +1,10 @@
 # @kitmi/data
 
+## 0.6.0
+
+-   Fix: sub query with relations not correct
+-   Support multiple errors detection in dry run mode
+
 ## 0.5.6
 
 -   Fix: wrong orm mapping of query result in some cases.

@@ -17,7 +17,6 @@ export const xrCall = xrFunction;
 export const xrExpression = (left, op, right) => ({ $xr: 'BinExpr', left, op, right });
 export const xrExpr = xrExpression;
 
-export const xrQuery = (query) => ({ $xr: 'Query', query: { $skipOrm: true, ...query } });
 export const xrDataSet = (model, query) => ({ $xr: 'DataSet', model, query: { $skipOrm: true, ...query } });
 
 export const doInc = (field, increment) => xrExpr(xrCol(field), '+', increment);

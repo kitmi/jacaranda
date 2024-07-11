@@ -5,6 +5,21 @@ import { ApplicationError, InvalidArgument } from '@kitmi/types';
 import Connector from '../../Connector';
 import { isRawSql, extractRawSql, isSelectAll } from '../../helpers';
 
+const buildDataSetQuery = (opOptions, dataSet, aliasMap) => {
+    let Entity = opOptions.$entity;
+    if (Entity == null) {
+        throw new ApplicationError('Entity instance should be prepared in the operation options for delayed DataSet.', {
+            dataSet,
+        });
+    }
+
+    if (Entity.meta.name !== dataSet.model) {
+        Entity = Entity.db.entity(dataSet.model);
+    }
+
+    return Entity.findSql({ ...dataSet.query, $aliasMap: aliasMap });
+};
+
 class RelationalConnector extends Connector {
     /**
      * Create a new instance of the connector.
@@ -64,15 +79,15 @@ class RelationalConnector extends Connector {
      * @param {*} model
      * @param {*} condition
      */
-    buildQuery(
-        model,
-        { $assoc, $select, $where, $groupBy, $orderBy, $offset, $limit, $hasSubQuery, $aliasMap, $skipOrm }
-    ) {
+    buildQuery(model, opOptions) {
+        const { $assoc, $select, $where, $groupBy, $orderBy, $offset, $limit, $hasSubQuery, $aliasMap, $skipOrm } =
+            opOptions;
         const { fromTable, withTables, model: _model } = this._buildCTEHeader(model);
         model = _model;
 
         let startId = $aliasMap ? Object.keys($aliasMap).length : 0;
-        const aliasMap = { ...($aliasMap && prefixKeys($aliasMap, '_.')), [model]: ntol(startId++) };
+        const mainAlias = ntol(startId++);
+        const aliasMap = { ...($aliasMap && prefixKeys($aliasMap, '_.')), [model]: mainAlias };
 
         let joinings;
         let mainEntityForJoin;
@@ -86,6 +101,7 @@ class RelationalConnector extends Connector {
             let nextId;
 
             [joinings, directJoinings, nextId] = this._joinAssociations(
+                opOptions,
                 $assoc,
                 mainEntityForJoin,
                 aliasMap,
@@ -119,7 +135,7 @@ class RelationalConnector extends Connector {
         let fromClause = ' FROM ' + fromTable;
         let fromAndJoin = fromClause;
         if (mainEntityForJoin) {
-            fromAndJoin += ' A ';
+            fromAndJoin += ` ${mainAlias} `;
 
             if ($assoc) {
                 directJoinings.forEach((dj) => {
@@ -137,7 +153,7 @@ class RelationalConnector extends Connector {
         const whereParams = [];
 
         if ($where) {
-            whereClause = this._joinCondition($where, whereParams, null, mainEntityForJoin, aliasMap);
+            whereClause = this._joinCondition(opOptions, $where, whereParams, null, mainEntityForJoin, aliasMap);
 
             if (whereClause) {
                 whereClause = ' WHERE ' + whereClause;
@@ -149,7 +165,7 @@ class RelationalConnector extends Connector {
         const groupByParams = [];
 
         if ($groupBy) {
-            groupByClause += ' ' + this._buildGroupBy($groupBy, groupByParams, mainEntityForJoin, aliasMap);
+            groupByClause += ' ' + this._buildGroupBy(opOptions, $groupBy, groupByParams, mainEntityForJoin, aliasMap);
         }
 
         // Build order by clause
@@ -225,6 +241,7 @@ class RelationalConnector extends Connector {
      *      subAssocs: { ... }
      *  }
      *
+     * @param {*} opOptions
      * @param {*} associations
      * @param {*} parentAliasKey
      * @param {*} aliasMap
@@ -233,12 +250,13 @@ class RelationalConnector extends Connector {
      * @param {*} params
      * @returns {object}
      */
-    _joinAssociations(associations, parentAliasKey, aliasMap, startId, params) {
+    _joinAssociations(opOptions, associations, parentAliasKey, aliasMap, startId, params) {
         let joinings = [];
         let directJoinings = [];
 
         _.each(associations, (assocInfo, anchor) => {
             startId = this._joinAssociation(
+                opOptions,
                 assocInfo,
                 anchor,
                 joinings,
@@ -253,7 +271,17 @@ class RelationalConnector extends Connector {
         return [joinings, directJoinings, startId];
     }
 
-    _joinAssociation(assocInfo, anchor, joinings, directJoinings, parentAliasKey, aliasMap, startId, params) {
+    _joinAssociation(
+        opOptions,
+        assocInfo,
+        anchor,
+        joinings,
+        directJoinings,
+        parentAliasKey,
+        aliasMap,
+        startId,
+        params
+    ) {
         const alias = assocInfo.alias || this._generateAlias(startId++, anchor);
         let { joinType, on } = assocInfo;
 
@@ -269,6 +297,7 @@ class RelationalConnector extends Connector {
         if (subAssocs) {
             let _directJoinings = [];
             [subJoinings, _directJoinings] = this._joinAssociations(
+                opOptions,
                 subAssocs,
                 aliasKey,
                 aliasMap,
@@ -293,7 +322,9 @@ class RelationalConnector extends Connector {
         } else {
             joinings.push(
                 `${joinType} ${this.escapeId(entity)} ${alias}` +
-                    (on != null ? ` ON ${this._joinCondition(on, params, null, parentAliasKey, aliasMap)}` : '')
+                    (on != null
+                        ? ` ON ${this._joinCondition(opOptions, on, params, null, parentAliasKey, aliasMap)}`
+                        : '')
             );
         }
 
@@ -318,6 +349,7 @@ class RelationalConnector extends Connector {
      *     $not:
      *        array: not ( or )
      *        kv-pair: not ( and )
+     * @param {object} opOptions
      * @param {object|array|string} condition - The condition object
      * @param {array} params - The parameters array
      * @param {string} joinOperator - 'AND' or 'OR'
@@ -325,13 +357,13 @@ class RelationalConnector extends Connector {
      * @param {object} aliasMap - The alias map, dot separated key -> alias
      * @returns {string}
      */
-    _joinCondition(condition, params, joinOperator, mainEntity, aliasMap) {
+    _joinCondition(opOptions, condition, params, joinOperator, mainEntity, aliasMap) {
         if (Array.isArray(condition)) {
             if (!joinOperator) {
                 joinOperator = 'OR';
             }
             return condition
-                .map((c) => '(' + this._joinCondition(c, params, null, mainEntity, aliasMap) + ')')
+                .map((c) => '(' + this._joinCondition(opOptions, c, params, null, mainEntity, aliasMap) + ')')
                 .join(` ${joinOperator} `);
         }
 
@@ -354,7 +386,7 @@ class RelationalConnector extends Connector {
                         });
                     }
 
-                    return '(' + this._joinCondition(value, params, 'AND', mainEntity, aliasMap) + ')';
+                    return '(' + this._joinCondition(opOptions, value, params, 'AND', mainEntity, aliasMap) + ')';
                 }
 
                 if (key === '$any' || key === '$or' || key.startsWith('$or_')) {
@@ -366,7 +398,7 @@ class RelationalConnector extends Connector {
                         });
                     }
 
-                    return '(' + this._joinCondition(value, params, 'OR', mainEntity, aliasMap) + ')';
+                    return '(' + this._joinCondition(opOptions, value, params, 'OR', mainEntity, aliasMap) + ')';
                 }
 
                 if (key === '$not' || key.startsWith('$not_')) {
@@ -378,7 +410,9 @@ class RelationalConnector extends Connector {
                             });
                         }
 
-                        return 'NOT (' + this._joinCondition(value, params, null, mainEntity, aliasMap) + ')';
+                        return (
+                            'NOT (' + this._joinCondition(opOptions, value, params, null, mainEntity, aliasMap) + ')'
+                        );
                     }
 
                     if (isPlainObject(value)) {
@@ -389,7 +423,9 @@ class RelationalConnector extends Connector {
                             });
                         }
 
-                        return 'NOT (' + this._joinCondition(value, params, null, mainEntity, aliasMap) + ')';
+                        return (
+                            'NOT (' + this._joinCondition(opOptions, value, params, null, mainEntity, aliasMap) + ')'
+                        );
                     }
 
                     if (typeof value !== 'string') {
@@ -444,11 +480,12 @@ class RelationalConnector extends Connector {
                         exists = false;
                     }
 
-                    if (typeof dataSet === 'object' && dataSet.$xr === 'DataSet') {
-                        const sqlInfo = this.buildQuery(dataSet.model, { ...dataSet.query, $aliasMap: aliasMap });
-                        sqlInfo.params && params.push(...sqlInfo.params);
-
-                        return `(${exists ? 'EXISTS' : 'NOT EXISTS'} (${sqlInfo.sql}))`;
+                    if (typeof dataSet === 'object') {
+                        if (dataSet.$xr === 'DataSet') {
+                            const sqlInfo = buildDataSetQuery(opOptions, dataSet, aliasMap);
+                            sqlInfo.params && params.push(...sqlInfo.params);
+                            return `(${exists ? 'EXISTS' : 'NOT EXISTS'} (${sqlInfo.sql}))`;
+                        }
                     }
 
                     throw new InvalidArgument('Unsupported $expr value.', {
@@ -456,7 +493,7 @@ class RelationalConnector extends Connector {
                     });
                 }
 
-                return this._packCondition(key, value, params, mainEntity, aliasMap);
+                return this._packCondition(opOptions, key, value, params, mainEntity, aliasMap);
             }).join(` ${joinOperator} `);
         }
 
@@ -599,9 +636,6 @@ class RelationalConnector extends Connector {
                     case 'Raw':
                         return value.value;
 
-                    case 'Query':
-                        return this._joinCondition(value.query, params, null, mainEntity, aliasMap);
-
                     case 'BinExpr': {
                         const left = this._packValue(value.left, params, mainEntity, aliasMap);
                         const right = this._packValue(value.right, params, mainEntity, aliasMap);
@@ -625,6 +659,7 @@ class RelationalConnector extends Connector {
      *   1. fieldName, <literal>
      *   2. fieldName, { normal object }
      *
+     * @param {object} opOptions
      * @param {string} fieldName - The field name in a condition object.
      * @param {*} value
      * @param {array} params - The parameters array
@@ -633,13 +668,13 @@ class RelationalConnector extends Connector {
      * @param {boolean} [inject=false] - Whether to inject the value directly
      * @returns {string}
      */
-    _packCondition(fieldName, value, params, mainEntity, aliasMap, inject) {
+    _packCondition(opOptions, fieldName, value, params, mainEntity, aliasMap, inject) {
         if (value == null) {
             return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' IS NULL';
         }
 
         if (Array.isArray(value)) {
-            return this._packCondition(fieldName, { $in: value }, params, mainEntity, aliasMap, inject);
+            return this._packCondition(opOptions, fieldName, { $in: value }, params, mainEntity, aliasMap, inject);
         }
 
         if (isPlainObject(value)) {
@@ -674,7 +709,15 @@ class RelationalConnector extends Connector {
 
                             case '$eq':
                             case '$equal':
-                                return this._packCondition(fieldName, v, params, mainEntity, aliasMap, inject);
+                                return this._packCondition(
+                                    opOptions,
+                                    fieldName,
+                                    v,
+                                    params,
+                                    mainEntity,
+                                    aliasMap,
+                                    inject
+                                );
 
                             case '$ne':
                             case '$neq':
@@ -789,24 +832,7 @@ class RelationalConnector extends Connector {
                                 );
 
                             case '$in':
-                                if (isPlainObject(v) && v.$xr === 'DataSet') {
-                                    const sqlInfo = this.buildQuery(v.model, v.query);
-                                    sqlInfo.params && sqlInfo.params.forEach((p) => params.push(p));
-
-                                    return (
-                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                        ` IN (${sqlInfo.sql})`
-                                    );
-                                } else {
-                                    if (!Array.isArray(v)) {
-                                        throw new InvalidArgument(
-                                            'The value should be a dataset or an array when using "$in" operator.',
-                                            {
-                                                value: v,
-                                            }
-                                        );
-                                    }
-
+                                if (Array.isArray(v)) {
                                     if (inject) {
                                         return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ` IN (${v})`;
                                     }
@@ -815,26 +841,36 @@ class RelationalConnector extends Connector {
                                     return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + this.specInClause;
                                 }
 
-                            case '$nin':
-                            case '$notIn':
-                                if (isPlainObject(v) && v.$xr === 'DataSet') {
-                                    const sqlInfo = this.buildQuery(v.model, v.query);
-                                    sqlInfo.params && sqlInfo.params.forEach((p) => params.push(p));
+                                if (typeof v === 'object') {
+                                    if (v.$xr === 'Raw') {
+                                        v.params && v.params.forEach((p) => params.push(p));
 
-                                    return (
-                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                        ` NOT IN (${sqlInfo.sql})`
-                                    );
-                                } else {
-                                    if (!Array.isArray(v)) {
-                                        throw new InvalidArgument(
-                                            'The value should be an array when using "$notIn" operator.',
-                                            {
-                                                value: v,
-                                            }
+                                        return (
+                                            this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ` IN (${v.value})`
                                         );
                                     }
 
+                                    if (v.$xr === 'DataSet') {
+                                        const sqlInfo = buildDataSetQuery(opOptions, v, aliasMap);
+                                        sqlInfo.params && params.push(...sqlInfo.params);
+
+                                        return (
+                                            this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                            ` IN (${sqlInfo.sql})`
+                                        );
+                                    }
+                                }
+
+                                throw new InvalidArgument(
+                                    'The value should be a dataset or an array when using "$in" operator.',
+                                    {
+                                        value: v,
+                                    }
+                                );
+
+                            case '$nin':
+                            case '$notIn':
+                                if (Array.isArray(v)) {
                                     if (inject) {
                                         return (
                                             this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ` NOT IN (${v})`
@@ -846,6 +882,34 @@ class RelationalConnector extends Connector {
                                         this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + this.specNotInClause
                                     );
                                 }
+
+                                if (typeof v === 'object') {
+                                    if (v.$xr === 'Raw') {
+                                        v.params && v.params.forEach((p) => params.push(p));
+
+                                        return (
+                                            this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                            ` NOT IN (${v.value})`
+                                        );
+                                    }
+
+                                    if (v.$xr === 'DataSet') {
+                                        const sqlInfo = buildDataSetQuery(opOptions, v, aliasMap);
+                                        sqlInfo.params && params.push(...sqlInfo.params);
+
+                                        return (
+                                            this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                            ` NOT IN (${sqlInfo.sql})`
+                                        );
+                                    }
+                                }
+
+                                throw new InvalidArgument(
+                                    'The value should be an array when using "$notIn" operator.',
+                                    {
+                                        value: v,
+                                    }
+                                );
 
                             case '$startWith':
                             case '$startsWith':
@@ -1116,7 +1180,7 @@ class RelationalConnector extends Connector {
      * @param {*} aliasMap
      * @returns {string}
      */
-    _buildGroupBy(groupBy, params, mainEntity, aliasMap) {
+    _buildGroupBy(opOptions, groupBy, params, mainEntity, aliasMap) {
         if (isPlainObject(groupBy)) {
             const { columns, having } = groupBy;
 
@@ -1125,7 +1189,7 @@ class RelationalConnector extends Connector {
             }
 
             let groupByClause = this._buildGroupByList(columns, mainEntity, aliasMap);
-            const havingCluse = having && this._joinCondition(having, params, null, mainEntity, aliasMap);
+            const havingCluse = having && this._joinCondition(opOptions, having, params, null, mainEntity, aliasMap);
             if (havingCluse) {
                 groupByClause += ' HAVING ' + havingCluse;
             }

@@ -366,6 +366,10 @@ Internal use, to skip mapping the result into a nested object.
 
 Return result as array, i.e. array mode.
 
+#### $sqlOnly - {boolean}
+
+Only return the sql. 
+
 ### createOptions
 
 #### $ignore - {boolean}

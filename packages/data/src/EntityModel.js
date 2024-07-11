@@ -4,7 +4,7 @@ import typeSystem, { Types } from '@kitmi/validators/allSync';
 import * as Features from './entityFeatures';
 import Rules from './Rules';
 import defaultGenerator from './TypeGenerators';
-import { hasValueInAny } from './helpers';
+import { hasValueInAny, xrDataSet, xrSql } from './helpers';
 import { OpCompleted } from './utils/errors';
 
 const featureRules = _.reduce(
@@ -244,6 +244,28 @@ class EntityModel {
         }
     }
 
+    applyRulesSync(ruleName, context) {
+        for (const featureName in this.meta.features) {
+            const key = featureName + '.' + ruleName + 'Sync';
+            const action = featureRules[key];
+
+            if (action) {
+                let featureInfo = this.meta.features[featureName];
+
+                if (context.options.$features && featureName in context.options.$features) {
+                    const customFeatureInfo = context.options.$features[featureName];
+                    if (!customFeatureInfo) {
+                        continue;
+                    }
+
+                    featureInfo = { ...featureInfo, ...customFeatureInfo };
+                }
+
+                action(featureInfo, this, context);
+            }
+        }
+    }
+
     /**
      * Find a record by unique keys, returns a model object containing the record or undefined if nothing found.
      * @param {object} [findOptions] - findOptions
@@ -282,6 +304,29 @@ class EntityModel {
         return this._find_(findOptions, false);
     }
 
+    findSql(findOptions) {
+        findOptions = this._wrapCtx(findOptions);
+        findOptions = this._normalizeQuery(findOptions, false /* for multiple record */);
+        findOptions.$skipOrm = true;
+        findOptions.$sqlOnly = true;
+
+        const context = {
+            op: 'find',
+            options: findOptions,
+            isOne: false,
+        };
+
+        const opOptions = context.options;
+
+        this.applyRulesSync(Rules.RULE_BEFORE_FIND, context);
+
+        this._preProcessOptions(opOptions, false /* for multiple record */, true);
+
+        console.log('findSql', opOptions);
+
+        return this.db.connector.buildQuery(this.meta.name, opOptions);
+    }
+
     async _find_(findOptions, isOne) {
         findOptions = this._wrapCtx(findOptions);
         findOptions = this._normalizeQuery(findOptions, isOne /* for single record */);
@@ -300,6 +345,7 @@ class EntityModel {
 
         return this._safeExecute_(async () => {
             const result = await this.db.connector.find_(this.meta.name, opOptions, this.db.transaction);
+
             let data = result.data;
 
             if (opOptions.$assoc && !opOptions.$skipOrm) {
@@ -518,7 +564,7 @@ class EntityModel {
 
                 if (opOptions.$upsert) {
                     dataForUpdating = _.pick(context.latest, Object.keys(context.raw)); // only update the raw part
-                    uniqueKeys = this.getUniqueKeyFieldsFrom(context.latest);                    
+                    uniqueKeys = this.getUniqueKeyFieldsFrom(context.latest);
                     if (!isEmpty(_.pick(context.latest, uniqueKeys))) {
                         shouldUpsert = true;
                     }
@@ -1206,7 +1252,7 @@ class EntityModel {
                     useRaw = true;
                 } else if (fieldName in latest) {
                     value = latest[fieldName];
-                }                
+                }
 
                 if (typeof value !== 'undefined') {
                     // field value given in raw data
@@ -1632,6 +1678,10 @@ class EntityModel {
             //qOptions.$assoc = qOptions.$skipOrm ? this._prepareAssociations(qOptions) : this._prepareAssociations(qOptions);
             qOptions.$assoc = this._prepareAssociations(qOptions);
         }
+
+        if (qOptions.$hasSubQuery) {
+            qOptions.$entity = this;
+        }
     }
 
     _translateExclSelect(value) {
@@ -1833,8 +1883,10 @@ class EntityModel {
                         }
                         return _get(opPayload.$data, value.name);
 
-                    case 'Query':
                     case 'DataSet':
+                        opPayload.$hasSubQuery = true;
+                        return value;
+
                     case 'Raw':
                         return value;
                 }

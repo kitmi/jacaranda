@@ -10,15 +10,18 @@ import { OpCompleted } from '../utils/errors';
  * @module EntityFeatureRuntime_LogicalDeletion
  */
 
+const beforeFind = (feature, entityModel, context) => {
+    const findOptions = context.options;
+    if (!findOptions.$includeDeleted) {            
+        findOptions.$where = mergeWhere(findOptions.$where, {
+            [feature.field]: { $ne: feature.value },
+        });
+    }
+};
+
 export default {
-    [Rules.RULE_BEFORE_FIND]: (feature, entityModel, context) => {
-        const findOptions = context.options;
-        if (!findOptions.$includeDeleted) {            
-            findOptions.$where = mergeWhere(findOptions.$where, {
-                [feature.field]: { $ne: feature.value },
-            });
-        }
-    },
+    [Rules.RULE_BEFORE_FIND]: beforeFind,
+    [Rules.RULE_BEFORE_FIND + 'Sync']: beforeFind,
     [Rules.RULE_BEFORE_DELETE]: async (feature, entityModel, context) => {
         const options = context.options;
         if (!options.$physical) {

@@ -292,6 +292,10 @@ class PostgresConnector extends RelationalConnector {
      * @returns {Promise.<object>}
      */
     async execute_(sql, params, options, connection) {
+        if (options) {
+            delete options.$entity;
+        }
+
         if (params && params.length) {
             sql = this._replaceParamToken(sql, params);
         }
@@ -582,6 +586,7 @@ class PostgresConnector extends RelationalConnector {
         if (options.$assoc) {
             mainEntityForJoin = model;
             [childQuery, childJoinings, subJoinings] = this._joinAssociations(
+                options,
                 options.$assoc,
                 mainEntityForJoin,
                 aliasMap,
@@ -610,7 +615,7 @@ class PostgresConnector extends RelationalConnector {
         sql += ' SET ' + this._splitColumnsAsInput(data, updateParams, mainEntityForJoin, aliasMap).join(', ');
 
         const whereParams = [];
-        const whereClause = this._joinCondition(options.$where, whereParams, null, mainEntityForJoin, aliasMap);
+        const whereClause = this._joinCondition(options, options.$where, whereParams, null, mainEntityForJoin, aliasMap);
         if (whereClause) {
             sql += ' WHERE ' + whereClause;
         }
@@ -661,6 +666,7 @@ class PostgresConnector extends RelationalConnector {
         if (options.$assoc) {
             mainEntityForJoin = model;
             [childQuery, childJoinings, subJoinings] = this._joinAssociations(
+                options,
                 options.$assoc,
                 mainEntityForJoin,
                 aliasMap,
@@ -686,7 +692,7 @@ class PostgresConnector extends RelationalConnector {
         }
 
         const whereParams = [];
-        const whereClause = this._joinCondition(options.$where, whereParams, null, mainEntityForJoin, aliasMap);
+        const whereClause = this._joinCondition(options, options.$where, whereParams, null, mainEntityForJoin, aliasMap);
         if (whereClause) {
             sql += ' WHERE ' + whereClause;
         }
@@ -713,8 +719,7 @@ class PostgresConnector extends RelationalConnector {
      * @param {Client} connection
      */
     async find_(model, findOptions, connection) {
-        const sqlInfo = this.buildQuery(model, findOptions);
-
+        const sqlInfo = this.buildQuery(model, findOptions);        
         return this._executeQuery_(sqlInfo, findOptions, connection);
     }
 
