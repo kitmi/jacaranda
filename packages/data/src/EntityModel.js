@@ -564,8 +564,7 @@ class EntityModel {
                     dataForUpdating = _.pick(context.latest, Object.keys(context.raw)); // only update the raw part
                     uniqueKeys = this.getUniqueKeyFieldsFrom(context.latest);
                     if (!isEmpty(_.pick(context.latest, uniqueKeys))) {
-                        shouldUpsert = true;
-                        console.log(context.latest, uniqueKeys);
+                        shouldUpsert = true;                        
                     }
                 }
 

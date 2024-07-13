@@ -1064,8 +1064,6 @@ class RelationalConnector extends Connector {
                 aliasMap[col.alias] = alias;
                 */
 
-                console.log(col);
-
                 return (
                     this._buildColumn(_.omit(col, ['alias']), params, mainEntity, aliasMap) +
                     ' AS ' +

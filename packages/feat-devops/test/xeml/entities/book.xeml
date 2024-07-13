@@ -1,0 +1,19 @@
+import 'commons:**'
+import store
+
+type
+  bookType: text enum('friction', 'novel', 'bio', 'other')
+
+entity book
+  with
+    autoId
+  has
+    name
+    type: bookType
+    desc    
+    numValue: integer optional
+    date: datetime optional
+    percentage: number optional
+  associations
+    belongsTo store 
+    

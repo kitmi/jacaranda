@@ -1,7 +1,7 @@
 {
     "name": "@kitmi/xeml",
     "version": "0.4.2",
-    "description": "Jacaranda data entity modeling tool.",
+    "description": "Jacaranda data entity modeling tool",
     "main": "src/index.js",
     "bin": {
         "xeml": "bin/xeml.js"

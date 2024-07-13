@@ -1,0 +1,68 @@
+{
+    "name": "@kitmi/xgitea",
+    "version": "0.0.1",
+    "description": "Jacaranda gitea command-line tool",
+    "publishConfig": {
+        "access": "public"
+    },
+    "main": "src/index.js",
+    "bin": {
+        "xgitea": "bin/xgitea.js"
+    },
+    "contributors": [
+        "Rockie Guo <rockie@kitmi.com.au>",
+        "Feihai Qiu <feihai.q@wisley.ai>"
+    ],
+    "license": "MIT",
+    "scripts": {
+        "test": "mocha --recursive test/**/*.spec.js",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && bun x prepack",
+        "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
+        "prettier": "prettier --write .",
+        "lint": "eslint \"**/*.js\"",
+        "lint-fix": "eslint \"**/*.js\" --fix",
+        "clean": "shx rm -rf cjs coverage .nyc_output",
+        "build": "echo ok",
+        "start": "node ./src/index",
+        "smoke": "node --enable-source-maps ./bin/xgitea.js"
+    },
+    "keywords": [
+        "jacaranda",
+        "git",
+        "gitea",
+        "tools"
+    ],
+    "nyc": {
+        "exclude": [
+            ".*",
+            "cjs",
+            "test",
+            "**/*.spec.js"
+        ]
+    },
+    "dependencies": {
+        "@kitmi/feat-devops": "workspace:*",
+        "@kitmi/jacaranda": "workspace:*",
+        "@kitmi/sys": "workspace:*",
+        "@kitmi/utils": "workspace:*",
+        "figlet": "^1.7.0",
+        "gitea-js": "^1.22.0",
+        "inquirer": "^8.2.6"
+    },
+    "devDependencies": {
+        "@kitmi/tester": "workspace:*",
+        "allure-commandline": "^2.22.0",
+        "allure-js-commons": "^2.3.0",
+        "allure-mocha": "^2.3.0",
+        "oxlint": "^0.4.4",
+        "serve": "^14.2.3"
+    },
+    "prettier": {
+        "quoteProps": "consistent",
+        "printWidth": 120,
+        "singleQuote": true,
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "useTabs": false
+    }
+}

@@ -1,6 +1,6 @@
 {
   "name": "@kitmi/jacaranda",
-  "version": "3.3.2",
+  "version": "3.3.3",
   "description": "JavaScript application framework",
   "main": "cjs/index.js",
   "module": "src/index.js",

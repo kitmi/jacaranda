@@ -1,0 +1,17 @@
+import 'commons:**'
+import book
+
+entity store
+  with
+    autoId
+  has
+    name    
+    desc
+  associations
+    hasMany book
+  index
+    name is unique
+  data [
+    { name: '有间书店' }
+  ]
+    

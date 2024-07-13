@@ -1,0 +1,14 @@
+{
+    "spec": {
+        "stdout": "-",
+        "options": {
+            "verbose": true
+        }
+    },
+    "allure-mocha": {
+        "stdout": "-",
+        "options": {
+            "resultsDir": "./allure-results"
+        }
+    }
+}

@@ -1,0 +1,4 @@
+/test/manifests
+/test/migrations
+/test/src
+/test/xeml/**/*.json

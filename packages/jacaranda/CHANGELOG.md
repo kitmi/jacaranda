@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.3.3
+
+### Patch Changes
+
+-   Add DeferredService to delay the creation of service
+
 ## 3.3.2
 
 ### Patch Changes
@@ -11,7 +17,7 @@
 ### Patch Changes
 
 -   Minor bug fix
- 
+
 ## 3.3.0
 
 ### Minor Changes
@@ -38,7 +44,7 @@
 ### Patch Changes
 
 -   Fix: env variables does not take effect in the same app.
-  
+
 ## 3.2.0
 
 ### Minor Changes

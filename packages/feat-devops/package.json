@@ -1,0 +1,79 @@
+{
+    "name": "@kitmi/feat-devops",
+    "version": "0.0.1",
+    "description": "Devops related utilities",
+    "publishConfig": {
+        "access": "public"
+    },
+    "main": "cjs/index.js",
+    "module": "src/index.js",
+    "react-native": "src/index.js",
+    "exports": {
+        ".": {
+            "import": "./src/index.js",
+            "require": "./cjs/index.js"
+        },
+        "./*": {
+            "import": "./src/*.js",
+            "require": "./cjs/*.js"
+        },
+        "./**/*": {
+            "import": "./src/**/*.js",
+            "require": "./cjs/**/*.js"
+        }
+    },
+    "contributors": [
+        "Rockie Guo <rockie@kitmi.com.au>",
+        "Feihai Qiu <feihai.q@wisley.ai>"
+    ],
+    "license": "MIT",
+    "scripts": {
+        "build-model": "xeml build -c ./conf/xeml.default.yaml -w ./test",
+        "pre-test": "pnpm build-model && xeml migrate -r -c ./conf/xeml.default.yaml -w ./test",
+        "test": "pnpm build && SWCRC=true mocha --recursive test/**/*.spec.js",
+        "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
+        "report": "allure generate allure-results --clean -o allure-report && serve ./allure-report",
+        "doc": "echo skipped",
+        "prettier": "prettier --write .",
+        "lint": "eslint \"**/*.js\"",
+        "lint-fix": "eslint \"**/*.js\" --fix",
+        "clean": "shx rm -rf cjs coverage .nyc_output",
+        "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
+    },
+    "keywords": [
+        "jacaranda",
+        "feature",
+        "devops",
+        "git"
+    ],
+    "nyc": {
+        "exclude": [
+            ".*",
+            "cjs",
+            "test",
+            "**/*.spec.js"
+        ]
+    },
+    "dependencies": {
+        "@kitmi/jacaranda": "workspace:*",
+        "@kitmi/sys": "workspace:*",
+        "@kitmi/utils": "workspace:*",
+        "gitea-js": "^1.22.0"
+    },
+    "devDependencies": {
+        "@kitmi/tester": "workspace:*",
+        "allure-commandline": "^2.22.0",
+        "allure-js-commons": "^2.3.0",
+        "allure-mocha": "^2.3.0",
+        "oxlint": "^0.4.4",
+        "serve": "^14.2.3"
+    },
+    "prettier": {
+        "quoteProps": "consistent",
+        "printWidth": 120,
+        "singleQuote": true,
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "useTabs": false
+    }
+}
