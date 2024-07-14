@@ -14,15 +14,34 @@ module.exports = async (app) => {
 
     const gitea = app.getService('gitea');
 
-    const { data: prData } = await gitea.repos.repoGetPullRequest(owner, repo, prNumber);
+    let prData;
+
+    try {
+        const res = await gitea.repos.repoGetPullRequest(owner, repo, prNumber);
+        prData = res.data;
+    } catch (e) {
+        if (e instanceof Error) {
+            throw e;
+        }
+
+        throw new Error(`Failed to get pull request, status: ${e.status}, text: ${e.statusText}`);
+    }
 
     if (!prData.mergeable) {
         throw new Error(`Pull request #${prNumber} is not mergeable.`);
     }
 
-    await gitea.repos.repoMergePullRequest(owner, repo, prNumber, {
-        Do: 'merge',
-    });
+    try {
+        await gitea.repos.repoMergePullRequest(owner, repo, pr.number, {
+            Do: 'merge',
+        });
+    } catch (e) {
+        if (e instanceof Error) {
+            throw e;
+        }
+
+        throw new Error(`Failed to merge pull request, status: ${e.status}, text: ${e.statusText}`);
+    }
 
     app.log('info', `Successfully merged pull request.`, {
         id: prData.id,

@@ -53,6 +53,12 @@ exports.getCommandOptions = (cli, command) => {
                 bool: true,
                 alias: [ 'output-number-only' ],
             };
+
+            cmdOptions['merge'] = {
+                desc: 'Automatically merge the pull request after creating it',
+                bool: true,
+                alias: [ 'auto-merge' ],
+            };
             break;
 
         case 'merge':

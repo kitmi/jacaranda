@@ -18,7 +18,7 @@ const afterCommandConfirmed = (cli) => {
 
 function main() {
     return startCommand(
-        (app) => {
+        async (app) => {
             const cmd = app.commandLine;
 
             if (cmd.option('help')) {
@@ -38,7 +38,12 @@ function main() {
             const command = cmd.argv._[0];
             let cmdMethod_ = commandHandlers[command];
 
-            return cmdMethod_(app);
+            try {
+                await cmdMethod_(app);
+            } catch (error) {
+                app.log('error', error.message);
+                process.exit(1);
+            }
         },
         {
             //throwOnError: true,

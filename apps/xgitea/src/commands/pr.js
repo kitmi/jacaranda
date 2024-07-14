@@ -240,19 +240,31 @@ data: {
 module.exports = async (app) => {
     app.log('verbose', `${app.name} pr`);
 
-    const { owner, repo, from, to, title, number } = app.commandLine.argv;
+    const { owner, repo, from, to, title, number, merge } = app.commandLine.argv;
 
     const gitea = app.getService('gitea');
 
-    const { data: pr } = await gitea.repos.repoCreatePullRequest(owner, repo, {
-        title,
-        head: from,
-        base: to,
-    });
+    let pr;
+
+    try {
+        const res = await gitea.repos.repoCreatePullRequest(owner, repo, {
+            title,
+            head: from,
+            base: to,
+        });
+
+        pr = res.data;
+    } catch (e) {
+        if (e instanceof Error) {
+            throw e;
+        }
+
+        throw new Error(`Failed to create pull request, status: ${e.status}, text: ${e.statusText}`);
+    }
 
     if (number) {
         console.log(pr.number);
-        return;    
+        return;
     }
 
     app.log('info', `Successfully created pull request.`, {
@@ -261,4 +273,28 @@ module.exports = async (app) => {
         url: pr.url,
         mergeable: pr.mergeable,
     });
+
+    if (merge) {
+        if (!pr.mergeable) {
+            throw new Error(`Pull request #${pr.number} is not mergeable.`);
+        }
+
+        try {
+            await gitea.repos.repoMergePullRequest(owner, repo, pr.number, {
+                Do: 'merge',
+            });
+        } catch (e) {
+            if (e instanceof Error) {
+                throw e;
+            }
+
+            throw new Error(`Failed to merge pull request, status: ${e.status}, text: ${e.statusText}`);
+        }
+
+        app.log('info', `Successfully merged pull request.`, {
+            id: pr.id,
+            index: pr.number,
+            url: pr.url,
+        });
+    }
 };

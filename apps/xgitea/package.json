@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/xgitea",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Jacaranda gitea command-line tool",
     "publishConfig": {
         "access": "public"
