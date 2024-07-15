@@ -49,8 +49,7 @@
       "**/*.spec.js"
     ]
   },
-  "dependencies": {},
-  "peerDependencies": {
+  "dependencies": {
     "@kitmi/jacaranda": "workspace:*",
     "@kitmi/types": "workspace:*"
   },
