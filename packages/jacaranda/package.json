@@ -1,6 +1,6 @@
 {
   "name": "@kitmi/jacaranda",
-  "version": "3.3.3",
+  "version": "3.3.4",
   "description": "JavaScript application framework",
   "main": "cjs/index.js",
   "module": "src/index.js",
@@ -63,6 +63,7 @@
     "@kitmi/validators": "workspace:^",
     "collections": "^5.1.13",
     "glob": "^10.3.10",
+    "luxon": "^3.4.4",
     "minimist": "^1.2.8",
     "pino": "^8.14.1",
     "pino-pretty": "^10.0.0"

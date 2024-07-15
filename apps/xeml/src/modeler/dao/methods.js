@@ -1,6 +1,4 @@
-const { _, quote } = require('@kitmi/utils');
-const { extractDotSeparateName } = require('../../lang/XemlUtils');
-const JsLang = require('../util/ast');
+const { naming } = require('@kitmi/utils');
 
 const getAllDescendants = (ancestorsAnchor) => `
     /**
@@ -122,10 +120,177 @@ const moveNode = (closureTable, descendantsAnchor) => `
     }
 `;
 
+const popJob = (connector, entityName) => {
+    const snakeName = naming.snakeCase(entityName);
+    return `
+    /**
+     * Get the next pending task.
+     * @param {string} [jobName] - The job name.
+     * @returns {Promise<Object>} { data }.
+     */
+    async popJob_(jobName) {
+        return this.db.connector.execute_('SELECT * FROM get_task_from_${snakeName}(${connector.specParamToken})', [jobName]);
+    }
+`;
+};
+
+const postJob = () => {
+    return `
+    /**
+     * Post a new task.
+     * @param {string} jobName - The job name.
+     * @param {object} data - The job data.
+     * @returns {Promise<Object>} { data }.
+     */
+    async postJob_(jobName, data) {
+        return this.create_({ name: jobName, data }, { $getCreated: true });
+    }
+`;
+};
+
+const jobDone = () => {
+    return `
+    /**
+     * Mark a task as completed.
+     * @param {integer} jobId
+     * @returns {Promise<Object>} { data }.
+     */
+    async wellDone_(jobId) {
+        return this.updateOne_({ status: 'completed' }, { $where: { id: jobId }, $getUpdated: true });
+    }
+`;
+};
+
+const jobFail = () => {
+    return `
+    /**
+     * Mark a task as failed with error.
+     * @param {integer} jobId
+     * @returns {Promise<Object>} { data }.
+     */
+    async fail_(jobId, error) {
+        return this.updateOne_({ status: 'failed', error }, { $where: { id: jobId }, $getUpdated: true });
+    }
+`;
+};
+
+const postDeferredJob = () => {
+    return `
+    /**
+     * Post a new deferred task.
+     * @param {string} jobName - The job name.
+     * @param {object} data - The job data.
+     * @param {number} [deferredMs] - The deferred time in milliseconds.
+     * @returns {Promise<Object>} { data }.
+     */
+    async postJob_(jobName, data, deferredMs) {
+        const due = this.db.app.i18n.datePlus(new Date(), { milliseconds: deferredMs || 3000 });
+
+        return this.create_({ name: jobName, dueAt: due, data, batchId: '*' }, { $getCreated: true });
+    }
+`;
+};
+
+const removeExpiredJobs = () => {
+    return `
+    /**
+     * Remove expired tasks.
+     * @param {number} [expirySeconds] - The expiry time in seconds.
+     * @returns {Promise<Object>} { data }.
+     */
+    async removeExpiredJobs_(expirySeconds) {
+        const expired = this.db.app.i18n.dateMinus(new Date(), { seconds: expirySeconds || 1800 });
+
+        return this.deleteMany_({
+            $where: {
+                batchId: { $neq: '*' },
+                dispatchedAt: { $lte: expired },
+                lockerId: { $exists: false },
+            },
+            $getDeleted: true,
+        });
+    }
+`;
+};
+
+const getDueJobs = () => {
+    return `
+    /**
+     * Get due tasks.
+     * @returns {Promise<Object>} { data }.
+     */
+    async getDueJobs_() {
+        const now = new Date();
+        const batchId = (now.getTime() - 1640995200000).toString();
+
+        return this.updateMany_(
+            {
+                batchId,
+                dispatchedAt: now,
+            },
+            {
+                $where: {
+                    batchId: '*',
+                    dueAt: { $lte: now },
+                },
+                $getUpdated: true,
+            }
+        );
+    }
+`;
+}
+
+const getBatchStatus = () => {
+    return `
+    /**
+     * Get the status of all batches.
+     * @returns {Promise<Object>} { numPending, numProcessing, batches }.
+     */
+    async getBatchStatus_() {
+        const { data: batchStats } = await this.findMany_({
+            $select: ['batchId', xrCall('Count', xrCol('batchId'))],
+            $where: {
+                lockerId: { $exists: false },
+            },
+            $groupBy: ['batchId'],
+            $skipOrm: true,
+            $asArray: true,
+        });
+
+        let pending = 0;
+        let processing = 0;
+        const batches = {};
+
+        batchStats.forEach((batch) => {
+            if (batch[0] === '*') {
+                pending = batch[1];
+            } else {
+                batches[batch[0]] = batch[1];
+                processing += batch[1];
+            }
+        });
+
+        return {
+            numPending: pending,
+            numProcessing: processing,
+            batches,
+        };
+    }
+`;
+};
+
 module.exports = {
     getAllDescendants,
     getAllAncestors,
     addChildNode,
     getTopNodes,
     moveNode,
+    popJob,
+    postJob,
+    jobDone,
+    jobFail,
+    postDeferredJob,
+    removeExpiredJobs,
+    getDueJobs,
+    getBatchStatus,
 };

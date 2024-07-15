@@ -1,3 +1,4 @@
+import { ApplicationError } from '@kitmi/types';
 import { fxargs } from '@kitmi/utils';
 import { DEFAULT_UPLOAD_EXPIRY, DEFAULT_DOWNLOAD_EXPIRY } from '../common';
 
@@ -5,6 +6,10 @@ class AzureService {
     static packages = ['@azure/storage-blob'];
 
     constructor(app, options) {
+        if (!app.enabled('i18n')) {
+            throw new ApplicationError('"i18n" feature is required.');
+        }   
+
         const { accountName, accountKey, bucket: containerName } = options;
         const StorageBlob = app.tryRequire('@azure/storage-blob');
 
@@ -38,7 +43,7 @@ class AzureService {
         permissions.create = true;
         permissions.write = true;
 
-        const expiresOn = this.app.now().plus({ seconds: expiresInSeconds }).toJSDate();
+        const expiresOn = this.app.i18n().plus({ seconds: expiresInSeconds }).toJSDate();
 
         const options = {
             expiresOn,
@@ -61,7 +66,7 @@ class AzureService {
         const permissions = this.createBlobSASPermissions();
         permissions.read = true;
 
-        const expiresOn = this.app.now().plus({ seconds: expiresInSeconds }).toJSDate();
+        const expiresOn = this.app.i18n.datePlus(Date.now(), { seconds: expiresInSeconds });
 
         const options = {
             expiresOn,

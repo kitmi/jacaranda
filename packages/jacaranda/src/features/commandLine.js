@@ -59,7 +59,7 @@ class CommandLineArgumentError extends ApplicationError {
 class CommandLine {
     constructor(app, usage) {
         this.app = app;
-        this.usage = usage;        
+        this.usage = usage;
 
         this.parse(usage.options);
     }
@@ -295,34 +295,38 @@ class CommandLine {
     }
 
     async processSilentModeArguments_() {
-        await eachAsync_(this.usage.arguments, async (arg, index) => {
-            if (this.argv._.length <= index) {
-                if (arg.hasOwnProperty('silentModeDefault')) {
-                    for (let i = this.argv._.length; i < index; i++) {
-                        this.argv._.push(undefined);
+        if (this.usage.arguments) {
+            await eachAsync_(this.usage.arguments, async (arg, index) => {
+                if (this.argv._.length <= index) {
+                    if (arg.hasOwnProperty('silentModeDefault')) {
+                        for (let i = this.argv._.length; i < index; i++) {
+                            this.argv._.push(undefined);
+                        }
+
+                        this.argv._.push(await this.valueOrFunctionCall_(arg.silentModeDefault));
                     }
+                } else {
+                    const { name, ...opts } = arg;
+                    await this.doFilter_(name, opts, index);
+                    if (opts.onArgumentExists) {
+                        await opts.onArgumentExists(this);
+                    }
+                }
+            });
+        }
 
-                    this.argv._.push(await this.valueOrFunctionCall_(arg.silentModeDefault));
+        if (this.usage.options) {
+            await eachAsync_(this.usage.options, async (opts, name) => {
+                if (this.argExist(name)) {
+                    await this.doFilter_(name, opts);
+                    if (opts.onArgumentExists) {
+                        await opts.onArgumentExists(this);
+                    }
+                } else if (opts.hasOwnProperty('silentModeDefault')) {
+                    this.updateOption(name, await this.valueOrFunctionCall_(opts.silentModeDefault));
                 }
-            } else {
-                const { name, ...opts } = arg;
-                await this.doFilter_(name, opts, index);
-                if (opts.onArgumentExists) {
-                    await opts.onArgumentExists(this);
-                }
-            }
-        });
-
-        await eachAsync_(this.usage.options, async (opts, name) => {
-            if (this.argExist(name)) {
-                await this.doFilter_(name, opts);
-                if (opts.onArgumentExists) {
-                    await opts.onArgumentExists(this);
-                }
-            } else if (opts.hasOwnProperty('silentModeDefault')) {
-                this.updateOption(name, await this.valueOrFunctionCall_(opts.silentModeDefault));
-            }
-        });
+            });
+        }
     }
 
     getBanner() {
@@ -470,16 +474,20 @@ export default {
      *   } }
      *
      * Note: If you need to override option value during parsing, you should call `updateOption(name, value)` to automatically update all alias as well
-     * 
+     *
      * @returns {Promise.<*>}
      */
     load_: async (app, options, name) => {
-        const { testArgs, ...usageOptions } = app.featureConfig(options, {
-            schema: {
-                testArgs: { type: 'array', optional: true },
+        const { testArgs, ...usageOptions } = app.featureConfig(
+            options,
+            {
+                schema: {
+                    testArgs: { type: 'array', optional: true },
+                },
+                keepUnsanitized: true,
             },
-            keepUnsanitized: true,
-        }, name);
+            name
+        );
 
         if (testArgs) {
             gArgv = testArgs;
@@ -497,7 +505,7 @@ export default {
 
         if (silentMode) {
             await app.commandLine.processSilentModeArguments_();
-        } else {            
+        } else {
             app.commandLine.showBannar();
             await app.commandLine.inquire_();
         }

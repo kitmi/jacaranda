@@ -35,6 +35,10 @@ const ModuleBase = (Base) =>
             this.log = this._loggerLog;
         }
 
+        get i18n() {
+            return this.host.i18n;
+        }
+
         /**
          * Get a service from module hierarchy
          * @param name

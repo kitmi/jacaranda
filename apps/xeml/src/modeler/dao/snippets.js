@@ -1874,6 +1874,127 @@ const processorMethod = (functor) => {
     };
 };
 
+const importFromData = (extra) => ({
+    type: 'ImportDeclaration',
+    specifiers: [
+        {
+            type: 'ImportSpecifier',
+            local: {
+                type: 'Identifier',
+                name: '_Activators',
+            },
+            imported: {
+                type: 'Identifier',
+                name: '_Activators',
+            },
+        },
+        {
+            type: 'ImportSpecifier',
+            local: {
+                type: 'Identifier',
+                name: '_Processors',
+            },
+            imported: {
+                type: 'Identifier',
+                name: '_Processors',
+            },
+        },
+        {
+            type: 'ImportSpecifier',
+            local: {
+                type: 'Identifier',
+                name: '_Validators',
+            },
+            imported: {
+                type: 'Identifier',
+                name: '_Validators',
+            },
+        },
+        {
+            type: 'ImportSpecifier',
+            local: {
+                type: 'Identifier',
+                name: 'xrCol',
+            },
+            imported: {
+                type: 'Identifier',
+                name: 'xrCol',
+            },
+        },
+        {
+            type: 'ImportSpecifier',
+            local: {
+                type: 'Identifier',
+                name: 'xrExpr',
+            },
+            imported: {
+                type: 'Identifier',
+                name: 'xrExpr',
+            },
+        },
+        {
+            type: 'ImportSpecifier',
+            local: {
+                type: 'Identifier',
+                name: 'xrCall',
+            },
+            imported: {
+                type: 'Identifier',
+                name: 'xrCall',
+            },
+        },
+        {
+            type: 'ImportSpecifier',
+            local: {
+                type: 'Identifier',
+                name: 'xrRaw',
+            },
+            imported: {
+                type: 'Identifier',
+                name: 'xrRaw',
+            },
+        },
+        {
+            type: 'ImportSpecifier',
+            local: {
+                type: 'Identifier',
+                name: 'xrAlias',
+            },
+            imported: {
+                type: 'Identifier',
+                name: 'xrAlias',
+            },
+        },
+        {
+            type: 'ImportSpecifier',
+            local: {
+                type: 'Identifier',
+                name: 'xrDataSet',
+            },
+            imported: {
+                type: 'Identifier',
+                name: 'xrDataSet',
+            },
+        },
+        ...(extra ?? []).map(({ local, imported }) => ({
+            type: 'ImportSpecifier',
+            local: {
+                type: 'Identifier',
+                name: local,
+            },
+            imported: {
+                type: 'Identifier',
+                name: imported,
+            },
+        })),
+    ],
+    source: {
+        type: 'Literal',
+        value: '@kitmi/data',
+        raw: "'@kitmi/data'",
+    },
+});
+
 module.exports = {
     _checkAndAssign,
     _applyModifiersHeader,
@@ -1881,4 +2002,5 @@ module.exports = {
     _fieldRequirementCheck,
     restMethods,
     processorMethod,
+    importFromData,
 };

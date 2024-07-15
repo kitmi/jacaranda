@@ -66,7 +66,7 @@ describe.only('feature:fetch', function () {
         result.title.should.be.eql('Dummy product');
     });
 
-    it.only('download', async function () {
+    it('download', async function () {
         let httpClient = new HttpClient(fetchagent());
 
         fs.ensureDirSync(tempDir);

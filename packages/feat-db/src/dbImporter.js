@@ -13,11 +13,11 @@ export default {
     groupable: true,
 
     load_: async function (app, options, name) {
-        const { service: serviceName } = app.featureConfig(
+        const { db: dbName } = app.featureConfig(
             options,
             {
                 schema: {
-                    service: { type: 'text' },
+                    db: { type: 'text' },
                 },
             },
             name
@@ -25,7 +25,7 @@ export default {
 
         const service = {
             importList_: async (files) => {
-                const dbService = app.getService(serviceName);
+                const db = app.db(dbName);
 
                 for (const file of files) {
                     const extName = path.extname(file);
@@ -41,11 +41,11 @@ export default {
                         throw new Error(`Unsupported file format: ${path.basename(file)}`);
                     }
 
-                    await service.import_(dbService, dataset);
+                    await service.import_(db, dataset);
                 }
             },
 
-            import_: async (dbService, dataset) => {
+            import_: async (db, dataset) => {
                 const { model, refs, pre, post, data } = dataset;
 
                 let prePipeline_, postPipeline_;
@@ -74,14 +74,7 @@ export default {
                         [prePipelineData, record] = await prePipeline_(record);
                     }
 
-                    const refFields = _.pick(record, refs);
-                    const updateFields = _.omit(record, refs);
-
-                    await dbService[model].upsert({
-                        where: refFields,
-                        create: record,
-                        update: updateFields,
-                    });
+                    const { data } = await db.entity(model).create_(record, { $upsert: true, $getCreated: true });
 
                     if (postPipeline_) {
                         let extra;
@@ -89,7 +82,7 @@ export default {
                             extra = { $pre: prePipelineData.getStepVariables() };
                         }
 
-                        await postPipeline_(record, extra);
+                        await postPipeline_(data, extra);
                     }
                 }
             },

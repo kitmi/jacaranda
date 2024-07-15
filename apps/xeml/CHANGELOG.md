@@ -1,5 +1,13 @@
 # @kitmi/xeml
 
+## 0.5.0
+
+### Minor Changes
+
+-   Add messageQueue methods
+-   Add deferredQueue methods
+-   Bug fixes
+
 ## 0.4.2
 
 ### Patch Changes

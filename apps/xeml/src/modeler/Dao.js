@@ -248,6 +248,13 @@ class DaoModeler {
 
             if (entity.baseClasses) {
                 modelMeta.baseClasses = entity.baseClasses;
+
+                if (entity.baseClasses.includes('messageQueue')) {
+                    extraMethods.push(Methods.popJob(this.connector, entityInstanceName));
+                    extraMethods.push(Methods.postJob());
+                    extraMethods.push(Methods.jobDone());
+                    extraMethods.push(Methods.jobFail());
+                }
             }
 
             if (!isEmpty(entity.indexes)) {
@@ -285,6 +292,18 @@ class DaoModeler {
             const assignLines = [];
             const staticLines = [];
             const importBucket = {};
+
+            if (entityInstanceName === 'deferredQueue') {
+                extraMethods.push(
+                    ...[
+                        Methods.postDeferredJob(),
+                        Methods.removeExpiredJobs(),
+                        Methods.getDueJobs(),
+                        Methods.getBatchStatus(),
+                    ]
+                );
+            }
+            importLines.push(JsLang.astToCode(Snippets.importFromData()));
 
             //generate functors if any
             if (!isEmpty(sharedContext.mapOfFunctorToFile)) {
@@ -328,14 +347,12 @@ class DaoModeler {
 
             //import views
             if (!isEmpty(entity.views)) {
-                importLines.push(
-                    JsLang.astToCode(
-                        JsLang.astImport('views', './views/' + entity.name + '.json')
-                    )
-                );     
+                importLines.push(JsLang.astToCode(JsLang.astImport('views', './views/' + entity.name + '.json')));
 
-                staticLines.push(JsLang.astToCode(JsLang.astAssign(`${capitalized}.meta.views`, JsLang.astId('views'))));
-            }            
+                staticLines.push(
+                    JsLang.astToCode(JsLang.astAssign(`${capitalized}.meta.views`, JsLang.astId('views')))
+                );
+            }
 
             //add package path
             const packageName = entity.xemlModule.packageName;

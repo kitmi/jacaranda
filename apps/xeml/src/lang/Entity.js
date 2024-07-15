@@ -125,7 +125,9 @@ class Entity extends Clonable {
      * @returns {Entity}
      */
     link() {
-        pre: !this.linked;
+        if (this.linked) {
+            throw new Error('Entity already linked');
+        }
 
         //1.inherit from base entity if any
         //2.initialize features
@@ -453,7 +455,9 @@ class Entity extends Clonable {
             throw new Error(`Field name [${name}] conflicts in entity [${this.name}].`);
         }
 
-        assert: rawInfo.type;
+        if (!rawInfo.type) {
+            throw new Error(`Missing "type" for field "${name}".`);
+        }
 
         let field;
 
@@ -586,6 +590,7 @@ class Entity extends Clonable {
         let entity = new Entity(this.linker, this.name, this.xemlModule, this.info);
 
         deepCloneField(this, entity, 'code');
+        deepCloneField(this, entity, 'baseClasses');
         deepCloneField(this, entity, 'displayName');
         deepCloneField(this, entity, 'comment');
         deepCloneField(this, entity, 'features');

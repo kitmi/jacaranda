@@ -121,6 +121,42 @@ class PostgresModeler {
                 throw new Error(message);
             }
 
+            if (entity.baseClasses) {
+                if (entity.baseClasses.includes('messageQueue')) {
+                    const snakeName = naming.snakeCase(entityName);
+                    extraFunctions.push(`CREATE OR REPLACE FUNCTION get_task_from_${snakeName}(task_name TEXT)
+RETURNS SETOF "${entityName}" AS $$
+DECLARE
+    _task "${entityName}"%ROWTYPE;
+BEGIN    
+    WITH task AS (
+        SELECT *
+        FROM "${entityName}"
+        WHERE status = 'pending' 
+            AND (task_name IS NULL OR name = task_name)
+        FOR UPDATE SKIP LOCKED
+        LIMIT 1
+    )
+    UPDATE "${entityName}"
+    SET status = 'running'
+    WHERE id = (SELECT id FROM task)
+    RETURNING *
+    INTO _task;
+
+    IF _task.id IS NOT NULL THEN
+        RETURN NEXT _task;
+    ELSE
+        RETURN;
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error processing task: %', SQLERRM;
+        RETURN;    
+END;
+$$ LANGUAGE plpgsql;`)
+                }
+            }
+
             if (entity.features) {
                 _.forOwn(entity.features, (f, featureName) => {
                     if (Array.isArray(f)) {
@@ -1857,9 +1893,9 @@ $$ LANGUAGE plpgsql;\n\n`;
 
         if (!info.optional) {
             if (info.hasOwnProperty('default')) {
-                let defaultValue = info['default'];
+                let defaultValue = info['default'];                
 
-                if (typeof defaultValue === 'object' && defaultValue.$xt) {
+                if (typeof defaultValue === 'object' && defaultValue.$xt) {                    
                     if (defaultValue.$xt === XemlTypes.Lang.SYMBOL_TOKEN) {
                         const tokenName = defaultValue.name.toUpperCase();
 
@@ -1867,6 +1903,7 @@ $$ LANGUAGE plpgsql;\n\n`;
                             case 'NOW':
                                 sql += ' DEFAULT NOW()';
                                 info.autoByDb = true;
+                                delete info.default;
                                 return sql;
 
                             default:

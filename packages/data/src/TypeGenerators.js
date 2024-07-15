@@ -6,8 +6,8 @@ const defaultGenerator = (info, i18n) => {
 
     switch (originType) {
         case 'datetime':
-            if (info.auto === 'now') {
-                return i18n ? i18n.now() : new Date();
+            if (info.auto) {
+                return new Date();
             }
             break;
     }

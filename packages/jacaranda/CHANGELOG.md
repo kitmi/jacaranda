@@ -1,5 +1,14 @@
 # @kitmi/jacaranda
 
+## 3.3.4
+
+### Patch Changes
+
+-   Move i18n from general features to app features
+-   Add i18n fallback from app module to the hosting app
+-   Add schedulerWorker
+-   Bug fixes
+
 ## 3.3.3
 
 ### Patch Changes

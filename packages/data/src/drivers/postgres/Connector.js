@@ -1,17 +1,14 @@
-import ntol from 'number-to-letter';
-import { _, isEmpty, prefixKeys } from '@kitmi/utils';
+import { _, isEmpty } from '@kitmi/utils';
 import { InvalidArgument, ApplicationError } from '@kitmi/types';
 import { runtime, NS_MODULE } from '@kitmi/jacaranda';
+import { tryRequire } from '@kitmi/sys';
 
 import { connectionStringToObject } from '../../Connector';
 import RelationalConnector from '../relational/Connector';
 
 import { isRawSql, extractRawSql, concateParams } from '../../helpers';
 
-const pg = runtime.get(NS_MODULE, 'pg');
-if (!pg) {
-    throw new Error('The `pg` module is required for the `postgres` connector.');
-}
+const pg = runtime.get(NS_MODULE, 'pg') ??  tryRequire('pg');
 
 pg.types.setTypeParser(pg.types.builtins.TIMESTAMP, stringValue => stringValue?.split(' ').join('T'));
 

@@ -1,6 +1,6 @@
 /**
- * Load lib modules
- * @module Feature_LibModules
+ * Load libs modules
+ * @module Feature_Libs
  *
  * @example
  *

@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
         "baseUrl": "./src",
-        "target": "es2021"
+        "target": "es2022"
     },
-    "include": ["src", "../../apps/taronga-db/src/features/prisma.js", "../feat-ai-kits/src/aiLocaleDetection.js", "../feat-ai-kits/src/aiTextSplitter.js", "../feat-ai-kits/src/azureSpeech.js", "../feat-ai-kits/src/openai.js", "../feat-ai-kits/src/gptTokens.js", "../feat-ai-kits/src/pgVectorStore.js", "../middlewares/src/accessLog.js", "../middlewares/src/csrf.js", "../middlewares/src/ip.js", "../middlewares/src/passportAuth.js", "../middlewares/src/passportCheck.js", "../middlewares/src/views.js", "../middlewares/src/serveStatic.js", "../feat-cipher/src/utils", "../feat-cipher/src/cipher.js", "../feat-db/src/dbImporter.js", "../feat-db/src/postgres.js", "../feat-db/src/prisma.js", "../feat-db/src/helpers/DbModel.js", "../feat-vision/src/imageProcessor.js", "../feat-db/src/supabase.js"],
+    "include": ["src"],
     "exclude": ["node_modules", "cjs"]
 }

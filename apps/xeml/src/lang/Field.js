@@ -27,7 +27,9 @@ class Field extends Clonable {
      * Linking the 
      */
     link() {
-        assert: this.info.type in Types;
+        if (!(this.info.type in Types)) {
+            throw new Error(`Unsupported field type "${this.info.type}" of field "${this.name}."`);
+        }
         let typeObject = Types[this.info.type];
 
         _.forOwn(this.info, (value, key) => {

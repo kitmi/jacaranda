@@ -1,7 +1,8 @@
 import Feature from '../Feature';
+import { DateTime } from 'luxon';
 
 export default {
-    stage: Feature.CONF,
+    stage: Feature.INIT,
 
     load_: async function (app, options, name) {
         options = app.featureConfig(
@@ -15,7 +16,15 @@ export default {
             },
             name
         );
-
-        app.i18n = options;
+        
+        app.i18n = {
+            ...options,
+            datePlus: (date, duration) => {
+                return DateTime.fromJSDate(date).plus(duration).toJSDate();
+            },
+            dateMinus: (date, duration) => {
+                return DateTime.fromJSDate(date).minus(duration).toJSDate();
+            },
+        };
     },
 };

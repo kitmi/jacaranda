@@ -73,7 +73,6 @@ export default {
                 ...moduleMeta.options,
                 registry: moduleMeta.registry,                
             });
-            app.now = server.now;
 
             app.once('configLoaded', () => {
                 if (!_.isEmpty(config.overrides)) {

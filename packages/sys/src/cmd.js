@@ -28,8 +28,12 @@ export const run_ = (cmd, options) =>
  * @param {*} options
  * @returns {Promise.<Object>}
  */
-export const runLive_ = (cmd, args, onStdOut, onStdErr, options) =>
-    new Promise((resolve, reject) => {
+export const runLive_ = (cmd, args, onStdOut, onStdErr, options) => {
+    if (typeof args === 'string') {
+        args = args.split(' ');
+    }
+
+    return new Promise((resolve, reject) => {
         let ps = childProcess.spawn(cmd, args, {
             windowsHide: true,
             ...options,
@@ -47,6 +51,7 @@ export const runLive_ = (cmd, args, onStdOut, onStdErr, options) =>
             e = error;
         });
     });
+};
 
 /**
  * Execute a shell command synchronously

@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.6.2
+
+-   Fix: datetime auto value
+-   Add pg driver loading from project node_modules
+-   Remove console log
+
 ## 0.6.1
 
 -   Fix: activator during creation should not be called if dependencies not exist
