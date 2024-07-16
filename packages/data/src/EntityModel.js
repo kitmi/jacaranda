@@ -1402,6 +1402,11 @@ class EntityModel {
                     opOptions.$skipValidators = new Set(opOptions.$skipValidators);
                 }
                 await this.applyModifiers_(context, isUpdating);
+
+                if (opOptions.$errors) {
+                    errors.push(...opOptions.$errors);
+                    delete opOptions.$errors;
+                }
             }
 
             // final round process before entering database

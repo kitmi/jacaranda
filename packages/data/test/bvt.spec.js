@@ -87,12 +87,15 @@ describe('crud bvt', function () {
             const { data } = await Book.findMany_({});
             data.length.should.be.gte(5);
 
-            const result = await Book.updateMany_({
-                name: 'Book 1 - 5'
-            }, {
-                $where: { id: { $in: [ id1, id2, id3, id4, id5 ] } }
-            });
-            
+            const result = await Book.updateMany_(
+                {
+                    name: 'Book 1 - 5',
+                },
+                {
+                    $where: { id: { $in: [id1, id2, id3, id4, id5] } },
+                }
+            );
+
             result.affectedRows.should.be.exactly(5);
         });
     });

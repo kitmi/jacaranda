@@ -2,8 +2,6 @@ import typeSystem from '@kitmi/validators/allSync';
 import { _ } from '@kitmi/utils';
 import { ApplicationError } from '@kitmi/types';
 
-import { v4 } from '@napi-rs/uuid';
-
 // Activator will only be called when the field value is null
 // Activator signature: (entity, field, context, ...args) => value
 const activatorTable = typeSystem.handlers.activator;
@@ -13,7 +11,6 @@ activatorTable['setValueWhen'] = ([value, condition]) => (condition ? value : nu
 activatorTable['concat'] = ([sep = '', ...strs]) => strs.join(sep);
 activatorTable['sum'] = (args) => args.reduce((sum, v) => (sum += v), 0);
 activatorTable['multiply'] = ([multiplier, multiplicand]) => multiplier * multiplicand;
-activatorTable['uuid'] = () => v4();
 activatorTable['timeOfValueSet'] = ([value]) => (value != null ? new Date() : null);
 
 export const _Activators = _.mapValues(

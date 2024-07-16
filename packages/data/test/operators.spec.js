@@ -185,7 +185,7 @@ describe('query operators', function () {
                 $where: {
                     $expr: xrRaw(
                         `("testJson"->>'duration')::INTEGER > ${Book.db.paramToken} AND ("testJson"->>'duration')::INTEGER < ${Book.db.paramToken}`,
-                        quizCount
+                        ...quizCount
                     ),
                 },
             });

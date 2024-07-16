@@ -1,5 +1,9 @@
 # @kitmi/data
 
+## 0.6.3
+
+-   Fix dry run mode multi errors detection bug
+
 ## 0.6.2
 
 -   Fix: datetime auto value
