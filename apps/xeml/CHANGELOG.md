@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.5.1
+
+### Patch Changes
+
+-   Fix js data file
+
 ## 0.5.0
 
 ### Minor Changes

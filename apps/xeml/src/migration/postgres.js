@@ -1,5 +1,5 @@
 const path = require('node:path');
-const { _, eachAsync_, quote } = require('@kitmi/utils');
+const { _, eachAsync_, quote, esmCheck } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
 
 /**
@@ -127,8 +127,8 @@ class PostgresMigration {
 
             this.app.log('info', `Imported excel data file: ${dataFile}`);
         } else if (ext === '.js') {
-            let executor = require(dataFile);
-            await executor(this.app, this.db.connector);
+            let executor = esmCheck(require(path.resolve(dataFile)));
+            await executor(this.db);
 
             this.app.log('info', `Ran data script: ${dataFile}`);
         } else {
