@@ -5,3 +5,4 @@ schema test
   entities
     book
     store
+    book2

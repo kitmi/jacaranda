@@ -1,5 +1,11 @@
 # @kitmi/feat-storage
 
+## 1.1.2
+
+### Patch Changes
+
+-   Minor fix
+
 ## 1.1.1
 
 ### Patch Changes

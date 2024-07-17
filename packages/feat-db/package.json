@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/feat-db",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "description": "Database related utilities",
     "publishConfig": {
         "access": "public"
@@ -31,9 +31,9 @@
         "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
         "report": "allure generate allure-results --clean -o allure-report && serve ./allure-report",
         "doc": "echo skipped",
-        "prettier": "prettier --write .",
-        "lint": "eslint \"**/*.js\"",
-        "lint-fix": "eslint \"**/*.js\" --fix",
+        "prettier": "prettier --write ./src",
+        "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",
+        "lint-fix": "pnpm lint --fix",
         "clean": "shx rm -rf cjs coverage .nyc_output",
         "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
     },
@@ -55,17 +55,27 @@
         "@kitmi/utils": "workspace:*",
         "@kitmi/sys": "workspace:*",
         "@kitmi/jacaranda": "workspace:*",
-        "@kitmi/data": "workspace:*"
+        "@kitmi/data": "workspace:*",
+        "exceljs": "^4.4.0",
+        "yaml": "^1.10.0"
     },
     "devDependencies": {
         "@kitmi/tester": "workspace:*",
         "@kitmi/xeml": "workspace:*",
         "@xgent/xem-commons": "*",
-        "oxlint": "^0.4.4",
+        "oxlint": "^0.6.0",
         "allure-commandline": "^2.22.0",
         "allure-js-commons": "^2.3.0",
         "allure-mocha": "^2.3.0",
-        "serve": "^14.2.3"
+        "serve": "^14.2.3",
+        "@swc-node/register": "^1.9.0",
+        "@swc/cli": "^0.3.12",
+        "@swc/core": "^1.5.7",
+        "pino-pretty": "^10.0.0",
+        "shx": "0.3.4",
+        "jsdoc": "^4.0.2",
+        "minami": "^1.2.3",
+        "taffydb": "^2.7.3"
     },
     "prettier": {
         "quoteProps": "consistent",

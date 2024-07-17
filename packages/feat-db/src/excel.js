@@ -10,6 +10,7 @@ export const writeExcelTemplate_ = async (templateFile, columnsMeta, config) => 
 
     // add header
     sheet.addRow(keys);
+    // eslint-disable-next-line no-new-array
     const rowPlaceHolders = new Array(keys.length);
 
     const templatedRows = config.rows || 50;
@@ -147,8 +148,8 @@ export const loadExcelFile_ = async (db, mainEntity, dataFile, reverseMapping, p
         return { errors };
     }
 
-    if (needConfirm && confirmations.length > 0) {
-        return { confirmations };
+    if (needConfirm) {
+        return { rows: processed, confirmations };
     }
 
     await eachAsync_(processed, async ({ rowNumber, record, primaryValue }) => {

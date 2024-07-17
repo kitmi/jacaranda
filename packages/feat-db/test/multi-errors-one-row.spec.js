@@ -2,6 +2,7 @@ import { writeExcelTemplate_, loadExcelFile_ } from '../src';
 import { fs } from '@kitmi/sys';
 
 const dataFileWithErrors = './test/files/data-errors-1-line.xlsx';
+const dataFileWithErrors2 = './test/files/data-errors-1-line2.xlsx';
 
 const mappingColumns = {
     '书名': 'name',
@@ -10,6 +11,12 @@ const mappingColumns = {
     '日期字段': 'date',
     '枚举字段': 'type',
     '百分比字段(%)': 'percentage',
+};
+
+const mappingColumns2 = {
+    书名: 'name',
+    Email: 'email',
+    手机: 'mobile',
 };
 
 describe('excel loaderr', function () {
@@ -21,6 +28,12 @@ describe('excel loaderr', function () {
 
             const result = await Book.findMany_({});
             result.data.length.should.be.exactly(0);
+
+            const Book2 = db.entity('book2');
+            await Book2.deleteAll_({ $physical: true });
+
+            const result2 = await Book2.findMany_({});
+            result2.data.length.should.be.exactly(0);
         });
     });
 
@@ -34,6 +47,25 @@ describe('excel loaderr', function () {
                 'book',
                 dataFileWithErrors,
                 mappingColumns,
+                async (Entity, record, rowNumber, confirmations) => {
+                    // 如果有需要用户确认的信息，就push到confirmations数组
+                    return record;
+                }
+            );
+
+            console.log(errors);
+        });
+    });
+
+    it.only('load data with errors 2', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db();
+
+            const { errors } = await loadExcelFile_(
+                db,
+                'book2',
+                dataFileWithErrors2,
+                mappingColumns2,
                 async (Entity, record, rowNumber, confirmations) => {
                     // 如果有需要用户确认的信息，就push到confirmations数组
                     return record;

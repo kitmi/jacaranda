@@ -1,5 +1,11 @@
 # @kitmi/feat-db
 
+## 0.2.2
+
+### Patch Changes
+
+- Minor fix
+
 ## 0.2.1
 
 ### Patch Changes

@@ -78,4 +78,4 @@ class AzureService {
     }
 }
 
-module.exports = AzureService;
+export default AzureService;

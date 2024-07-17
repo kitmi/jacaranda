@@ -17,3 +17,10 @@ entity book
   associations
     belongsTo store 
     
+entity book2
+  with
+    autoId
+  has
+    name
+    email
+    mobile
