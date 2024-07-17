@@ -36,7 +36,8 @@
         "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",
         "lint-fix": "pnpm lint --fix",
         "clean": "shx rm -rf cjs coverage .nyc_output",
-        "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
+        "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths",
+        "prepublishOnly": "pnpm build"
     },
     "keywords": [
         "kitmi",

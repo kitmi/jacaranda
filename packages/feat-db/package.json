@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/feat-db",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "description": "Database related utilities",
     "publishConfig": {
         "access": "public"
@@ -35,7 +35,8 @@
         "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",
         "lint-fix": "pnpm lint --fix",
         "clean": "shx rm -rf cjs coverage .nyc_output",
-        "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
+        "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths",
+        "prepublishOnly": "pnpm build"
     },
     "keywords": [
         "jacaranda",
