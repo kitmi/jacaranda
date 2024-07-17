@@ -118,7 +118,7 @@ export const loadExcelFile_ = async (db, mainEntity, dataFile, reverseMapping, p
         errors.push({
             rowNumber,
             error: err.message,
-            ...(err.info ? { info: _.pick(err.info, ['entity', 'value', 'error']) } : null),
+            ...(err.info ? { info: _.pick(err.info, ['entity', 'field', 'value', 'error']) } : null),
         });
     };
 
@@ -130,7 +130,7 @@ export const loadExcelFile_ = async (db, mainEntity, dataFile, reverseMapping, p
             record = await payloadFunctor(Entity, record, rowNumber, _confirm);
 
             if (_confirm.length > 0) {
-                _confirm.forEach((msg) => confirmations.push({ rowNumber, message: msg }));
+                _confirm.forEach((msg) => confirmations.push(typeof msg === 'object' ? { ...msg, rowNumber } : { rowNumber, message: msg }));
             }
 
             processed.push({ rowNumber, record, primaryValue });
