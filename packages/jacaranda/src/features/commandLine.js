@@ -78,7 +78,7 @@ class CommandLine {
     }
 
     arg(name) {
-        if (this.args[name]) return this.args[name];
+        if (this.args?.[name]) return this.args[name];
 
         let index = _.findIndex(this.usage.arguments, (arg) => arg.name === name);
 

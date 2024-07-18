@@ -1016,7 +1016,7 @@ class EntityModel {
             await this.ensureTransaction_();
 
             if (isOne) {
-                existing = await this.findOne_({ $where: opOptions.$where });
+                existing = await this.findOne_({ $where: opOptions.$where, $ctx: opOptions.$ctx });
             } else {
                 throw new InvalidArgument('Cannot access existing record in multiple update.');
             }
@@ -1226,7 +1226,7 @@ class EntityModel {
 
         if (isUpdating && isEmpty(existing) && this._dependsOnExistingData(raw)) {
             if (isOne) {
-                existing = await this.findOne_({ $where: opOptions.$where });
+                existing = await this.findOne_({ $where: opOptions.$where, $ctx: opOptions.$ctx });
             } else {
                 throw new InvalidArgument('Cannot access existing record in multiple update.');
             }
@@ -1264,6 +1264,7 @@ class EntityModel {
                                 `Read-only field "${fieldName}" is not allowed to be set by manual input.`,
                                 {
                                     entity: name,
+                                    field: fieldName,
                                     fieldInfo: fieldInfo,
                                 }
                             );
@@ -1281,6 +1282,7 @@ class EntityModel {
                                 `"freezeAfterNonDefault" field "${fieldName}" is not allowed to be changed.`,
                                 {
                                     entity: name,
+                                    field: fieldName,
                                     fieldInfo: fieldInfo,
                                 }
                             );
@@ -1306,6 +1308,7 @@ class EntityModel {
                         } else if (!fieldInfo.optional) {
                             throw new ValidationError(`The "${fieldName}" value of "${name}" entity cannot be null.`, {
                                 entity: name,
+                                field: fieldName,
                                 fieldInfo: fieldInfo,
                             });
                         } else {
@@ -1326,9 +1329,9 @@ class EntityModel {
                         } catch (error) {
                             throw new ValidationError(`Invalid "${fieldName}" value of "${name}" entity.`, {
                                 entity: name,
-                                fieldInfo: JSON.stringify(fieldInfo),
+                                field: fieldName,
+                                fieldInfo,
                                 value,
-                                context: JSON.stringify(context),
                                 error: error.message,
                             });
                         }
@@ -1355,6 +1358,7 @@ class EntityModel {
                             `Field "${fieldName}" of "${name}" entity is required for each update.`,
                             {
                                 entity: name,
+                                field: fieldName,
                                 fieldInfo: fieldInfo,
                             }
                         );
@@ -1378,6 +1382,7 @@ class EntityModel {
 
                         throw new ValidationError(`Field "${fieldName}" of "${name}" entity is required.`, {
                             entity: name,
+                            field: fieldName,
                             fieldInfo: fieldInfo,
                             raw,
                         });
