@@ -69,6 +69,14 @@ function feature(entity, args = []) {
             field: options.field,
             stateMapping
         }, true);
+
+        const indexFields = [ options.field ];
+
+        if (!entity.hasIndexOn(indexFields)) {
+            entity.addIndex({
+                fields: indexFields
+            });
+        }
     });
 }
 
