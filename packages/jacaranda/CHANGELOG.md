@@ -1,5 +1,12 @@
 # @kitmi/jacaranda
 
+## 3.4.0
+
+### Minor Changes
+
+-   Move out some built-in features to separate package
+-   Move businessLogic from webFeatures into features
+
 ## 3.3.4
 
 ### Patch Changes
