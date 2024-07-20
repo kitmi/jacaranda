@@ -1,5 +1,9 @@
 # @kitmi/data
 
+## 0.6.4
+
+-   Add get, set operator for array, json field
+
 ## 0.6.3
 
 -   Fix dry run mode multi errors detection bug

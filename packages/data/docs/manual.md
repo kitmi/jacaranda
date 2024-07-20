@@ -219,6 +219,12 @@ xrRaw(
 )
 ```
 
+- `xrGet`: get array element or json field
+
+```
+xrGet(<field>, (<1-based index> | <"." separated key path>)[, <alias>])
+```
+
 - Others
 
 More usage samples can be found in the [`Data to Update`](#data-to-update) section below.

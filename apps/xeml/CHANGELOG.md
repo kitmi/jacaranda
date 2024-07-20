@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.5.2
+
+### Patch Changes
+
+-   Add GIN index for json column
+
 ## 0.5.1
 
 ### Patch Changes

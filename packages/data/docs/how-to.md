@@ -66,4 +66,3 @@ const ret = await Video.findMany_({
 });
 // SELECT COUNT(H."id") FROM "video" A LEFT JOIN "document" B ON A."rootDoc" = B."id" LEFT JOIN "documentKnowledge" C ON B."id" = C."document" LEFT JOIN "knowledgeChip" D ON C."knowledge" = D."id" LEFT JOIN "documentKnowledge" E ON D."id" = E."knowledge" LEFT JOIN "document" F ON E."document" = F."id" LEFT JOIN "documentTagging" G ON B."id" = G."entity" LEFT JOIN "tag" H ON G."tag" = H."id" INNER JOIN "course" course ON A."rootDoc" = F."id" LEFT JOIN "branchCourse" I ON course."id" = I."course" LEFT JOIN "subjectBranch" J ON I."branch" = J."id" LEFT JOIN "subject" K ON J."subject" = K."id" WHERE H."id" = ANY ($1) AND K."id" = ANY ($2) AND J."id" = ANY ($3) AND course."id" = ANY ($4) AND A."isDeleted" <> $5 GROUP BY H."id"
 ```
-
