@@ -564,7 +564,7 @@ class EntityModel {
                     dataForUpdating = _.pick(context.latest, Object.keys(context.raw)); // only update the raw part
                     uniqueKeys = this.getUniqueKeyFieldsFrom(context.latest);
                     if (!isEmpty(_.pick(context.latest, uniqueKeys))) {
-                        shouldUpsert = true;                        
+                        shouldUpsert = true;
                     }
                 }
 
@@ -1097,7 +1097,7 @@ class EntityModel {
                         latest[fieldName] = null;
                     }
                 } else {
-                    if (typeof value === 'object' && value.$xr) {
+                    if (typeof value === 'object' && (value.$xr || value.$set)) {
                         latest[fieldName] = value;
 
                         return;
@@ -1110,8 +1110,7 @@ class EntityModel {
                             entity: name,
                             fieldInfo: fieldInfo,
                             value,
-                            context: JSON.stringify(context),
-                            error: error.stack,
+                            error: error.message,
                         });
                     }
                 }
@@ -1655,7 +1654,6 @@ class EntityModel {
             qOptions.$where,
             qOptions,
             true,
-            isFind && !qOptions.$skipOrm ? extraSelect : undefined
         );
         if (extraSelect.length) {
             qOptions.$select || (qOptions.$select = new Set(['*']));
@@ -1822,27 +1820,21 @@ class EntityModel {
      * @param {boolean} arrayToInOperator - Convert an array value to { $in: array }
      * @returns {*}
      */
-    _translateValue(value, opPayload, arrayToInOperator, extraSelect) {
+    _translateValue(value, opPayload, arrayToInOperator) {
         if (isPlainObject(value)) {
             if (value.$xr) {
                 switch (value.$xr) {
-                    case 'Column':
-                        if (extraSelect) {
-                            extraSelect.push(value.name);
-                        }
-                        return value;
-
                     case 'Function':
                         if (value.args) {
-                            return { ...value, args: this._translateValue(value.args, opPayload, false, extraSelect) };
+                            return { ...value, args: this._translateValue(value.args, opPayload, false) };
                         }
                         return value;
 
                     case 'BinExpr':
                         return {
                             ...value,
-                            left: this._translateValue(value.left, opPayload, false, extraSelect),
-                            right: this._translateValue(value.right, opPayload, false, extraSelect),
+                            left: this._translateValue(value.left, opPayload, false),
+                            right: this._translateValue(value.right, opPayload, false),
                         };
 
                     case 'Request': {
@@ -1895,6 +1887,8 @@ class EntityModel {
                         return value;
 
                     case 'Raw':
+                    case 'OpGet':
+                    case 'Column':
                         return value;
                 }
 
@@ -1903,11 +1897,7 @@ class EntityModel {
 
             return _.mapValues(value, (v, k) => {
                 const keyword = k[0] === '$';
-                if (extraSelect && !keyword) {
-                    extraSelect.push(k);
-                }
-
-                return this._translateValue(v, opPayload, arrayToInOperator && !keyword, extraSelect);
+                return this._translateValue(v, opPayload, arrayToInOperator && !keyword);
             });
         }
 
@@ -1915,7 +1905,7 @@ class EntityModel {
             return arrayToInOperator
                 ? { $in: value }
                 : // $and, $or, $not array
-                  value.map((v) => this._translateValue(v, opPayload, arrayToInOperator, extraSelect));
+                  value.map((v) => this._translateValue(v, opPayload, arrayToInOperator));
         }
 
         return value;

@@ -1,4 +1,4 @@
-import { xrRaw } from '../src';
+import { xrRaw, xrGet } from '../src';
 
 let firstId;
 let lastId;
@@ -191,6 +191,130 @@ describe('query operators', function () {
             });
 
             result2.data.should.be.eql(result.data);
+        });
+    });
+
+    it('set json value', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db();
+            const Book = db.entity('book');
+
+            const { insertId } = await Book.create_({
+                name: 'JSON Book',
+                desc: "This is a book with 'JSON' in its name",
+                testJson: {
+                    duration: 20,
+                    test: { key1: 1 },
+                },
+            });
+
+            const { data } = await Book.updateOne_(
+                {
+                    testJson: {
+                        $set: {
+                            key: 'test.key2',
+                            value: 2,
+                        },
+                    },
+                },
+                {
+                    $where: {
+                        id: insertId,
+                    },
+                    $getUpdated: true,
+                }
+            );
+
+            data.should.be.eql({
+                id: insertId,
+                name: 'JSON Book',
+                desc: "This is a book with 'JSON' in its name",
+                testJson: { test: { key1: 1, key2: 2 }, duration: 20 },
+            });
+        });
+    });
+
+    it('set array value', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db();
+            const Book = db.entity('book3');
+
+            const { insertId } = await Book.create_({
+                name: 'JSON Book',
+                desc: "This is a book with 'JSON' in its name",
+                array: ['value1'],
+            });
+
+            const { data } = await Book.updateOne_(
+                {
+                    array: {
+                        $set: {
+                            at: 2,
+                            value: 'value2',
+                        },
+                    },
+                },
+                {
+                    $where: {
+                        id: insertId,
+                    },
+                    $getUpdated: true,
+                }
+            );
+
+            data.should.be.eql({
+                id: insertId,
+                name: 'JSON Book',
+                desc: "This is a book with 'JSON' in its name",
+                array: ['value1', 'value2'],
+            });
+        });
+    });
+
+    it('get array value', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db();
+            const Book = db.entity('book3');
+
+            const { insertId } = await Book.create_({
+                name: 'JSON Book',
+                desc: "This is a book with 'JSON' in its name",
+                array: ['value1', 'value2'],
+            });
+
+            const data = await Book.findOne_({
+                $where: {
+                    id: insertId,
+                },
+                $select: [xrGet('array', 2, 'arrayValue')],
+            });
+
+            data.arrayValue.should.be.exactly('value2');
+        });
+    });
+
+    it('get jso  value', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db();
+            const Book = db.entity('book');
+
+            const { insertId } = await Book.create_({
+                name: 'JSON Book',
+                desc: "This is a book with 'JSON' in its name",
+                testJson: {
+                    duration: 20,
+                    test: { key1: 1, key2: 2 },
+                },
+            });
+
+            const data = await Book.findOne_({
+                $where: {
+                    id: insertId,
+                },
+                $select: [xrGet('testJson', 'test.key2', 'jsonValue')],
+            });
+
+            data.jsonValue.should.be.exactly(2);
         });
     });
 });

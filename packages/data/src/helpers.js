@@ -14,10 +14,12 @@ export const xrCol = xrColumn;
 export const xrFunction = (name, ...args) => ({ $xr: 'Function', name, args });
 export const xrCall = xrFunction;
 
-export const xrExpression = (left, op, right) => ({ $xr: 'BinExpr', left, op, right });
+export const xrExpression = (left, op, right, alias) => ({ $xr: 'BinExpr', left, op, right, alias });
 export const xrExpr = xrExpression;
 
-export const xrDataSet = (model, query) => ({ $xr: 'DataSet', model, query: { $skipOrm: true, ...query } });
+export const xrDataSet = (model, query, alias) => ({ $xr: 'DataSet', model, query: { $skipOrm: true, ...query }, alias });
+
+export const xrGet = (field, key, alias) => ({ $xr: 'OpGet', field, key, alias });
 
 export const doInc = (field, increment) => xrExpr(xrCol(field), '+', increment);
 export const doDec = (field, decrement) => xrExpr(xrCol(field), '-', decrement);

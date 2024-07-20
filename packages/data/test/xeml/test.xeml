@@ -4,6 +4,7 @@ import 'entities/*'
 schema test
   entities
     book
+    book3
 
 schema test2
   entities

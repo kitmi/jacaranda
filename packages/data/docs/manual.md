@@ -333,6 +333,7 @@ await Book.findMany_({
 - $endsWith: LIKE S%
 - $like: LIKE %S%
 - $fitler: jsonb_field @> filter
+- $set: { key, value } for jsonb field or { at, value } for array field
 
 #### $orderBy
 
@@ -385,6 +386,10 @@ If already exist (unique key conclicts), just update the record.
 Return created records.
 
 ### updateOptions
+
+#### $where
+
+See [$where](#findoptions) in findOptions.
 
 #### $getUpdated - {boolean|array}
 

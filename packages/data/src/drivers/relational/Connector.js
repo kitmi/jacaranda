@@ -80,7 +80,7 @@ class RelationalConnector extends Connector {
      * @param {*} condition
      */
     buildQuery(model, opOptions) {
-        const { $assoc, $select, $where, $groupBy, $orderBy, $offset, $limit, $hasSubQuery, $aliasMap, $skipOrm } =
+        let { $assoc, $select, $where, $groupBy, $orderBy, $offset, $limit, $hasSubQuery, $aliasMap, $skipOrm } =
             opOptions;
         const { fromTable, withTables, model: _model } = this._buildCTEHeader(model);
         model = _model;
@@ -117,8 +117,9 @@ class RelationalConnector extends Connector {
         if (!$skipOrm) {
             if (isSelectAll($select)) {
                 const l = model.length + 1;
+                $select || ($select = new Set(['*']));
                 _.each(aliasMap, (v, k) => {
-                    if (k !== model) {
+                    if (k !== model) {                        
                         $select.add(k.substring(l) + '.*');
                     }
                 });
@@ -540,7 +541,7 @@ class RelationalConnector extends Connector {
      * @param {*} aliasMap
      * @returns {string}
      */
-    _escapeIdWithAlias(fieldName, mainEntity, aliasMap) {
+    _escapeIdWithAlias(fieldName, mainEntity, aliasMap, dontEscape) {
         if (fieldName.startsWith('::')) {
             // ::fieldName for skipping alias padding
             return this.escapeId(fieldName.substring(2));
@@ -567,17 +568,24 @@ class RelationalConnector extends Connector {
                 aliasKey = mainEntity + '.' + basePath;
             }
 
-            return this._buildAliasedColumn(aliasMap, aliasMap[aliasKey], mainEntity, fieldName, actualFieldName);
+            return this._buildAliasedColumn(
+                aliasMap,
+                aliasMap[aliasKey],
+                mainEntity,
+                fieldName,
+                actualFieldName,
+                dontEscape
+            );
         }
 
         if (!mainEntity) {
-            return fieldName === '*' ? '*' : this.escapeId(fieldName);
+            return fieldName === '*' ? '*' : dontEscape ? fieldName : this.escapeId(fieldName);
         }
 
-        return this._buildAliasedColumn(aliasMap, aliasMap[mainEntity], mainEntity, fieldName, fieldName);
+        return this._buildAliasedColumn(aliasMap, aliasMap[mainEntity], mainEntity, fieldName, fieldName, dontEscape);
     }
 
-    _buildAliasedColumn(aliasMap, alias, mainEntity, fieldName, actualFieldName) {
+    _buildAliasedColumn(aliasMap, alias, mainEntity, fieldName, actualFieldName, dontEscape) {
         if (!alias) {
             throw new InvalidArgument(`Column reference "${fieldName}" not found in populated associations.`, {
                 entity: mainEntity,
@@ -585,17 +593,27 @@ class RelationalConnector extends Connector {
             });
         }
 
-        return alias + '.' + (actualFieldName === '*' ? '*' : this.escapeId(actualFieldName));
+        return (
+            alias +
+            '.' +
+            (actualFieldName === '*' ? '*' : dontEscape ? actualFieldName : this.escapeId(actualFieldName))
+        );
     }
 
     _splitColumnsAsInput(data, params, mainEntity, aliasMap) {
-        return _.map(data, (v, fieldName) => {
-            return (
-                this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                '=' +
-                this._packValue(v, params, mainEntity, aliasMap)
-            );
-        });
+        return _.reduce(
+            data,
+            (result, v, fieldName) => {
+                const _packed = this._packSetValue(fieldName, v, params, mainEntity, aliasMap);
+                if (typeof _packed === 'string') {
+                    result.push(_packed);
+                } else {
+                    result.push(..._packed);
+                }
+                return result;
+            },
+            []
+        );
     }
 
     /**
@@ -634,6 +652,9 @@ class RelationalConnector extends Connector {
                         );
 
                     case 'Raw':
+                        if (value.params.length > 0) {
+                            params.push(...value.params);
+                        }
                         return value.value;
 
                     case 'BinExpr': {
@@ -665,19 +686,18 @@ class RelationalConnector extends Connector {
      * @param {array} params - The parameters array
      * @param {string} mainEntity - The entity name that has joining
      * @param {object} aliasMap - The alias map, dot separated key -> alias
-     * @param {boolean} [inject=false] - Whether to inject the value directly
      * @returns {string}
      */
-    _packCondition(opOptions, fieldName, value, params, mainEntity, aliasMap, inject) {
+    _packCondition(opOptions, fieldName, value, params, mainEntity, aliasMap) {
         if (value == null) {
             return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' IS NULL';
         }
 
         if (Array.isArray(value)) {
-            return this._packCondition(opOptions, fieldName, { $in: value }, params, mainEntity, aliasMap, inject);
+            return this._packCondition(opOptions, fieldName, { $in: value }, params, mainEntity, aliasMap);
         }
 
-        if (isPlainObject(value)) {
+        if (typeof value === 'object') {
             if (value.$xr) {
                 return (
                     this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
@@ -709,25 +729,13 @@ class RelationalConnector extends Connector {
 
                             case '$eq':
                             case '$equal':
-                                return this._packCondition(
-                                    opOptions,
-                                    fieldName,
-                                    v,
-                                    params,
-                                    mainEntity,
-                                    aliasMap,
-                                    inject
-                                );
+                                return this._packCondition(opOptions, fieldName, v, params, mainEntity, aliasMap);
 
                             case '$ne':
                             case '$neq':
                             case '$notEqual':
                                 if (v == null) {
                                     return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' IS NOT NULL';
-                                }
-
-                                if (inject) {
-                                    return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' <> ' + v;
                                 }
 
                                 return (
@@ -738,10 +746,6 @@ class RelationalConnector extends Connector {
                             case '$>':
                             case '$gt':
                             case '$greaterThan':
-                                if (inject) {
-                                    return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' > ' + v;
-                                }
-
                                 return (
                                     this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
                                     ` > ${this._packValue(v, params, mainEntity, aliasMap)}`
@@ -750,10 +754,6 @@ class RelationalConnector extends Connector {
                             case '$>=':
                             case '$gte':
                             case '$greaterThanOrEqual':
-                                if (inject) {
-                                    return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' >= ' + v;
-                                }
-
                                 return (
                                     this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
                                     ` >= ${this._packValue(v, params, mainEntity, aliasMap)}`
@@ -762,10 +762,6 @@ class RelationalConnector extends Connector {
                             case '$<':
                             case '$lt':
                             case '$lessThan':
-                                if (inject) {
-                                    return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' < ' + v;
-                                }
-
                                 return (
                                     this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
                                     ` < ${this._packValue(v, params, mainEntity, aliasMap)}`
@@ -774,10 +770,6 @@ class RelationalConnector extends Connector {
                             case '$<=':
                             case '$lte':
                             case '$lessThanOrEqual':
-                                if (inject) {
-                                    return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' <= ' + v;
-                                }
-
                                 return (
                                     this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
                                     ` <= ${this._packValue(v, params, mainEntity, aliasMap)}`
@@ -790,13 +782,6 @@ class RelationalConnector extends Connector {
                                         {
                                             value: v,
                                         }
-                                    );
-                                }
-
-                                if (inject) {
-                                    return (
-                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                        ` BETWEEN ${v[0]} AND ${v[1]}`
                                     );
                                 }
 
@@ -817,13 +802,6 @@ class RelationalConnector extends Connector {
                                     );
                                 }
 
-                                if (inject) {
-                                    return (
-                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                        ` NOT BETWEEN ${v[0]} AND ${v[1]}`
-                                    );
-                                }
-
                                 params.push(v[0]);
                                 params.push(v[1]);
                                 return (
@@ -833,10 +811,6 @@ class RelationalConnector extends Connector {
 
                             case '$in':
                                 if (Array.isArray(v)) {
-                                    if (inject) {
-                                        return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ` IN (${v})`;
-                                    }
-
                                     params.push(v);
                                     return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + this.specInClause;
                                 }
@@ -846,7 +820,8 @@ class RelationalConnector extends Connector {
                                         v.params && v.params.forEach((p) => params.push(p));
 
                                         return (
-                                            this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ` IN (${v.value})`
+                                            this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                            ` IN (${v.value})`
                                         );
                                     }
 
@@ -854,7 +829,10 @@ class RelationalConnector extends Connector {
                                         const sqlInfo = buildDataSetQuery(opOptions, v, aliasMap);
                                         sqlInfo.params && params.push(...sqlInfo.params);
 
-                                        return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ` IN (${sqlInfo.sql})`;
+                                        return (
+                                            this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                            ` IN (${sqlInfo.sql})`
+                                        );
                                     }
                                 }
 
@@ -868,12 +846,6 @@ class RelationalConnector extends Connector {
                             case '$nin':
                             case '$notIn':
                                 if (Array.isArray(v)) {
-                                    if (inject) {
-                                        return (
-                                            this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ` NOT IN (${v})`
-                                        );
-                                    }
-
                                     params.push(v);
                                     return (
                                         this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + this.specNotInClause
@@ -971,20 +943,130 @@ class RelationalConnector extends Connector {
                                 );
 
                             default:
-                                throw new Error(`Unsupported condition operator: "${k}"!`);
+                                break;
                         }
+
+                        throw new InvalidArgument(`Unsupported condition operator: "${k}"!`, {
+                            key: fieldName,
+                            value: v,
+                        });
                     } else {
-                        throw new Error('Operator should not be mixed with condition value.');
+                        throw new InvalidArgument('Operator should not be mixed with condition value.', {
+                            key: fieldName,
+                            value,
+                        });
                     }
                 }).join(' AND ');
             }
-
-            params.push(JSON.stringify(value));
-            return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + this.specParamToken;
         }
 
-        if (inject) {
-            return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + value;
+        params.push(value);
+        return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + this.specParamToken;
+    }
+
+    _packSetValue(fieldName, value, params, mainEntity, aliasMap) {
+        if (value == null) {
+            return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = NULL';
+        }
+
+        if (isPlainObject(value)) {
+            if (value.$xr) {
+                return (
+                    this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                    ' = ' +
+                    this._packValue(value, params, mainEntity, aliasMap)
+                );
+            }
+
+            const hasOperator = _.find(Object.keys(value), (k) => k && k[0] === '$');
+
+            if (hasOperator) {
+                return _.map(value, (v, k) => {
+                    if (k && k[0] === '$') {
+                        // operator
+                        switch (k) {
+                            case '$set':
+                                if (typeof v !== 'object') {
+                                    throw new InvalidArgument(
+                                        'The value should be an object when using "$set" operator.',
+                                        {
+                                            value: v,
+                                        }
+                                    );
+                                }
+
+                                params.push(v.value);
+
+                                if (v.at) {
+                                    const dontEscape = true;
+                                    let index;
+
+                                    if (typeof v.at === 'object') {
+                                        if (v.at.$xr !== 'Column') {
+                                            throw new InvalidArgument(
+                                                'Invalid "$set" operator value. "$at" should be a column reference or one-based index literal.',
+                                                {
+                                                    value: v,
+                                                }
+                                            );
+                                        }
+
+                                        index = this._escapeIdWithAlias(v.at.name, mainEntity, aliasMap, dontEscape);
+                                    } else {
+                                        if (v.at <= 0) {
+                                            throw new InvalidArgument(
+                                                'Invalid "$set" operator value. "$at" should be a positive integer.',
+                                                {
+                                                    value: v,
+                                                }
+                                            );
+                                        }
+
+                                        index = v.at;
+                                    }
+
+                                    return (
+                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                        `[${index}] = ` +
+                                        this.specParamToken
+                                    );
+                                } else if (v.key) {
+                                    const accessor = v.key
+                                        .split('.')
+                                        .map((k) => `[${this.escapeValue(k)}]`)
+                                        .join('');
+
+                                    return (
+                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                        accessor +
+                                        ' = ' +
+                                        this.specParamToken
+                                    );
+                                }
+
+                                throw new InvalidArgument(
+                                    'Invalid "$set" operator value. Either "at" or "key" should be provided.',
+                                    {
+                                        value: v,
+                                    }
+                                );
+
+                            default:
+                                break;
+                        }
+
+                        throw new InvalidArgument(`Unsupported set value operator: "${k}"!`, {
+                            key: fieldName,
+                            value: v,
+                        });
+                    } else {
+                        throw new InvalidArgument('Operator should not be mixed with condition value.', {
+                            key: fieldName,
+                            value,
+                        });
+                    }
+                });
+            }
         }
 
         params.push(value);
@@ -1071,62 +1153,72 @@ class RelationalConnector extends Connector {
                 );
             }
 
-            if (col.$xr.startsWith('Fun')) {
-                const name = col.name.toUpperCase();
-                if (name === 'COUNT' && col.args.length === 1 && col.args[0] === '*') {
-                    return 'COUNT(*)';
-                }
-
-                if (this.constructor.windowFunctions.has(name)) {
-                    if (!col.over) {
-                        throw new InvalidArgument(`"${name}" window function requires over clause.`);
-                    }
-                } else if (!this.constructor.windowableFunctions.has(name) && col.over) {
-                    throw new InvalidArgument(`"${name}" function does not support over clause.`);
-                }
-
-                let funcClause =
-                    name +
-                    '(' +
-                    (col.prefix ? `${col.prefix.toUpperCase()} ` : '') +
-                    (col.args ? this._buildColumns(col.args, params, mainEntity, aliasMap) : '') +
-                    ')';
-
-                if (col.over) {
-                    funcClause += ' OVER(';
-                    if (col.over.$partitionBy) {
-                        funcClause += this._buildPartitionBy(col.over.$partitionBy, mainEntity, aliasMap);
+            switch (col.$xr) {
+                // Function
+                case 'Function':
+                    const name = col.name.toUpperCase();
+                    if (name === 'COUNT' && col.args.length === 1 && col.args[0] === '*') {
+                        return 'COUNT(*)';
                     }
 
-                    if (col.over.$orderBy) {
-                        if (!funcClause.endsWith('(')) {
-                            funcClause += ' ';
+                    if (this.constructor.windowFunctions.has(name)) {
+                        if (!col.over) {
+                            throw new InvalidArgument(`"${name}" window function requires over clause.`);
                         }
-                        funcClause += this._buildOrderBy(col.over.$orderBy, mainEntity, aliasMap);
+                    } else if (!this.constructor.windowableFunctions.has(name) && col.over) {
+                        throw new InvalidArgument(`"${name}" function does not support over clause.`);
                     }
 
-                    if (col.over.$nulls) {
-                        funcClause += ' NULLS ' + col.over.$nulls; // FIRST | LAST
+                    let funcClause =
+                        name +
+                        '(' +
+                        (col.prefix ? `${col.prefix.toUpperCase()} ` : '') +
+                        (col.args ? this._buildColumns(col.args, params, mainEntity, aliasMap) : '') +
+                        ')';
+
+                    if (col.over) {
+                        funcClause += ' OVER(';
+                        if (col.over.$partitionBy) {
+                            funcClause += this._buildPartitionBy(col.over.$partitionBy, mainEntity, aliasMap);
+                        }
+
+                        if (col.over.$orderBy) {
+                            if (!funcClause.endsWith('(')) {
+                                funcClause += ' ';
+                            }
+                            funcClause += this._buildOrderBy(col.over.$orderBy, mainEntity, aliasMap);
+                        }
+
+                        if (col.over.$nulls) {
+                            funcClause += ' NULLS ' + col.over.$nulls; // FIRST | LAST
+                        }
+
+                        funcClause += ')';
                     }
 
-                    funcClause += ')';
-                }
+                    return funcClause;
 
-                return funcClause;
-            }
+                // BinExpr
+                case 'BinExpr':
+                    return this._packValue(col, params, mainEntity, aliasMap);
 
-            // BinExpr
-            if (col.$xr.startsWith('Bin')) {
-                return this._packValue(col, params, mainEntity, aliasMap);
-            }
+                // Column
+                case 'Column':
+                    return this._escapeIdWithAlias(col.name, mainEntity, aliasMap);
 
-            // Column
-            if (col.$xr.startsWith('Col')) {
-                return this._escapeIdWithAlias(col.name, mainEntity, aliasMap);
+                case 'OpGet':
+                    const accessor =
+                        typeof col.key === 'string'
+                            ? col.key
+                                  .split('.')
+                                  .map((k) => `[${this.escapeValue(k)}]`)
+                                  .join('')
+                            : `[${col.key}]`;
+                    return this._escapeIdWithAlias(col.field, mainEntity, aliasMap) + accessor;
             }
         }
 
-        throw new ApplicationError(`Unknow column syntax: ${JSON.stringify(col)}`);
+        throw new ApplicationError(`Unknown column syntax: ${JSON.stringify(col)}`);
     }
 
     /**

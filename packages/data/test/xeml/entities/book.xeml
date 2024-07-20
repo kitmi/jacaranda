@@ -6,4 +6,15 @@ entity book
   has
     name
     desc
-    testJson: object jsonb optional
+    testJson: object optional
+  index
+    testJson
+    
+entity book3
+  with
+    autoId
+  has
+    name
+    desc
+    'array': array element({ type: 'text' }) optional
+    
