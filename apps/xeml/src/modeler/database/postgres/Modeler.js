@@ -153,7 +153,7 @@ EXCEPTION
         RAISE NOTICE 'Error processing task: %', SQLERRM;
         RETURN;    
 END;
-$$ LANGUAGE plpgsql;`)
+$$ LANGUAGE plpgsql;`);
                 }
             }
 
@@ -178,13 +178,13 @@ BEGIN
     NEW.${this.connector.escapeId(tsField)} = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;`)
+$$ LANGUAGE plpgsql;`);
                         }
-                        
+
                         triggers.push(`CREATE TRIGGER ${entitiAsPrefix}_set_update_ts
 BEFORE UPDATE ON ${this.connector.escapeId(entityName)}
 FOR EACH ROW
-EXECUTE FUNCTION ${callFunction}();`)
+EXECUTE FUNCTION ${callFunction}();`);
                     }
                 });
             }
@@ -357,7 +357,7 @@ EXECUTE FUNCTION ${callFunction}();`)
                 this._writeFile(idxFilePath, list.concat(manual).join('\n'));
             });
 
-            let funcSQL = '-- ON UPDATE SET CURRENT_TIMESTAMP\n\n';//'CREATE LANGUAGE plpgsql; \n\n';
+            let funcSQL = '-- ON UPDATE SET CURRENT_TIMESTAMP\n\n'; //'CREATE LANGUAGE plpgsql; \n\n';
 
             // update timestamp
             funcSQL += `CREATE OR REPLACE FUNCTION update_timestamp()
@@ -517,8 +517,10 @@ $$ LANGUAGE plpgsql;\n\n`;
 
         let destKeyField = destEntity.getKeyField();
         if (!destKeyField) {
-            throw new Error(`Empty key field "${destEntity.keyField}". Dest entity: ${destEntityName}, current entity: ${entity.name}`);
-        }            
+            throw new Error(
+                `Empty key field "${destEntity.keyField}". Dest entity: ${destEntityName}, current entity: ${entity.name}`
+            );
+        }
 
         if (Array.isArray(destKeyField)) {
             throw new Error(`Destination entity "${destEntityName}" with combination primary key is not supported.`);
@@ -899,7 +901,9 @@ $$ LANGUAGE plpgsql;\n\n`;
                     this.linker.log('verbose', `Processed week reference: ${tag}`);
                 }
 
-                let joinOn = { [localField]: this._toColumnReference(assoc.anchor ?? localField + '.' + destFieldName) };
+                let joinOn = {
+                    [localField]: this._toColumnReference(assoc.anchor ?? localField + '.' + destFieldName),
+                };
 
                 if (assoc.with) {
                     Object.assign(
@@ -1202,7 +1206,7 @@ $$ LANGUAGE plpgsql;\n\n`;
             case 'createAfter':
                 break;
 
-            case 'hasClosureTable':                
+            case 'hasClosureTable':
                 break;
 
             default:
@@ -1519,21 +1523,42 @@ $$ LANGUAGE plpgsql;\n\n`;
         //other keys
         if (entity.indexes && entity.indexes.length > 0) {
             entity.indexes.forEach((index) => {
-                sql += '-- Create Index\nCREATE ';
-                if (index.unique) {
-                    sql += 'UNIQUE ';
-                }
-
                 const indexName = `${entityName}_${index.fields.join('_')}_idx`;
 
-                sql +=
-                    'INDEX "' +
-                    indexName +
-                    '" ON "' +
-                    entityName +
-                    '"(' +
-                    this.quoteIdListOrValue(index.fields) +
-                    ');\n\n';
+                sql += '-- Create Index\nCREATE ';
+                let ginIndex = false;
+
+                if (index.fields.length === 1) {
+                    const field = index.fields[0];
+                    if (entity.fields[field].type === 'object') {
+                        ginIndex = true;
+                    }
+                }
+
+                if (ginIndex) {
+                    sql +=
+                        'INDEX "' +
+                        indexName +
+                        '" ON "' +
+                        entityName +
+                        '" USING GIN ' +
+                        '(' +
+                        this.quoteIdListOrValue(index.fields) +
+                        ');\n\n';
+                } else {
+                    if (index.unique) {
+                        sql += 'UNIQUE ';
+                    }
+
+                    sql +=
+                        'INDEX "' +
+                        indexName +
+                        '" ON "' +
+                        entityName +
+                        '"(' +
+                        this.quoteIdListOrValue(index.fields) +
+                        ');\n\n';
+                }
             });
         }
 
@@ -1664,7 +1689,7 @@ $$ LANGUAGE plpgsql;\n\n`;
 
                 case 'object':
                     //if (field.jsonb) {
-                        col = this.jsonbColumnDefinition(field);
+                    col = this.jsonbColumnDefinition(field);
                     //} else {
                     //   col = this.textColumnDefinition(field);
                     //}
@@ -1893,9 +1918,9 @@ $$ LANGUAGE plpgsql;\n\n`;
 
         if (!info.optional) {
             if (info.hasOwnProperty('default')) {
-                let defaultValue = info['default'];                
+                let defaultValue = info['default'];
 
-                if (typeof defaultValue === 'object' && defaultValue.$xt) {                    
+                if (typeof defaultValue === 'object' && defaultValue.$xt) {
                     if (defaultValue.$xt === XemlTypes.Lang.SYMBOL_TOKEN) {
                         const tokenName = defaultValue.name.toUpperCase();
 
@@ -1914,8 +1939,8 @@ $$ LANGUAGE plpgsql;\n\n`;
                     } else {
                         throw new Error(`Unknown xeml object tag "${defaultValue.$xt}".`);
                     }
-                } 
-                
+                }
+
                 if (info.enum) {
                     if (!info.enum.includes(defaultValue)) {
                         throw new Error(`Invalid default value "${defaultValue}" for enum field "${info.name}".`);
