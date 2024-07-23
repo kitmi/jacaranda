@@ -1,5 +1,11 @@
 # @kitmi/feat-db
 
+## 0.3.0
+
+### Minor Changes
+
+- Add postgres feature
+
 ## 0.2.3
 
 ### Patch Changes

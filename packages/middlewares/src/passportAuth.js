@@ -3,6 +3,8 @@
  * @module Middleware_PassportAuth
  */
 
+import { connect } from '@kitmi/jacaranda';
+
 /**
  * Create a passport authentication middleware.
  * @param {object} opt - Passport options
@@ -29,7 +31,7 @@ const passportAuth = (opt, app) => {
 
     const service = app.getService(passportService);
 
-    return service.authenticate(strategy, options);
+    return connect(service.middleware, service.authenticate(strategy, options));
 };
 
 export default passportAuth;

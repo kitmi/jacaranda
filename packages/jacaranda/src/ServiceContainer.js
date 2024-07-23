@@ -321,7 +321,7 @@ class ServiceContainer extends AsyncEmitter {
 
         try {
             _module = _tryRequire(pkgName, this.workingPath);
-        } catch (error) {
+        } catch (error) {            
             if (error.code === 'ERR_REQUIRE_ESM') {
                 _module = await import(pkgName);                
             } else if (noThrow && error.code === 'MODULE_NOT_FOUND') {

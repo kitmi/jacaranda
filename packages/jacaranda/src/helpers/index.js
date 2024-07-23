@@ -11,3 +11,4 @@ export { default as middleware } from './middleware';
 export * from './logger';
 export { default as supportedMethods } from './supportedMethods';
 export { default as serve } from './serve';
+export { default as connect } from './connect';

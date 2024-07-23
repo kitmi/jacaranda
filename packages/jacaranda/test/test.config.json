@@ -6,6 +6,7 @@
     "enableAsyncDump": false,
     "enableAllure": true,
     "servers": {
-        "server1": "test/testServer.js"
+        "server1": "test/testServer.js",
+        "server2": "test/testServer2.js"
     }
 }

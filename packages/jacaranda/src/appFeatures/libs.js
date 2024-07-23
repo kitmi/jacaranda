@@ -43,7 +43,7 @@ export default {
 
             let { appPath, moduleMeta } = await app.tryLoadModule_(
                 config,
-                name,
+                config.name ?? name,
                 app.libModulesPath,
                 `libs.[${name}]`
             );

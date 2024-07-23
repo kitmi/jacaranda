@@ -71,7 +71,7 @@ export default {
             let app = new WebModule(server, config.name, baseRoute, appPath, {
                 ...options,
                 ...moduleMeta.options,
-                registry: moduleMeta.registry,                
+                registry: moduleMeta.registry,
             });
 
             app.once('configLoaded', () => {
@@ -103,19 +103,21 @@ export default {
 
         const sorted = topoSort.sort();
 
-        return eachAsync_(sorted, async (name) => {
-            const bucket = modules[name];
-            return batchAsync_(bucket, async ({ appPath, app }) => {
-                let relativePath = path.relative(server.workingPath, appPath);
-                server.log('verbose', `Loading app [${app.name}] from "${relativePath}" ...`);
+        server.once('after:' + Feature.PLUGIN, async () => {
+            await eachAsync_(sorted, async (name) => {
+                const bucket = modules[name];
+                return batchAsync_(bucket, async ({ appPath, app }) => {
+                    let relativePath = path.relative(server.workingPath, appPath);
+                    server.log('verbose', `Loading app [${app.name}] from "${relativePath}" ...`);
 
-                await app.start_();
+                    await app.start_();
 
-                server.log('verbose', `App [${app.name}] is loaded.`);
+                    server.log('verbose', `App [${app.name}] is loaded.`);
 
-                //delayed the app routes mounting after all plugins of the server are loaded
-                server.on('before:' + Feature.FINAL, () => {
-                    server.mountApp(app);
+                    //delayed the app routes mounting after all plugins of the server are loaded
+                    server.on('before:' + Feature.FINAL, () => {
+                        server.mountApp(app);
+                    });
                 });
             });
         });

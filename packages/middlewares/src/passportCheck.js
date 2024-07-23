@@ -4,6 +4,7 @@
  */
 
 import { HttpCode } from '@kitmi/types';
+import { connect } from '@kitmi/jacaranda';
 
 /**
  * Initialize ensureLoggedIn middleware
@@ -13,7 +14,7 @@ import { HttpCode } from '@kitmi/types';
  * @property {boolean} [opt.successReturnToOrRedirect] - If given, will redirect to loginUrl if not loggedIn
  * @param {Routable} app
  */
-const passportCheck = (opt, app) => {
+const passportCheck = (opt, app, name) => {
     const { passportService, successReturnToOrRedirect, loginUrl } = app.middlewareConfig(
         opt,
         {
@@ -23,12 +24,13 @@ const passportCheck = (opt, app) => {
                 loginUrl: { type: 'type', optional: true },
             },
         },
-        'passportCheck'
+        name
     );
 
     app.requireServices([passportService]);
+    const service = app.getService(passportService);
 
-    return async (ctx, next) => {
+    return connect(service.middleware, async (ctx, next) => {
         if (ctx.isAuthenticated()) {
             return next();
         }
@@ -42,7 +44,7 @@ const passportCheck = (opt, app) => {
         }
 
         return ctx.redirect(loginUrl);
-    };
+    });
 };
 
 export default passportCheck;

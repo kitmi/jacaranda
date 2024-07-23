@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.4.1
+
+### Patch Changes
+
+-  Add middlewares connect helper
+
 ## 3.4.0
 
 ### Minor Changes

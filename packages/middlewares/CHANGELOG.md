@@ -1,5 +1,11 @@
 # @kitmi/middlewares
 
+## 0.3.2
+
+### Patch Changes
+
+-   Minor change passport middlewares
+
 ## 0.3.1
 
 ### Patch Changes

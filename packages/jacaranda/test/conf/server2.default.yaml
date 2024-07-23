@@ -1,0 +1,22 @@
+apiWrapper:
+
+engine:
+    type: koa
+    port: 3000
+
+middlewareFactory:
+    bodyParser:
+        body:
+            multipart: true
+            jsonLimit: 15mb
+            formidable:
+                hashAlgorithm: md5
+
+routing:
+    /simple:
+        rule:
+            'get:/': 
+                - mc
+                - simple.mc_
+
+   

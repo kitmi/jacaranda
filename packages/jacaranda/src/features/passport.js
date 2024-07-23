@@ -31,7 +31,7 @@ export default {
      * @property {bool|string} options.shareToServer - Expose the passport servcie to whole server
      * @returns {Promise.<*>}
      */
-    load_: function (app, options, name) {
+    load_: async function (app, options, name) {
         const { strategies, useSession, init, shareToServer } = app.featureConfig(
             options,
             {
@@ -58,16 +58,24 @@ export default {
             name
         );
 
-        const KoaPassport = app.requireModule('koa-passport').KoaPassport;
+        const KoaPassport = (await app.tryRequire_('koa-passport', true)).KoaPassport;
         const passport = new KoaPassport();
 
-        let initializeMiddleware = passport.initialize(init);
+        const initializeMiddleware = passport.initialize(init);
 
-        passport.middlewares = useSession ? [initializeMiddleware, passport.session()] : initializeMiddleware;
+        passport.middleware = async (ctx, next) => {
+            if (ctx.isAuthenticated != null) {
+                return next();
+            } 
 
-        app.on('before:' + Feature.FINAL, async () => {
-            await app.useMiddlewares_(app.router, passport.middlewares);
-        });
+            await initializeMiddleware(ctx, () => {
+                if (useSession) {
+                    return passport.session()(ctx, next);
+                }
+
+                return next();
+            });            
+        };        
 
         passport.hasStrategy = (name) => {
             return name in passport._strategies;
