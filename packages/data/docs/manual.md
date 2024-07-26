@@ -339,7 +339,6 @@ await Book.findMany_({
 - $endsWith: LIKE S%
 - $like: LIKE %S%
 - $fitler: jsonb_field @> filter
-- $set: { key, value } for jsonb field or { at, value } for array field
 
 #### $orderBy
 
@@ -463,6 +462,9 @@ entity.updateOne_({
     version: doInc('version', 1)  // version = version + 1
 }, { $where: { id: xxx } })
 ```
+
+- Special Operators
+  - `$set`: { key, value } for jsonb field or { at, value } for array field
 
 ## Transaction
 
