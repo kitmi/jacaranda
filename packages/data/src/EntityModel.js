@@ -320,7 +320,7 @@ class EntityModel {
 
         this.applyRulesSync(Rules.RULE_BEFORE_FIND, context);
 
-        this._preProcessOptions(opOptions, false /* for multiple record */, true);
+        this._preProcessOptions(opOptions, false /* for multiple record */);
 
         return this.db.connector.buildQuery(this.meta.name, opOptions);
     }
@@ -339,7 +339,7 @@ class EntityModel {
 
         await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
 
-        this._preProcessOptions(opOptions, isOne /* for single record */, true);
+        this._preProcessOptions(opOptions, isOne /* for single record */);
 
         return this._safeExecute_(async () => {
             const result = await this.db.connector.find_(this.meta.name, opOptions, this.db.transaction);
@@ -638,7 +638,7 @@ class EntityModel {
 
         await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
 
-        this._preProcessOptions(opOptions, false /* for single record */, false);
+        this._preProcessOptions(opOptions, false /* for single record */);
 
         _.each(columnMapping, (v, key) => {
             if (!key.startsWith('::') && !opOptions.$select.has(key)) {
@@ -1648,13 +1648,9 @@ class EntityModel {
         return qOptions;
     }
 
-    _preProcessOptions(qOptions, isOne, isFind) {
+    _preProcessOptions(qOptions, isOne) {
         const extraSelect = [];
-        qOptions.$where = this._translateValue(
-            qOptions.$where,
-            qOptions,
-            true,
-        );
+        qOptions.$where = this._translateValue(qOptions.$where, qOptions, true);
         if (extraSelect.length) {
             qOptions.$select || (qOptions.$select = new Set(['*']));
             if (!qOptions.$select.has('*')) {
@@ -1687,6 +1683,8 @@ class EntityModel {
         if (qOptions.$hasSubQuery) {
             qOptions.$entity = this;
         }
+
+        qOptions.$key = this.meta.keyField;
     }
 
     _translateExclSelect(value) {

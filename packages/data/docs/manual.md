@@ -138,6 +138,10 @@ The `koa` like `ctx` object passed in to interpolate into query condition, will 
 
 To skip unique check for $where object when performing `xxxOne_` operation. 
 
+#### $key
+
+The key field of the entity.
+
 ### findOptions
 
 #### $select
@@ -244,6 +248,28 @@ $relation: [ 'profile', 'roles' ];
 $relation: [ 'profile.address', 'roles.role' ];
 ```
 
+- Use custom relation that not defined in xeml
+
+```js
+$relation: [{ alias: 'anyNode', entity: 'tagCategoryTree', joinType: 'CROSS JOIN', on: null }], // 
+```
+
+```js
+$relation: [
+    ...,
+    {
+        alias: 'course',
+        entity: 'course',
+        joinType: 'INNER JOIN',
+        on: {
+            'course.rootDoc': xrCol('rootDoc.knowledges.knowledge.documents.document.id'),
+        },
+    },
+    'course.branches.branch.subject',
+    ...
+]
+```
+
 #### $where
 
 The where clause object.
@@ -342,23 +368,96 @@ await Book.findMany_({
 
 #### $orderBy
 
-Order by condition
+- Order by ascending
 
-#### $groupBy (TBD)
+```js
+{
+    ...,
+    $orderBy: 'field1' // ORDER BY field1 
+}
+```
 
-Group by condition
+```js
+{
+    ...,
+    $orderBy: [ 'field1', 'field2' ] // ORDER BY field1, field2
+}
+```
+
+```js
+{
+    ...,
+    $orderBy: { 'field1': true } // ORDER BY field1 
+}
+```
+
+```js
+{
+    ...,
+    $orderBy: { 'field1': 1 } // ORDER BY field1 
+}
+```
+
+- Order by descending
+
+```js
+{
+    ...,
+    $orderBy: { 'field1': false } // ORDER BY field1 DESC
+}
+```
+
+```js
+{
+    ...,
+    $orderBy: { 'field1': -1 } // ORDER BY field1 DESC 
+}
+```
+
+- Mix
+
+```js
+{
+    ...,
+    $orderBy: { 'field1': -1, 'field2': 1 } // ORDER BY field1 DESC, field2 
+}
+```
+
+#### $groupBy 
+
+```js
+{
+    ...,
+    $groupBy: 'field1' // GROUP BY field1
+}
+```
+
+```js
+{
+    ...,
+    $groupBy: [ 'field1', 'field2' ] // GROUP BY field1, field2
+}
+```
 
 #### $offset
 
-TBD.
+```js
+{
+    $offset: 10
+}
+```
 
 #### $limit
 
-TBD.
+```js
+{
+    $limit: 10
+}
+```
 
-#### $totalCount (TBD)
+#### $countBy
 
-Returns total record count when used with $limit, should provide the distinct field name
+Returns total record count
 
 #### $includeDeleted - {boolean}
 
