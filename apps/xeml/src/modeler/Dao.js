@@ -143,11 +143,15 @@ class DaoModeler {
 
             case 'hasClosureTable':
                 return [
-                    Methods.getAllDescendants(feature.reverse),
-                    Methods.getAllAncestors(feature.relation),
+                    Methods.getAllDescendants(entity, feature),
+                    Methods.getAllAncestors(entity, feature),
                     Methods.addChildNode(feature.relation, feature.closureTable),
-                    Methods.getTopNodes(entity.name, entity.key, feature.closureTable),
-                    Methods.moveNode(feature.closureTable, feature.relation),
+                    Methods.removeSubTree(feature.relation, feature.closureTable),
+                    Methods.cloneSubTree(entity, feature),
+                    Methods.getTopNodes(entity, feature.closureTable),
+                    Methods.moveNode(entity),
+                    Methods.getChildren(feature.reverse),
+                    Methods.getParents(feature.relation),
                 ];
 
             default:

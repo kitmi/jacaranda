@@ -267,11 +267,15 @@ class PostgresConnector extends RelationalConnector {
      * Rollback a transaction. [exception safe]
      * @param {Client} client - Postgres client connection.
      */
-    async rollback_(client) {
+    async rollback_(client, error) {
         try {
             await client.query('ROLLBACK;');
             const tid = client[tranSym];
-            this.app.log('error', `Rollbacked a transaction [id: ${tid}].`);
+            this.app.log('error', `Rollbacked a transaction [id: ${tid}].`, {
+                type: error?.name,
+                error: error.message,
+                info: error.info,
+            });
         } finally {
             this.disconnect_(client);
         }
@@ -427,6 +431,39 @@ class PostgresConnector extends RelationalConnector {
         }
 
         return this.execute_(sql, sqlInfo.params, findOptions, connection);
+    }
+
+    /**
+     * Create multiple records.
+     * @param {string} model
+     * @param {object} fields
+     * @param {array} records
+     * @param {Client} connection
+     * @returns {object}
+     */
+    async createMany_(model, fields, records, connection) {
+        if (!Array.isArray(records) || records.length === 0 || !Array.isArray(records[1])) {
+            throw new InvalidArgument(`"records" for createMany_ should be an two-dimension array.`);
+        }
+
+        let columns = '';
+        let values = '';
+
+        fields.forEach((field) => {
+            columns += this.escapeId(field) + ',';
+            values += this.specParamToken + ',';
+        });
+
+        values = `(${values.slice(0, -1)}),`;
+        let valuesList = '';
+
+        const params = records.reduce((acc, record) => {
+            valuesList += values;
+            return acc.concat(record);
+        }, []);
+
+        let sql = `INSERT INTO ${this.escapeId(model)} (${columns.slice(0, -1)}) VALUES ${valuesList.slice(0, -1)}`;
+        return this.execute_(sql, params, null, connection);
     }
 
     /**
@@ -819,7 +856,9 @@ class PostgresConnector extends RelationalConnector {
                 return { ...result, aliases: reverseAliasMap };
             }
 
-            this.app.log('warn', 'Skip ORM for joining query may cause unexpected result.', { query });
+            if (!queryOptions.$skipOrmWarn) {
+                this.app.log('warn', 'Skip ORM for joining query may cause unexpected result.', { query });
+            }
         }
 
         result = await this.execute_(query.sql, query.params, options, connection);

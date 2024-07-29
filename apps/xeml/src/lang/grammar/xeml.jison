@@ -1473,6 +1473,7 @@ index_statement_block
 index_item
     : index_item_body
     | index_item_body ("is")? "unique" -> Object.assign({}, $1, { unique: true })
+    | "-" index_item_body -> { ...$2, overrideRemove: true }
     ;
 
 index_item_body

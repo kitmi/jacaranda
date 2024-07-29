@@ -1,0 +1,43 @@
+import 'commons:**'
+import personProfile
+
+//----------------------------------------------------------------------------------------------------     
+
+entity user
+  -- "User"       
+  with
+    autoId({ type: 'bigint' })
+    createTimestamp
+    updateTimestamp
+    logicalDeletion
+    atLeastOneNotNull([ 'mobile', 'email' ])
+
+  has    
+    mobile optional -- "User mobile"
+    email optional |>toLower -- "User email"
+    password: name -- "User password"
+    passwordSalt : text fixedLength(16) readOnly |=random -- "User password salt"    
+    isEmailVerified : boolean writeOnce optional -- "Flag of email verified"
+    emailVerifiedTime : datetime writeOnce optional |=timeOfValueSet(@latest.isEmailVerified) -- "Email verified time"
+    isMobileVerified : boolean writeOnce optional -- "Flag of mobile verified"
+    mobileVerifiedTime : datetime writeOnce optional |=timeOfValueSet(@latest.isMobileVerified) -- "Mobile verified time"    
+    avatar : url optional    
+
+  associations
+    belongsTo personProfile as profile
+
+  index
+    mobile is unique
+    email is unique
+
+  data [
+    {
+        email: 'test@wisley.ai',
+        profile: USER1_PROFILE_ID,
+        password: 'test',
+        isEmailVerified: true,
+        status: 'active',
+
+        $skipValidators: ['strongPassword']
+    }
+  ]

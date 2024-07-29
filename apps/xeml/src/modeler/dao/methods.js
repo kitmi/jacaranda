@@ -1,38 +1,66 @@
 const { naming } = require('@kitmi/utils');
 
-const getAllDescendants = (ancestorsAnchor) => `
+const getAllDescendants = (entity, feature) => {
+    const ancestorsAnchor = feature.reverse;
+    const defaultOrderBy1 = feature.orderField ?? entity.key;
+
+    return `
     /**
      * Get all descendant nodes of the given parent node.
      * @param {*} currentId - The current node id.
      * @param {array} [selectColumns] - The columns to select.
+     * @param {number} [maxLevel] - The maximum level of descendants to retrieve.
      * @returns {Promise<Object>} { data }.
      */
-    async getAllDescendants_(currentId, selectColumns) {
+    async getAllDescendants_(currentId, selectColumns, maxLevel) {
+        const $where = { '${ancestorsAnchor}.ancestorId': currentId };
+
+        if (maxLevel != null) {
+            $where['${ancestorsAnchor}.depth'] = { $lte: maxLevel };
+        }
+
         return this.findMany_({ 
             $select: selectColumns ?? ['*', '${ancestorsAnchor}.depth'], 
-            $where: { '${ancestorsAnchor}.ancestorId': currentId },
+            $where,
             $relation: [ '${ancestorsAnchor}' ], 
+            $orderBy: { '${ancestorsAnchor}.depth': 1, '${defaultOrderBy1}': 1 },
             $skipOrm: true,
+            $skipOrmWarn: true,
         });
     }
 `;
+};
 
-const getAllAncestors = (descendantsAnchor) => `
+const getAllAncestors = (entity, feature) => {
+    const descendantsAnchor = feature.relation;
+    const defaultOrderBy1 = feature.orderField ?? entity.key;
+
+    return `
     /**
      * Get all ancestor nodes of the given parent node.
      * @param {*} currentId - The current node id.
      * @param {array} [selectColumns] - The columns to select.
+     * @param {number} [maxLevel] - The maximum level of ancestors to retrieve.
      * @returns {Promise<Object>} { data }.
      */
-    async getAllAncestors_(currentId, selectColumns) {
+    async getAllAncestors_(currentId, selectColumns, maxLevel) {
+        const $where = { '${descendantsAnchor}.descendantId': currentId };
+
+        if (maxLevel != null) {
+            $where['${descendantsAnchor}.depth'] = { $gte: xrExpr(xrCol('${descendantsAnchor}.depth'), '-', maxLevel) };
+        }
+
         return this.findMany_({ 
             $select: selectColumns ?? ['*', '${descendantsAnchor}.depth'], 
-            $where: { '${descendantsAnchor}.descendantId': currentId },
+            $where,
             $relation: [ '${descendantsAnchor}' ], 
+            $orderBy: { '${descendantsAnchor}.depth': -1, '${defaultOrderBy1}': 1 },
             $skipOrm: true,
+            $skipOrmWarn: true,
         });
     }
 `;
+};
 
 const addChildNode = (descendantsAnchor, closureTable) => `
     /**
@@ -60,7 +88,116 @@ const addChildNode = (descendantsAnchor, closureTable) => `
     }
 `;
 
-const getTopNodes = (tableName, keyField, closureTable) => `
+const removeSubTree = (descendantsAnchor, closureTable) => `
+    /**
+     * Remove a child node from any tree.
+     * @param {*} nodeId - The child node id.
+     * @returns {Promise<Object>} { data, affectedRows }.
+     */
+    async removeSubTree_(nodeId) {
+        const ClosureTable = this.getRelatedEntity('${descendantsAnchor}');
+        
+        return ClosureTable.deleteMany_({
+            ancestorId: {
+                $in: xrDataSet('${closureTable}', {
+                    $select: ['ancestorId'],
+                    $where: { descendantId: nodeId, depth: { $gt: 0 } },
+                }),
+            },           
+            descendantId: {
+                $in: xrDataSet('${closureTable}', {
+                    $select: ['descendantId'],
+                    $where: { ancestorId: nodeId },
+                }),
+            },
+        });
+    }
+`;
+
+const cloneSubTree = (entity, feature) => {
+    const descendantsAnchor = feature.relation;
+    const closureTable = feature.closureTable;
+
+    const entityName = naming.pascalCase(entity.name);
+    const excludeFields = Object.keys(entity.fields).filter((name) => {
+        const f = entity.fields[name];
+        return f.auto || f.autoByDb || f.hasActivator || f.updateByDb;
+    });
+
+    excludeFields.push('depth');
+    const excludeFieldsStr = excludeFields.map((f) => `'${f}'`).join(', ');
+
+    return `
+    /**
+     * Clone a child node and its descendants.
+     * @param {*} nodeId - The child node id.
+     * @returns {Promise<Object>} { data, affectedRows }.
+     */
+    async cloneSubTree_(nodeId, depth) {
+        const { data: subTreeNodes } = await this.getAllDescendants_(nodeId, ['*'], depth);
+        const subTreeNodesIds = subTreeNodes.map((i) => i.id);
+
+        const ClosureTable = this.getRelatedEntity('${descendantsAnchor}');
+        const { data: links } = await ClosureTable.findMany_({
+            $where: {
+                ancestorId: {
+                    $in: subTreeNodesIds,
+                },
+                descendantId: {
+                    $in: subTreeNodesIds,
+                },
+                depth: {
+                    $gt: 0,
+                },
+            },
+        });
+
+        const idMap = {};
+        const insertedData = [];
+
+        await this.db.transaction_(async (db) => {
+            const ${entityName} = db.entity('${entity.name}');
+
+            await batchAsync_(subTreeNodes, async (item) => {                
+                const { data, insertId } = await ${entityName}.create_(
+                    _.omit(item, [${excludeFieldsStr}]),
+                    {
+                        $getCreated: true,
+                    }
+                );
+                insertedData.push(data);
+                idMap[item.id] = insertId;                
+            });
+
+            await db.connector.createMany_('${closureTable}', ['ancestorId', 'descendantId', 'depth'], 
+                links.map(link => [idMap[link.ancestorId], idMap[link.descendantId], link.depth]), db.transaction);
+        });        
+        
+        return {
+            data: insertedData,
+            clonedId: idMap[nodeId],
+        };
+    }
+
+    /**
+     * Clone a child node and its descendants to a new parent.
+     * @param {*} parentId - The parent node id.
+     * @param {*} currentId - The current node id.
+     * @param {number} depth - The maximum depth of descendants to clone.
+     * @returns {Promise<Object>} { data, affectedRows }.
+     */
+    async cloneSubTreeToNode_(parentId, currentId, depth) {
+        const { clonedId } = await this.cloneSubTree_(currentId, depth);
+        return this.addChildNode_(parentId, clonedId);
+    }
+`;
+};
+
+const getTopNodes = (entity, closureTable) => {
+    const tableName = entity.name;
+    const keyField = entity.key;
+
+    return `
     /**
      * Get all top nodes.
      * @param {object} [findOptions] - Extra find options.
@@ -88,8 +225,11 @@ const getTopNodes = (tableName, keyField, closureTable) => `
         });
     }
 `;
+};
 
-const moveNode = (closureTable, descendantsAnchor) => `
+const moveNode = (entity) => {
+    const entityName = naming.pascalCase(entity.name);
+    return `
     /**
      * Move a node to a new parent.
      * @param {*} parentId - The parent node id.
@@ -97,26 +237,66 @@ const moveNode = (closureTable, descendantsAnchor) => `
      * @returns {Promise<Object>} { data, affectedRows }.
      */
     async moveNode_(parentId, childId) {
-        const ClosureTable = this.getRelatedEntity('${descendantsAnchor}');
-
-        // Step 1: Disconnect from current ancestors
-        await ClosureTable.deleteMany_({
-            ancestorId: {
-                $in: xrDataSet('${closureTable}', {
-                    $select: ['ancestorId'],
-                    $where: { descendantId: childId, depth: { $gt: 0 } },
-                }),
-            },           
-            descendantId: {
-                $in: xrDataSet('${closureTable}', {
-                    $select: ['descendantId'],
-                    $where: { ancestorId: childId },
-                }),
-            },
+        this.db.transaction_(async (db) => {
+            const ${entityName} = db.entity('${entity.name}');
+            await ${entityName}.removeSubTree_(childId);
+            return ${entityName}.addChildNode_(parentId, childId);
         });
+    }
+`;
+};
 
-        // Step 2: Connect to new parent
-        return await this.addChildNode_(parentId, childId);
+const getChildren = (ancestorsAnchor) => `
+    /**
+     * Get all child nodes of the given parent node.
+     * @param {*} currentId - The current node id.
+     * @param {array} [selectColumns] - The columns to select.
+     * @returns {Promise<Object>} { data }.
+     */
+    async getChildren_(currentId, selectColumns) {
+        return this.findMany_({
+            $select: selectColumns ?? ['*', '${ancestorsAnchor}.depth'],
+            $where: { '${ancestorsAnchor}.ancestorId': currentId, '${ancestorsAnchor}.depth': 1  },
+            $relation: ['${ancestorsAnchor}'],
+            $skipOrm: true,
+        });
+    }
+
+    /**
+     * Get all id of child nodes of the given parent node.
+     * @param {*} currentId - The current node id.
+     * @returns {Promise<array>} 
+     */ 
+    async getChildrenId_(currentId) {
+        const { data: children } = await this.getChildren_(currentId, ['id']);
+        return children.map(item => item.id);
+    }
+`;
+
+const getParents = (descendantsAnchor) => `
+    /**
+    * Get the parent node of the given child node.
+    * @param {*} currentId - The current node id.
+    * @param {array} [selectColumns] - The columns to select.
+    * @returns {Promise<Object>} { data }.
+    */ 
+    async getParents_(currentId, selectColumns) {
+        return this.findMany_({
+            $select: selectColumns ?? ['*', '${descendantsAnchor}.depth'],
+            $where: { '${descendantsAnchor}.descendantId': currentId, '${descendantsAnchor}.depth': 1 },
+            $relation: ['${descendantsAnchor}'],
+            $skipOrm: true,
+        });
+    }
+
+    /**
+     * Get all id of parent nodes of the given child node.
+     * @param {*} currentId - The current node id.
+     * @returns {Promise<array>} 
+     */ 
+    async getParentsId_(currentId) {
+        const { data: parents } = await this.getParents_(currentId, ['id']);
+        return parents.map(item => item.id);
     }
 `;
 
@@ -238,7 +418,7 @@ const getDueJobs = () => {
         );
     }
 `;
-}
+};
 
 const getBatchStatus = () => {
     return `
@@ -283,8 +463,12 @@ module.exports = {
     getAllDescendants,
     getAllAncestors,
     addChildNode,
+    removeSubTree,
+    cloneSubTree,
     getTopNodes,
     moveNode,
+    getChildren,
+    getParents,
     popJob,
     postJob,
     jobDone,

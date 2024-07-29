@@ -1,5 +1,13 @@
 # @kitmi/xeml
 
+## 0.6.0
+
+### Minor Changes
+
+-   Add more closureTable methods, e.g. removeSubTree_, cloneSubTree_
+-   Add index remove via overriding
+-   Minor bug fixes
+
 ## 0.5.2
 
 ### Patch Changes

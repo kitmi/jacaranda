@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/data",
-    "version": "0.6.4",
+    "version": "0.7.0",
     "description": "Jacaranda Framework Data Access Model",
     "publishConfig": {
         "access": "public"
@@ -26,7 +26,7 @@
     "license": "MIT",
     "scripts": {
         "build-model": "xeml build -c ./conf/xeml.default.yaml -w ./test",
-        "pre-test": "pnpm build-model && xeml migrate -r -c ./conf/xeml.default.yaml -w ./test",
+        "pre-test": "pnpm build-model && xeml migrate --verbose -r -c ./conf/xeml.default.yaml -w ./test",
         "test": "pnpm build && SWCRC=true mocha --recursive test/**/*.spec.js",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
         "report": "allure generate allure-results --clean -o allure-report && serve ./allure-report",

@@ -81,8 +81,8 @@ class DbModel {
             db = this.fork(await this.connector.beginTransaction_());
             await transactionFunc(db);
             await db.connector.commit_(db.transaction);
-        } catch (error) {
-            db && (await db.connector.rollback_(db.transaction));
+        } catch (error) {            
+            db && (await db.connector.rollback_(db.transaction, error));
             throw error;
         } finally {
             db.end();

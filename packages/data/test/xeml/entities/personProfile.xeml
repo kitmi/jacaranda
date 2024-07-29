@@ -1,0 +1,54 @@
+import 'commons:**'
+import user
+
+//----------------------------------------------------------------------------------------------------     
+
+type  
+  genderType: text enum('unknown', 'male', 'female', 'non-disclosure')
+
+//----------------------------------------------------------------------------------------------------     
+
+const
+  USER1_PROFILE_ID = 100000
+
+//----------------------------------------------------------------------------------------------------     
+
+// 用戶沒注冊，也可以有個人信息，id緩存在客戶端，注冊的時候可以关联
+entity personProfile 
+  -- "Personal Profile"
+  with   
+    autoId({ type: 'bigint' })
+    createTimestamp
+    updateTimestamp
+    logicalDeletion
+
+  has
+    firstName : name optional 
+    middleName : name optional
+    lastName : name optional
+    displayName : name optional 
+    dob : datetime optional -- 'Date of birth'
+    age : integer optional
+    gender: genderType optional
+    isGuest : boolean default(false) -- 'Guest'
+
+    coins : integer default(0) -- 'Coins'
+    level : integer default(0) -- 'Level'
+    exp : integer default(0) -- 'Experience'
+    
+  associations  
+    hasOne user optional
+
+  index       
+    lastName    
+    displayName
+
+  data [
+    {
+        id: USER1_PROFILE_ID,
+        firstName: '思狸',
+        lastName: '唯',
+        dob: '2000-01-01',
+        gender: 'male'
+    }
+  ]

@@ -34,7 +34,20 @@ class Entity extends Clonable {
         }
 
         if (overrideInfo.indexes) {
-            sourceInfo.indexes = [...(sourceInfo.indexes ?? []), ...overrideInfo.indexes];
+            const newIndexes = [];
+            const removeIndexes = [];
+            overrideInfo.indexes.forEach((index) => {
+                if (index.overrideRemove) {
+                    removeIndexes.push(_.castArray(index.fields));
+                } else {
+                    newIndexes.push(index);
+                }
+            });
+            const keepIndexes = sourceInfo.indexes ? sourceInfo.indexes.filter((index) => {
+                const fields = _.castArray(index.fields);
+                return !removeIndexes.find((removeFields) => fields.length === removeFields.length && fields.every((field) => removeFields.includes(field)));                
+            }) : [];
+            sourceInfo.indexes = [...keepIndexes, ...newIndexes];
         }
 
         if (overrideInfo.inputs) {

@@ -6,8 +6,14 @@ schema test
     book
     book3
 
+customize
+  entities
+    tagCategory
+
 schema test2
   entities
     product    
     tag
+    personProfile
+    user
     

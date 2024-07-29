@@ -9,7 +9,7 @@ describe('complex-find with paging', function () {
             result.data.length.should.be.exactly(0);
         });
     });
-    
+
     it('find many with $countBy', async function () {
         await tester.start_(async (app) => {
             const db = app.db('test2');
@@ -90,9 +90,9 @@ describe('complex-find with paging', function () {
             (insertId > 0).should.be.ok;
             affectedRows.should.equal(1);
 
-            const result = await Product.findMany_({                
+            const result = await Product.findMany_({
                 $relation: ['category', 'assets.resource', 'attributes', 'variants'],
-                $countBy: 'id'
+                $countBy: 'id',
             });
 
             result.totalCount.should.be.exactly(result.data.length);

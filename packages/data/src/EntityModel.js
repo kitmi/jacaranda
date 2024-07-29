@@ -295,13 +295,24 @@ class EntityModel {
      * @property {object} [findOptions.$orderBy] - Order by fields
      * @property {number} [findOptions.$offset] - Offset
      * @property {number} [findOptions.$limit] - Limit
-     * @property {number} [findOptions.$totalCount] - Return totalCount
+     * @property {string} [findOptions.$countBy] - Return totalCount
      * @property {bool} [findOptions.$includeDeleted=false] - Include those marked as logical deleted.
      * @property {bool} [findOptions.$skipOrm=false] - Skip ORM mapping
      * @returns {array}
      */
     async findMany_(findOptions) {
         return this._find_(findOptions, false);
+    }
+
+    /**
+     * Find records matching the condition and returns page by page.
+     * @param {object} findOptions
+     * @param {integer} page
+     * @param {integer} rowsPerPage
+     * @returns
+     */
+    async findManyByPage_(findOptions, page, rowsPerPage) {
+        return this.findMany_({ ...findOptions, $limit: rowsPerPage, $offset: (page - 1) * rowsPerPage });
     }
 
     findSql(findOptions) {
@@ -390,10 +401,10 @@ class EntityModel {
         }
     }
 
-    async _rollbackOwnedTransaction_() {
+    async _rollbackOwnedTransaction_(error) {
         if (this.db.transaction) {
             // exception safe
-            await this.db.connector.rollback_(this.db.transaction);
+            await this.db.connector.rollback_(this.db.transaction, error);
             const newDbInstance = this.db.fork();
             this.db.end();
             // reset db with a new instance
@@ -409,25 +420,29 @@ class EntityModel {
     async _safeExecute_(executor) {
         executor = executor.bind(this);
 
-        if (this.db.transaction) {
-            return executor();
-        }
+        let ownedTransaction = this.db.transaction == null;
 
         try {
             this._safeFlag = true;
             const result = await executor();
 
             // if the executor have initiated a transaction
-            await this._commitOwnedTransaction_();
+            if (ownedTransaction) {
+                await this._commitOwnedTransaction_();
+            }
 
             return result;
         } catch (error) {
             if (error instanceof OpCompleted) {
-                await this._commitOwnedTransaction_();
+                if (ownedTransaction) {
+                    await this._commitOwnedTransaction_();
+                }
                 return error.payload;
             }
 
-            await this._rollbackOwnedTransaction_();
+            if (ownedTransaction) {
+                await this._rollbackOwnedTransaction_(error);
+            }
             throw error;
         } finally {
             this._safeFlag = false;

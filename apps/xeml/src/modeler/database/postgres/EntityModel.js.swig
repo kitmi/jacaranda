@@ -1,5 +1,5 @@
 // v.{{ schemaVersion }} by xeml
-import { _ } from '@kitmi/utils';
+import { _, batchAsync_, eachAsync_ } from '@kitmi/utils';
 import { ValidationError } from '@kitmi/types';
 import EntityModel from '@kitmi/data/drivers/{{ driver }}/EntityModel';
 {{ imports|safe }}

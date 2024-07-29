@@ -10,7 +10,7 @@ const FEATURE_NAME = 'hasClosureTable';
  * @param {Entity} entity - Entity to apply this feature
  */
 function feature(entity, args = []) {
-    let [ closureTable ] = args;
+    let [ closureTable, orderField ] = args;
 
     if (closureTable == null) {
         throw new Error('Missing the associated closure table name.');
@@ -19,7 +19,7 @@ function feature(entity, args = []) {
     const assocInfo = entity.info.associations.find((a) => a.destEntity === closureTable && a.remoteField === 'ancestorId'); 
     const reverseInfo = entity.info.associations.find((a) => a.destEntity === closureTable && a.remoteField === 'descendantId'); 
 
-    entity.addFeature(FEATURE_NAME, { closureTable, relation: assocInfo.srcField, reverse: reverseInfo.srcField });
+    entity.addFeature(FEATURE_NAME, { closureTable, relation: assocInfo.srcField, reverse: reverseInfo.srcField, orderField });
 }
 
 module.exports = feature;

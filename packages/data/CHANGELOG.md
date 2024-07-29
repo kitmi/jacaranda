@@ -1,14 +1,28 @@
 # @kitmi/data
 
+## 0.7.0
+
+### Minor Changes
+
+-   Add $countBy operator
+-   Add findManyByPage_ method
+-   Add createMany_ method for directly inserting multiple records
+
 ## 0.6.4
+
+### Patch Changes
 
 -   Add get, set operator for array, json field
 
 ## 0.6.3
 
+### Patch Changes
+
 -   Fix dry run mode multi errors detection bug
 
 ## 0.6.2
+
+### Patch Changes
 
 -   Fix: datetime auto value
 -   Add pg driver loading from project node_modules
@@ -16,14 +30,20 @@
 
 ## 0.6.1
 
+### Patch Changes
+
 -   Fix: activator during creation should not be called if dependencies not exist
 
 ## 0.6.0
+
+### Minor Changes
 
 -   Fix: sub query with relations not correct
 -   Support multiple errors detection in dry run mode
 
 ## 0.5.6
+
+### Patch Changes
 
 -   Fix: wrong orm mapping of query result in some cases.
 

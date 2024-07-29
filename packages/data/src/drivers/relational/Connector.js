@@ -706,12 +706,15 @@ class RelationalConnector extends Connector {
         }
 
         if (typeof alias === 'object') {
+            // note: Although order by a column in a list relation is non-sense, but it may be join with a unique condition and the result is not a list
+            /*
             if (disallowList && alias.list) {
                 throw new InvalidArgument(`Reference to a column "${fieldName}" in a list relation is not allowed.`, {
                     entity: mainEntity,
                     aliasMap,
                 })
             }
+            */
             alias = alias.alias;
         }
 
