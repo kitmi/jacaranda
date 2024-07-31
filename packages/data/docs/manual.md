@@ -423,6 +423,12 @@ await Book.findMany_({
 }
 ```
 
+- Order by alias 
+
+When a query has joining tables, all column reference will be padding the table alias automatically, e.g. `{ $orderBy: 'field1' }` will be converted into `ORDER BY A."field1"`.
+
+If you want to order by an alias which is not a column of any table, the above rule will fail the final SQL execution. A "::" prefix can be used to force the conversion to not add the table alias, i.e. `{ $orderBy: '::field1' }` to `ORDER BY "field1"`.
+
 #### $groupBy 
 
 ```js
