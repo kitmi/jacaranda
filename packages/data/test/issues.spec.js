@@ -77,8 +77,9 @@ describe('issues', function () {
                 },
                 "password": "test",
                 "isEmailVerified": true,
-                "status": "active",                
-            });
+                "status": "active",       
+                "isDeleted": false       
+            }, { $upsert: true, $bypassReadOnly: new Set([ 'isDeleted' ]) });
 
             const { data: users } = await User.findMany_({});
 
@@ -100,7 +101,7 @@ describe('issues', function () {
                         throw new DatabaseError();
                     }
                 }    
-            });
+            });            
         });
     });
 });

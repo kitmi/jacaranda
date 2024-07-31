@@ -169,8 +169,10 @@ const cloneSubTree = (entity, feature) => {
                 idMap[item.id] = insertId;                
             });
 
-            await db.connector.createMany_('${closureTable}', ['ancestorId', 'descendantId', 'depth'], 
-                links.map(link => [idMap[link.ancestorId], idMap[link.descendantId], link.depth]), db.transaction);
+            if (links.length > 0) {
+                await db.connector.createMany_('${closureTable}', ['ancestorId', 'descendantId', 'depth'], 
+                    links.map(link => [idMap[link.ancestorId], idMap[link.descendantId], link.depth]), db.transaction);
+            }
         });        
         
         return {
@@ -187,8 +189,9 @@ const cloneSubTree = (entity, feature) => {
      * @returns {Promise<Object>} { data, affectedRows }.
      */
     async cloneSubTreeToNode_(parentId, currentId, depth) {
-        const { clonedId } = await this.cloneSubTree_(currentId, depth);
-        return this.addChildNode_(parentId, clonedId);
+        const { data, clonedId } = await this.cloneSubTree_(currentId, depth);
+        await this.addChildNode_(parentId, clonedId);
+        return { data, clonedId };
     }
 `;
 };
