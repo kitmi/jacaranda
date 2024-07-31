@@ -407,14 +407,15 @@ class PostgresConnector extends RelationalConnector {
 
     /**
      * Create a new entity from a select result.
-     * @param {string} model
-     * @param {object} data
+     * @param {string} model     
      * @param {object} options
+     * @param {array} insertColumns
+     * @param {array} uniqueKeys
      * @param {Client} connection
      * @returns {object}
      */
-    async createFrom_(model, findOptions, insertColumns, connection) {
-        const sqlInfo = this.buildQuery(model, findOptions);
+    async createFrom_(model, options, insertColumns, uniqueKeys, connection) {
+        const sqlInfo = this.buildQuery(model, options);
 
         let columns = '';
 
@@ -424,13 +425,31 @@ class PostgresConnector extends RelationalConnector {
 
         let sql = `INSERT INTO ${this.escapeId(model)} (${columns.slice(0, -1)}) ${sqlInfo.sql}`;
 
-        if (findOptions.$getCreated) {
-            sql += ` RETURNING ${findOptions.$getCreated
+        if (options.$ignore) {
+            sql += ' ON CONFLICT DO NOTHING';
+        } else if (options.$upsert) {
+            if (typeof options.$upsert !== 'object') {
+                throw new InvalidArgument('"$upsert" should be an object with data to update on conclicts.');
+            }
+
+            let conflicts = '';
+
+            uniqueKeys.forEach((k) => {
+                conflicts += this.escapeId(k) + ',';
+            });
+
+            sql +=
+            ` ON CONFLICT (${conflicts.slice(0, -1)}) DO UPDATE SET ` +
+                this._splitColumnsAsInput(options.$upsert, sqlInfo.params, model, { [model]: this.escapeId(model), [`${model}.EXCLUDED`]: 'EXCLUDED' }).join(', ');
+        }
+
+        if (options.$getCreated) {
+            sql += ` RETURNING ${options.$getCreated
                 .map((col) => (col === '*' ? '*' : this.escapeId(col)))
                 .join(', ')}`;
         }
 
-        return this.execute_(sql, sqlInfo.params, findOptions, connection);
+        return this.execute_(sql, sqlInfo.params, options, connection);
     }
 
     /**
@@ -475,13 +494,8 @@ class PostgresConnector extends RelationalConnector {
      * @param {object} dataOnInsert - When no duplicate record exists, extra data for inserting
      * @returns {object}
      */
-    async upsert_(model, data, uniqueKeys, dataOnInsert, options, connection) {
-        if (!data || isEmpty(data)) {
-            throw new InvalidArgument(`Creating with empty "${model}" data.`);
-        }
-
+    async upsert_(model, data, uniqueKeys, insertData, options, connection) {
         const dataWithoutUK = _.omit(data, uniqueKeys);
-        const insertData = { ...data, ...dataOnInsert };
 
         if (isEmpty(dataWithoutUK)) {
             // if dupliate, dont need to update

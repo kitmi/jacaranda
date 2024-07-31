@@ -70,20 +70,38 @@ const addChildNode = (descendantsAnchor, closureTable) => `
      * @returns {Promise<Object>} { data, affectedRows }.
      */
     async addChildNode_(parentId, childId) {
-        const ClosureTable = this.getRelatedEntity('${descendantsAnchor}');
+        const closureTableInfo = this.meta.associations['${descendantsAnchor}'];
 
-        return ClosureTable.createFrom_({
-            $select: [ 
-                'ancestorId', 
-                'anyNode.descendantId', 
-                xrAlias(xrExpr(xrExpr(xrCol('depth'), '+', xrCol('anyNode.depth')), '+', 1), 'depth'), 
-            ],
-            $where: { 'descendantId': parentId, 'anyNode.ancestorId': childId },
-            $relation: [ { alias: 'anyNode', entity: '${closureTable}', joinType: 'CROSS JOIN', on: null } ],
-        }, { 
-            ancestorId: 'ancestorId',
-            'anyNode.descendantId': 'descendantId',
-            '::depth': 'depth',
+        return this.db.transaction_(async (db) => {
+            const ClosureTable = db.entity(closureTableInfo.entity);
+
+            const potentialCycle = await ClosureTable.findOne_({ 
+                $select: ['id'], 
+                $where: { descendantId: parentId, ancestorId: childId } 
+            });
+
+            if (potentialCycle != null) {
+                throw new ValidationError('Potential cycle detected from child to parent.', {
+                    entity: this.meta.name,
+                    parentId,
+                    childId
+                });
+            }
+            
+            return ClosureTable.createFrom_({
+                $select: [ 
+                    'ancestorId', 
+                    'anyNode.descendantId', 
+                    xrAlias(xrExpr(xrExpr(xrCol('depth'), '+', xrCol('anyNode.depth')), '+', 1), 'depth'), 
+                ],
+                $where: { 'descendantId': parentId, 'anyNode.ancestorId': childId },
+                $relation: [ { alias: 'anyNode', entity: '${closureTable}', joinType: 'CROSS JOIN', on: null } ],
+                $upsert: { depth: xrCall('LEAST', xrCol('depth'), xrCol('EXCLUDED.depth')) } 
+            }, { 
+                ancestorId: 'ancestorId',
+                'anyNode.descendantId': 'descendantId',
+                '::depth': 'depth',
+            });
         });
     }
 `;
@@ -240,7 +258,7 @@ const moveNode = (entity) => {
      * @returns {Promise<Object>} { data, affectedRows }.
      */
     async moveNode_(parentId, childId) {
-        this.db.transaction_(async (db) => {
+        return this.db.transaction_(async (db) => {
             const ${entityName} = db.entity('${entity.name}');
             await ${entityName}.removeSubTree_(childId);
             return ${entityName}.addChildNode_(parentId, childId);
@@ -262,6 +280,7 @@ const getChildren = (ancestorsAnchor) => `
             $where: { '${ancestorsAnchor}.ancestorId': currentId, '${ancestorsAnchor}.depth': 1  },
             $relation: ['${ancestorsAnchor}'],
             $skipOrm: true,
+            $skipOrmWarn: true,
         });
     }
 
@@ -289,6 +308,7 @@ const getParents = (descendantsAnchor) => `
             $where: { '${descendantsAnchor}.descendantId': currentId, '${descendantsAnchor}.depth': 1 },
             $relation: ['${descendantsAnchor}'],
             $skipOrm: true,
+            $skipOrmWarn: true,
         });
     }
 

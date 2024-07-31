@@ -3,7 +3,7 @@
 ## INSERT INTO ... SELECT ...
 
 ```js
-await ClosureTable.createFrom_(    
+await ClosureTable.createFrom_(
     {
         $select: [
             'ancestorId',
@@ -11,14 +11,16 @@ await ClosureTable.createFrom_(
             xrAlias(xrExpr(xrExpr(xrCol('depth'), '+', xrCol('anyNode.depth')), '+', 1), 'depth'),
         ],
         $where: { 'descendantId': parentId, 'anyNode.ancestorId': childId },
-        $relation: [{ alias: 'anyNode', entity: 'tagCategoryTree', joinType: 'CROSS JOIN', on: null }], // on == null will make the join before directly from        
-    }, {
+        $relation: [{ alias: 'anyNode', entity: 'tagCategoryTree', joinType: 'CROSS JOIN', on: null }],
+        $upsert: { depth: xrCall('LEAST', xrCol('depth'), xrCol('EXCLUDED.depth')) },
+    },
+    {
         'ancestorId': 'ancestorId',
         'anyNode.descendantId': 'descendantId',
-        '::depth': 'depth', // ::<column-name> means this an alias not a column of any existing table
+        '::depth': 'depth',
     }
 );
-// INSERT INTO "tagCategoryTree" ("ancestorId","descendantId","depth") SELECT A."ancestorId", anyNode."descendantId", ((A."depth" + anyNode."depth") + $1) AS "depth" FROM "tagCategoryTree" A , "tagCategoryTree" anyNode WHERE A."descendantId" = $2 AND anyNode."ancestorId" = $3
+// INSERT INTO "tagCategoryTree" ("ancestorId","descendantId","depth") SELECT A."ancestorId", anyNode."descendantId", ((A."depth" + anyNode."depth") + $1) AS "depth" FROM "tagCategoryTree" A , "tagCategoryTree" anyNode WHERE A."descendantId" = $2 AND anyNode."ancestorId" = $3 ON CONFLICT ("ancestorId","descendantId") DO UPDATE SET "depth" = LEAST("tagCategoryTree"."depth",EXCLUDED."depth")
 ```
 
 ## WHERE xxx IN (SELECT ...)

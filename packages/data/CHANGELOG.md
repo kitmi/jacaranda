@@ -1,5 +1,12 @@
 # @kitmi/data
 
+## 0.7.1
+
+### Patch Changes
+
+-   Add $upsert option for createFrom_ 
+-   Fix db.transaction_ bug.
+
 ## 0.7.0
 
 ### Minor Changes

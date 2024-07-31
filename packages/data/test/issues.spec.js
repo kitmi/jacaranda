@@ -65,21 +65,24 @@ describe('issues', function () {
 
     it('delete user in transaction', async function () {
         await tester.start_(async (app) => {
-            const db = app.db('test2');    
+            const db = app.db('test2');
             const User = db.entity('user');
-            await User.create_({
-                "email": "test2@wisley.ai",
-                ":profile": {
-                    "firstName": "思狸",
-                    "lastName": "唯",
-                    "dob": "2000-01-01",
-                    "gender": "male"
+            await User.create_(
+                {
+                    'email': 'test2@wisley.ai',
+                    ':profile': {
+                        firstName: '思狸',
+                        lastName: '唯',
+                        dob: '2000-01-01',
+                        gender: 'male',
+                    },
+                    'password': 'test',
+                    'isEmailVerified': true,
+                    'status': 'active',
+                    'isDeleted': false,
                 },
-                "password": "test",
-                "isEmailVerified": true,
-                "status": "active",       
-                "isDeleted": false       
-            }, { $upsert: true, $bypassReadOnly: new Set([ 'isDeleted' ]) });
+                { $upsert: true, $bypassReadOnly: new Set(['isDeleted']) }
+            );
 
             const { data: users } = await User.findMany_({});
 
@@ -100,8 +103,8 @@ describe('issues', function () {
                     if (1 !== retDeleteProfile['affectedRows']) {
                         throw new DatabaseError();
                     }
-                }    
-            });            
+                }
+            });
         });
     });
 });

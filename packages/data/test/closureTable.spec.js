@@ -96,7 +96,19 @@ describe('closureTable', function () {
             const result10 = await TagCategory.getTopNodes_();
             result10.data.length.should.equal(2);
 
+            const { data: tree } = await TagCategoryTree.findMany_({});
+            console.log({
+                root1,
+                id3,
+                id4,
+                tree,
+            });
+
+            // root1 -> id3 -> id4
             await TagCategory.moveNode_(root1, id4);
+            // root1 -> id3
+            // root1 -> id4
+
             const result11 = await TagCategory.getAllDescendants_(root1);
 
             result11.data.length.should.equal(3);
@@ -178,6 +190,42 @@ describe('closureTable', function () {
             result6.data[5].depth.should.equal(3);
             result6.data[6].depth.should.equal(3);
             result6.data[6].name.should.equal(result6.data[5].name);
+        });
+    });
+
+    it('directed graph', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db('test2');
+            const TagCategory = db.entity('tagCategory');
+
+            // root1
+            const { insertId: root1 } = await TagCategory.create_({
+                name: 'root 1',
+            });
+
+            const { insertId: id2 } = await TagCategory.create_({
+                name: 'node 2',
+            });
+
+            await TagCategory.addChildNode_(root1, id2);
+
+            const { insertId: id3 } = await TagCategory.create_({
+                name: 'node 3',
+            });
+
+            await TagCategory.addChildNode_(id2, id3);
+
+            await TagCategory.addChildNode_(root1, id3);
+            // root1 -> id2 -> id3
+            //       -> id3
+
+            const { data } = await TagCategory.getAllDescendants_(root1);
+
+            const parentsOfId3 = await TagCategory.getParentsId_(id3);
+            parentsOfId3.should.be.eql([root1, id2]);
+
+            const childrenOfRoot1 = await TagCategory.getChildrenId_(root1);
+            childrenOfRoot1.sort().should.be.eql([id2, id3]);
         });
     });
 });

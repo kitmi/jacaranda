@@ -586,7 +586,7 @@ class EntityModel {
                 if (shouldUpsert) {
                     let result = await this.db.connector.upsert_(
                         this.meta.name,
-                        dataForUpdating,
+                        typeof opOptions.$upsert === 'object' ? { ...dataForUpdating, ...opOptions.$upsert } : dataForUpdating,
                         uniqueKeys,
                         context.latest,
                         opOptions,
@@ -649,11 +649,14 @@ class EntityModel {
 
         const opOptions = context.options;
         opOptions.$skipOrm = true;
+        opOptions.$skipOrmWarn = true;
         this._normalizeReturning(opOptions, '$getCreated');
 
         await this.applyRules_(Rules.RULE_BEFORE_FIND, context);
 
         this._preProcessOptions(opOptions, false /* for single record */);
+
+        let uniqueKeys;
 
         _.each(columnMapping, (v, key) => {
             if (!key.startsWith('::') && !opOptions.$select.has(key)) {
@@ -664,11 +667,16 @@ class EntityModel {
             }
         });
 
+        if (opOptions.$upsert) {
+            uniqueKeys = this.getUniqueKeyFieldsFrom(_.invert(columnMapping));
+        }
+
         return this._safeExecute_(async () => {
             context.result = await this.db.connector.createFrom_(
                 this.meta.name,
                 opOptions,
-                columnMapping,
+                columnMapping,         
+                uniqueKeys,
                 this.db.transaction
             );
             context.latest = context.result.data;

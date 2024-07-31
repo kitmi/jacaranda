@@ -39,7 +39,7 @@ describe('query operators', function () {
             result2.data.length.should.be.exactly(count);
         });
     });
-  
+
     it('get jso  value', async function () {
         await tester.start_(async (app) => {
             const db = app.db();
@@ -63,11 +63,11 @@ describe('query operators', function () {
                 },
             });
 
-            const { data } = await Book.findMany_({                
+            const { data } = await Book.findMany_({
                 $select: ['*', xrGet('testJson', 'duration', 'duration')],
                 $orderBy: {
-                    duration: 1
-                }
+                    duration: 1,
+                },
             });
         });
     });

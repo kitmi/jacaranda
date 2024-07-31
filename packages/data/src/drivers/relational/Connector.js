@@ -664,7 +664,7 @@ class RelationalConnector extends Connector {
             const basePath = fieldName.substring(0, rpos);
 
             let aliasKey;
-
+            
             if (basePath.startsWith('_.')) {
                 aliasKey = basePath;
             } else {
@@ -1091,13 +1091,13 @@ class RelationalConnector extends Connector {
 
     _packSetValue(fieldName, value, params, mainEntity, aliasMap) {
         if (value == null) {
-            return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = NULL';
+            return this._escapeIdWithAlias(fieldName) + ' = NULL';
         }
 
         if (isPlainObject(value)) {
             if (value.$xr) {
                 return (
-                    this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                    this._escapeIdWithAlias(fieldName) +
                     ' = ' +
                     this._packValue(value, params, mainEntity, aliasMap)
                 );
@@ -1195,7 +1195,7 @@ class RelationalConnector extends Connector {
         }
 
         params.push(value);
-        return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + this.specParamToken;
+        return this._escapeIdWithAlias(fieldName) + ' = ' + this.specParamToken;
     }
 
     /**

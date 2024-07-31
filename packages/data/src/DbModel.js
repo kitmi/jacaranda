@@ -75,12 +75,18 @@ class DbModel {
      * @param {*} onRetry_
      */
     async transaction_(transactionFunc) {
+        if (this.transaction != null) {
+            // already in transaction
+            return transactionFunc(this);
+        }
+
         let db;
 
         try {
             db = this.fork(await this.connector.beginTransaction_());
-            await transactionFunc(db);
+            let result = await transactionFunc(db);
             await db.connector.commit_(db.transaction);
+            return result;
         } catch (error) {            
             db && (await db.connector.rollback_(db.transaction, error));
             throw error;
