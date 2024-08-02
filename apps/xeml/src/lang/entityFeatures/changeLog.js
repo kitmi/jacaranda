@@ -12,7 +12,7 @@ const FEATURE_NAME = 'changeLog';
 function feature(entity, args = []) {
     let [ options ] = args;
 
-    options = { storeEntity: 'changeLogs', ...options };
+    options = { storeEntity: 'changeLog', ...options };
 
     entity.addFeature(FEATURE_NAME, options);
 }

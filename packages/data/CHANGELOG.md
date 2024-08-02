@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.7.2
+
+### Patch Changes
+
+-   Refine $set operator for JSON type and array type
+
 ## 0.7.1
 
 ### Patch Changes

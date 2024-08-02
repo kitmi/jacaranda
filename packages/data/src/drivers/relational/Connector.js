@@ -664,7 +664,7 @@ class RelationalConnector extends Connector {
             const basePath = fieldName.substring(0, rpos);
 
             let aliasKey;
-            
+
             if (basePath.startsWith('_.')) {
                 aliasKey = basePath;
             } else {
@@ -694,7 +694,15 @@ class RelationalConnector extends Connector {
             return fieldName === '*' ? '*' : dontEscape ? fieldName : this.escapeId(fieldName);
         }
 
-        return this._buildAliasedColumn(aliasMap, aliasMap[mainEntity], mainEntity, fieldName, fieldName, dontEscape, disallowList);
+        return this._buildAliasedColumn(
+            aliasMap,
+            aliasMap[mainEntity],
+            mainEntity,
+            fieldName,
+            fieldName,
+            dontEscape,
+            disallowList
+        );
     }
 
     _buildAliasedColumn(aliasMap, alias, mainEntity, fieldName, actualFieldName, dontEscape, disallowList) {
@@ -1097,9 +1105,7 @@ class RelationalConnector extends Connector {
         if (isPlainObject(value)) {
             if (value.$xr) {
                 return (
-                    this._escapeIdWithAlias(fieldName) +
-                    ' = ' +
-                    this._packValue(value, params, mainEntity, aliasMap)
+                    this._escapeIdWithAlias(fieldName) + ' = ' + this._packValue(value, params, mainEntity, aliasMap)
                 );
             }
 
@@ -1120,43 +1126,9 @@ class RelationalConnector extends Connector {
                                     );
                                 }
 
-                                params.push(v.value);
-
-                                if (v.at) {
-                                    const dontEscape = true;
-                                    let index;
-
-                                    if (typeof v.at === 'object') {
-                                        if (v.at.$xr !== 'Column') {
-                                            throw new InvalidArgument(
-                                                'Invalid "$set" operator value. "$at" should be a column reference or one-based index literal.',
-                                                {
-                                                    value: v,
-                                                }
-                                            );
-                                        }
-
-                                        index = this._escapeIdWithAlias(v.at.name, mainEntity, aliasMap, dontEscape);
-                                    } else {
-                                        if (v.at <= 0) {
-                                            throw new InvalidArgument(
-                                                'Invalid "$set" operator value. "$at" should be a positive integer.',
-                                                {
-                                                    value: v,
-                                                }
-                                            );
-                                        }
-
-                                        index = v.at;
-                                    }
-
-                                    return (
-                                        this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
-                                        `[${index}] = ` +
-                                        this.specParamToken
-                                    );
-                                } else if (v.key) {
-                                    const accessor = v.key
+                                return _.map(v, (_v, _k) => {
+                                    params.push(_v);
+                                    const accessor = _k
                                         .split('.')
                                         .map((k) => `[${this.escapeValue(k)}]`)
                                         .join('');
@@ -1167,13 +1139,72 @@ class RelationalConnector extends Connector {
                                         ' = ' +
                                         this.specParamToken
                                     );
+                                }).join(', ');
+
+                            case '$setAt':
+                                if (typeof v !== 'object') {
+                                    throw new InvalidArgument(
+                                        'The value should be an object when using "$setAt" operator.',
+                                        {
+                                            value: v,
+                                        }
+                                    );
                                 }
 
-                                throw new InvalidArgument(
-                                    'Invalid "$set" operator value. Either "at" or "key" should be provided.',
-                                    {
-                                        value: v,
+                                params.push(v.value);
+
+                                const dontEscape = true;
+                                let index;
+
+                                if (typeof v.at === 'object') {
+                                    if (v.at.$xr !== 'Column') {
+                                        throw new InvalidArgument(
+                                            'Invalid "$set" operator value. "$at" should be a column reference or one-based index literal.',
+                                            {
+                                                value: v,
+                                            }
+                                        );
                                     }
+
+                                    index = this._escapeIdWithAlias(v.at.name, mainEntity, aliasMap, dontEscape);
+                                } else {
+                                    if (v.at <= 0) {
+                                        throw new InvalidArgument(
+                                            'Invalid "$set" operator value. "$at" should be a positive integer.',
+                                            {
+                                                value: v,
+                                            }
+                                        );
+                                    }
+
+                                    index = v.at;
+                                }
+
+                                return (
+                                    this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                    `[${index}] = ` +
+                                    this.specParamToken
+                                );
+
+                            case '$setSlice':
+                                if (typeof v !== 'object') {
+                                    throw new InvalidArgument(
+                                        'The value should be an object when using "$setSlice" operator.',
+                                        {
+                                            value: v,
+                                        }
+                                    );
+                                }
+
+                                const begin = v.begin > 0 ? `${v.begin}` : '';
+                                const end = v.end > 0 ? `:${v.end}` : ':';
+
+                                params.push(v.value);
+
+                                return (
+                                    this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                    `[${begin}${end}] = ` +
+                                    this.specParamToken
                                 );
 
                             default:
@@ -1402,7 +1433,10 @@ class RelationalConnector extends Connector {
         }
 
         if (Array.isArray(orderBy))
-            return 'ORDER BY ' + orderBy.map((by) => this._escapeIdWithAlias(by, mainEntity, aliasMap, null, true)).join(', ');
+            return (
+                'ORDER BY ' +
+                orderBy.map((by) => this._escapeIdWithAlias(by, mainEntity, aliasMap, null, true)).join(', ')
+            );
 
         if (isPlainObject(orderBy)) {
             return (

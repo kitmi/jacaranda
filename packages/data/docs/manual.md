@@ -93,14 +93,25 @@ When an app with the `db` feature enabled, database operation can be done as bel
 
 ## CRUD Operations 
 
--   async findOne_(findOptions)
--   async findMany_(findOptions)
--   async create_(data, createOptions)
--   async updateOne_(data, updateOptions)
--   async updateMany_(data, updateOptions)
--   async deleteOne_(deleteOptions)
--   async deleteMany_(deleteOptions)
--   async deleteAll_()
+- Retrieval
+  -   async findOne_(findOptions)
+  -   async findMany_(findOptions)
+  -   async findManyByPage_(findOptions, page, rowsPerPage)
+  
+- Creation  
+  -   async create_(data, createOptions)
+  -   async createFrom_(findOptions, columnMapping)
+  
+- Update  
+  -   async updateOne_(data, updateOptions)
+  -   async updateMany_(data, updateOptions)
+  
+Note: regarding the data, please refers to [Data to Update](#data-to-update)
+
+- Deletion  
+  -   async deleteOne_(deleteOptions)
+  -   async deleteMany_(deleteOptions)
+  -   async deleteAll_()
    
 -   Not implemented yet
     -   async createMany_(data /* array of object */, createOptions) 
@@ -569,7 +580,9 @@ entity.updateOne_({
 ```
 
 - Special Operators
-  - `$set`: { key, value } for jsonb field or { at, value } for array field
+  - `$set`: { key: value [, key2: value2, ...] } for jsonb field 
+  - `$setAt`: { at, value } for array field
+  - `$setSlice`: { begin, end, value } for update partial array field, value is an array
 
 ## Transaction
 

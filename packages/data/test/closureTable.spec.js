@@ -226,6 +226,9 @@ describe('closureTable', function () {
 
             const childrenOfRoot1 = await TagCategory.getChildrenId_(root1);
             childrenOfRoot1.sort().should.be.eql([id2, id3]);
+
+            const childrenOfRoot2 = await TagCategory.getChildrenId_(id2);
+            childrenOfRoot2.should.be.eql([id3]);
         });
     });
 });

@@ -637,6 +637,12 @@ class EntityModel {
         return context.result;
     }
 
+    /**
+     * Create a new entity with selecting data from database and return the created entity.
+     * @param {object} findOptions 
+     * @param {object} columnMapping - Column mapping from the selected data to the input of new entity
+     * @returns 
+     */
     async createFrom_(findOptions, columnMapping) {
         findOptions = this._wrapCtx(findOptions);
         findOptions = this._normalizeQuery(findOptions, false /* for single record */);
@@ -1120,7 +1126,7 @@ class EntityModel {
                         latest[fieldName] = null;
                     }
                 } else {
-                    if (typeof value === 'object' && (value.$xr || value.$set)) {
+                    if (typeof value === 'object' && (value.$xr || value.$set || value.$setAt || value.$setSlice)) {
                         latest[fieldName] = value;
 
                         return;

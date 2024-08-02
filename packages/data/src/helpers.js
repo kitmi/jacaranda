@@ -20,6 +20,10 @@ export const xrExpr = xrExpression;
 export const xrDataSet = (model, query, alias) => ({ $xr: 'DataSet', model, query: { $skipOrm: true, ...query }, alias });
 
 export const xrGet = (field, key, alias) => ({ $xr: 'OpGet', field, key, alias });
+export const xrSet = (obj) => ({ $set: obj });
+// 1-based index
+export const xrSetAt = (at, value) => ({ $setAt: { at, value } });
+export const xrSetSlice = (begin, end, array) => ({ $setSlice: { begin, end, value: array } });
 
 export const doInc = (field, increment) => xrExpr(xrCol(field), '+', increment);
 export const doDec = (field, decrement) => xrExpr(xrCol(field), '-', decrement);

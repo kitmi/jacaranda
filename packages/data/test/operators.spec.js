@@ -1,4 +1,4 @@
-import { xrRaw, xrGet } from '../src';
+import { xrRaw, xrGet, xrSet, xrSetAt, xrSetSlice } from '../src';
 
 let firstId;
 let lastId;
@@ -210,12 +210,10 @@ describe('query operators', function () {
 
             const { data } = await Book.updateOne_(
                 {
-                    testJson: {
-                        $set: {
-                            key: 'test.key2',
-                            value: 2,
-                        },
-                    },
+                    testJson: xrSet({
+                        duration: 30,
+                        'test.key2': 2
+                    })
                 },
                 {
                     $where: {
@@ -229,7 +227,7 @@ describe('query operators', function () {
                 id: insertId,
                 name: 'JSON Book',
                 desc: "This is a book with 'JSON' in its name",
-                testJson: { test: { key1: 1, key2: 2 }, duration: 20 },
+                testJson: { test: { key1: 1, key2: 2 }, duration: 30 },
             });
         });
     });
@@ -247,12 +245,7 @@ describe('query operators', function () {
 
             const { data } = await Book.updateOne_(
                 {
-                    array: {
-                        $set: {
-                            at: 2,
-                            value: 'value2',
-                        },
-                    },
+                    array: xrSetAt(2, 'value2'),
                 },
                 {
                     $where: {
@@ -267,6 +260,38 @@ describe('query operators', function () {
                 name: 'JSON Book',
                 desc: "This is a book with 'JSON' in its name",
                 array: ['value1', 'value2'],
+            });
+        });
+    });
+
+    it('set array slice', async function () {
+        await tester.start_(async (app) => {
+            const db = app.db();
+            const Book = db.entity('book3');
+
+            const { insertId } = await Book.create_({
+                name: 'JSON Book',
+                desc: "This is a book with 'JSON' in its name",
+                array: ['value1', 'value2', 'value3'],
+            });
+
+            const { data } = await Book.updateOne_(
+                {
+                    array: xrSetSlice(2, 3, ['set2', 'set3']),
+                },
+                {
+                    $where: {
+                        id: insertId,
+                    },
+                    $getUpdated: true,
+                }
+            );
+
+            data.should.be.eql({
+                id: insertId,
+                name: 'JSON Book',
+                desc: "This is a book with 'JSON' in its name",
+                array: ['value1', 'set2', 'set3'],
             });
         });
     });
