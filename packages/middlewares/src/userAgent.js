@@ -14,8 +14,9 @@ const userAgent = async (options, app) => {
     const clientHints = new ClientHints();
 
     return async (ctx, next) => {
-        const hints = clientHints.parse(ctx.headers);
-        const result = detector.detect(ctx.headers['user-agent'], hints);
+        const hints = clientHints.parse(ctx.headers);        
+        const _userAgent = ctx.headers['user-agent'];
+        const result = _userAgent ? detector.detect(_userAgent, hints) : {};
         ctx.request.ua = result;
         return next();
     };

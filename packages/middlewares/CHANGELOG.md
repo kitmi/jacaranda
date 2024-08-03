@@ -1,5 +1,11 @@
 # @kitmi/middlewares
 
+## 0.3.3
+
+### Patch Changes
+
+-   Fix: userAgent crash when API is called from supertest.
+
 ## 0.3.2
 
 ### Patch Changes
