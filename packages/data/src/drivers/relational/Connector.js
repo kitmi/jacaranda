@@ -1127,7 +1127,12 @@ class RelationalConnector extends Connector {
                                 }
 
                                 return _.map(v, (_v, _k) => {
-                                    params.push(_v);
+                                    if (typeof _v === 'string') {
+                                        _v = JSON.stringify(_v);
+                                    }
+
+                                    params.push(_v);                                    
+
                                     const accessor = _k
                                         .split('.')
                                         .map((k) => `[${this.escapeValue(k)}]`)

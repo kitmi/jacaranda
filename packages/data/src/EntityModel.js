@@ -775,7 +775,7 @@ class EntityModel {
                 }
 
                 const data = await this.findOne_(opOptions.$where);
-                context.result = { data };
+                context.result = { data, affectedRows: 0 };
             } else {
                 if (
                     needUpdateAssocs &&

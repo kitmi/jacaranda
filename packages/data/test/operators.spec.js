@@ -194,7 +194,7 @@ describe('query operators', function () {
         });
     });
 
-    it('set json value', async function () {
+    it.only('set json value', async function () {
         await tester.start_(async (app) => {
             const db = app.db();
             const Book = db.entity('book');
@@ -212,7 +212,9 @@ describe('query operators', function () {
                 {
                     testJson: xrSet({
                         duration: 30,
-                        'test.key2': 2
+                        'test.key2': 2,
+                        key3: 'string',
+                        key4: null,
                     })
                 },
                 {
@@ -227,7 +229,7 @@ describe('query operators', function () {
                 id: insertId,
                 name: 'JSON Book',
                 desc: "This is a book with 'JSON' in its name",
-                testJson: { test: { key1: 1, key2: 2 }, duration: 30 },
+                testJson: { test: { key1: 1, key2: 2 }, duration: 30, key3: 'string', key4: null },
             });
         });
     });

@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.7.3
+
+### Patch Changes
+
+-   Fix $set error for string value
+
 ## 0.7.2
 
 ### Patch Changes
