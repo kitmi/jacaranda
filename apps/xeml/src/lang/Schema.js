@@ -1,5 +1,6 @@
 const { _ } = require('@kitmi/utils');
 const { generateDisplayName, deepCloneField, Clonable, schemaNaming } = require('./XemlUtils');
+const { MetadataEntity } = require('./XemlTypes');
 
 /**
  * Geml schema class.
@@ -68,7 +69,9 @@ class Schema extends Clonable {
      * @returns {Schema}
      */
     link() {
-        pre: !this.linked;
+        if (this.linked) {
+            throw new Error(`Schema [${this.name}] already linked.`);
+        }
 
         this.linker.log('verbose', 'Linking schema [' + this.name + '] ...');
 
@@ -95,6 +98,15 @@ class Schema extends Clonable {
 
             this.addEntity(entity);
         });
+
+        if (!this.hasEntity(MetadataEntity)) {
+            let entity = this.linker.loadEntity(this.xemlModule, MetadataEntity);
+            if (!entity.linked) {
+                throw new Error(`Entity [${entity.name}] not linked after loading.`);
+            }
+
+            this.addEntity(entity);
+        }
 
         if (!_.isEmpty(this.info.views)) {
             this.info.views.forEach(viewName => {
@@ -226,7 +238,7 @@ class Schema extends Clonable {
 
             if (!entity.info.abstract && newlyAdded) {
                 newlyAdded.push(entity.name);
-                this.linker.log('info', `New entity "${entity.name}" added by association.`);
+                this.linker.log('verbose', `New entity "${entity.name}" added by association.`);
             }
         }
 
@@ -259,15 +271,22 @@ class Schema extends Clonable {
      * @returns {object}
      */
     toJSON() {
-        return {
+        const result = {
             name: this.name,
             displayName: this.displayName,
             comment: this.comment,        
             entities: _.mapValues(this.entities, entity => entity.toJSON()),   
             types: this.types,         
             datasets: _.mapValues(this.datasets, dataset => dataset.toJSON()), 
-            views: _.mapValues(this.views, view => view.toJSON()) 
+            views: _.mapValues(this.views, view => view.toJSON()),
         };
+
+        // extra metadata for storing in database
+        if (this.relations) {
+            result.relations = this.relations;
+        }            
+
+        return result;
     }
 }
 

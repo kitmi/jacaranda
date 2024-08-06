@@ -1,6 +1,7 @@
 const path = require('node:path');
-const { _, eachAsync_, quote, esmCheck } = require('@kitmi/utils');
+const { _, eachAsync_, quote, esmCheck, arrayToObject } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
+const { MetadataEntity } = require('../lang/XemlTypes');
 
 /**
  * Postgres migration.
@@ -75,8 +76,8 @@ class PostgresMigration {
 
             let sql = _.trim(fs.readFileSync(sqlFile, { encoding: 'utf8' }));
             if (sql) {
-                let result = await this.db.connector.execute_(sql);                        
-                this.app.log('info', `Database scripts "${sqlFile}" run successfully.`);                
+                await this.db.connector.execute_(sql);
+                this.app.log('info', `Database scripts "${sqlFile}" run successfully.`);
             }
         });
     }
@@ -214,7 +215,6 @@ class PostgresMigration {
     }
 
     async _loadRecordsByModel_(entityName, items, ignoreDuplicate) {
-
         const Entity = this.db.entity(entityName);
 
         return eachAsync_(items, async ({ $skipModifiers, $skipValidators, $update, ...item }) => {

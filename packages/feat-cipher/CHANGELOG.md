@@ -1,5 +1,11 @@
 # @kitmi/feat-cipher
 
+## 2.1.0
+
+### Minor Changes
+
+-   Add hashFiles_ function
+
 ## 2.0.0
 
 ### Patch Changes

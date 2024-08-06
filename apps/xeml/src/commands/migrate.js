@@ -1,8 +1,8 @@
-require('@swc-node/register');
 const path = require('node:path');
-const { _, eachAsync_, esmCheck } = require('@kitmi/utils');
+const { _, eachAsync_ } = require('@kitmi/utils');
 const { requireFrom } = require('@kitmi/sys');
-const { importDataFiles } = require('../utils/helpers');
+const Linker = require('../lang/Linker');
+const { importDataFiles, getVersionInfo, getSchemaDigest } = require('../utils/helpers');
 
 /**
  * Build database scripts and entity models from oolong files.
@@ -32,22 +32,63 @@ module.exports = async (app) => {
 
     app.registry.db = { ...app.registry.db, ...targetModule.databases };
 
-    if (reset) {
-        await eachAsync_(Object.keys(modelService.config.schemaSet).reverse(), async (schemaName) => {            
-            const db = app.db(schemaName);
-    
+    if (reset) {      
+        return eachAsync_(modelService.config.schemaSet, async (schemaConfig, schemaName) => {
+            const db = app.db(schemaName);        
+        
             const Migrator = require(`../migration/${db.driver}`);
             const migrator = new Migrator(app, modelService, db);
-
+    
             await migrator.reset_();    
+            await migrator.create_(schemaConfig.options);      
+    
+            try {
+                await importDataFiles(migrator, '_init');  
+            } catch (e) {
+                app.logError(e);
+            }
         });
-    }
+    } 
+
+    const schemaObjects = Linker.buildSchemaObjects(app, modelService.config);   
 
     return eachAsync_(modelService.config.schemaSet, async (schemaConfig, schemaName) => {
-        const db = app.db(schemaName);        
+        const db = app.db(schemaName);      
+
+        const schema = schemaObjects[schemaName];
+
+        if (!schema) {
+            throw new InvalidArgument(`Schema "${schemaName}" not found in xeml entry files."`, {
+                schemaName,
+                schemaPath: path.resolve(modelService.config.schemaPath)
+            });
+        }
+        
+        const verContent = getVersionInfo(modelService, schemaName);
+        
+        const DbModeler = require(`../modeler/database/${db.connector.driver}/Modeler`);
+        const dbModeler = new DbModeler(modelService, schema.linker, db.connector, schemaConfig.options);
+
+        const refinedSchema = await dbModeler.modeling_(schema, true);
+        const schemaJSON = refinedSchema.toJSON();
+        const digest = getSchemaDigest(schemaJSON);
+
+        if (digest !== verContent.digest) {
+            throw new Error(`Schema "${schemaName}" has been modified. Please rebuild the models.`);
+        }
+
+        await dbModeler.buildMigration_(db, schemaName, verContent, refinedSchema);
     
-        const Migrator = require(`../migration/${db.driver}`);
+        /*
+        const Migrator = require(`../migration/${db.driver}`); 
         const migrator = new Migrator(app, modelService, db);
+
+        if (!reset) {
+            
+
+            await migrator.preMigrate_(schemaName, verContent);
+            process.exit(0);
+        }
 
         await migrator.create_(schemaConfig.options);      
 
@@ -56,5 +97,8 @@ module.exports = async (app) => {
         } catch (e) {
             app.logError(e);
         }
+            */
     });
+
+    
 };

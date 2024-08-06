@@ -41,15 +41,21 @@ async function startWorker(worker, options) {
 
         return result;
     } catch (error) {
+        if (app.started) {
+            try {
+                await app.stop_();
+            } catch (_e) {
+            }
+        }
+
         if (throwOnError) {
             throw error;
         }
 
         // eslint-disable-next-line no-undef
         console.error(verbose ? error : error.message);
-
         process.exit(1);
-    }
+    } 
 }
 
 export default startWorker;

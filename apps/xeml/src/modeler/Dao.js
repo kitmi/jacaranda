@@ -79,7 +79,6 @@ class DaoModeler {
         this.modelService = modelService;
         this.linker = linker;
         this.outputPath = modelService.config.modelPath;
-        this.manifestPath = modelService.config.manifestPath;
 
         this.connector = connector;
     }
@@ -94,10 +93,6 @@ class DaoModeler {
         this._generateEntityViews(schema);
         //
         //this._generateViewModel();
-
-        if (this.manifestPath) {
-            this._generateEntityManifest(schema);
-        }
     }
 
     _featureReducer(schema, entity, featureName, feature) {
@@ -154,6 +149,9 @@ class DaoModeler {
                     Methods.getParents(feature.relation),
                 ];
 
+            case 'isCacheTable':
+                break;
+
             default:
                 throw new Error('Unsupported feature "' + featureName + '".');
         }
@@ -185,8 +183,7 @@ class DaoModeler {
 
     _generateEnumTypes(schema, versionInfo) {
         //build types defined outside of entity
-        _.forOwn(schema.types, (location, type) => {
-            const typeInfo = schema.linker.getTypeInfo(type, location);
+        _.forOwn(schema.types, (typeInfo, type) => {
             if (typeInfo.enum && Array.isArray(typeInfo.enum)) {
                 const capitalized = naming.pascalCase(type);
 
@@ -253,11 +250,23 @@ class DaoModeler {
             if (entity.baseClasses) {
                 modelMeta.baseClasses = entity.baseClasses;
 
-                if (entity.baseClasses.includes('messageQueue')) {
+                if (entity.baseClasses.includes('_messageQueue')) {
                     extraMethods.push(Methods.popJob(this.connector, entityInstanceName));
                     extraMethods.push(Methods.postJob());
                     extraMethods.push(Methods.jobDone());
                     extraMethods.push(Methods.jobFail());
+                    extraMethods.push(Methods.retry());
+                }
+
+                if (entity.baseClasses.includes('_deferredQueue')) {
+                    extraMethods.push(
+                        ...[
+                            Methods.postDeferredJob(),
+                            Methods.removeExpiredJobs(),
+                            Methods.getDueJobs(),
+                            Methods.getBatchStatus(),
+                        ]
+                    );
                 }
             }
 
@@ -297,16 +306,6 @@ class DaoModeler {
             const staticLines = [];
             const importBucket = {};
 
-            if (entityInstanceName === 'deferredQueue') {
-                extraMethods.push(
-                    ...[
-                        Methods.postDeferredJob(),
-                        Methods.removeExpiredJobs(),
-                        Methods.getDueJobs(),
-                        Methods.getBatchStatus(),
-                    ]
-                );
-            }
             importLines.push(JsLang.astToCode(Snippets.importFromData()));
 
             //generate functors if any
@@ -522,116 +521,6 @@ class DaoModeler {
                 this.linker.log('info', 'Generated entity views data set: ' + inputSchemaFilePath);
             }
         });
-    }
-
-    _generateEntityManifest(schema) {
-        /*
-        let manifest = {};
-
-        _.each(schema.entities, (entity, entityName) => {
-            if (entity.info.restful) {
-                _.each(entity.info.restful, ({ type, methods }, relativeUri) => {                    
-                    let apiInfo = {
-                        type,
-                        methods: {}                                            
-                    };
-
-                    if (type === 'entity') {
-                        apiInfo.entity = entityName;
-                        apiInfo.displayName = entity.displayName;
-
-                        if (entity.comment) {
-                            apiInfo.description = entity.comment;
-                        }
-                    }
-
-                    _.each(methods, (meta, methodName) => {
-
-                        switch (methodName) {
-                            case 'create':
-                                apiInfo.methods['post:' + relativeUri] = meta;
-                            break;
-
-                            case 'findOne':
-                            break;
-
-                            case 'fineAll':
-                            break;
-
-                            case 'updateOne':
-                            break;
-
-                            case 'updateMany':
-                            break;
-
-                            case 'deleteOne':
-                            break;
-
-                            case 'deleteMany':
-                            break;
-                        }
-
-                    });
-                });
-            }
-        });
-        */
-
-        /*
-        let outputFilePath = path.resolve(this.manifestPath, schema.name + '.manifest.json');
-        fs.ensureFileSync(outputFilePath);
-        fs.writeFileSync(outputFilePath, JSON.stringify(entities, null, 4));
-
-        this.linker.log('info', 'Generated schema manifest: ' + outputFilePath);
-        */
-
-        const diagram = {};
-
-        //generate validator config
-        _.forOwn(schema.entities, (entity, entityInstanceName) => {
-            /*
-            let validationSchema = {};
-
-            _.forOwn(entity.fields, (field, fieldName) => {
-                if (field.readOnly) return;
-
-                let fieldSchema = {
-                    type: field.type,
-                };
-
-                if (field.type === "enum") {
-                    fieldSchema.values = field.values;
-                }
-
-                if (field.optional) {
-                    fieldSchema.optional = true;
-                }
-
-                validationSchema[fieldName] = fieldSchema;
-            });
-            */
-
-            diagram[entityInstanceName] = entity.toJSON();
-
-            /*
-            let entityOutputFilePath = path.resolve(
-                this.manifestPath,
-                schema.name,
-                "validation",
-                entityInstanceName + ".manifest.json"
-            );
-            fs.ensureFileSync(entityOutputFilePath);
-            fs.writeFileSync(entityOutputFilePath, JSON.stringify(validationSchema, null, 4));
-
-            this.linker.log("info", "Generated entity manifest: " + entityOutputFilePath);
-            */
-        });
-
-        let diagramOutputFilePath = path.resolve(this.manifestPath, schema.name, 'diagram.json');
-        fs.ensureFileSync(diagramOutputFilePath);
-        fs.writeFileSync(diagramOutputFilePath, JSON.stringify(diagram, null, 4));
-
-        this.linker.log('info', 'Generated schema manifest: ' + diagramOutputFilePath);
     }
 
     /*

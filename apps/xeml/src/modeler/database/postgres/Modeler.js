@@ -3,6 +3,7 @@ const path = require('node:path');
 
 const { _, isPlainObject, isEmpty, pushIntoBucket, get, naming, bin2Hex, suffixForDuplicate } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
+const { hashFiles_ } = require('@kitmi/feat-cipher');
 
 const XemlUtils = require('../../../lang/XemlUtils');
 const XemlTypes = require('../../../lang/XemlTypes');
@@ -23,7 +24,7 @@ class PostgresModeler {
     /**
      * @param {object} modelService
      * @param {Linker} linker - Xeml DSL linker
-     * @param {Connector} connector - Generated script path
+     * @param {Connector} connector - Connector for database
      * @param {object} dbOptions
      * @property {object} dbOptions.db
      * @property {object} dbOptions.table
@@ -47,11 +48,12 @@ class PostgresModeler {
         this._relationEntities = {};
         this._processedRef = new Set();
         this._sequenceRestart = [];
+        this._entitySequences = {};
 
         this.warnings = {};
     }
 
-    modeling(schema, skipGeneration) {
+    async modeling_(schema, skipGeneration) {
         if (!skipGeneration) {
             this.linker.log('info', 'Generating postgres scripts for schema "' + schema.name + '"...');
         }
@@ -101,193 +103,15 @@ class PostgresModeler {
         const triggers = [];
 
         _.each(modelingSchema.entities, (entity, entityName) => {
-            if (entityName !== entity.name) {
-                throw new Error(
-                    `Entity name "${entity.name}" does not match the entity name "${entityName}" in the schema.`
-                );
-            }
-            //mapOfEntityNameToCodeName[entityName] = entity.code;
-
-            entity.addIndexes();
-
-            let result = this.complianceCheck(entity);
-            if (result.errors.length) {
-                let message = '';
-                if (result.warnings.length > 0) {
-                    message += 'Warnings: \n' + result.warnings.join('\n') + '\n';
-                }
-                message += result.errors.join('\n');
-
-                throw new Error(message);
-            }
-
-            if (entity.baseClasses) {
-                if (entity.baseClasses.includes('messageQueue')) {
-                    const snakeName = naming.snakeCase(entityName);
-                    extraFunctions.push(`CREATE OR REPLACE FUNCTION get_task_from_${snakeName}(task_name TEXT)
-RETURNS SETOF "${entityName}" AS $$
-DECLARE
-    _task "${entityName}"%ROWTYPE;
-BEGIN    
-    WITH task AS (
-        SELECT *
-        FROM "${entityName}"
-        WHERE status = 'pending' 
-            AND (task_name IS NULL OR name = task_name)
-        FOR UPDATE SKIP LOCKED
-        LIMIT 1
-    )
-    UPDATE "${entityName}"
-    SET status = 'running'
-    WHERE id = (SELECT id FROM task)
-    RETURNING *
-    INTO _task;
-
-    IF _task.id IS NOT NULL THEN
-        RETURN NEXT _task;
-    ELSE
-        RETURN;
-    END IF;
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error processing task: %', SQLERRM;
-        RETURN;    
-END;
-$$ LANGUAGE plpgsql;`);
-                }
-            }
-
-            if (entity.features) {
-                _.forOwn(entity.features, (f, featureName) => {
-                    if (Array.isArray(f)) {
-                        f.forEach((ff) => this._featureReducer(modelingSchema, entity, featureName, ff));
-                    } else {
-                        this._featureReducer(modelingSchema, entity, featureName, f);
-                    }
-
-                    if (featureName === 'updateTimestamp') {
-                        const entitiAsPrefix = naming.snakeCase(entityName);
-                        let tsField = f.field;
-                        let callFunction = `update_timestamp`;
-                        if (tsField !== 'updatedAt') {
-                            // non-default field name
-                            callFunction = `${entitiAsPrefix}_update_ts`;
-                            extraFunctions.push(`CREATE OR REPLACE FUNCTION ${entitiAsPrefix}_update_ts()
-RETURNS TRIGGER AS $$
-BEGIN    
-    NEW.${this.connector.escapeId(tsField)} = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;`);
-                        }
-
-                        triggers.push(`CREATE TRIGGER ${entitiAsPrefix}_set_update_ts
-BEFORE UPDATE ON ${this.connector.escapeId(entityName)}
-FOR EACH ROW
-EXECUTE FUNCTION ${callFunction}();`);
-                    }
-                });
-            }
-
-            // add enum types
-            _.each(entity.fields, (field, name) => {
-                if (field.enum) {
-                    let enumName = prefixNaming(entity.name, name);
-
-                    if (schema.types[enumName]) {
-                        this.warnings[
-                            enumName
-                        ] = `Enum type "${enumName}" already exists. The one in entity "${entity.name}" will be renamed.`;
-
-                        enumName = suffixForDuplicate(enumName, (newName) => newName in schema.types);
-                    }
-
-                    schema.types[enumName] = _.omit(field, ['name']);
-                    field.domain = enumName;
-
-                    tableSQL += `-- Create Enum Type\nCREATE TYPE ${enumName} AS ENUM (${field.enum
-                        .map((v) => `'${v}'`)
-                        .join(', ')});\n\n`;
-                }
-            });
-
-            if (!skipGeneration) {
-                tableSQL += this._createTableStatement(entityName, entity /*, mapOfEntityNameToCodeName*/) + '\n';
-
-                if (entity.info.data) {
-                    entity.info.data.forEach(({ dataSet, runtimeEnv, records }) => {
-                        //intiSQL += `-- Initial data for entity: ${entityName}\n`;
-
-                        let entityData = [];
-
-                        if (Array.isArray(records)) {
-                            records.forEach((record) => {
-                                if (!isPlainObject(record)) {
-                                    let fields = Object.keys(entity.fields);
-                                    if (fields.length !== 2) {
-                                        throw new Error(
-                                            `Invalid data syntax: entity "${entity.name}" has more than 2 fields.`
-                                        );
-                                    }
-
-                                    let keyField = entity.fields[fields[0]];
-
-                                    if (!keyField.auto && !keyField.autoByDb) {
-                                        throw new Error(
-                                            `The key field "${entity.name}" has no default value or auto-generated value.`
-                                        );
-                                    }
-
-                                    record = { [fields[1]]: this.linker.translateXemlValue(entity.xemlModule, record) };
-                                } else {
-                                    record = this.linker.translateXemlValue(entity.xemlModule, record);
-                                }
-
-                                entityData.push(record);
-                            });
-                        } else {
-                            _.forOwn(records, (record, key) => {
-                                if (!isPlainObject(record)) {
-                                    let fields = Object.keys(entity.fields);
-                                    if (fields.length !== 2) {
-                                        throw new Error(
-                                            `Invalid data syntax: entity "${entity.name}" has more than 2 fields.`
-                                        );
-                                    }
-
-                                    record = {
-                                        [entity.key]: key,
-                                        [fields[1]]: this.linker.translateXemlValue(entity.xemlModule, record),
-                                    };
-                                } else {
-                                    record = Object.assign(
-                                        { [entity.key]: key },
-                                        this.linker.translateXemlValue(entity.xemlModule, record)
-                                    );
-                                }
-
-                                entityData.push(record);
-                                //intiSQL += 'INSERT INTO `' + entityName + '` SET ' + _.map(record, (v,k) => '`' + k + '` = ' + JSON.stringify(v)).join(', ') + ';\n';
-                            });
-                        }
-
-                        if (!isEmpty(entityData)) {
-                            dataSet || (dataSet = '_init');
-                            runtimeEnv || (runtimeEnv = 'default');
-
-                            let nodes = [dataSet, runtimeEnv];
-
-                            nodes.push(entityName);
-
-                            let key = nodes.join('.');
-
-                            pushIntoBucket(data, key, entityData, true);
-                        }
-                    });
-
-                    //intiSQL += '\n';
-                }
-            }
+            const entitySQL = this._generateEntityScripts(
+                modelingSchema,
+                entity,
+                entityName,
+                data,
+                extraFunctions,
+                triggers
+            );
+            tableSQL += entitySQL;
         });
 
         if (!skipGeneration) {
@@ -303,59 +127,14 @@ EXECUTE FUNCTION ${callFunction}();`);
                             srcEntityName,
                             ref
                             /*, mapOfEntityNameToCodeName*/
-                        ) + '\n';
+                        ) + '\n\n';
                 });
             });
 
             this._writeFile(path.join(this.outputPath, dbFilePath), tableSQL);
             this._writeFile(path.join(this.outputPath, fkFilePath), relationSQL);
 
-            let initIdxFiles = {};
-
-            if (!isEmpty(data)) {
-                _.forOwn(data, (envData, dataSet) => {
-                    _.forOwn(envData, (entitiesData, runtimeEnv) => {
-                        _.forOwn(entitiesData, (records, entityName) => {
-                            let initFileName = `0-${entityName}.json`;
-
-                            let pathNodes = [sqlFilesDir, 'data', dataSet || '_init'];
-
-                            if (runtimeEnv !== 'default') {
-                                pathNodes.push(runtimeEnv);
-                            }
-
-                            let initFilePath = path.join(...pathNodes, initFileName);
-                            let idxFilePath = path.join(...pathNodes, 'index.list');
-
-                            pushIntoBucket(initIdxFiles, [idxFilePath], initFileName);
-
-                            this._writeFile(
-                                path.join(this.outputPath, initFilePath),
-                                JSON.stringify({ [entityName]: records }, null, 4)
-                            );
-                        });
-                    });
-                });
-            }
-
-            //console.dir(initIdxFiles, {depth: 10});
-
-            _.forOwn(initIdxFiles, (list, filePath) => {
-                let idxFilePath = path.join(this.outputPath, filePath);
-
-                let manual = [];
-
-                if (fs.existsSync(idxFilePath)) {
-                    let lines = fs.readFileSync(idxFilePath, 'utf8').split('\n');
-                    lines.forEach((line) => {
-                        if (!line.startsWith('0-')) {
-                            manual.push(line);
-                        }
-                    });
-                }
-
-                this._writeFile(idxFilePath, list.concat(manual).join('\n'));
-            });
+            this._generateDataFiles(data, sqlFilesDir);
 
             let funcSQL = '-- ON UPDATE SET CURRENT_TIMESTAMP\n\n'; //'CREATE LANGUAGE plpgsql; \n\n';
 
@@ -406,7 +185,483 @@ $$ LANGUAGE plpgsql;\n\n`;
             }
         }
 
+        // calc hash
+        const sqlFiles = ['entities.sql', 'sequence.sql', 'relations.sql', 'procedures.sql', 'triggers.sql'];
+        const dbhash = await hashFiles_('sha256', sqlFilesDir, sqlFiles);
+
+        this._events.once('metadata', (codeVersionInfo) => {
+            // write metadata
+            const initFileName = `0-${XemlTypes.MetadataEntity}.json`;
+            const initDataDir = path.join(sqlFilesDir, 'data', '_init');
+            let initFilePath = path.join(initDataDir, initFileName);
+            let idxFilePath = path.join(this.outputPath, initDataDir, 'index.list');
+
+            this._writeFile(
+                path.join(this.outputPath, initFilePath),
+                JSON.stringify(
+                    {
+                        [XemlTypes.MetadataEntity]: {
+                            name: schema.name,
+                            dbHash: dbhash,
+                            codeVersion: codeVersionInfo.version,
+                            codeHash: codeVersionInfo.digest,
+                            schema: JSON.stringify(codeVersionInfo.schema),
+                        },
+                    },
+                    null,
+                    4
+                )
+            );
+
+            // append to index
+            const indexFile = fs.readFileSync(idxFilePath, 'utf8');
+            this._writeFile(idxFilePath, `${initFileName}\n${indexFile}`);
+        });
+
+        modelingSchema.relations = this._references;
+
         return modelingSchema;
+    }
+
+    _generateDataFiles(data, sqlFilesDir) {
+        let initIdxFiles = {};
+
+        if (!isEmpty(data)) {
+            _.forOwn(data, (envData, dataSet) => {
+                _.forOwn(envData, (entitiesData, runtimeEnv) => {
+                    _.forOwn(entitiesData, (records, entityName) => {
+                        let initFileName = `0-${entityName}.json`;
+
+                        let pathNodes = [sqlFilesDir, 'data', dataSet || '_init'];
+
+                        if (runtimeEnv !== 'default') {
+                            pathNodes.push(runtimeEnv);
+                        }
+
+                        let initFilePath = path.join(...pathNodes, initFileName);
+                        let idxFilePath = path.join(...pathNodes, 'index.list');
+
+                        pushIntoBucket(initIdxFiles, [idxFilePath], initFileName);
+
+                        this._writeFile(
+                            path.join(this.outputPath, initFilePath),
+                            JSON.stringify({ [entityName]: records }, null, 4)
+                        );
+                    });
+                });
+            });
+        }
+
+        //console.dir(initIdxFiles, {depth: 10});
+        _.forOwn(initIdxFiles, (list, filePath) => {
+            let idxFilePath = path.join(this.outputPath, filePath);
+
+            let manual = [];
+
+            if (fs.existsSync(idxFilePath)) {
+                let lines = fs.readFileSync(idxFilePath, 'utf8').split('\n');
+                lines.forEach((line) => {
+                    if (!line.startsWith('0-')) {
+                        manual.push(line);
+                    }
+                });
+            }
+
+            this._writeFile(idxFilePath, list.concat(manual).join('\n'));
+        });
+    }
+
+    writeMetadata(codeVersionInfo, schema) {
+        this._events.emit('metadata', { ...codeVersionInfo, schema });
+    }
+
+    async getCurrentSchema_(db, schemaName) {
+        const Metadata = db.entity(XemlTypes.MetadataEntity);
+        const metadata = await Metadata.findOne_({
+            $where: { name: schemaName },
+        });
+
+        metadata.schema = JSON.parse(metadata.schema);
+
+        // Get tables and columns
+        /*
+        const tablesAndColumns = await this.db.connector.execute_(`
+          SELECT table_name, column_name, data_type
+          FROM information_schema.columns
+          WHERE table_schema = '${this.db.connector.collection}'
+          ORDER BY table_name, ordinal_position
+        `);
+
+        // Get indexes
+        const indexes = await this.db.connector.execute_(`
+          SELECT indexname, tablename, indexdef
+          FROM pg_indexes
+          WHERE schemaname = 'public'
+        `);
+
+        // Get comments
+        const comments = await this.db.connector.execute_(`
+          SELECT c.table_name, c.column_name, pgd.description
+          FROM pg_catalog.pg_statio_all_tables AS st
+          INNER JOIN pg_catalog.pg_description pgd ON (pgd.objoid = st.relid)
+          INNER JOIN information_schema.columns c ON (
+            pgd.objsubid = c.ordinal_position AND
+            c.table_schema = st.schemaname AND
+            c.table_name = st.relname
+          )
+          WHERE st.schemaname = '${this.db.connector.collection}'
+        `);
+
+        // Get functions
+        const functions = await this.db.connector.execute_(`
+          SELECT proname, prosrc
+          FROM pg_proc
+          INNER JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace
+          WHERE nspname = '${this.db.connector.collection}'
+        `);
+
+        const triggers = await this.db.connector.execute_(`
+            SELECT 
+              tgname AS trigger_name,
+              relname AS table_name,
+              pg_get_triggerdef(pg_trigger.oid) AS trigger_definition
+            FROM pg_trigger
+            JOIN pg_class ON pg_trigger.tgrelid = pg_class.oid
+            WHERE tgisinternal = false AND relnamespace = '${this.db.connector.collection}'::regnamespace
+          `);
+          */
+
+        return metadata;
+    }
+
+    async buildMigration_(db, schemaName, verContent, targetSchema) {
+        //let sqlFiles = ['entities.sql', 'sequence.sql', 'relations.sql', 'procedures.sql', 'triggers.sql'];
+
+        const { codeVersion: currentVersion, schema: currentSchema } = await this.getCurrentSchema_(db, schemaName);
+
+        const sqlFilesDir = path.join('postgres', currentSchema.name, `v${currentVersion}-v${verContent.version}`);
+
+        let migrationScript = '';
+
+        // Find tables to create
+        const currentTables = new Set(Object.keys(currentSchema.entities));
+        const targetTableArray = Object.keys(targetSchema.entities);
+
+        const tablesToCreate = targetTableArray.filter((table) => !currentTables.has(table));
+
+        let data = {};
+
+        const functions = [];
+        const triggers = [];
+        const sequences = [];
+
+        // create table
+        tablesToCreate.forEach((tableName) => {
+            const table = targetSchema.entities[tableName];
+            migrationScript +=
+                this._generateEntityScripts(targetSchema, table, tableName, data, functions, triggers) + '\n';
+            if (this._entitySequences[tableName] != null) {
+                sequences.push(this._sequenceRestart[this._entitySequences[tableName]]);
+            }
+        });
+
+        // todo: alter table contraints
+
+        // alter column
+        // Find columns to add, modify, or remove
+        /*
+                currentTables.forEach((table) => {
+                    let migrationScript = '';
+                    if (targetTables.has(table)) {
+                        const currentCols = currentSchema.filter((row) => row.table_name === table);
+                        const targetCols = targetSchema.filter((row) => row.table_name === table);
+        
+                        // Columns to add
+                        const colsToAdd = targetCols.filter(
+                            (col) => !currentCols.some((c) => c.column_name === col.column_name)
+                        );
+                        colsToAdd.forEach((col) => {
+                            migrationScript += `ALTER TABLE ${table} ADD COLUMN ${col.column_name} ${col.data_type};\n`;
+                        });
+        
+                        // Columns to modify
+                        const colsToModify = targetCols.filter((col) =>
+                            currentCols.some((c) => c.column_name === col.column_name && c.data_type !== col.data_type)
+                        );
+                        colsToModify.forEach((col) => {
+                            migrationScript += `ALTER TABLE ${table} ALTER COLUMN ${col.column_name} TYPE ${col.data_type};\n`;
+                        });
+        
+                        // Columns to remove
+                        const colsToRemove = currentCols.filter(
+                            (col) => !targetCols.some((c) => c.column_name === col.column_name)
+                        );
+                        colsToRemove.forEach((col) => {
+                            migrationScript += `ALTER TABLE ${table} DROP COLUMN ${col.column_name};\n`;
+                        });
+                    }
+                });
+                */
+
+        if (sequences.length > 0) {
+            migrationScript += sequences.join('\n\n');
+        }
+
+        _.forOwn(this._references, (refs, srcEntityName) => {
+            const currentRelations = currentSchema.relations?.[srcEntityName];
+
+            if (currentRelations) {
+                _.each(refs, (ref) => {
+                    const foundRelation = currentRelations.find((r) => r.leftField === ref.leftField);
+                    if (foundRelation) {
+                        if (foundRelation.rightField !== ref.rightField || foundRelation.right !== ref.right || !_.isEqual(foundRelation.constraints, ref.constraints)) {
+                            migrationScript +=
+                                this._dropForeignKeyStatement(srcEntityName, ref) +
+                                '\n' +
+                                this._addForeignKeyStatement(srcEntityName, ref) +
+                                '\n\n';
+                        } 
+                    } else {
+                        migrationScript += this._addForeignKeyStatement(srcEntityName, ref) + '\n\n';
+                    }
+                });
+            } else {
+                _.each(refs, (ref) => {
+                    migrationScript += this._addForeignKeyStatement(srcEntityName, ref) + '\n\n';
+                });
+            }
+        });
+
+        this._generateDataFiles(data, sqlFilesDir);
+
+        const filePath = path.join(sqlFilesDir, 'up.sql');
+        this._writeFile(path.join(this.outputPath, filePath), migrationScript);
+    }
+
+    _generateFunctionMigrations(currentFunctions, targetFunctions) {
+        let script = '';
+        targetFunctions.forEach((func) => {
+            const params = func.parameters.map((p) => `${p.name} ${p.type}`).join(', ');
+            script += `CREATE OR REPLACE FUNCTION ${func.functionName}(${params}) RETURNS ${func.returnType} AS $$\n`;
+            script += func.body;
+            script += `\n$$ LANGUAGE plpgsql;\n\n`;
+        });
+        return script;
+    }
+
+    _generateTriggerMigrations(currentTriggers, targetTriggers) {
+        let script = '';
+
+        // Drop removed triggers
+        currentTriggers.forEach((trigger) => {
+            if (!targetTriggers.some((tt) => tt.triggerName === trigger.trigger_name)) {
+                script += `DROP TRIGGER IF EXISTS ${trigger.trigger_name} ON ${trigger.table_name};\n`;
+            }
+        });
+
+        // Create new triggers or replace existing ones
+        targetTriggers.forEach((trigger) => {
+            script += `CREATE OR REPLACE TRIGGER ${trigger.triggerName}\n`;
+            script += `${trigger.timing} ${trigger.events.join(' OR ')}\n`;
+            script += `ON ${trigger.tableName}\n`;
+            if (trigger.forEachRow) {
+                script += `FOR EACH ROW\n`;
+            }
+            if (trigger.whenCondition) {
+                script += `WHEN (${trigger.whenCondition})\n`;
+            }
+            script += `EXECUTE FUNCTION ${trigger.functionName}();\n\n`;
+        });
+
+        return script;
+    }
+
+    _generateEntityScripts(modelingSchema, entity, entityName, data, functions, triggers) {
+        let tableSQL = '';
+
+        if (entityName !== entity.name) {
+            throw new Error(
+                `Entity name "${entity.name}" does not match the entity name "${entityName}" in the schema.`
+            );
+        }
+        //mapOfEntityNameToCodeName[entityName] = entity.code;
+
+        entity.addIndexes();
+
+        let result = this.complianceCheck(entity);
+        if (result.errors.length) {
+            let message = '';
+            if (result.warnings.length > 0) {
+                message += 'Warnings: \n' + result.warnings.join('\n') + '\n';
+            }
+            message += result.errors.join('\n');
+
+            throw new Error(message);
+        }
+
+        if (entity.baseClasses) {
+            if (entity.baseClasses.includes('_messageQueue')) {
+                const snakeName = naming.snakeCase(entityName);
+                functions.push(`CREATE OR REPLACE FUNCTION get_task_from_${snakeName}(task_name TEXT)
+RETURNS SETOF "${entityName}" AS $$
+DECLARE
+_task "${entityName}"%ROWTYPE;
+BEGIN    
+WITH task AS (
+    SELECT *
+    FROM "${entityName}"
+    WHERE status = 'pending' 
+        AND (task_name IS NULL OR name = task_name)
+    FOR UPDATE SKIP LOCKED
+    LIMIT 1
+)
+UPDATE "${entityName}"
+SET status = 'running'
+WHERE id = (SELECT id FROM task)
+RETURNING *
+INTO _task;
+
+IF _task.id IS NOT NULL THEN
+    RETURN NEXT _task;
+ELSE
+    RETURN;
+END IF;
+EXCEPTION
+WHEN OTHERS THEN
+    RAISE NOTICE 'Error processing task: %', SQLERRM;
+    RETURN;    
+END;
+$$ LANGUAGE plpgsql;`);
+            }
+        }
+
+        if (entity.features) {
+            _.forOwn(entity.features, (f, featureName) => {
+                if (Array.isArray(f)) {
+                    f.forEach((ff) => this._featureReducer(modelingSchema, entity, featureName, ff));
+                } else {
+                    this._featureReducer(modelingSchema, entity, featureName, f);
+                }
+
+                if (featureName === 'updateTimestamp') {
+                    const entitiAsPrefix = naming.snakeCase(entityName);
+                    let tsField = f.field;
+                    let callFunction = `update_timestamp`;
+                    if (tsField !== 'updatedAt') {
+                        // non-default field name
+                        callFunction = `${entitiAsPrefix}_update_ts`;
+                        functions.push(`CREATE OR REPLACE FUNCTION ${entitiAsPrefix}_update_ts()
+RETURNS TRIGGER AS $$
+BEGIN    
+NEW.${this.connector.escapeId(tsField)} = CURRENT_TIMESTAMP;
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;`);
+                    }
+
+                    triggers.push(`CREATE TRIGGER ${entitiAsPrefix}_set_update_ts
+BEFORE UPDATE ON ${this.connector.escapeId(entityName)}
+FOR EACH ROW
+EXECUTE FUNCTION ${callFunction}();`);
+                }
+            });
+        }
+
+        // add enum types
+        _.each(entity.fields, (field, name) => {
+            if (field.enum) {
+                let enumName = prefixNaming(entity.name, name);
+
+                if (modelingSchema.types[enumName]) {
+                    this.warnings[
+                        enumName
+                    ] = `Enum type "${enumName}" already exists. The one in entity "${entity.name}" will be renamed.`;
+
+                    enumName = suffixForDuplicate(enumName, (newName) => newName in modelingSchema.types);
+                }
+
+                modelingSchema.types[enumName] = _.omit(field, ['name']);
+                field.domain = enumName;
+
+                tableSQL += `-- Create Enum Type\nCREATE TYPE ${enumName} AS ENUM (${field.enum
+                    .map((v) => `'${v}'`)
+                    .join(', ')});\n\n`;
+            }
+        });
+
+        tableSQL += this._createTableStatement(entityName, entity /*, mapOfEntityNameToCodeName*/) + '\n';
+
+        if (entity.info.data) {
+            entity.info.data.forEach(({ dataSet, runtimeEnv, records }) => {
+                //intiSQL += `-- Initial data for entity: ${entityName}\n`;
+
+                let entityData = [];
+
+                if (Array.isArray(records)) {
+                    records.forEach((record) => {
+                        if (!isPlainObject(record)) {
+                            let fields = Object.keys(entity.fields);
+                            if (fields.length !== 2) {
+                                throw new Error(`Invalid data syntax: entity "${entity.name}" has more than 2 fields.`);
+                            }
+
+                            let keyField = entity.fields[fields[0]];
+
+                            if (!keyField.auto && !keyField.autoByDb) {
+                                throw new Error(
+                                    `The key field "${entity.name}" has no default value or auto-generated value.`
+                                );
+                            }
+
+                            record = { [fields[1]]: this.linker.translateXemlValue(entity.xemlModule, record) };
+                        } else {
+                            record = this.linker.translateXemlValue(entity.xemlModule, record);
+                        }
+
+                        entityData.push(record);
+                    });
+                } else {
+                    _.forOwn(records, (record, key) => {
+                        if (!isPlainObject(record)) {
+                            let fields = Object.keys(entity.fields);
+                            if (fields.length !== 2) {
+                                throw new Error(`Invalid data syntax: entity "${entity.name}" has more than 2 fields.`);
+                            }
+
+                            record = {
+                                [entity.key]: key,
+                                [fields[1]]: this.linker.translateXemlValue(entity.xemlModule, record),
+                            };
+                        } else {
+                            record = Object.assign(
+                                { [entity.key]: key },
+                                this.linker.translateXemlValue(entity.xemlModule, record)
+                            );
+                        }
+
+                        entityData.push(record);
+                        //intiSQL += 'INSERT INTO `' + entityName + '` SET ' + _.map(record, (v,k) => '`' + k + '` = ' + JSON.stringify(v)).join(', ') + ';\n';
+                    });
+                }
+
+                if (!isEmpty(entityData)) {
+                    dataSet || (dataSet = '_init');
+                    runtimeEnv || (runtimeEnv = 'default');
+
+                    let nodes = [dataSet, runtimeEnv];
+
+                    nodes.push(entityName);
+
+                    let key = nodes.join('.');
+
+                    pushIntoBucket(data, key, entityData, true);
+                }
+            });
+
+            //intiSQL += '\n';
+        }
+
+        return tableSQL;
     }
 
     _toColumnReference(name) {
@@ -476,7 +731,9 @@ $$ LANGUAGE plpgsql;\n\n`;
      */
     _processAssociation(schema, entity, assoc, assocNames, pendingEntities) {
         let entityKeyField = entity.getKeyField();
-        assert: !Array.isArray(entityKeyField);
+        if (Array.isArray(entityKeyField)) {
+            throw new Error(`Entity "${entity.name}" with combination primary key is not supported.`);
+        }
 
         this.linker.log('debug', `Processing "${entity.name}" ${JSON.stringify(assoc)}`);
 
@@ -576,13 +833,17 @@ $$ LANGUAGE plpgsql;\n\n`;
                         // one/many to one/many relation
 
                         let connectedByParts = assoc.by.split('.');
-                        assert: connectedByParts.length <= 2;
+                        if (connectedByParts.length > 2) {
+                            throw new Error('Invalid "connectedBy" value in association. Entity: ' + entity.name);
+                        }
 
                         // connected by field is usually a refersTo assoc
                         let connectedByField = (connectedByParts.length > 1 && connectedByParts[1]) || entity.name;
                         let connEntityName = XemlUtils.entityNaming(connectedByParts[0]);
 
-                        assert: connEntityName;
+                        if (!connEntityName) {
+                            throw new Error('Invalid "connectedBy" entity in association. Entity: ' + entity.name);
+                        }
 
                         let tag1 = `${entity.name}:${assoc.type === 'hasMany' ? 'm' : '1'}-${destEntityName}:${
                             backRef.type === 'hasMany' ? 'n' : '1'
@@ -1078,7 +1339,9 @@ $$ LANGUAGE plpgsql;\n\n`;
             return;
         }
 
-        assert: typeof leftField === 'string';
+        if (typeof leftField !== 'string') {
+            throw new Error('Invalid left field: ' + leftField);
+        }
 
         let refs4LeftEntity = this._references[left];
         if (!refs4LeftEntity) {
@@ -1155,6 +1418,7 @@ $$ LANGUAGE plpgsql;\n\n`;
                         this._sequenceRestart.push(
                             `ALTER SEQUENCE ${this.connector.escapeId(seqId)} RESTART WITH ${feature.startFrom};`
                         );
+                        this._entitySequences[entity.name] = this._sequenceRestart.length - 1;
                     }
                 }
                 break;
@@ -1207,6 +1471,9 @@ $$ LANGUAGE plpgsql;\n\n`;
                 break;
 
             case 'hasClosureTable':
+                break;
+
+            case 'isCacheTable':
                 break;
 
             default:
@@ -1476,7 +1743,9 @@ $$ LANGUAGE plpgsql;\n\n`;
     }*/
 
     _createTableStatement(entityName, entity /*, mapOfEntityNameToCodeName*/) {
-        let sql = '-- Create Table\nCREATE TABLE IF NOT EXISTS ' + this.connector.escapeId(entityName) + ' (\n';
+        const unlogged = entity.hasFeature('isCacheTable') ? ' UNLOGGED' : '';
+        let sql =
+            `-- Create Table\nCREATE${unlogged} TABLE IF NOT EXISTS ` + this.connector.escapeId(entityName) + ' (\n';
 
         //column definitions
         _.each(entity.fields, (field, name) => {
@@ -1576,7 +1845,7 @@ $$ LANGUAGE plpgsql;\n\n`;
         return sql;
     }
 
-    _addForeignKeyStatement(entityName, relation /*, mapOfEntityNameToCodeName*/) {
+    _addForeignKeyStatement(entityName, relation) {
         let refTable = relation.right;
 
         if (refTable.indexOf('.') > 0) {
@@ -1606,6 +1875,15 @@ $$ LANGUAGE plpgsql;\n\n`;
             ') ';
 
         sql += `ON UPDATE ${relation.constraints.onUpdate} ON DELETE ${relation.constraints.onDelete};\n`;
+
+        return sql;
+    }
+
+    _dropForeignKeyStatement(entityName, relation) {
+        let keyName = `${entityName}_${relation.leftField}_fkey`;
+
+        let sql =
+            'ALTER TABLE ' + this.quoteIdentifier(entityName) + ' DROP CONSTRAINT ' + this.quoteIdentifier(keyName);
 
         return sql;
     }

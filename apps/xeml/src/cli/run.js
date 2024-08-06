@@ -11,26 +11,38 @@ async function run(cli, command) {
         process.chdir(path.resolve(cli.option('w')));
     }
 
+    const verboseMode = cli.option('verbose');
+
     let cmdMethod_ = require('../commands/' + command);
 
-    await startWorker(cmdMethod_, {
-        workerName: cli.app.name,
-        configPath,
-        configType,
-        configName,
-        verbose: cli.option('verbose'),
-        disableEnvAwareConfig: !cli.option('ec'),
+    try {
+        await startWorker(cmdMethod_, {
+            workerName: cli.app.name,
+            configPath,
+            configType,
+            configName,
+            verbose: verboseMode,
+            disableEnvAwareConfig: !cli.option('ec'),
+            throwOnError: true,
 
-        registry: {
-            features: {
-                dataModel,
-                dataSource,
-                db
+            registry: {
+                features: {
+                    dataModel,
+                    dataSource,
+                    db
+                },
             },
-        },
 
-        argv: cli.argv
-    });
+            argv: cli.argv
+        });
+    } catch (error) {
+        if (verboseMode) {
+            cli.app.logError(error);
+        } else {
+            cli.app.log('error', error.message);
+        }
+        process.exit(1);
+    }
 }
 
 module.exports = run;

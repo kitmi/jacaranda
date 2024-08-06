@@ -214,6 +214,7 @@ class Entity extends Clonable {
                         throw new Error(`Unknown feature "${featureName}" reference in entity "${this.name}"`);
                     }
                 }
+                
                 fn(this, this.linker.translateXemlValue(this.xemlModule, feature.args));
             });
         }

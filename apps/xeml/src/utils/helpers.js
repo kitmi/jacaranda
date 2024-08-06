@@ -1,25 +1,26 @@
 const path = require('node:path');
 const { _, eachAsync_ } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
+const { hash } = require('@kitmi/feat-cipher');
 
 exports.throwIfFileNotExist = (name, filePath) => {
     if (!fs.existsSync(filePath)) {
         throw new Error(`Path [${name}="${filePath}"] not exist.`);
     }
-}
+};
 
 /**
  * Get default reverse output path.
- * @param {string} prefix 
- * @param {bool} override 
+ * @param {string} prefix
+ * @param {bool} override
  * @returns {string} Output path of xeml generated files.
  */
 exports.getDateNamedDir = (baseDir, prefix, override) => {
     let now = new Date();
 
-    (prefix == null) && (prefix = '');
+    prefix == null && (prefix = '');
 
-    let folder = `${prefix}${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
+    let folder = `${prefix}${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
     let outputDir = path.join(baseDir, folder);
 
     if (override) return outputDir;
@@ -41,10 +42,10 @@ async function importDataFilesByList(migrator, dataSetPath, dataListFile, ignore
         return;
     }
 
-    return eachAsync_(dataList, async line => {
+    return eachAsync_(dataList, async (line) => {
         line = line.trim();
 
-        if (line.length > 0 && line[0] !== '#') {            
+        if (line.length > 0 && line[0] !== '#') {
             let dataFile = path.join(dataSetPath, line);
             if (!fs.existsSync(dataFile)) {
                 throw new Error(`Data file "${dataFile}" not found.`);
@@ -52,7 +53,7 @@ async function importDataFilesByList(migrator, dataSetPath, dataListFile, ignore
 
             await migrator.load_(dataFile, ignoreDuplicate);
         }
-    }); 
+    });
 }
 
 exports.importDataFiles = async function (migrator, folderName, ignoreDuplicate) {
@@ -61,28 +62,48 @@ exports.importDataFiles = async function (migrator, folderName, ignoreDuplicate)
 
     let dataListFile = path.join(dataSetPath, 'index.list');
 
-    let runtimeDataSetPath, stageDataSetFile, imported = false;    
+    let runtimeDataSetPath,
+        stageDataSetFile,
+        imported = false;
 
     if (process.env.STAGE_ENV) {
-        runtimeDataSetPath = path.join(dataSetPath, process.env.STAGE_ENV);        
+        runtimeDataSetPath = path.join(dataSetPath, process.env.STAGE_ENV);
         stageDataSetFile = path.join(runtimeDataSetPath, 'index.list');
-    }    
+    }
 
     if (fs.existsSync(dataListFile)) {
-        await importDataFilesByList(migrator, dataSetPath, dataListFile, ignoreDuplicate);      
-        imported = true;  
+        await importDataFilesByList(migrator, dataSetPath, dataListFile, ignoreDuplicate);
+        imported = true;
     } else {
-        migrator.app.log('warn', `Dataset index file "${dataListFile}" not exist.`)
+        migrator.app.log('warn', `Dataset index file "${dataListFile}" not exist.`);
     }
-    
+
     if (stageDataSetFile && fs.existsSync(stageDataSetFile)) {
-        await importDataFilesByList(migrator, runtimeDataSetPath, stageDataSetFile, ignoreDuplicate);    
-        imported = true;      
+        await importDataFilesByList(migrator, runtimeDataSetPath, stageDataSetFile, ignoreDuplicate);
+        imported = true;
     } else if (process.env.STAGE_ENV) {
-        migrator.app.log(imported ? 'info' : 'warn', `Dataset index file of "${process.env.STAGE_ENV}" stage env "${stageDataSetFile}" not exist.`)
+        migrator.app.log(
+            imported ? 'info' : 'warn',
+            `Dataset index file of "${process.env.STAGE_ENV}" stage env "${stageDataSetFile}" not exist.`
+        );
     }
-    
+
     if (!imported) {
         throw new Error(`Entry file of dataset "${folderName}" not found.`);
-    }    
+    }
+};
+
+exports.getVersionInfo = (modelService, schemaName) => {
+    const verFile = path.resolve(modelService.config.migrationPath, schemaName + '.ver.json');
+    return fs.existsSync(verFile) ? JSON.parse(fs.readFileSync(verFile, 'utf8')) : { version: 0 };
+};
+
+exports.writeVersionInfo = (modelService, schemaName, verContent) => {
+    const verFile = path.resolve(modelService.config.migrationPath, schemaName + '.ver.json');
+    fs.writeFileSync(verFile, JSON.stringify(verContent, null, 4));
+};
+
+exports.getSchemaDigest = (schemaJSON) => {
+    const stringifiedContent = JSON.stringify(schemaJSON);
+    return hash('sha256', stringifiedContent);
 }

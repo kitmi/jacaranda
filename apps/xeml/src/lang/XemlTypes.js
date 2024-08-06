@@ -33,7 +33,8 @@ const XemlTypes = {
         VALIDATOR: 'Validator',
         PROCESSOR: 'Processor',
         ACTIVATOR: 'Activator'
-    })
+    }),
+    MetadataEntity: 'jacaranda',
 };
 
 XemlTypes.ModifiersList = Object.values(XemlTypes.Modifier);

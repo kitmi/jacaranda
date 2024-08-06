@@ -28,7 +28,6 @@ module.exports = async (app) => {
 
     await batchAsync_(schemaObjects, async (schema, schemaName) => {      
         deleted = await del([
-            path.join(modelService.config.manifestPath, schemaName,  '*.json'),
             path.join(modelService.config.modelPath, schemaName, 'views', '*.json'),
         ]);
         deleted.forEach(file => app.log('info', `Deleted "${file}".`));

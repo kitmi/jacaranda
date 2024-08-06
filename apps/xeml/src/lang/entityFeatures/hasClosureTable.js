@@ -16,6 +16,11 @@ function feature(entity, args = []) {
         throw new Error('Missing the associated closure table name.');
     }
 
+    const closureTableEntity = entity.getReferencedEntity(closureTable);
+    if (!closureTableEntity.baseClasses.find(base => base.name === 'closureTable')) {        
+        throw new Error(`Entity "${closureTable}" referenced by "hasClosureTable" feature of "${entity.name}" is not a closure table.`);
+    }
+
     const assocInfo = entity.info.associations.find((a) => a.destEntity === closureTable && a.remoteField === 'ancestorId'); 
     const reverseInfo = entity.info.associations.find((a) => a.destEntity === closureTable && a.remoteField === 'descendantId'); 
 

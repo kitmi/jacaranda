@@ -19,6 +19,7 @@
 - [ ] add triggers for calculated fields 
 - [ ] triggers for insert and update - (update timestamp finished)
 - [ ] data template
+- [ ] activator on update only
 
 ## Planned features
 

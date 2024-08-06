@@ -343,10 +343,11 @@ const postJob = () => {
      * Post a new task.
      * @param {string} jobName - The job name.
      * @param {object} data - The job data.
+     * @param {object} extraFields - Extra job fields.
      * @returns {Promise<Object>} { data }.
      */
-    async postJob_(jobName, data) {
-        return this.create_({ name: jobName, data }, { $getCreated: true });
+    async postJob_(jobName, data, extraFields) {
+        return this.create_({ name: jobName, data, ...extraFields }, { $getCreated: true });
     }
 `;
 };
@@ -372,7 +373,27 @@ const jobFail = () => {
      * @returns {Promise<Object>} { data }.
      */
     async fail_(jobId, error) {
-        return this.updateOne_({ status: 'failed', error }, { $where: { id: jobId }, $getUpdated: true });
+        return this.updateOne_({ status: 'failed', errors: { $setAt: { at: xrCol('currentRetry'), value: error } } }, { $where: { id: jobId }, $getUpdated: true });
+    }
+`;
+};
+
+const retry = () => {
+    return `
+    /**
+     * Mark a task to retry from failed status.
+     * @param {integer} jobId
+     * @returns {Promise<Object>} { data }.
+     */
+    async retry_(jobId) {
+        const result = await this.updateOne_({ status: 'pending', currentRetry: xrExpr(xrCol('currentRetry'), '+', 1) }, { $where: { id: jobId, status: 'failed', currentRetry: { $lt: xrCol('maxRetry') } }, $getUpdated: true });
+        if (affectedRows === 0) {
+            const job = result.data;
+            if (job.currentRetry >= job.maxRetry) {
+                throw new ValidationError('Max retry reached.', { entity: this.meta.name, job });
+            }
+        }
+        return result;
     }
 `;
 };
@@ -496,6 +517,7 @@ module.exports = {
     postJob,
     jobDone,
     jobFail,
+    retry,
     postDeferredJob,
     removeExpiredJobs,
     getDueJobs,
