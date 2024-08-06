@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.7.0
+
+### Minor Changes
+
+-   Add incremental migration.
+
 ## 0.6.1
 
 ### Patch Changes

@@ -82,6 +82,23 @@ class PostgresMigration {
         });
     }
 
+    async up_(versionDir) {
+        let sqlFiles = ['up.sql'];
+
+        return eachAsync_(sqlFiles, async (file) => {
+            let sqlFile = path.join(this.scriptPath, versionDir, file);
+            if (!fs.existsSync(sqlFile)) {
+                throw new Error(`Migration script "${sqlFile}" not found.`);
+            }
+
+            let sql = _.trim(fs.readFileSync(sqlFile, { encoding: 'utf8' }));
+            if (sql) {
+                await this.db.connector.execute_(sql);
+                this.app.log('info', `Database scripts "${sqlFile}" run successfully.`);
+            }
+        });
+    }
+
     async load_(dataFile, ignoreDuplicate) {
         let ext = path.extname(dataFile);
         this.app.log('verbose', `Loading data file "${dataFile}" ...`);

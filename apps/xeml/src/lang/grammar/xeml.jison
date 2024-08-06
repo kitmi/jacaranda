@@ -1712,6 +1712,7 @@ literal_and_value_expression
 general_function_call
     : identifier "(" gfc_param_list ")" -> { name: $1, args: $3 }
     | NAMESPACED "(" gfc_param_list ")" -> { name: $1, args: $3 }
+    | DOTNAME "(" gfc_param_list ")" -> { name: $1, args: $3 }
     ;        
 
 gfc_param_list

@@ -1,5 +1,5 @@
 const path = require('node:path');
-const { _, eachAsync_ } = require('@kitmi/utils');
+const { _, eachAsync_, isEmpty } = require('@kitmi/utils');
 const { requireFrom } = require('@kitmi/sys');
 const Linker = require('../lang/Linker');
 const { importDataFiles, getVersionInfo, getSchemaDigest } = require('../utils/helpers');
@@ -77,28 +77,17 @@ module.exports = async (app) => {
             throw new Error(`Schema "${schemaName}" has been modified. Please rebuild the models.`);
         }
 
-        await dbModeler.buildMigration_(db, schemaName, verContent, refinedSchema);
+        const versionDir = await dbModeler.buildMigration_(db, schemaName, verContent, refinedSchema);
+
+        if (!isEmpty(dbModeler.warnings)) {
+            Object.values(dbModeler.warnings).forEach(warning => app.log('warn', warning));
+        }
+
+        dbModeler.writeMetadata(verContent, schemaJSON);
     
-        /*
-        const Migrator = require(`../migration/${db.driver}`); 
+        const Migrator = require(`../migration/${db.driver}`);
         const migrator = new Migrator(app, modelService, db);
-
-        if (!reset) {
-            
-
-            await migrator.preMigrate_(schemaName, verContent);
-            process.exit(0);
-        }
-
-        await migrator.create_(schemaConfig.options);      
-
-        try {
-            await importDataFiles(migrator, '_init');  
-        } catch (e) {
-            app.logError(e);
-        }
-            */
-    });
-
     
+        await migrator.up_(versionDir);      
+    });    
 };

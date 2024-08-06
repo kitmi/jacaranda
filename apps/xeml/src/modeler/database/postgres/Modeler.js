@@ -335,7 +335,7 @@ $$ LANGUAGE plpgsql;\n\n`;
     }
 
     async buildMigration_(db, schemaName, verContent, targetSchema) {
-        //let sqlFiles = ['entities.sql', 'sequence.sql', 'relations.sql', 'procedures.sql', 'triggers.sql'];
+        this.warnings = {};
 
         const { codeVersion: currentVersion, schema: currentSchema } = await this.getCurrentSchema_(db, schemaName);
 
@@ -356,55 +356,58 @@ $$ LANGUAGE plpgsql;\n\n`;
         const sequences = [];
 
         // create table
-        tablesToCreate.forEach((tableName) => {
-            const table = targetSchema.entities[tableName];
+        tablesToCreate.forEach((entityName) => {
+            const entity = targetSchema.entities[entityName];
             migrationScript +=
-                this._generateEntityScripts(targetSchema, table, tableName, data, functions, triggers) + '\n';
-            if (this._entitySequences[tableName] != null) {
-                sequences.push(this._sequenceRestart[this._entitySequences[tableName]]);
+                this._generateEntityScripts(targetSchema, entity, entityName, data, functions, triggers) + '\n';
+            if (this._entitySequences[entityName] != null) {
+                sequences.push(this._sequenceRestart[this._entitySequences[entityName]]);
             }
         });
 
         // todo: alter table contraints
 
+        // add enum types
+        _.each(targetSchema.types, (field, enumName) => {
+            const currentEnum = currentSchema.types[enumName];
+
+            if (currentEnum == null) {
+                migrationScript += this._addEnumType(enumName, field);
+            } else {
+                if (!_.isEqual(currentEnum.enum, field.enum)) {
+                    // todo: add customized rules for renaming
+
+                    // otherwises, compare one by one and ALTER TYPE name ADD VALUE [ IF NOT EXISTS ] new_enum_value [ { BEFORE | AFTER } neighbor_enum_value ]
+                    field.enum.forEach((v) => {
+                        if (!currentEnum.enum.includes(v)) {
+                            migrationScript += `ALTER TYPE ${enumName} ADD VALUE '${v}';\n`;
+                        }
+                    });
+                }
+            }
+        });
+
         // alter column
-        // Find columns to add, modify, or remove
-        /*
-                currentTables.forEach((table) => {
-                    let migrationScript = '';
-                    if (targetTables.has(table)) {
-                        const currentCols = currentSchema.filter((row) => row.table_name === table);
-                        const targetCols = targetSchema.filter((row) => row.table_name === table);
-        
-                        // Columns to add
-                        const colsToAdd = targetCols.filter(
-                            (col) => !currentCols.some((c) => c.column_name === col.column_name)
-                        );
-                        colsToAdd.forEach((col) => {
-                            migrationScript += `ALTER TABLE ${table} ADD COLUMN ${col.column_name} ${col.data_type};\n`;
-                        });
-        
-                        // Columns to modify
-                        const colsToModify = targetCols.filter((col) =>
-                            currentCols.some((c) => c.column_name === col.column_name && c.data_type !== col.data_type)
-                        );
-                        colsToModify.forEach((col) => {
-                            migrationScript += `ALTER TABLE ${table} ALTER COLUMN ${col.column_name} TYPE ${col.data_type};\n`;
-                        });
-        
-                        // Columns to remove
-                        const colsToRemove = currentCols.filter(
-                            (col) => !targetCols.some((c) => c.column_name === col.column_name)
-                        );
-                        colsToRemove.forEach((col) => {
-                            migrationScript += `ALTER TABLE ${table} DROP COLUMN ${col.column_name};\n`;
-                        });
-                    }
-                });
-                */
+        _.each(currentSchema.entities, (currentEntity, entityName) => {
+            const targetEntity = targetSchema.entities[entityName];
+
+            if (targetEntity) {
+                if (targetEntity.baseClasses) {
+                    this._generateBuiltinFunctions(targetEntity, entityName, functions);
+                }
+
+                if (targetEntity.features) {
+                    _.each(targetEntity.features, (f, featureName) => {
+                        this._generateFeatureFunctions(featureName, entityName, f, functions, triggers);
+                    });
+                }
+
+                migrationScript += this._alterTableStatement(entityName, targetEntity, currentEntity);
+            }
+        });
 
         if (sequences.length > 0) {
-            migrationScript += sequences.join('\n\n');
+            migrationScript += sequences.join('\n\n') + '\n\n';
         }
 
         _.forOwn(this._references, (refs, srcEntityName) => {
@@ -414,28 +417,42 @@ $$ LANGUAGE plpgsql;\n\n`;
                 _.each(refs, (ref) => {
                     const foundRelation = currentRelations.find((r) => r.leftField === ref.leftField);
                     if (foundRelation) {
-                        if (foundRelation.rightField !== ref.rightField || foundRelation.right !== ref.right || !_.isEqual(foundRelation.constraints, ref.constraints)) {
+                        if (
+                            foundRelation.rightField !== ref.rightField ||
+                            foundRelation.right !== ref.right ||
+                            !_.isEqual(foundRelation.constraints, ref.constraints)
+                        ) {
                             migrationScript +=
                                 this._dropForeignKeyStatement(srcEntityName, ref) +
                                 '\n' +
                                 this._addForeignKeyStatement(srcEntityName, ref) +
                                 '\n\n';
-                        } 
+                        }
                     } else {
-                        migrationScript += this._addForeignKeyStatement(srcEntityName, ref) + '\n\n';
+                        migrationScript += this._addForeignKeyStatement(srcEntityName, ref) + '\n';
                     }
                 });
             } else {
                 _.each(refs, (ref) => {
-                    migrationScript += this._addForeignKeyStatement(srcEntityName, ref) + '\n\n';
+                    migrationScript += this._addForeignKeyStatement(srcEntityName, ref) + '\n';
                 });
             }
         });
 
         this._generateDataFiles(data, sqlFilesDir);
 
+        if (functions.length > 0) {
+            migrationScript += functions.join('\n\n') + '\n\n';
+        }
+
+        if (triggers.length > 0) {
+            migrationScript += triggers.join('\n\n') + '\n\n';
+        }
+
         const filePath = path.join(sqlFilesDir, 'up.sql');
         this._writeFile(path.join(this.outputPath, filePath), migrationScript);
+
+        return sqlFilesDir;
     }
 
     _generateFunctionMigrations(currentFunctions, targetFunctions) {
@@ -500,39 +517,7 @@ $$ LANGUAGE plpgsql;\n\n`;
         }
 
         if (entity.baseClasses) {
-            if (entity.baseClasses.includes('_messageQueue')) {
-                const snakeName = naming.snakeCase(entityName);
-                functions.push(`CREATE OR REPLACE FUNCTION get_task_from_${snakeName}(task_name TEXT)
-RETURNS SETOF "${entityName}" AS $$
-DECLARE
-_task "${entityName}"%ROWTYPE;
-BEGIN    
-WITH task AS (
-    SELECT *
-    FROM "${entityName}"
-    WHERE status = 'pending' 
-        AND (task_name IS NULL OR name = task_name)
-    FOR UPDATE SKIP LOCKED
-    LIMIT 1
-)
-UPDATE "${entityName}"
-SET status = 'running'
-WHERE id = (SELECT id FROM task)
-RETURNING *
-INTO _task;
-
-IF _task.id IS NOT NULL THEN
-    RETURN NEXT _task;
-ELSE
-    RETURN;
-END IF;
-EXCEPTION
-WHEN OTHERS THEN
-    RAISE NOTICE 'Error processing task: %', SQLERRM;
-    RETURN;    
-END;
-$$ LANGUAGE plpgsql;`);
-            }
+            this._generateBuiltinFunctions(entity, entityName, functions);
         }
 
         if (entity.features) {
@@ -543,27 +528,7 @@ $$ LANGUAGE plpgsql;`);
                     this._featureReducer(modelingSchema, entity, featureName, f);
                 }
 
-                if (featureName === 'updateTimestamp') {
-                    const entitiAsPrefix = naming.snakeCase(entityName);
-                    let tsField = f.field;
-                    let callFunction = `update_timestamp`;
-                    if (tsField !== 'updatedAt') {
-                        // non-default field name
-                        callFunction = `${entitiAsPrefix}_update_ts`;
-                        functions.push(`CREATE OR REPLACE FUNCTION ${entitiAsPrefix}_update_ts()
-RETURNS TRIGGER AS $$
-BEGIN    
-NEW.${this.connector.escapeId(tsField)} = CURRENT_TIMESTAMP;
-RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;`);
-                    }
-
-                    triggers.push(`CREATE TRIGGER ${entitiAsPrefix}_set_update_ts
-BEFORE UPDATE ON ${this.connector.escapeId(entityName)}
-FOR EACH ROW
-EXECUTE FUNCTION ${callFunction}();`);
-                }
+                this._generateFeatureFunctions(featureName, entityName, f, functions, triggers);
             });
         }
 
@@ -583,9 +548,7 @@ EXECUTE FUNCTION ${callFunction}();`);
                 modelingSchema.types[enumName] = _.omit(field, ['name']);
                 field.domain = enumName;
 
-                tableSQL += `-- Create Enum Type\nCREATE TYPE ${enumName} AS ENUM (${field.enum
-                    .map((v) => `'${v}'`)
-                    .join(', ')});\n\n`;
+                tableSQL += this._addEnumType(enumName, field);
             }
         });
 
@@ -662,6 +625,72 @@ EXECUTE FUNCTION ${callFunction}();`);
         }
 
         return tableSQL;
+    }
+
+    _addEnumType(enumName, field) {
+        return `-- Create Enum Type\nCREATE TYPE ${enumName} AS ENUM (${field.enum
+            .map((v) => `'${v}'`)
+            .join(', ')});\n\n`;
+    }
+
+    _generateFeatureFunctions(featureName, entityName, feature, functions, triggers) {
+        if (featureName === 'updateTimestamp') {
+            const entitiAsPrefix = naming.snakeCase(entityName);
+            let tsField = feature.field;
+            let callFunction = `update_timestamp`;
+            if (tsField !== 'updatedAt') {
+                // non-default field name
+                callFunction = `${entitiAsPrefix}_update_ts`;
+                functions.push(`CREATE OR REPLACE FUNCTION ${entitiAsPrefix}_update_ts()
+RETURNS TRIGGER AS $$
+BEGIN    
+    NEW.${this.connector.escapeId(tsField)} = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;\n`);
+            }
+
+            triggers.push(`CREATE OR REPLACE TRIGGER ${entitiAsPrefix}_set_update_ts
+BEFORE UPDATE ON ${this.connector.escapeId(entityName)}
+FOR EACH ROW
+EXECUTE FUNCTION ${callFunction}();\n`);
+        }
+    }
+
+    _generateBuiltinFunctions(entity, entityName, functions) {
+        if (entity.baseClasses.includes('_messageQueue')) {
+            const snakeName = naming.snakeCase(entityName);
+            functions.push(`CREATE OR REPLACE FUNCTION get_task_from_${snakeName}(task_name TEXT)
+RETURNS SETOF "${entityName}" AS $$
+DECLARE
+_task "${entityName}"%ROWTYPE;
+BEGIN    
+    WITH task AS (
+        SELECT *
+        FROM "${entityName}"
+        WHERE status = 'pending' 
+            AND (task_name IS NULL OR name = task_name)
+        FOR UPDATE SKIP LOCKED
+        LIMIT 1
+    )
+    UPDATE "${entityName}"
+    SET status = 'running'
+    WHERE id = (SELECT id FROM task)
+    RETURNING *
+    INTO _task;
+
+    IF _task.id IS NOT NULL THEN
+        RETURN NEXT _task;
+    ELSE
+        RETURN;
+    END IF;
+    EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error processing task: %', SQLERRM;
+        RETURN;    
+END;
+$$ LANGUAGE plpgsql;\n`);
+        }
     }
 
     _toColumnReference(name) {
@@ -1793,46 +1822,12 @@ EXECUTE FUNCTION ${callFunction}();`);
         if (entity.indexes && entity.indexes.length > 0) {
             entity.indexes.forEach((index) => {
                 const indexName = `${entityName}_${index.fields.join('_')}_idx`;
-
-                sql += '-- Create Index\nCREATE ';
-                let ginIndex = false;
-
-                if (index.fields.length === 1) {
-                    const field = index.fields[0];
-                    if (entity.fields[field].type === 'object') {
-                        ginIndex = true;
-                    }
-                }
-
-                if (ginIndex) {
-                    sql +=
-                        'INDEX "' +
-                        indexName +
-                        '" ON "' +
-                        entityName +
-                        '" USING GIN ' +
-                        '(' +
-                        this.quoteIdListOrValue(index.fields) +
-                        ');\n\n';
-                } else {
-                    if (index.unique) {
-                        sql += 'UNIQUE ';
-                    }
-
-                    sql +=
-                        'INDEX "' +
-                        indexName +
-                        '" ON "' +
-                        entityName +
-                        '"(' +
-                        this.quoteIdListOrValue(index.fields) +
-                        ');\n\n';
-                }
+                sql += this._addTableIndex(index, entity, indexName, entityName);
             });
         }
 
         if (entity.comment) {
-            sql += `COMMENT ON TABLE "${entityName}" IS ${this.quoteString(entity.comment)};\n\n`;
+            sql += this._addTableComment(entity);
         }
 
         //column definitions
@@ -1843,6 +1838,173 @@ EXECUTE FUNCTION ${callFunction}();`);
         });
 
         return sql;
+    }
+
+    _alterTableStatement(entityName, entity, currentEntity) {
+        let sql = '';
+        const unlogged = entity.hasFeature('isCacheTable') && currentEntity.features.isCacheTable == null;
+        const logged = !entity.hasFeature('isCacheTable') && currentEntity.features.isCacheTable != null;
+
+        const tableName = this.connector.escapeId(entityName);
+
+        if (unlogged) {
+            sql += `-- Alter Table\nALTER TABLE ${tableName} SET UNLOGGED;\n\n`;
+        } else if (logged) {
+            sql += `-- Alter Table\nALTER TABLE ${tableName} SET LOGGED;\n\n`;
+        }
+
+        let fieldsToDrop = new Set(Object.keys(currentEntity.fields));
+
+        //column definitions
+        _.each(entity.fields, (field, name) => {
+            const targetField = field.toJSON();
+            const currentField = currentEntity.fields[name];
+
+            if (currentField == null) {
+                // todo: customized rules to rename column
+
+                sql += `-- Add Column\nALTER TABLE ${tableName} ADD COLUMN ${this.quoteIdentifier(
+                    name
+                )} ${this.columnDefinition(entity, targetField)};\n\n`;
+
+                if (field.comment) {
+                    sql += `COMMENT ON COLUMN "${entityName}"."${name}" IS ${this.quoteString(field.comment)};\n\n`;
+                }
+            } else {
+                fieldsToDrop.delete(name);
+
+                // otherwise, modify column
+                if (!_.isEqual(targetField, currentField)) {
+                    sql += `-- Alter Column\nALTER TABLE ${tableName} ALTER COLUMN ${this.quoteIdentifier(
+                        name
+                    )} TYPE ${this.columnDefinition(entity, field, true)};\n`;
+
+                    // ALTER [ COLUMN ] column_name { SET | DROP } NOT NULL
+                    if (targetField.optional != currentField.optional) {
+                        sql += `ALTER TABLE ${tableName} ALTER COLUMN ${this.quoteIdentifier(name)} ${
+                            targetField.optional ? 'DROP' : 'SET'
+                        } NOT NULL;\n`;
+                    }
+
+                    // ALTER [ COLUMN ] column_name SET DEFAULT expression
+                    const _type = this.columnDefinition(entity, field, true, true);
+                    const _targetDefault = this.defaultValue(entity, field, _type);
+                    if (_targetDefault) {
+                        sql += `ALTER TABLE ${tableName} ALTER COLUMN ${this.quoteIdentifier(
+                            name
+                        )} SET${_targetDefault};\n`;
+                    }
+
+                    //column definitions        
+                    if (targetField.comment !== currentField.comment) {
+                        sql += `COMMENT ON COLUMN "${entityName}"."${name}" IS ${this.quoteString(targetField.comment)};\n\n`;
+                    }
+
+                    sql += '\n';
+                }
+            }
+        });
+
+        if (fieldsToDrop.size > 0) {
+            for (let fieldName of fieldsToDrop) {
+                this.warnings[`Delete ${entityName}.${fieldName}`] = `Field "${fieldName}" of entity "${entityName}" should be deleted.`;
+            }
+        }
+
+        if (entity.key !== currentEntity.key) {
+            const pkName = this.quoteIdentifier(`${entityName}_pkey`);
+
+            sql += `-- Drop Primary Key\nALTER TABLE ${tableName} DROP CONSTRAINT ${pkName};\n`;
+            sql += `-- Add Primary Key\nALTER TABLE ${tableName} ADD CONSTRAINT ${pkName} PRIMARY KEY (${this.quoteIdListOrValue(
+                entity.key
+            )});\n\n`;
+        }
+
+        const currentIndexes = currentEntity.indexes
+            ? currentEntity.indexes.reduce((result, index) => {
+                  const indexName = `${entityName}_${index.fields.join('_')}_idx`;
+                  result[indexName] = index;
+                  return result;
+              }, {})
+            : {};
+
+        //other keys
+        if (entity.indexes?.length > 0) {
+            entity.indexes.forEach((index) => {
+                const indexName = `${entityName}_${index.fields.join('_')}_idx`;
+
+                const currentIndex = currentIndexes[indexName];
+
+                if (currentIndex == null) {
+                    sql += this._addTableIndex(index, entity, indexName, entityName);
+                } else {
+                    delete currentIndexes[indexName];
+
+                    if (!_.isEqual(index, currentIndex)) {
+                        sql += `-- Drop Index\nDROP INDEX ${indexName};\n\n`;
+                        sql += this._addTableIndex(index, entity, indexName, entityName);
+                    }
+                }
+            });
+        }
+
+        if (!isEmpty(currentIndexes)) {
+            _.each(currentIndexes, (index, indexName) => {
+                sql += `-- Drop Index\nDROP INDEX ${indexName};\n\n`;
+            });
+        }
+
+        if (entity.comment !== currentEntity.comment) {
+            sql += this._addTableComment(entity);
+        }
+
+        if (sql) {
+            sql = '-- entity "' + entityName + '"\n' + sql + '\n';
+        }
+
+        return sql;
+    }
+
+    _addTableIndex(index, entity, indexName, entityName) {
+        let sql = '-- Create Index\nCREATE ';
+        let ginIndex = false;
+
+        if (index.fields.length === 1) {
+            const field = index.fields[0];
+            if (entity.fields[field].type === 'object') {
+                ginIndex = true;
+            }
+        }
+
+        if (ginIndex) {
+            sql +=
+                'INDEX "' +
+                indexName +
+                '" ON "' +
+                entityName +
+                '" USING GIN ' +
+                '(' +
+                this.quoteIdListOrValue(index.fields) +
+                ');\n\n';
+        } else {
+            if (index.unique) {
+                sql += 'UNIQUE ';
+            }
+
+            sql +=
+                'INDEX "' +
+                indexName +
+                '" ON "' +
+                entityName +
+                '"(' +
+                this.quoteIdListOrValue(index.fields) +
+                ');\n\n';
+        }
+        return sql;
+    }
+
+    _addTableComment(entity) {
+        return `COMMENT ON TABLE "${entity.name}" IS ${this.quoteString(entity.comment)};\n\n`;
     }
 
     _addForeignKeyStatement(entityName, relation) {
@@ -2166,7 +2328,7 @@ EXECUTE FUNCTION ${callFunction}();`);
     }
 
     columnNullable(info) {
-        if (info.hasOwnProperty('optional') && info.optional) {
+        if (info.optional) {
             return ' NULL';
         }
 

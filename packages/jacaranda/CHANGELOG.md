@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.4.2
+
+### Patch Changes
+
+-  Add graceful stop when worker throws exception
+
 ## 3.4.1
 
 ### Patch Changes
