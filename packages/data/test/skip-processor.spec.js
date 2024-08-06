@@ -2,7 +2,7 @@ const testData = {
     name: 'Book 1',
 };
 
-describe.only('skip processor', function () {
+describe('skip processor', function () {
     before(async function () {
         await tester.start_(async (app) => {
             const db = app.db();

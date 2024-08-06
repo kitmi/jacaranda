@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.7.2
+
+### Patch Changes
+
+-   Fix bug when using two schemas in one project.
+
 ## 0.7.1
 
 ### Patch Changes

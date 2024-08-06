@@ -234,8 +234,8 @@ class PostgresMigration {
     async _loadRecordsByModel_(entityName, items, ignoreDuplicate) {
         const Entity = this.db.entity(entityName);
 
-        return eachAsync_(items, async ({ $skipModifiers, $skipValidators, $update, ...item }) => {
-            const opts = { $migration: true, $skipModifiers, $skipValidators };
+        return eachAsync_(items, async ({ $skipModifiers, $skipValidators, $update, $upsert, $ignore, ...item }) => {
+            const opts = { $getCreated: false, $migration: true, $skipModifiers, $skipValidators, $upsert, $ignore };
 
             if ($update) {
                 await Entity.updateOne_(item, undefined);
@@ -245,8 +245,6 @@ class PostgresMigration {
                 }
 
                 const processed = await Entity.create_(item, opts);
-
-                //console.log('processed', processed);
 
                 if (processed.affectedRows === 0) {
                     const key = Entity.getUniqueKeyValuePairsFrom(processed.data);

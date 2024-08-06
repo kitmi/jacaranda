@@ -222,7 +222,7 @@ describe('closureTable', function () {
             const { data } = await TagCategory.getAllDescendants_(root1);
 
             const parentsOfId3 = await TagCategory.getParentsId_(id3);
-            parentsOfId3.should.be.eql([root1, id2]);
+            parentsOfId3.sort().should.be.eql([root1, id2]);
 
             const childrenOfRoot1 = await TagCategory.getChildrenId_(root1);
             childrenOfRoot1.sort().should.be.eql([id2, id3]);

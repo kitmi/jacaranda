@@ -53,7 +53,7 @@ class PostgresModeler {
         this.warnings = {};
     }
 
-    async modeling_(schema, skipGeneration) {
+    async modeling_(schema, skipGeneration, duplicateEntities) {
         if (!skipGeneration) {
             this.linker.log('info', 'Generating postgres scripts for schema "' + schema.name + '"...');
         }
@@ -103,6 +103,8 @@ class PostgresModeler {
         const triggers = [];
 
         _.each(modelingSchema.entities, (entity, entityName) => {
+            if (duplicateEntities.has(entityName)) return;
+
             const entitySQL = this._generateEntityScripts(
                 modelingSchema,
                 entity,

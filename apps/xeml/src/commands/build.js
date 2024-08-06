@@ -17,6 +17,8 @@ module.exports = async (app) => {
 
     const schemaObjects = Linker.buildSchemaObjects(app, modelService.config);   
 
+    const duplicateEntities = new Set();
+
     await eachAsync_(modelService.config.schemaSet, async (schemaConfig, schemaName) => {      
         app.log('verbose', `Processing schema "${schemaName}" ...`);   
         
@@ -34,7 +36,9 @@ module.exports = async (app) => {
 
         const DbModeler = require(`../modeler/database/${connector.driver}/Modeler`);
         const dbModeler = new DbModeler(modelService, schema.linker, connector, schemaConfig.options);
-        const refinedSchema = await dbModeler.modeling_(schema);
+        const refinedSchema = await dbModeler.modeling_(schema, false, duplicateEntities);
+        Object.keys(refinedSchema.entities).forEach(entityName => duplicateEntities.add(entityName));
+
         const schemaJSON = refinedSchema.toJSON();
 
         if (!isEmpty(dbModeler.warnings)) {
