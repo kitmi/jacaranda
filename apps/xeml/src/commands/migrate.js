@@ -1,3 +1,4 @@
+require('@swc-node/register'); // required for requiring esm modules at line 31
 const path = require('node:path');
 const { _, eachAsync_, isEmpty } = require('@kitmi/utils');
 const { requireFrom } = require('@kitmi/sys');
@@ -33,20 +34,24 @@ module.exports = async (app) => {
     app.registry.db = { ...app.registry.db, ...targetModule.databases };
 
     if (reset) {      
-        return eachAsync_(modelService.config.schemaSet, async (schemaConfig, schemaName) => {
+        await eachAsync_(modelService.config.schemaSet, async (schemaConfig, schemaName) => {
             const db = app.db(schemaName);        
         
             const Migrator = require(`../migration/${db.driver}`);
             const migrator = new Migrator(app, modelService, db);
     
             await migrator.reset_();    
+        });
+
+        return eachAsync_(modelService.config.schemaSet, async (schemaConfig, schemaName) => {
+            const db = app.db(schemaName);        
+        
+            const Migrator = require(`../migration/${db.driver}`);
+            const migrator = new Migrator(app, modelService, db);
+    
             await migrator.create_(schemaConfig.options);      
     
-            try {
-                await importDataFiles(migrator, '_init');  
-            } catch (e) {
-                app.logError(e);
-            }
+            await importDataFiles(migrator, '_init');  
         });
     } 
 
@@ -79,15 +84,23 @@ module.exports = async (app) => {
 
         const versionDir = await dbModeler.buildMigration_(db, schemaName, verContent, refinedSchema);
 
+        if (versionDir === false) {
+            app.log('info', `The current version of database structure of "${schemaName}" is up to date.`);
+            return;
+        }
+
         if (!isEmpty(dbModeler.warnings)) {
             Object.values(dbModeler.warnings).forEach(warning => app.log('warn', warning));
         }
 
-        dbModeler.writeMetadata(verContent, schemaJSON);
+        dbModeler.writeMetadata(verContent, schemaJSON, versionDir, true);
     
         const Migrator = require(`../migration/${db.driver}`);
         const migrator = new Migrator(app, modelService, db);
     
-        await migrator.up_(versionDir);      
+        await migrator.up_(versionDir);   
+        
+        migrator.dbScriptPath = path.join(migrator.scriptPath, versionDir);
+        await importDataFiles(migrator, '_init');  
     });    
 };

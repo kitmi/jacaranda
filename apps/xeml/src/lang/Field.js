@@ -83,7 +83,7 @@ class Field extends Clonable {
      * @returns {object}
      */
     toJSON() {
-        return _.omit(_.toPlainObject(this), [ 'name', 'linked', 'info' ]);
+        return _.omit(_.toPlainObject(this), [ 'linked', 'info' ]);
     }
 }
 

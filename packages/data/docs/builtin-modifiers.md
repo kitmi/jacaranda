@@ -1,0 +1,78 @@
+# Builtin-modifiers
+
+## Activators
+  - default
+  - defaultAs
+  - random
+  - now
+  - isEqual
+  - isNotEqual
+  - setValueWhen
+  - concat
+  - sum
+  - multiply
+  - timeOfValueSet
+  - fetch_
+
+## Processors
+  - jsx
+  - trimLines
+  - stripLines
+  - grepLines
+  - quote
+  - unquote
+  - fromCsv
+  - padLeft
+  - padRight
+  - toBase64
+  - fromBase64
+  - pascalCase
+  - camelCase
+  - kebabCase
+  - snakeCase
+  - toLower
+  - toUpper
+  - replaceAll
+  - typeOf
+  - type
+  - normalizePhone
+
+## Validators
+  - jsv
+  - alpha
+  - alphanumeric
+  - ascii
+  - base64
+  - bytesInRange
+  - dataURI
+  - date
+  - decimal
+  - email
+  - domain
+  - hex
+  - hexColor
+  - ip
+  - inRange
+  - lowercase
+  - macAddress
+  - mimeType
+  - mobilePhone
+  - numeric
+  - strongPassword
+  - time
+  - uppercase
+  - url
+  - uuid
+  - matches
+  - alphanum
+  - mobile
+  - num
+  - mime
+  - number
+  - max
+  - min
+  - length
+  - maxLength
+  - minLength
+  - exist
+  - required

@@ -18,3 +18,9 @@ entity book3
     desc
     'array': array element({ type: 'text' }) optional
     
+
+entity book4
+  with
+    autoId
+  has
+    name |>toUpper

@@ -52,7 +52,8 @@ module.exports = async (app) => {
             app.log('info', `Schema "${schemaName}" updated to version ${verContent.version}.`);
         }        
 
-        dbModeler.writeMetadata(verContent, schemaJSON);
+        const migrationDir = path.join('postgres', schemaName);
+        dbModeler.writeMetadata(verContent, schemaJSON, migrationDir);
 
         if (modelService.config.saveIntermediate) {
             let jsFile = path.resolve(modelService.config.schemaPath, schemaName + ".model.json");

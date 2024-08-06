@@ -192,21 +192,27 @@ $$ LANGUAGE plpgsql;\n\n`;
         this._events.once('metadata', (codeVersionInfo) => {
             // write metadata
             const initFileName = `0-${XemlTypes.MetadataEntity}.json`;
-            const initDataDir = path.join(sqlFilesDir, 'data', '_init');
+            const initDataDir = path.join(codeVersionInfo.migrationDir, 'data', '_init');
             let initFilePath = path.join(initDataDir, initFileName);
             let idxFilePath = path.join(this.outputPath, initDataDir, 'index.list');
+
+            const metadata = {
+                name: schema.name,
+                dbHash: dbhash,
+                codeVersion: codeVersionInfo.version,
+                codeHash: codeVersionInfo.digest,
+                schema: JSON.stringify(codeVersionInfo.schema),
+            };
+
+            if (codeVersionInfo.update) {
+                metadata.$update = true;
+            }
 
             this._writeFile(
                 path.join(this.outputPath, initFilePath),
                 JSON.stringify(
                     {
-                        [XemlTypes.MetadataEntity]: {
-                            name: schema.name,
-                            dbHash: dbhash,
-                            codeVersion: codeVersionInfo.version,
-                            codeHash: codeVersionInfo.digest,
-                            schema: JSON.stringify(codeVersionInfo.schema),
-                        },
+                        [XemlTypes.MetadataEntity]: metadata
                     },
                     null,
                     4
@@ -214,13 +220,19 @@ $$ LANGUAGE plpgsql;\n\n`;
             );
 
             // append to index
-            const indexFile = fs.readFileSync(idxFilePath, 'utf8');
-            this._writeFile(idxFilePath, `${initFileName}\n${indexFile}`);
+            const indexFile = fs.existsSync(idxFilePath) ? fs.readFileSync(idxFilePath, 'utf8') : '';
+            if (!indexFile.split('\n').includes(initFileName)) {
+                this._writeFile(idxFilePath, `${initFileName}\n${indexFile}`);
+            }
         });
 
         modelingSchema.relations = this._references;
 
         return modelingSchema;
+    }
+
+    writeMetadata(codeVersionInfo, schema, migrationDir, update) {
+        this._events.emit('metadata', { ...codeVersionInfo, schema, migrationDir, update });
     }
 
     _generateDataFiles(data, sqlFilesDir) {
@@ -269,10 +281,6 @@ $$ LANGUAGE plpgsql;\n\n`;
 
             this._writeFile(idxFilePath, list.concat(manual).join('\n'));
         });
-    }
-
-    writeMetadata(codeVersionInfo, schema) {
-        this._events.emit('metadata', { ...codeVersionInfo, schema });
     }
 
     async getCurrentSchema_(db, schemaName) {
@@ -338,6 +346,10 @@ $$ LANGUAGE plpgsql;\n\n`;
         this.warnings = {};
 
         const { codeVersion: currentVersion, schema: currentSchema } = await this.getCurrentSchema_(db, schemaName);
+
+        if (currentVersion >= verContent.version) {
+            return false;
+        }
 
         const sqlFilesDir = path.join('postgres', currentSchema.name, `v${currentVersion}-v${verContent.version}`);
 
@@ -1992,7 +2004,7 @@ $$ LANGUAGE plpgsql;\n`);
             }
 
             sql +=
-                'INDEX "' +
+                'INDEX ' + (indexName.startsWith(XemlTypes.MetadataEntity + '_') ? 'IF NOT EXISTS "' : '"') +
                 indexName +
                 '" ON "' +
                 entityName +

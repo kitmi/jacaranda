@@ -9,7 +9,7 @@ export const _Validators = _.mapValues(
     (validator, name) => (entity, field, context, value, payload) => {
         if (!validator.__metaCheckNull && value == null) return value;
 
-        if (context.options.$skipValidators?.has(name)) return value;
+        if (skipValidator(field, context, name)) return value;
 
         const [validated, reason] = validator(value, payload, field, context);
 
@@ -26,5 +26,11 @@ export const _Validators = _.mapValues(
         return value;
     }
 );
+
+export const skipValidator = (field, context, validatorName) => {
+    const validators = context.options.$skipValidators;
+    if (validators && (validators.has(validatorName) || validators.has(field.name + '.' + validatorName))) return true;
+    return false;
+};
 
 export default validatorTable;

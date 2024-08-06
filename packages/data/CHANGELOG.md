@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.7.4
+
+### Patch Changes
+
+-   Add skipProcessor, skipValidator helpers
+
 ## 0.7.3
 
 ### Patch Changes

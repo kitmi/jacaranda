@@ -174,7 +174,7 @@ class DaoModeler {
         let classTemplate = path.resolve(__dirname, 'database', this.connector.driver, 'Database.js.swig');
         let classCode = swig.renderFile(classTemplate, locals);
 
-        let modelFilePath = path.resolve(this.outputPath, capitalized + '.js');
+        let modelFilePath = path.join(this.outputPath, capitalized + '.js');
         fs.ensureFileSync(modelFilePath);
         fs.writeFileSync(modelFilePath, classCode);
 
@@ -193,7 +193,7 @@ class DaoModeler {
         .join(',\n    ')}                    
 };`;
 
-                const modelFilePath = path.resolve(this.outputPath, schema.name, 'types', capitalized + '.js');
+                const modelFilePath = path.join(this.outputPath, schema.name, 'types', capitalized + '.js');
                 fs.ensureFileSync(modelFilePath);
                 fs.writeFileSync(modelFilePath, content);
 
@@ -380,7 +380,7 @@ class DaoModeler {
             let classTemplate = path.resolve(__dirname, 'database', this.connector.driver, 'EntityModel.js.swig');
             let classCode = swig.renderFile(classTemplate, locals);
 
-            let modelFilePath = path.resolve(this.outputPath, schema.name, capitalized + '.js');
+            let modelFilePath = path.join(this.outputPath, schema.name, capitalized + '.js');
             fs.ensureFileSync(modelFilePath);
             fs.writeFileSync(modelFilePath, classCode);
 
@@ -459,7 +459,7 @@ class DaoModeler {
                     )
                 );
 
-                let inputSchemaFilePath = path.resolve(
+                let inputSchemaFilePath = path.join(
                     this.outputPath,
                     schema.name,
                     'inputs',
@@ -509,7 +509,7 @@ class DaoModeler {
                     };
                 });
 
-                let inputSchemaFilePath = path.resolve(
+                let inputSchemaFilePath = path.join(
                     this.outputPath,
                     schema.name,
                     'views',
@@ -812,7 +812,7 @@ class DaoModeler {
     }
 
     _generateFunctionTemplateFile(schema, { functionName, functorType, fileName, args }, versionInfo) {
-        let filePath = path.resolve(this.outputPath, schema.name, fileName);
+        let filePath = path.join(this.outputPath, schema.name, fileName);
 
         let ast;
 

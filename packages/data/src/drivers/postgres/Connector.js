@@ -312,13 +312,15 @@ class PostgresConnector extends RelationalConnector {
                 values: params,
             };
 
-            if (this.options.logStatement && !connOptions.createDatabase) {
+            if (this.options.logStatement) {
                 const meta = { ..._.omit(options, ['$assoc', '$data']), params };
                 if (connection) {
                     meta.transactionId = connection[tranSym];
                 }
 
-                this.app.log('info', sql, meta);
+                (async () => {
+                    this.app.log('info', sql, meta);
+                })();
             }
 
             if ($preparedKey) {
@@ -348,9 +350,7 @@ class PostgresConnector extends RelationalConnector {
             return adapted;
         } catch (err) {
             err.info || (err.info = {});
-            Object.assign(err.info, _.omit(options, ['$assoc']));
-            err.info.sql = sql;
-            err.info.params = params;
+            Object.assign(err.info, _.omit(options, ['$assoc', '$data']));            
 
             throw err;
         } finally {

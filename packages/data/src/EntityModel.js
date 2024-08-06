@@ -1200,6 +1200,9 @@ class EntityModel {
             if (opOptions.$skipValidators && Array.isArray(opOptions.$skipValidators)) {
                 opOptions.$skipValidators = new Set(opOptions.$skipValidators);
             }
+            if (opOptions.$skipProcessors && Array.isArray(opOptions.$skipProcessors)) {
+                opOptions.$skipProcessors = new Set(opOptions.$skipProcessors);
+            }
             await this.applyModifiers_(context, isUpdating);
         }
 
@@ -1433,6 +1436,9 @@ class EntityModel {
             if (!opOptions.$skipModifiers) {
                 if (opOptions.$skipValidators && Array.isArray(opOptions.$skipValidators)) {
                     opOptions.$skipValidators = new Set(opOptions.$skipValidators);
+                }
+                if (opOptions.$skipProcessors && Array.isArray(opOptions.$skipProcessors)) {
+                    opOptions.$skipProcessors = new Set(opOptions.$skipProcessors);
                 }
                 await this.applyModifiers_(context, isUpdating);
 

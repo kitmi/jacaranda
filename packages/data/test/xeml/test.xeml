@@ -5,6 +5,7 @@ schema test
   entities
     book
     book3
+    book4
 
 customize
   entities

@@ -194,7 +194,7 @@ describe('query operators', function () {
         });
     });
 
-    it.only('set json value', async function () {
+    it('set json value', async function () {
         await tester.start_(async (app) => {
             const db = app.db();
             const Book = db.entity('book');
@@ -211,11 +211,11 @@ describe('query operators', function () {
             const { data } = await Book.updateOne_(
                 {
                     testJson: xrSet({
-                        duration: 30,
+                        'duration': 30,
                         'test.key2': 2,
-                        key3: 'string',
-                        key4: null,
-                    })
+                        'key3': 'string',
+                        'key4': null,
+                    }),
                 },
                 {
                     $where: {
@@ -320,7 +320,7 @@ describe('query operators', function () {
         });
     });
 
-    it('get jso  value', async function () {
+    it('get json value', async function () {
         await tester.start_(async (app) => {
             const db = app.db();
             const Book = db.entity('book');
