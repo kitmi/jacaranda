@@ -8,7 +8,7 @@
         "prettier": "prettier --write ."
     },
     "dependencies": {
-        "@kitmi/data": "file:../"
+        "@kitmi/data": "*"
     },
     "keywords": [],
     "author": "",

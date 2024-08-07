@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.7.5
+
+### Patch Changes
+
+-   Fix orm result overlapping bug
+
 ## 0.7.4
 
 ### Patch Changes

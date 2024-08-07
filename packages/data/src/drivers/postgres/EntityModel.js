@@ -245,11 +245,16 @@ class PostgresEntityModel extends EntityModel {
                 }
 
                 return result;
-            }, {});
+            }, {});            
 
             _.forOwn(tableCache, (obj, table) => {
                 const nodePath = aliasMap[table];
-                _.set(rowObject, nodePath, obj);
+                let node = rowObject
+                for (let i = 0; i < nodePath.length; i++) {
+                    const objKey = nodePath[i];
+                    node = node[objKey] = node[objKey] || {};                                        
+                }
+                Object.assign(node, obj);
             });
         
             const rowKey = rowObject[self.meta.keyField];
