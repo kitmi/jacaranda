@@ -103,7 +103,7 @@ class PostgresModeler {
         const triggers = [];
 
         _.each(modelingSchema.entities, (entity, entityName) => {
-            if (duplicateEntities.has(entityName)) return;
+            if (duplicateEntities && duplicateEntities.has(entityName)) return;
 
             const entitySQL = this._generateEntityScripts(
                 modelingSchema,
@@ -1955,7 +1955,7 @@ $$ LANGUAGE plpgsql;\n`);
                     delete currentIndexes[indexName];
 
                     if (!_.isEqual(index, currentIndex)) {
-                        sql += `-- Drop Index\nDROP INDEX ${indexName};\n\n`;
+                        sql += `-- Drop Index\nDROP INDEX ${this.quoteIdentifier(indexName)};\n\n`;
                         sql += this._addTableIndex(index, entity, indexName, entityName);
                     }
                 }
@@ -1964,7 +1964,7 @@ $$ LANGUAGE plpgsql;\n`);
 
         if (!isEmpty(currentIndexes)) {
             _.each(currentIndexes, (index, indexName) => {
-                sql += `-- Drop Index\nDROP INDEX ${indexName};\n\n`;
+                sql += `-- Drop Index\nDROP INDEX ${this.quoteIdentifier(indexName)};\n\n`;
             });
         }
 

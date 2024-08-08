@@ -8,10 +8,11 @@
 - [X] create or update by reference to related entity
 - [X] closureTable general procedures
 - [X] override entity with multiple namespaces
+- [X] database migration
  
 ## Developing features
 
-- [ ] database migration
+- [ ] directed graph with recersive query
 - [ ] i18n feature
 - [ ] input schema
 - [ ] api generation
