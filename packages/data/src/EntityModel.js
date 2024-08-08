@@ -1296,7 +1296,7 @@ class EntityModel {
                                 {
                                     entity: name,
                                     field: fieldName,
-                                    fieldInfo: fieldInfo,
+                                    value
                                 }
                             );
                         }
@@ -1314,7 +1314,7 @@ class EntityModel {
                                 {
                                     entity: name,
                                     field: fieldName,
-                                    fieldInfo: fieldInfo,
+                                    value
                                 }
                             );
                         }
@@ -1340,7 +1340,6 @@ class EntityModel {
                             throw new ValidationError(`The "${fieldName}" value of "${name}" entity cannot be null.`, {
                                 entity: name,
                                 field: fieldName,
-                                fieldInfo: fieldInfo,
                             });
                         } else {
                             latest[fieldName] = null;
@@ -1361,7 +1360,6 @@ class EntityModel {
                             throw new ValidationError(`Invalid "${fieldName}" value of "${name}" entity.`, {
                                 entity: name,
                                 field: fieldName,
-                                fieldInfo,
                                 value,
                                 error: error.message,
                             });

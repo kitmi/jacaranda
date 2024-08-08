@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.7.6
+
+### Patch Changes
+
+-   Fix error info during dry run
+
 ## 0.7.5
 
 ### Patch Changes
