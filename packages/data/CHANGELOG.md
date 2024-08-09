@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.7.7
+
+### Patch Changes
+
+-   Fix bug directly using entity processor 
+
 ## 0.7.6
 
 ### Patch Changes

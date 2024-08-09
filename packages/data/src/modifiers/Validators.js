@@ -28,7 +28,7 @@ export const _Validators = _.mapValues(
 );
 
 export const skipValidator = (field, context, validatorName) => {
-    const validators = context.options.$skipValidators;
+    const validators = context?.options.$skipValidators;
     if (validators && (validators.has(validatorName) || validators.has(field.name + '.' + validatorName))) return true;
     return false;
 };

@@ -23,7 +23,7 @@ export const _Processors = _.mapValues(
 );
 
 export const skipProcessor = (field, context, processorName) => {
-    const processors = context.options.$skipProcessors;
+    const processors = context?.options.$skipProcessors;
     
     if (processors && (processors.has(processorName) || processors.has(field.name + '.' + processorName))) return true;
     return false;
