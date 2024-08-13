@@ -17,6 +17,8 @@ const { Pool, Client, escapeLiteral, escapeIdentifier } = pg;
 const connSym = Symbol.for('conn');
 const tranSym = Symbol.for('tran');
 
+const RESERVED_ALIAS = new Set(['EXCLUDED']);
+
 /**
  * SQL execution sequence
  * FROM clause
@@ -113,6 +115,10 @@ class PostgresConnector extends RelationalConnector {
 
     get specNotInClause() {
         return ` <> ALL (${this.specParamToken})`; // mysql ' NOT IN (?)'
+    }
+
+    get reservedAlias() {
+        return RESERVED_ALIAS;
     }
 
     /**
@@ -440,7 +446,7 @@ class PostgresConnector extends RelationalConnector {
 
             sql +=
             ` ON CONFLICT (${conflicts.slice(0, -1)}) DO UPDATE SET ` +
-                this._splitColumnsAsInput(options.$upsert, sqlInfo.params, model, { [model]: this.escapeId(model), [`${model}.EXCLUDED`]: 'EXCLUDED' }).join(', ');
+                this._splitColumnsAsInput(options.$upsert, sqlInfo.params, model, { [model]: model, [`${model}.EXCLUDED`]: 'EXCLUDED' }).join(', ');
         }
 
         if (options.$getCreated) {
@@ -690,18 +696,19 @@ class PostgresConnector extends RelationalConnector {
                 params.push(...col.params);
             }
         });
+
         delete columnsSet._;
 
         _.each(columnsSet, (cols, alias) => {
             if (cols.has('*')) {
-                columnList.push(`row_to_json(${alias}.*) AS ${this.escapeId(alias + '$')}`);
+                columnList.push(`row_to_json(${this.escapeId(alias)}.*) AS ${this.escapeId(alias + '$')}`);
                 return;
             }
 
             const list = [];
 
             cols.forEach((col) => {
-                list.push(`'${col}', ${alias}.${this.escapeId(col)}`);
+                list.push(`'${col}', ${this.escapeId(alias)}.${this.escapeId(col)}`);
             });
 
             const fieldSelect = `json_build_object(${list.join(', ')}) AS ${this.escapeId(alias + '$')}`;
@@ -806,7 +813,7 @@ class PostgresConnector extends RelationalConnector {
                 alias = alias.alias;
             }
 
-            return ['_', alias + '.' + (fieldName === '*' ? '*' : this.escapeId(fieldName))];
+            return ['_', this.escapeId(alias) + '.' + (fieldName === '*' ? '*' : this.escapeId(fieldName))];
         }
 
         return ['_', fieldName === '*' ? '*' : this.escapeId(fieldName)];

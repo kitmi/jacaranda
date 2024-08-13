@@ -153,7 +153,7 @@ class RelationalConnector extends Connector {
         let fromClause = ' FROM ' + fromTable;
         let fromAndJoin = fromClause;
         if (mainEntityForJoin) {
-            fromAndJoin += ` ${mainAlias} `;
+            fromAndJoin += ` ${this.escapeId(mainAlias)} `;
 
             if ($assoc) {
                 fromAndJoin = this._concatJoinClauses(fromAndJoin, directJoinings, joinings);
@@ -264,7 +264,7 @@ class RelationalConnector extends Connector {
 
     _concatJoinClauses(fromAndJoin, directJoinings, joinings) {
         directJoinings.forEach((dj) => {
-            fromAndJoin += `, ${dj.entity ? this.escapeId(dj.entity) : dj.sql} ${dj.alias}`;
+            fromAndJoin += `, ${dj.entity ? this.escapeId(dj.entity) : dj.sql} ${this.escapeId(dj.alias)}`;
         });
 
         if (joinings.length) {
@@ -380,7 +380,7 @@ class RelationalConnector extends Connector {
             }
 
             joinings.push(
-                `${joinType} (${assocInfo.sql}) ${alias} ON ${this._joinCondition(
+                `${joinType} (${assocInfo.sql}) ${this.escapeId(alias)} ON ${this._joinCondition(
                     opOptions,
                     on,
                     params,
@@ -429,7 +429,7 @@ class RelationalConnector extends Connector {
             });
         } else {
             joinings.push(
-                `${joinType} ${this.escapeId(entity)} ${alias} ON ${this._joinCondition(
+                `${joinType} ${this.escapeId(entity)} ${this.escapeId(alias)} ON ${this._joinCondition(
                     opOptions,
                     on,
                     params,
@@ -727,7 +727,7 @@ class RelationalConnector extends Connector {
         }
 
         return (
-            alias +
+            (this.reservedAlias.has(alias) ? alias : this.escapeId(alias)) +
             '.' +
             (actualFieldName === '*' ? '*' : dontEscape ? actualFieldName : this.escapeId(actualFieldName))
         );
@@ -1131,7 +1131,7 @@ class RelationalConnector extends Connector {
                                         _v = JSON.stringify(_v);
                                     }
 
-                                    params.push(_v);                                    
+                                    params.push(_v);
 
                                     const accessor = _k
                                         .split('.')

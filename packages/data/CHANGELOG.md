@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.7.8
+
+### Patch Changes
+
+-   Fix alias conflicts with reserved keywords
+
 ## 0.7.7
 
 ### Patch Changes
