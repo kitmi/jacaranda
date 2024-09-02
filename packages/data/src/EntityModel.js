@@ -1524,7 +1524,7 @@ class EntityModel {
                 _.find(dep, (d) => {
                     if (isPlainObject(d)) {
                         if (d.whenNull) {
-                            if (input[fieldName] == null) {
+                            if ((fieldName in input) && input[fieldName] == null) {
                                 nullDepends.add(dep);
                             }
 
