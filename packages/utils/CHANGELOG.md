@@ -1,5 +1,11 @@
 # @kitmi/utils
 
+## 1.2.2
+
+### Patch Changes
+
+-   Fix csv parser default quote chars
+
 ## 1.2.1
 
 ### Patch Changes

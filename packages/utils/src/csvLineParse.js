@@ -1,5 +1,7 @@
 import replaceAll from './replaceAll';
 
+const defaultQuoteChars = new Set(['"']);
+
 /**
  * Parse csv string into array, simple implementation especially for one-line parsing.
  * 23x faster than csv-parse for single line parsing
@@ -15,7 +17,7 @@ import replaceAll from './replaceAll';
  * @returns {array}
  */
 const simpleCsvParser = (str, options) => {
-    const { delimiter, emptyAsNull } = { delimiter: ',', emptyAsNull: false, ...options };
+    const { delimiter, emptyAsNull, quoteChars } = { delimiter: ',', emptyAsNull: false, quoteChars: defaultQuoteChars, ...options };
 
     let inQuote = null;
     let start = 0;
@@ -50,7 +52,7 @@ const simpleCsvParser = (str, options) => {
             lastWord = null;
             hasEscaped = false;
             start = i + 1;
-        } else if (ch === '"' || ch === "'") {
+        } else if (quoteChars.has(ch)) {
             if (lastWord == null) {
                 inQuote = ch;
                 start = i + 1;

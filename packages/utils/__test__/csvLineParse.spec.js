@@ -22,12 +22,17 @@ describe('csv parser', function () {
     });
 
     it('quoted escaped', async function () {
-        const result = simpleCsvParser('"3293, 91\\"23921", \'321938\',"328,9389"');
+        const result = simpleCsvParser('"3293, 91\\"23921", \'321938\',"328,9389"', { quoteChars: new Set(['"', "'"]) });
         result.should.be.eql(['3293, 91"23921', '321938', '328,9389']);
     });
 
+    it('double quote only', async function () {
+        const result = simpleCsvParser('"3293, 91\\"23921", \'321938\',"328,9389"');
+        result.should.be.eql(['3293, 91"23921', "'321938'", '328,9389']);
+    });
+
     it('quoted escaped2', async function () {
-        const result = simpleCsvParser('"32\\"93, 91\\"23921", \'3219\\\'38\',"328,9389"');
+        const result = simpleCsvParser('"32\\"93, 91\\"23921", \'3219\\\'38\',"328,9389"', { quoteChars: new Set(['"', "'"]) });
         result.should.be.eql(['32"93, 91"23921', "3219'38", '328,9389']);
     });
 });
