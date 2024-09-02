@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.7.9
+
+### Patch Changes
+
+-   Fix update many dependency check
+
 ## 0.7.8
 
 ### Patch Changes
