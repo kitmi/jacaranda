@@ -66,6 +66,7 @@
         "glob": "^10.3.10",
         "inquirer": "^8.2.6",
         "minimist": "^1.2.8",
-        "pluralize": "^8.0.0"
+        "pluralize": "^8.0.0",
+        "swig-templates": "2.0.3"
     }
 }
