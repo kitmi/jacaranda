@@ -1,7 +1,6 @@
 require('@swc-node/register'); // required for requiring esm modules at line 31
 const path = require('node:path');
 const { _, eachAsync_, isEmpty } = require('@kitmi/utils');
-const { requireFrom } = require('@kitmi/sys');
 const Linker = require('../lang/Linker');
 const { importDataFiles, getVersionInfo, getSchemaDigest } = require('../utils/helpers');
 
@@ -19,17 +18,7 @@ module.exports = async (app) => {
     const packageJsonFile = path.resolve('package.json');
     const packageJson = require(packageJsonFile);    
 
-    let targetModule;
-
-    try {
-        targetModule = requireFrom(packageJson.name, process.cwd());        
-    } catch (error) {
-        if (error.code !== 'MODULE_NOT_FOUND') {
-            throw error;
-        }
-
-        targetModule = require(path.resolve(packageJson.main));
-    }    
+    let targetModule = require(path.resolve(packageJson.main));
 
     app.registry.db = { ...app.registry.db, ...targetModule.databases };
 

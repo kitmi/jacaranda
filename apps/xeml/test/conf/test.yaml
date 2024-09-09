@@ -1,6 +1,5 @@
 dataSource:
-  postgres:
-    test:
-      connection: 'postgresql://postgres:postgres@localhost:5432/wj-dev?schema=public'
-      logStatement: true
-
+    postgres:
+        test:
+            connection: 'postgresql://postgres:postgres@localhost:5432/wj-dev?schema=public'
+            logStatement: true

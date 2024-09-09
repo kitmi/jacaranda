@@ -1,7 +1,6 @@
 {
     "skip": {
-        "suites": {            
-        }
+        "suites": {}
     },
     "enableAsyncDump": false,
     "enableAllure": true,
@@ -14,7 +13,7 @@
         }
     },
     "workers": {
-        "tester": { 
+        "tester": {
             "configName": "test",
             "configPath": "test/conf"
         }

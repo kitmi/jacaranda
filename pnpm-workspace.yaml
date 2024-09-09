@@ -1,5 +1,6 @@
 packages:
   - 'apps/**'
-  - 'packages/**'
+  - 'apps/xeml/test'
+  - 'packages/**'  
   - 'packages/data/test'
   - 'packages/feat-db/test'

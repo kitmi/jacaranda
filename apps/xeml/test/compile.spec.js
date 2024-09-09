@@ -1,23 +1,21 @@
 const path = require('node:path');
 const Linker = require('../src/lang/Linker');
 
-describe.only('test-parser', function () {
+describe('test-parser', function () {
     it('test case 1', async function () {
         await jacat.startWorker_(async (app) => {
-          const linker = new Linker(app, {
-            schemaPath: path.resolve(__dirname, './schema'),
-            useJsonSource: false,
-            saveIntermediate: true,
-            dependencies: {
-              abc: '../abc-module'
-            }
-          });
-          let result = linker.loadModule('testNamespace.xeml');
-          console.log(result);
+            const linker = new Linker(app, {
+                schemaPath: path.resolve(__dirname, './schema'),
+                useJsonSource: false,
+                saveIntermediate: false,
+                dependencies: {
+                    abc: '../abc-module',
+                },
+            });
+            let result = linker.loadModule('testNamespace.xeml');
 
-          result = linker.loadElement(result, 'modifier', 'module1:activator1', true);
-          console.log(result.xemlModule);
+            result = linker.loadElement(result, 'Activator', 'module1:activator1', true);
+            should.exist(result);
         });
-        
     });
 });

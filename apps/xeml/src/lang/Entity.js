@@ -315,7 +315,7 @@ class Entity extends Clonable {
     addIndexes() {
         if (this.info.indexes) {
             _.each(this.info.indexes, (index) => {
-                this.addIndex(index);
+                this.addIndex(index, true);
             });
         }
     }
@@ -327,14 +327,16 @@ class Entity extends Clonable {
      * @property {bool} index.unique - Flag of uniqueness of the index
      * @returns {Entity}
      */
-    addIndex(index) {
+    addIndex(index, skipExisting) {
         if (!this.indexes) {
             this.indexes = [];
         }
 
         index = _.cloneDeep(index);
 
-        assert: index.fields;
+        if (!index.fields) {
+            throw new Error('Index fields is required.');
+        }
 
         if (!_.isArray(index.fields)) {
             index.fields = [index.fields];
@@ -355,6 +357,9 @@ class Entity extends Clonable {
         index.fields.sort();
 
         if (this.hasIndexOn(index.fields)) {
+            if (skipExisting) {
+                return this;
+            }
             throw new Error(`Index on [${index.fields.join(', ')}] already exist in entity [${this.name}].`);
         }
 

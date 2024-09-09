@@ -1,0 +1,508 @@
+{
+    "namespace": ["commons:types"],
+    "type": {
+        "mediaType": {
+            "type": "enum",
+            "values": ["text", "image", "video", "audio", "document"]
+        },
+        "resourceSource": {
+            "type": "enum",
+            "values": ["upload", "generated", "camera", "external", "copied", "preset"]
+        }
+    },
+    "entity": {
+        "mimeType": {
+            "base": ["dictionaryByCode"],
+            "comment": "MIME type",
+            "fields": {
+                "mime": {
+                    "name": "mime",
+                    "type": "name"
+                },
+                "subType": {
+                    "name": "subType",
+                    "type": "shortName"
+                },
+                "extName": {
+                    "name": "extName",
+                    "type": "array",
+                    "optional": true
+                },
+                "mediaType": {
+                    "name": "mediaType",
+                    "type": "mediaType"
+                }
+            },
+            "indexes": [
+                {
+                    "fields": "mediaType"
+                }
+            ],
+            "data": [
+                {
+                    "records": [
+                        {
+                            "code": "TXT",
+                            "mime": "text/plain",
+                            "name": "Plain text",
+                            "mediaType": "text",
+                            "subType": "plain",
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "HTM",
+                            "mime": "text/html",
+                            "name": "HTML text",
+                            "mediaType": "text",
+                            "subType": "html",
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "CSV",
+                            "mime": "text/html",
+                            "name": "HTML csv",
+                            "mediaType": "document",
+                            "subType": "csv",
+                            "extName": [".csv"],
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "PNG",
+                            "mime": "image/png",
+                            "name": "PNG image",
+                            "mediaType": "image",
+                            "subType": "png",
+                            "extName": [".png"],
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "JPG",
+                            "mime": "image/jpeg",
+                            "name": "JPEG image",
+                            "mediaType": "image",
+                            "subType": "jpeg",
+                            "extName": [".jpg", ".jpeg"],
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "SVG",
+                            "mime": "image/svg",
+                            "name": "SVG image",
+                            "mediaType": "image",
+                            "subType": "svg",
+                            "extName": [".svg"],
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "MP4",
+                            "mime": "video/mp4",
+                            "name": "MPEG-4 video",
+                            "mediaType": "video",
+                            "subType": "mp4",
+                            "extName": [".mp4"],
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "AVI",
+                            "mime": "video/x-msvideo",
+                            "name": "A/V interleave video",
+                            "mediaType": "video",
+                            "subType": "avi",
+                            "extName": [".avi"],
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "PDF",
+                            "mime": "application/pdf",
+                            "name": "PDF document",
+                            "mediaType": "document",
+                            "subType": "pdf",
+                            "extName": [".pdf"],
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "DOC",
+                            "mime": "application/msword",
+                            "name": "Microsoft Word",
+                            "mediaType": "document",
+                            "subType": "doc",
+                            "extName": [".doc"],
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "DOCX",
+                            "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            "name": "Microsoft Word (OpenXML)",
+                            "mediaType": "document",
+                            "subType": "docx",
+                            "extName": [".docx"],
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "XLSX",
+                            "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "name": "Microsoft Excel (OpenXMLSDK)",
+                            "mediaType": "document",
+                            "subType": "xlsx",
+                            "extName": [".xlsx"],
+                            "isSystem": true,
+                            "isActive": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "resourceSource": {
+            "base": ["dictionaryByCode"],
+            "comment": "Resource source",
+            "data": [
+                {
+                    "records": [
+                        {
+                            "code": "UPLOAD",
+                            "name": "Uploaded by user",
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "GENERATED",
+                            "name": "System generated",
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "CAMERA",
+                            "name": "Taken by camera",
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "EXTERNAL",
+                            "name": "External reference",
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "COPY",
+                            "name": "Copied from external",
+                            "isSystem": true,
+                            "isActive": true
+                        },
+                        {
+                            "code": "PRESET",
+                            "name": "System preset",
+                            "isSystem": true,
+                            "isActive": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "resourceCategory": {
+            "base": ["dictionaryByCode"],
+            "comment": "Resource category",
+            "data": [
+                {
+                    "records": [
+                        {
+                            "code": "PHOTO",
+                            "name": "Photos"
+                        }
+                    ]
+                }
+            ]
+        },
+        "resourceGroup": {
+            "base": ["hyperIdIndexed"],
+            "fields": {
+                "entityName": {
+                    "name": "entityName",
+                    "type": "name"
+                },
+                "entityId": {
+                    "name": "entityId",
+                    "type": "name",
+                    "optional": true
+                }
+            },
+            "associations": [
+                {
+                    "type": "hasMany",
+                    "destEntity": "resource"
+                }
+            ],
+            "indexes": [
+                {
+                    "fields": ["entityName", "entityId"],
+                    "unique": true
+                }
+            ],
+            "inputs": {
+                "ensure": [
+                    {
+                        "name": "entityName"
+                    },
+                    {
+                        "name": "entityId",
+                        "optional": true
+                    }
+                ]
+            }
+        },
+        "resource": {
+            "base": ["hyperIdIndexed"],
+            "features": ["createTimestamp", "updateTimestamp"],
+            "fields": {
+                "url": {
+                    "name": "url",
+                    "type": "url",
+                    "optional": true
+                },
+                "urlMobile": {
+                    "name": "urlMobile",
+                    "type": "url",
+                    "optional": true
+                },
+                "thumbnail": {
+                    "name": "thumbnail",
+                    "type": "url",
+                    "optional": true
+                },
+                "title": {
+                    "name": "title",
+                    "type": "name",
+                    "optional": true
+                },
+                "content": {
+                    "name": "content",
+                    "type": "text",
+                    "optional": true
+                },
+                "fileName": {
+                    "name": "fileName",
+                    "type": "name",
+                    "optional": true
+                },
+                "fileSize": {
+                    "name": "fileSize",
+                    "type": "integer",
+                    "optional": true
+                },
+                "hash": {
+                    "name": "hash",
+                    "type": "text",
+                    "maxLength": [256],
+                    "optional": true
+                },
+                "external": {
+                    "name": "external",
+                    "type": "boolean",
+                    "optional": true
+                },
+                "indexOrder": {
+                    "name": "indexOrder",
+                    "type": "integer",
+                    "default": [0]
+                },
+                "source": {
+                    "name": "source",
+                    "type": "resourceSource",
+                    "optional": true
+                },
+                "accessFlag": {
+                    "name": "accessFlag",
+                    "type": "shortName",
+                    "optional": true
+                }
+            },
+            "associations": [
+                {
+                    "type": "belongsTo",
+                    "destEntity": "resourceGroup",
+                    "srcField": "group",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                },
+                {
+                    "type": "belongsTo",
+                    "destEntity": "user",
+                    "srcField": "createdBy",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "mimeType",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "resourceCategory",
+                    "srcField": "category"
+                },
+                {
+                    "type": "hasMany",
+                    "destEntity": "resourceTag",
+                    "by": "resourceTagging",
+                    "srcField": "tags",
+                    "fieldProps": {}
+                }
+            ],
+            "indexes": [
+                {
+                    "fields": "url"
+                },
+                {
+                    "fields": ["group", "category", "indexOrder"],
+                    "unique": true
+                }
+            ],
+            "inputs": {
+                "userUpload": [
+                    {
+                        "name": "url",
+                        "optional": true
+                    },
+                    {
+                        "name": "title",
+                        "optional": true
+                    },
+                    {
+                        "name": "content",
+                        "optional": true
+                    },
+                    {
+                        "name": "fileName",
+                        "optional": true
+                    },
+                    {
+                        "name": "fileSize",
+                        "optional": true
+                    },
+                    {
+                        "name": "hash",
+                        "optional": true
+                    },
+                    {
+                        "name": "external",
+                        "optional": true
+                    },
+                    {
+                        "name": "category",
+                        "optional": true
+                    },
+                    {
+                        "name": "source",
+                        "optional": true
+                    },
+                    {
+                        "name": "group",
+                        "optional": true
+                    },
+                    {
+                        "name": "mimeType",
+                        "optional": true
+                    }
+                ],
+                "edit": [
+                    {
+                        "name": "url",
+                        "optional": true
+                    },
+                    {
+                        "name": "title",
+                        "optional": true
+                    },
+                    {
+                        "name": "content",
+                        "optional": true
+                    },
+                    {
+                        "name": "fileName",
+                        "optional": true
+                    },
+                    {
+                        "name": "fileSize",
+                        "optional": true
+                    },
+                    {
+                        "name": "hash",
+                        "optional": true
+                    },
+                    {
+                        "name": "external",
+                        "optional": true
+                    },
+                    {
+                        "name": "category",
+                        "optional": true
+                    },
+                    {
+                        "name": "source",
+                        "optional": true
+                    },
+                    {
+                        "name": "group",
+                        "optional": true
+                    },
+                    {
+                        "name": "mimeType",
+                        "optional": true
+                    },
+                    {
+                        "name": "accessFlag",
+                        "optional": true
+                    }
+                ]
+            }
+        },
+        "resourceTag": {
+            "base": ["dictionaryByCode"],
+            "comment": "Resource tags",
+            "associations": [
+                {
+                    "type": "hasMany",
+                    "destEntity": "resource",
+                    "by": "resourceTagging.tag",
+                    "fieldProps": {}
+                }
+            ]
+        },
+        "resourceTagging": {
+            "base": ["manyToMany"],
+            "comment": "Resource tagging",
+            "associations": [
+                {
+                    "type": "refersTo",
+                    "destEntity": "resource"
+                },
+                {
+                    "type": "refersTo",
+                    "destEntity": "resourceTag",
+                    "srcField": "tag"
+                }
+            ],
+            "indexes": [
+                {
+                    "fields": ["resource", "tag"],
+                    "unique": true
+                }
+            ]
+        }
+    }
+}

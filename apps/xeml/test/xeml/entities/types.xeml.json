@@ -1,0 +1,687 @@
+{
+    "type": {
+        "idString": {
+            "type": "text",
+            "maxLength": [64],
+            "emptyAsNull": true
+        },
+        "uuid": {
+            "type": "text",
+            "fixedLength": [36],
+            "modifiers": [
+                {
+                    "$xt": "Validator",
+                    "name": "isUUID"
+                },
+                {
+                    "$xt": "Activator",
+                    "name": "generator",
+                    "args": ["uuid"]
+                }
+            ]
+        },
+        "shortName": {
+            "type": "text",
+            "maxLength": [60],
+            "emptyAsNull": true
+        },
+        "name": {
+            "type": "text",
+            "maxLength": [200],
+            "emptyAsNull": true
+        },
+        "desc": {
+            "type": "text",
+            "optional": true,
+            "emptyAsNull": true
+        },
+        "url": {
+            "type": "text",
+            "maxLength": [750],
+            "emptyAsNull": true,
+            "modifiers": [
+                {
+                    "$xt": "Validator",
+                    "name": "isURL",
+                    "args": [
+                        {
+                            "require_tld": false
+                        }
+                    ]
+                }
+            ]
+        },
+        "path": {
+            "type": "text",
+            "maxLength": [750],
+            "emptyAsNull": true,
+            "modifiers": [
+                {
+                    "$xt": "Validator",
+                    "name": "isURL",
+                    "args": [
+                        {
+                            "allow_protocol_relative_urls": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "ip": {
+            "type": "text",
+            "maxLength": [40],
+            "emptyAsNull": true,
+            "modifiers": [
+                {
+                    "$xt": "Validator",
+                    "name": "isIP"
+                }
+            ]
+        },
+        "phone": {
+            "type": "text",
+            "maxLength": [20],
+            "emptyAsNull": true,
+            "modifiers": [
+                {
+                    "$xt": "Processor",
+                    "name": "normalizePhone",
+                    "args": ["+886"]
+                },
+                {
+                    "$xt": "Validator",
+                    "name": "isPhone"
+                }
+            ]
+        },
+        "mobile": {
+            "type": "text",
+            "maxLength": [20],
+            "emptyAsNull": true,
+            "modifiers": [
+                {
+                    "$xt": "Processor",
+                    "name": "normalizePhone",
+                    "args": ["+886"]
+                },
+                {
+                    "$xt": "Validator",
+                    "name": "isMobilePhone"
+                }
+            ]
+        },
+        "email": {
+            "type": "text",
+            "maxLength": [200],
+            "emptyAsNull": true,
+            "modifiers": [
+                {
+                    "$xt": "Validator",
+                    "name": "isEmail"
+                }
+            ]
+        },
+        "money": {
+            "type": "number",
+            "exact": true,
+            "totalDigits": [16],
+            "decimalDigits": [0]
+        },
+        "date": {
+            "type": "datetime",
+            "dateOnly": true
+        },
+        "time": {
+            "type": "datetime",
+            "timeOnly": true
+        },
+        "postcode": {
+            "type": "text",
+            "maxLength": [10],
+            "emptyAsNull": true
+        },
+        "dataType": {
+            "type": "enum",
+            "values": ["text", "integer", "number", "boolean", "csv", "object", "datetime", "array"]
+        },
+        "formatterType": {
+            "type": "enum",
+            "values": ["datetime", "currency", "dateOnly", "timeOnly", "bytes", "number", "percent"]
+        },
+        "requestStatus": {
+            "type": "enum",
+            "values": ["pending", "accepted", "declined", "cancelled"]
+        }
+    },
+    "entity": {
+        "dictionaryByAutoId": {
+            "features": ["autoId", "logicalDeletion"],
+            "fields": {
+                "name": {
+                    "name": "name",
+                    "type": "name"
+                },
+                "desc": {
+                    "name": "desc",
+                    "type": "desc"
+                }
+            },
+            "indexes": [
+                {
+                    "fields": "name",
+                    "unique": true
+                }
+            ]
+        },
+        "hyperIdIndexed": {
+            "features": [
+                {
+                    "name": "autoId",
+                    "args": [
+                        {
+                            "type": "hyperid"
+                        }
+                    ]
+                }
+            ]
+        },
+        "dictionaryByCode": {
+            "features": ["logicalDeletion"],
+            "fields": {
+                "code": {
+                    "name": "code",
+                    "type": "idString"
+                },
+                "name": {
+                    "name": "name",
+                    "type": "name"
+                },
+                "indexOrder": {
+                    "name": "indexOrder",
+                    "type": "integer",
+                    "default": [0]
+                },
+                "desc": {
+                    "name": "desc",
+                    "type": "desc"
+                },
+                "isSystem": {
+                    "name": "isSystem",
+                    "type": "boolean",
+                    "optional": true
+                },
+                "isActive": {
+                    "name": "isActive",
+                    "type": "boolean",
+                    "default": [true]
+                }
+            },
+            "key": "code",
+            "indexes": [
+                {
+                    "fields": "name",
+                    "unique": true
+                }
+            ]
+        },
+        "dataTypeDictionary": {
+            "base": ["dictionaryByCode"],
+            "fields": {
+                "dataType": {
+                    "name": "dataType",
+                    "type": "dataType",
+                    "optional": true
+                },
+                "values": {
+                    "name": "values",
+                    "type": "array",
+                    "optional": true
+                },
+                "allowUserInput": {
+                    "name": "allowUserInput",
+                    "type": "boolean",
+                    "optional": true
+                },
+                "formatter": {
+                    "name": "formatter",
+                    "type": "formatterType",
+                    "optional": true
+                }
+            },
+            "associations": [
+                {
+                    "type": "refersTo",
+                    "destEntity": "uomUnit",
+                    "srcField": "unit",
+                    "fieldProps": {
+                        "optional": true
+                    }
+                }
+            ]
+        },
+        "manyToMany": {
+            "features": ["autoId", "createTimestamp"]
+        },
+        "closureTable": {
+            "features": ["autoId"]
+        },
+        "uomTerm": {
+            "base": ["dictionaryByCode"],
+            "comment": "Unit of measure: term",
+            "data": [
+                {
+                    "records": [
+                        {
+                            "code": "S",
+                            "isActive": true,
+                            "name": "Second",
+                            "desc": "Secondly",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "MIN",
+                            "isActive": true,
+                            "name": "Minute",
+                            "desc": "Minutely",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "H",
+                            "isActive": true,
+                            "name": "Hour",
+                            "desc": "Hourly",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "DAY",
+                            "isActive": true,
+                            "name": "Day",
+                            "desc": "Daily",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "WEEK",
+                            "isActive": true,
+                            "name": "Week",
+                            "desc": "Weekly",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "2WEEK",
+                            "isActive": true,
+                            "name": "Fortnight",
+                            "desc": "Fortnightly",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "4WEEK",
+                            "isActive": true,
+                            "name": "Four-week",
+                            "desc": "Four-weekly",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "MON",
+                            "isActive": true,
+                            "name": "Month",
+                            "desc": "Monthly",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "Q",
+                            "isActive": true,
+                            "name": "Quarter",
+                            "desc": "Quarterly",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "Y",
+                            "isActive": true,
+                            "name": "Year",
+                            "desc": "Annually",
+                            "isSystem": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "uomUnit": {
+            "base": ["dictionaryByCode"],
+            "comment": "Unit of measure: attribute",
+            "data": [
+                {
+                    "records": [
+                        {
+                            "code": "PERCENT",
+                            "name": "Pencent",
+                            "desc": "Percentage",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "SQRM",
+                            "name": "㎡",
+                            "desc": "Square meter",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "PY",
+                            "name": "坪",
+                            "desc": "坪",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "PERPY",
+                            "name": "/坪",
+                            "desc": "每坪",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "PERQ",
+                            "name": "/q",
+                            "desc": "Per quarter",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "PERM",
+                            "name": "/m",
+                            "desc": "Per month",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "PERW",
+                            "name": "/w",
+                            "desc": "Per week",
+                            "isSystem": true
+                        },
+                        {
+                            "code": "PERA",
+                            "name": "/a",
+                            "desc": "Per annual",
+                            "isSystem": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "uomCurrency": {
+            "base": ["dictionaryByCode"],
+            "comment": "Unit of measure: currency",
+            "fields": {
+                "symbol": {
+                    "name": "symbol",
+                    "type": "name",
+                    "optional": true
+                },
+                "decimalPlaces": {
+                    "name": "decimalPlaces",
+                    "type": "integer"
+                }
+            },
+            "data": [
+                {
+                    "records": [
+                        {
+                            "code": "AED",
+                            "isActive": false,
+                            "name": "United Arab Emirates Dirham",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "AUD",
+                            "isActive": false,
+                            "name": "Australian Dollar",
+                            "symbol": "AU$",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "BGN",
+                            "isActive": false,
+                            "name": "Bulgarian Lev",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "BHD",
+                            "isActive": false,
+                            "name": "Bahraini Dinar",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "CAD",
+                            "isActive": false,
+                            "name": "Canadian Dollar",
+                            "symbol": "$",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "CHF",
+                            "isActive": false,
+                            "name": "Swiss Franc",
+                            "symbol": "CHF",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "CNY",
+                            "isActive": false,
+                            "name": "Chinese Yuan",
+                            "symbol": "¥",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "CZK",
+                            "isActive": false,
+                            "name": "Czech Koruna",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "DKK",
+                            "isActive": false,
+                            "name": "Danish Krone",
+                            "symbol": "kr",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "EUR",
+                            "isActive": false,
+                            "name": "Euro",
+                            "symbol": "€",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "GBP",
+                            "isActive": false,
+                            "name": "Pound Sterling",
+                            "symbol": "£",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "HKD",
+                            "isActive": false,
+                            "name": "Hong Kong Dollar",
+                            "symbol": "HK$",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "HRK",
+                            "isActive": false,
+                            "name": "Croatian Kuna",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "HUF",
+                            "isActive": false,
+                            "name": "Hungarian Forint",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "IDR",
+                            "isActive": false,
+                            "name": "Indonesian Rupiah",
+                            "decimalPlaces": 0
+                        },
+                        {
+                            "code": "ILS",
+                            "isActive": false,
+                            "name": "New Israeli Sheqel",
+                            "symbol": "₪",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "INR",
+                            "isActive": false,
+                            "name": "Indian Rupee",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "JPY",
+                            "isActive": false,
+                            "name": "Japanese Yen",
+                            "symbol": "¥",
+                            "decimalPlaces": 0
+                        },
+                        {
+                            "code": "KES",
+                            "isActive": false,
+                            "name": "Kenyan Shilling",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "KRW",
+                            "isActive": false,
+                            "name": "South Korean Won",
+                            "symbol": "₩",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "KWD",
+                            "isActive": false,
+                            "name": "Kuwaiti Dinar",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "MXN",
+                            "isActive": false,
+                            "name": "Mexican Peso",
+                            "symbol": "$",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "MYR",
+                            "isActive": false,
+                            "name": "Malaysian Ringgit",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "NOK",
+                            "isActive": false,
+                            "name": "Norwegian Krone",
+                            "symbol": "kr",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "NZD",
+                            "isActive": false,
+                            "name": "New Zealand Dollar",
+                            "symbol": "NZ$",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "OMR",
+                            "isActive": false,
+                            "name": "Omani Rial",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "PHP",
+                            "isActive": false,
+                            "name": "Philippine Peso",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "PLN",
+                            "isActive": false,
+                            "name": "Polish Zloty",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "QAR",
+                            "isActive": false,
+                            "name": "Qatari Rial",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "RON",
+                            "isActive": false,
+                            "name": "Romanian New Leu",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "RUB",
+                            "isActive": false,
+                            "name": "Russian Rouble",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "SAR",
+                            "isActive": false,
+                            "name": "Saudi Riyal",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "SEK",
+                            "isActive": false,
+                            "name": "Swedish Krona",
+                            "symbol": "kr",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "SGD",
+                            "isActive": false,
+                            "name": "Singapore Dollar",
+                            "symbol": "$",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "THB",
+                            "isActive": false,
+                            "name": "Thai Baht",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "TRY",
+                            "isActive": false,
+                            "name": "Turkish Lira",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "TWD",
+                            "isActive": false,
+                            "name": "New Taiwan Dollar",
+                            "symbol": "NT$",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "UGX",
+                            "isActive": false,
+                            "name": "Ugandan Shilling",
+                            "decimalPlaces": 0
+                        },
+                        {
+                            "code": "USD",
+                            "isActive": false,
+                            "name": "United States Dollar",
+                            "symbol": "$",
+                            "decimalPlaces": 2
+                        },
+                        {
+                            "code": "ZAR",
+                            "isActive": false,
+                            "name": "South African Rand",
+                            "symbol": "R",
+                            "decimalPlaces": 2
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

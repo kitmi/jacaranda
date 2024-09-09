@@ -1,16 +1,16 @@
-const path = require("node:path");
-const { _, esmCheck, baseName } = require("@kitmi/utils");
-const { fs, requireFrom } = require("@kitmi/sys");
-const { globSync } = require("glob");
-const Types = require("./Types");
+const path = require('node:path');
+const { _, esmCheck, baseName } = require('@kitmi/utils');
+const { fs, requireFrom } = require('@kitmi/sys');
+const { globSync } = require('glob');
+const Types = require('./Types');
 
-const Xeml = require("./grammar/xeml");
+const Xeml = require('./grammar/xeml');
 const XemlParser = Xeml.parser;
-const XemlTypes = require("./XemlTypes");
-const Entity = require("./Entity");
-const Schema = require("./Schema");
-const View = require("./View");
-const Dataset = require("./Dataset");
+const XemlTypes = require('./XemlTypes');
+const Entity = require('./Entity');
+const Schema = require('./Schema');
+const View = require('./View');
+const Dataset = require('./Dataset');
 
 const {
     isIdWithNamespace,
@@ -26,12 +26,18 @@ const ELEMENT_CLASS_MAP = {
     [XemlTypes.Element.DATASET]: Dataset,
 };
 
-const ELEMENT_WITH_MODULE = new Set([ XemlTypes.Element.TYPE, XemlTypes.Element.ACTIVATOR, XemlTypes.Element.PROCESSOR, XemlTypes.Element.VALIDATOR, XemlTypes.Element.ENTITY_OVERRIDE ]);
+const ELEMENT_WITH_MODULE = new Set([
+    XemlTypes.Element.TYPE,
+    XemlTypes.Element.ACTIVATOR,
+    XemlTypes.Element.PROCESSOR,
+    XemlTypes.Element.VALIDATOR,
+    XemlTypes.Element.ENTITY_OVERRIDE,
+]);
 
-const XEML_SOURCE_EXT = ".xeml";
-const BUILTINS_PATH = path.resolve(__dirname, "builtins");
+const XEML_SOURCE_EXT = '.xeml';
+const BUILTINS_PATH = path.resolve(__dirname, 'builtins');
 
-const CONTEXT_REFS = new Set([ 'latest', 'existing', 'raw' ]);
+const CONTEXT_REFS = new Set(['latest', 'existing', 'raw']);
 
 /**
  * Linker of xeml
@@ -46,14 +52,14 @@ class Linker {
      * @returns {array} xeml files
      */
     static getXemlFiles(sourceDir, useJsonSource, recursive) {
-        let pattern = "*" + XEML_SOURCE_EXT;
+        let pattern = '*' + XEML_SOURCE_EXT;
 
         if (useJsonSource) {
-            pattern += ".json";
+            pattern += '.json';
         }
 
         if (recursive) {
-            pattern = "**/" + pattern;
+            pattern = '**/' + pattern;
         }
 
         return globSync(pattern, { nodir: true, cwd: path.resolve(sourceDir) });
@@ -68,7 +74,7 @@ class Linker {
     static buildSchemaObjects(app, options) {
         const schemaObjects = {};
         const schemaFiles = Linker.getXemlFiles(options.schemaPath, options.useJsonSource);
-        
+
         schemaFiles.forEach((schemaFile) => {
             const linker = new Linker(app, options);
             linker.link(schemaFile);
@@ -192,14 +198,14 @@ class Linker {
         }
 
         if (_.isEmpty(this.entryModule.schema)) {
-            throw new Error("No schema defined in entry file.");
+            throw new Error('No schema defined in entry file.');
         }
 
         if (this.entryModule.overrides) {
             if (this.entryModule.overrides.entities) {
                 this.customizeEntities = this.entryModule.overrides.entities.reduce((result, entityItem) => {
                     if (isIdWithNamespace(entityItem.entity)) {
-                        const [namespace, name] = extractNamespace(entityItem.entity);  
+                        const [namespace, name] = extractNamespace(entityItem.entity);
                         let bucket;
                         if (result.has(name)) {
                             bucket = result.get(name);
@@ -210,14 +216,16 @@ class Linker {
                             bucket.push(entityItem.entity);
                         } else {
                             bucket = entityItem.entity;
-                        }                      
+                        }
                         result.set(name, bucket);
                     } else {
                         if (result.has(entityItem.entity)) {
-                            throw new Error(`Entity "${entityItem.entity}" is duplicated in overrides. Please add a namespace to differentiate. E.g. "namespace:entity"`);
+                            throw new Error(
+                                `Entity "${entityItem.entity}" is duplicated in overrides. Please add a namespace to differentiate. E.g. "namespace:entity"`
+                            );
                         }
                         result.set(entityItem.entity, entityItem.entity);
-                    }                    
+                    }
                     return result;
                 }, new Map());
             }
@@ -231,7 +239,7 @@ class Linker {
             this.schemas[schemaName] = schema;
 
             if (this.saveIntermediate) {
-                let jsFile = path.resolve(this.sourcePath, entryFileName + "-linked.json");
+                let jsFile = path.resolve(this.sourcePath, entryFileName + '-linked.json');
                 fs.writeFileSync(jsFile, JSON.stringify(schema.toJSON(), null, 4));
             }
         });
@@ -293,8 +301,8 @@ class Linker {
         }
 
         let derivedInfo = {
-            ..._.cloneDeep(_.omit(baseInfo, ["xemlModule", "modifiers"])),
-            ..._.omit(info, ["xemlModule", "type", "modifiers"]),
+            ..._.cloneDeep(_.omit(baseInfo, ['xemlModule', 'modifiers'])),
+            ..._.omit(info, ['xemlModule', 'type', 'modifiers']),
         };
         if (baseInfo.modifiers || info.modifiers) {
             derivedInfo.modifiers = [...(baseInfo.modifiers || []), ...(info.modifiers || [])];
@@ -320,7 +328,7 @@ class Linker {
                 let uniqueId = this.getElementUniqueId(xemlModule, XemlTypes.Element.CONST, value.name);
                 let ownerModule = this.getModuleById(this._mapOfReferenceToModuleId[uniqueId]);
                 return this.translateXemlValue(ownerModule, refedValue);
-            } else if (value.$xt) {                
+            } else if (value.$xt) {
                 switch (value.$xt) {
                     case XemlTypes.Lang.OBJECT_REF:
                         let refName = value.name;
@@ -332,7 +340,7 @@ class Linker {
                         if (!CONTEXT_REFS.has(refName)) {
                             throw new Error(`Invalid object reference "${value.name}"`);
                         }
-                        
+
                         return { $xr: 'Data', name: value.name };
                 }
 
@@ -358,7 +366,7 @@ class Linker {
         let isBuiltinEntity = _.startsWith(modulePath, BUILTINS_PATH);
         return isBuiltinEntity
             ? path.relative(BUILTINS_PATH, modulePath)
-            : "./" + path.relative(this.sourcePath, modulePath);
+            : './' + path.relative(this.sourcePath, modulePath);
     }
 
     /**
@@ -369,7 +377,7 @@ class Linker {
      * @returns {string} - The unique name of an element.
      */
     getElementUniqueId(refererModule, elementType, elementName) {
-        return elementType + ":" + elementName + "<-" + refererModule.id;
+        return elementType + ':' + elementName + '<-' + refererModule.id;
     }
 
     loadEntity(refererModule, elementName, throwOnMissing = true) {
@@ -378,7 +386,7 @@ class Linker {
 
     loadEntityTemplate(refererModule, elementName, args) {
         const templateInfo = this.loadElement(refererModule, XemlTypes.Element.ENTITY_TEMPLATE, elementName, true);
-        
+
         const templateArgs = templateInfo.templateArgs;
         if (templateArgs.length !== args.length) {
             throw new Error(`Arguments mismatch for entity template "${elementName}"`);
@@ -394,7 +402,7 @@ class Linker {
         });
 
         const instanceInfo = _.mapValues(templateInfo, (value, key) => {
-            if (key === "fields") {
+            if (key === 'fields') {
                 return _.mapValues(value, (fieldInfo) => {
                     if (fieldInfo.type in variables) {
                         return { ...fieldInfo, type: variables[fieldInfo.type] };
@@ -455,7 +463,7 @@ class Linker {
             let [namespace, name] = extractNamespace(elementName);
             elementName = name;
 
-            const namespaceParts = namespace.split(":");
+            const namespaceParts = namespace.split(':');
             if (namespaceParts.length > 2) {
                 // todo: support moduleNamespace with path
                 throw new Error(`Invalid namespace syntax "${namespace}"`);
@@ -504,8 +512,11 @@ class Linker {
 
             if (index === -1) {
                 if (throwOnMissing) {
+                    console.log(packageNamespace, moduleNamespace);
                     throw new Error(
-                        `${elementType} "${elementName}" not found in imported namespaces. Referer: ${refererModule.id}`
+                        `${elementType} "${elementName}" not found in imported namespaces. Referer: ${
+                            refererModule.id
+                        }, Namespaces: \n${refererModule.namespace.join('\n')}`
                     );
                 }
 
@@ -513,7 +524,7 @@ class Linker {
             }
         }
 
-        let elementSelfId = elementType + ":" + elementName + "@" + targetModule.id;
+        let elementSelfId = elementType + ':' + elementName + '@' + targetModule.id;
         if (elementSelfId in this._elementsCache) {
             // already initialized
             return (this._elementsCache[uniqueId] = this._elementsCache[elementSelfId]);
@@ -525,18 +536,28 @@ class Linker {
         let elementInfo = targetModule[elementType][elementName];
         let element;
 
-        if (elementType === XemlTypes.Element.ENTITY && this.customizeEntities?.has(elementName)) {    
-            const entityItem = this.customizeEntities.get(elementName);    
+        if (elementType === XemlTypes.Element.ENTITY && this.customizeEntities?.has(elementName)) {
+            const entityItem = this.customizeEntities.get(elementName);
             if (Array.isArray(entityItem)) {
                 // multiple entities with the same name
                 entityItem.forEach((entityName) => {
-                    const overrideElement = this.loadElement(this.entryModule, XemlTypes.Element.ENTITY_OVERRIDE, entityName, true);
+                    const overrideElement = this.loadElement(
+                        this.entryModule,
+                        XemlTypes.Element.ENTITY_OVERRIDE,
+                        entityName,
+                        true
+                    );
                     Entity.overrideEntityMeta(elementInfo, overrideElement);
                 });
             } else {
-                const overrideElement = this.loadElement(this.entryModule, XemlTypes.Element.ENTITY_OVERRIDE, entityItem, true);
+                const overrideElement = this.loadElement(
+                    this.entryModule,
+                    XemlTypes.Element.ENTITY_OVERRIDE,
+                    entityItem,
+                    true
+                );
                 Entity.overrideEntityMeta(elementInfo, overrideElement);
-            }               
+            }
         }
 
         if (elementType in ELEMENT_CLASS_MAP) {
@@ -565,11 +586,11 @@ class Linker {
     _compile(xemlFile, packageName) {
         let jsFile;
 
-        if (xemlFile.endsWith(".json")) {
+        if (xemlFile.endsWith('.json')) {
             jsFile = xemlFile;
             xemlFile = xemlFile.substring(0, xemlFile.length - 5);
         } else {
-            jsFile = xemlFile + ".json";
+            jsFile = xemlFile + '.json';
         }
 
         let xeml, searchExt;
@@ -580,22 +601,22 @@ class Linker {
             }
 
             xeml = fs.readJsonSync(jsFile);
-            searchExt = XEML_SOURCE_EXT + ".json";
+            searchExt = XEML_SOURCE_EXT + '.json';
         } else {
             try {
-                xeml = XemlParser.parse(fs.readFileSync(xemlFile, "utf8"));
+                xeml = XemlParser.parse(fs.readFileSync(xemlFile, 'utf8'));
             } catch (error) {
                 throw new Error(`Failed to compile "${xemlFile}".\n${error.message || error}`);
             }
 
             if (!xeml) {
-                throw new Error("Unknown error occurred while compiling: " + xemlFile);
+                throw new Error('Unknown error occurred while compiling: ' + xemlFile);
             }
 
             searchExt = XEML_SOURCE_EXT;
         }
 
-        let baseName = path.basename(xemlFile, XEML_SOURCE_EXT);        
+        let baseName = path.basename(xemlFile, XEML_SOURCE_EXT);
 
         let currentPath = path.dirname(xemlFile);
 
@@ -628,12 +649,12 @@ class Linker {
             }
         }
 
-        if (xeml.namespace) {            
+        if (xeml.namespace) {
             xeml.namespace.forEach((ns) => {
                 let p;
                 let packageName;
 
-                const packageSep = ns.indexOf(":");
+                const packageSep = ns.indexOf(':');
                 if (packageSep > 0) {
                     //reference to a package
                     packageName = ns.substring(0, packageSep);
@@ -647,19 +668,19 @@ class Linker {
 
                     const files = ns.substring(packageSep + 1);
 
-                    if (pkgPath.startsWith(".") || pkgPath.startsWith("..")) {
-                        ns = path.join(pkgPath, files);    
+                    if (pkgPath.startsWith('.') || pkgPath.startsWith('..')) {
+                        ns = path.join(pkgPath, files);
                     } else {
-                        const schemaPath = esmCheck(requireFrom(pkgPath, process.cwd())).schemaPath;                        
+                        const schemaPath = esmCheck(requireFrom(pkgPath, process.cwd())).schemaPath;
                         ns = path.join(schemaPath, files);
-                    }                    
+                    }
                 }
 
-                if (ns.endsWith("/*")) {
+                if (ns.endsWith('/*')) {
                     p = path.resolve(currentPath, ns.substr(0, ns.length - 2));
                     let files = fs.readdirSync(p);
                     files.forEach((f) => expandNs(namespace, path.join(p, f), false, packageName));
-                } else if (ns.endsWith("/**")) {
+                } else if (ns.endsWith('/**')) {
                     p = path.resolve(currentPath, ns.substr(0, ns.length - 3));
                     let files = fs.readdirSync(p);
                     files.forEach((f) => expandNs(namespace, path.join(p, f), true, packageName));

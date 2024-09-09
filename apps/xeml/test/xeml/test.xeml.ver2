@@ -1,0 +1,7 @@
+import 'commons:**'
+import 'entities/types'
+
+schema 'test'
+  entities
+    uomCurrency    
+    uomUnit

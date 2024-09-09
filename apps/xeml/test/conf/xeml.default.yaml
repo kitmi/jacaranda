@@ -1,0 +1,27 @@
+logger:
+    level: info
+
+dataSource:
+    postgres:
+        test:
+            connection: 'postgres://postgres:postgres@localhost:5432/jc-test-db'
+            adminCredential:
+                username: 'postgres'
+                password: 'postgres'
+            logStatement: true
+            logConnection: false
+            logTransaction: true
+
+dataModel:
+    schemaSet:
+        test:
+            dataSource: postgres.test
+    dependencies:
+        commons: '@xgent/xem-commons'
+
+db:
+    test:
+        dataSource: postgres.test
+
+settings:
+    defaultDb: test

@@ -1063,12 +1063,16 @@ $$ LANGUAGE plpgsql;\n`);
                     let connectedByParts = assoc.by
                         ? assoc.by.split('.')
                         : [XemlUtils.prefixNaming(entity.name, destEntityName)];
-                    assert: connectedByParts.length <= 2;
+                    if (connectedByParts.length > 2) {
+                        throw new Error('Invalid "connectedBy" value in association. Entity: ' + entity.name);
+                    }
 
                     let connectedByField = (connectedByParts.length > 1 && connectedByParts[1]) || entity.name;
                     let connEntityName = XemlUtils.entityNaming(connectedByParts[0]);
 
-                    assert: connEntityName;
+                    if (!connEntityName) {
+                        throw new Error('Invalid "connectedBy" entity in association. Entity: ' + entity.name);
+                    }
 
                     let tag1 = `${entity.name}:${
                         assoc.type === 'hasMany' ? 'm' : '1'
@@ -1078,7 +1082,9 @@ $$ LANGUAGE plpgsql;\n`);
                         tag1 += ' ' + assoc.srcField;
                     }
 
-                    assert: !this._processedRef.has(tag1);
+                    if (this._processedRef.has(tag1)) {
+                        throw new Error('Duplicate association: ' + tag1);
+                    }
 
                     let connEntity = schema.ensureGetEntity(entity.xemlModule, connEntityName, pendingEntities);
                     if (!connEntity) {
@@ -1625,7 +1631,9 @@ $$ LANGUAGE plpgsql;\n`);
         let tag2 = `${relationEntityName}:1-${entity2Name}:* ${connectedByField2}`;
 
         if (this._processedRef.has(tag1)) {
-            assert: this._processedRef.has(tag2);
+            if (!this._processedRef.has(tag2)) {
+                throw new Error('Missing reference: ' + tag2);
+            }
 
             //already processed, skip
             return;

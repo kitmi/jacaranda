@@ -1,6 +1,6 @@
+import 'commons:**'
 import 'entities/types'
 
 schema 'test'
   entities
-    dictionaryByCode    
-    
+    uomUnit

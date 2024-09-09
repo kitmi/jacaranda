@@ -41,6 +41,13 @@ export default {
 
             if (db == null) {
                 const dbConfig = config[dbName];
+                if (dbConfig == null) {
+                    throw new InvalidConfiguration(
+                        `Configuration for db [${dbName}] not found.`,
+                        app,
+                        `db.[${dbName}]`
+                    );
+                }
                 let connector;
                 let sourceApp;
 

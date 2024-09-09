@@ -1,1 +1,3 @@
 *.xeml.jison
+/test/migrations
+/test/src
