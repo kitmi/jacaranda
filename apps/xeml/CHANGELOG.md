@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.7.4
+
+### Patch Changes
+
+-   Fix migration bug
+
 ## 0.7.3
 
 ### Patch Changes

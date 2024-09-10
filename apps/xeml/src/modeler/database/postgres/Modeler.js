@@ -1864,8 +1864,8 @@ $$ LANGUAGE plpgsql;\n`);
 
     _alterTableStatement(entityName, entity, currentEntity) {
         let sql = '';
-        const unlogged = entity.hasFeature('isCacheTable') && currentEntity.features.isCacheTable == null;
-        const logged = !entity.hasFeature('isCacheTable') && currentEntity.features.isCacheTable != null;
+        const unlogged = entity.hasFeature('isCacheTable') && currentEntity.features?.isCacheTable == null;
+        const logged = !entity.hasFeature('isCacheTable') && currentEntity.features?.isCacheTable != null;
 
         const tableName = this.connector.escapeId(entityName);
 
