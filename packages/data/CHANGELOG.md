@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.7.10
+
+### Patch Changes
+
+-   Fix sub-object mapping bug
+
 ## 0.7.9
 
 ### Patch Changes
