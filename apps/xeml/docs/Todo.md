@@ -21,6 +21,7 @@
 - [ ] triggers for insert and update - (update timestamp finished)
 - [ ] data template
 - [ ] activator on update only
+- [ ] api scheme
 
 ## Planned features
 

@@ -197,14 +197,15 @@ class PostgresEntityModel extends EntityModel {
                         // associated entity not in result set, probably when custom projection is used
                         rowObject[objKey] = [];
                         return;
-                    }
-
-                    rowObject[objKey] = [subObject];
+                    }                    
 
                     // many to *
-                    if (_.isNil(subObject[key])) {
+                    if (subObject[key] == null) {
                         // when custom projection is used
                         subObject = null;
+                        rowObject[objKey] = [];
+                    } else {
+                        rowObject[objKey] = [subObject];
                     }
                 }
 
