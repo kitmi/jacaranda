@@ -6,6 +6,7 @@
 const { _, isPlainObject, isEmpty } = require('@kitmi/utils');
 const escodegen = require('escodegen');
 const esprima = require('esprima');
+const XemlTypes = require('../../lang/XemlTypes');
 
 const AST_OBJECT_TYPES = [
     'ThisExpression',
@@ -372,11 +373,11 @@ function astValue(value) {
             return value;
         }
 
-        if (value.$xt === 'ObjectReference') {
+        if (value.$xt === XemlTypes.Lang.OBJECT_REF) {
             return astVarRef(value.name, true);
         }
 
-        if (value.$xt === 'RegExp') {
+        if (value.$xt === XemlTypes.Lang.REG_EXP) {
             let [literal] = esprima.tokenize(value.value);
             return {
                 type: 'NewExpression',

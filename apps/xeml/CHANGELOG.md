@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.8.0
+
+### Minor Changes
+
+-   Use constant as modifier argument
+
 ## 0.7.4
 
 ### Patch Changes

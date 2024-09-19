@@ -9,6 +9,7 @@ const XemlTypes = {
         PIPELINE_VAL: 'PipedValue',
         FUNCTION_CALL: 'FunctionCall',
         SYMBOL_TOKEN: 'Symbol',
+        REG_EXP: 'RegExp',
     }),
     Element: Object.freeze({
         CONST: 'constant',

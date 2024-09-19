@@ -3,7 +3,7 @@
  * @ignore
  */
 
-const { _, replaceAll } = require('@kitmi/utils');
+const { _, replaceAll, naming } = require('@kitmi/utils');
 const { TopoSort } = require('@kitmi/algo');
 const { _Activators, _Processors, _Validators } = require('@kitmi/data');
 const JsLang = require('./ast');
@@ -553,15 +553,11 @@ function translateModifier(functor, compileContext, args) {
                 functorId = '_' + functor.$xt + 's.' + functionName;
             }
         } else {
-            const namespace = `${compileContext.xemlModule.packageName}:${compileContext.xemlModule.name}`;            
+            const namespace = `${compileContext.xemlModule.packageName}:${compileContext.xemlModule.name}`;
             const namespacePrefix = replaceAll(namespace, ':', '_');
             const isAsync = functionName.endsWith('_');
             functionName = isAsync ? functionName.substring(0, functionName.length - 1) : functionName;
-            functorId =
-                namespacePrefix +
-                '_' +
-                functionName +
-                functor.$xt;
+            functorId = namespacePrefix + '_' + functionName + functor.$xt;
             if (isAsync) {
                 functorId += '_';
             }
@@ -648,14 +644,16 @@ function translateFunctionParams(args) {
 
     function translateFunctionParam(arg, i) {
         if (_.isPlainObject(arg)) {
-            if (arg.$xt === 'PipedValue') {
+            if (arg.$xt === XemlTypes.Lang.PIPELINE_VAL) {
                 return translateFunctionParam(arg.value);
             }
 
-            if (arg.$xt === 'ObjectReference') {
+            if (arg.$xt === XemlTypes.Lang.OBJECT_REF) {
                 if (isDotSeparateName(arg.name)) {
                     return extractDotSeparateName(arg.name).pop();
                 }
+            } else if (arg.$xt === XemlTypes.Lang.CONST_REF) {
+                return naming.camelCase(arg.name);
             }
 
             return arg.name;
@@ -688,11 +686,11 @@ function translateFunctionParams(args) {
  */
 function compileConcreteValueExpression(startTopoId, value, compileContext) {
     if (_.isPlainObject(value)) {
-        if (value.$xt === 'PipedValue') {
+        if (value.$xt === XemlTypes.Lang.PIPELINE_VAL) {
             return compilePipedValue(startTopoId, value, compileContext);
         }
 
-        if (value.$xt === 'ObjectReference') {
+        if (value.$xt === XemlTypes.Lang.OBJECT_REF) {
             let [refBase, ...rest] = extractDotSeparateName(value.name);
 
             let dependency;
@@ -720,13 +718,18 @@ function compileConcreteValueExpression(startTopoId, value, compileContext) {
             return compileVariableReference(startTopoId, value, compileContext);
         }
 
-        if (value.$xt === 'RegExp') {
+        if (value.$xt === XemlTypes.Lang.REG_EXP) {
             compileContext.astMap[startTopoId] = JsLang.astValue(value);
             return startTopoId;
         }
 
-        if (value.$xt === 'Symbol') {
+        if (value.$xt === XemlTypes.Lang.SYMBOL_TOKEN) {
             compileContext.astMap[startTopoId] = JsLang.astValue(translateSymbolToken(value.name));
+            return startTopoId;
+        }
+
+        if (value.$xt === XemlTypes.Lang.CONST_REF) {
+            compileContext.astMap[startTopoId] = JsLang.astValue(compileContext.linker.translateXemlValue(compileContext.xemlModule, value));
             return startTopoId;
         }
 
@@ -1021,7 +1024,7 @@ function translateThenAst(startId, endId, then, compileContext, assignTo) {
         }
 
         if (then.$xt === 'UnaryExpression') {
-            throw new Error('To be implemented')
+            throw new Error('To be implemented');
         }
     }
 

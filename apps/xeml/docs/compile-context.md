@@ -6,7 +6,7 @@
 ## compileContext
 - linker
 - moduleName: Entity model name
-- entityModule
+- xemlModule
 - modelVars
 - mainStartId
 - astMap: Map of topo Id to ast block
