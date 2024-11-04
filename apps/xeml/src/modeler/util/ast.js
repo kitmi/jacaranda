@@ -23,6 +23,8 @@ const AST_OBJECT_TYPES = [
     'AssignmentExpression',
     'Literal',
     'Identifier',
+    'SpreadElement',
+    'Property',
 ];
 
 function astParams(params) {
@@ -113,16 +115,20 @@ function astImport(defaultName, fromPath, ...args) {
 function astImportNonDefault(fromPath, ...args) {
     return {
         type: 'ImportDeclaration',
-        specifiers: [            
-            ...args.map((arg) => typeof arg === 'object' && ('local' in arg) ? ({
-                type: 'ImportSpecifier',
-                local: astId(arg.local),
-                imported: astId(arg.name),
-            }) : ({
-                type: 'ImportSpecifier',
-                local: astId(arg),
-                imported: astId(arg),
-            })),
+        specifiers: [
+            ...args.map((arg) =>
+                typeof arg === 'object' && 'local' in arg
+                    ? {
+                          type: 'ImportSpecifier',
+                          local: astId(arg.local),
+                          imported: astId(arg.name),
+                      }
+                    : {
+                          type: 'ImportSpecifier',
+                          local: astId(arg),
+                          imported: astId(arg),
+                      }
+            ),
         ],
         source: astLiteral(fromPath),
     };
@@ -348,10 +354,47 @@ function astObjPat(keys) {
     };
 }
 
+const keysToEscape = new Set([
+    ':',
+    '-',
+    '|',
+    ' ',
+    '(',
+    ')',
+    '[',
+    ']',
+    '{',
+    '}',
+    ',',
+    '.',
+    ';',
+    "'",
+    '"',
+    '`',
+    '!',
+    '@',
+    '#',
+    '%',
+    '^',
+    '&',
+    '*',
+    '+',
+    '=',
+    '<',
+    '>',
+    '?',
+    '/',
+    '\\',
+    '~',
+    '\t',
+    '\n',
+    '\r',
+]);
+
 function astMember(key, any, shorthand = false) {
     return {
         type: 'Property',
-        key: key.startsWith(':') ? astLiteral(key) : astId(key),
+        key: [...key].some((c) => keysToEscape.has(c)) ? astLiteral(key) : astId(key),
         computed: false,
         value: any,
         kind: 'init',
@@ -360,7 +403,7 @@ function astMember(key, any, shorthand = false) {
     };
 }
 
-function astValue(value) {
+function astValue(value, payload) {
     if (Array.isArray(value)) {
         return {
             type: 'ArrayExpression',
@@ -395,7 +438,7 @@ function astValue(value) {
         let props = [];
 
         _.forOwn(value, (any, key) => {
-            props.push(astMember(key, astValue(any)));
+            props.push(astMember(key, astValue(any), payload?.shorthand));
         });
 
         return {
@@ -580,6 +623,20 @@ function astExportDefault(expr) {
     };
 }
 
+function astSpread(objRef) {
+    return {
+        type: 'SpreadElement',
+        argument: astValue(objRef),
+    };
+}
+
+function astObjectCreate(...obj) {
+    return {
+        type: 'ObjectExpression',
+        properties: obj.map((o) => astValue(o)),
+    };
+}
+
 module.exports = {
     astProgram,
     astLeadingComments,
@@ -618,4 +675,6 @@ module.exports = {
     astArrayAccess,
     astToCode,
     astExportDefault,
+    astSpread,
+    astObjectCreate,
 };

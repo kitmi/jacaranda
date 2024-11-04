@@ -10,7 +10,7 @@ This discrepancy between type recognition and business logic necessitates a sema
 
 The `@kitmi/types` library is not just a collection of predefined data types; it also allows the creation of an independent and extensible type system. This flexibility is crucial for business applications where the context and semantics of data are paramount. By defining types semantically, developers can ensure that data conforms to business rules and expectations, such as treating a numeric string as an integer or a date string as a datetime object.
 
-Building on the capabilities of `@kitmi/types`, the `@kitmi/validators` library introduces a `postProcess` hook to perform validations and transformations based on the Js Type Modifiers Syntax (JTMS). This approach enables dynamic and complex validation strategies that are defined using data descriptors rather than code, allowing for the configuration and storage of these rules in a standardized format.
+Building on the capabilities of `@kitmi/types`, the `@kitmi/validators` library introduces a `postProcess` hook to perform validations and transformations based on the JSON Type Modifiers Syntax (JTMS). This approach enables dynamic and complex validation strategies that are defined using data descriptors rather than code, allowing for the configuration and storage of these rules in a standardized format.
 
 ### Conventions and Types
 
@@ -38,7 +38,7 @@ The `@kitmi/types` library also supports plugins as serializer, deserializer, pr
 
 ## Dynamic Validation with Declarative Syntax
 
-Building on the foundation of `@kitmi/types`, the `@kitmi/validators` library introduces a dynamic validation system using the Js Type Modifiers Syntax (JTMS). This declarative syntax allows developers to specify complex validation rules by combining different types of modifiers.
+Building on the foundation of `@kitmi/types`, the `@kitmi/validators` library introduces a dynamic validation system using the JSON Type Modifiers Syntax (JTMS). This declarative syntax allows developers to specify complex validation rules by combining different types of modifiers.
 
 ### Modifier Syntax
 

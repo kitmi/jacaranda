@@ -24,10 +24,7 @@ class T_BINARY {
         }
     
         throw new ValidationError('Invalid binary value.', {
-            value,
-            meta,
-            rawValue: opts.rawValue,
-            i18n: opts.i18n,
+            value: opts.rawValue,
             path: opts.path,
         });
     }

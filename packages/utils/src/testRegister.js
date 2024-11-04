@@ -1,6 +1,9 @@
+// eslint-disable-next-line no-undef
 const _ = require('lodash');
+// eslint-disable-next-line no-undef
 const chai = require('chai');
-chai.use(function (chai, utils) {
+
+chai.use(function (chai, _utils) {
     const Assertion = chai.Assertion;
 
     // your helpers here

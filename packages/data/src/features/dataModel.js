@@ -17,6 +17,7 @@ export default {
             {
                 schema: {
                     schemaPath: { type: 'text', optional: true, default: 'xeml' },
+                    sourcePath: { type: 'text', optional: true, default: 'src' },
                     modelPath: { type: 'text', optional: true, default: 'src/models' },
                     migrationPath: { type: 'text', optional: true, default: './migrations' },
                     manifestPath: { type: 'text', optional: true, default: './manifests' },

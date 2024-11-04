@@ -54,7 +54,7 @@ export class Config {
         REQUIRE_RIGHT_OPERAND: (op) => `Binary operator "${op}" requires a right operand.`,
         RIGHT_OPERAND_NOT_EMPTY: (op) => `Unary operator "${op}" does not require a right operand.`,
 
-        MULTI_ERRORS: (numErrors) => `${numErrors} errors occurred.`,
+        MULTI_ERRORS: (_numErrors) => 'Multiple errors occurred.',
     };
 
     supportedLocales = new Set(['en', 'en-AU', 'en-GB', 'en-US', 'zh', 'zh-CN', 'zh-HK', 'zh-TW']);
@@ -87,22 +87,24 @@ export class Config {
         return this;
     }
 
-    addTransformerToMap(tokens, handler) {
+    addTransformerToMap(tokens, handler, override) {
         const [tag, isUnary, ...alias] = tokens;
 
         if (typeof isUnary !== 'boolean') {
             throw new Error('The second param should be a boolean value.');
         }
 
-        alias.forEach((op) => {
-            if (op in this.mapOfTransformers) {
-                throw new Error(`Duplicate transformer alias: "${op}" for operator "${tag}".`);
-            }
-            this.mapOfTransformers[op] = [tag, isUnary];
-        });
+        if (!override) {
+            alias.forEach((op) => {
+                if (op in this.mapOfTransformers) {
+                    throw new Error(`Duplicate transformer alias: "${op}" for operator "${tag}".`);
+                }
+                this.mapOfTransformers[op] = [tag, isUnary];
+            });
 
-        if (tag in this.transformerHandlers) {
-            throw new Error(`Duplicate operator name: "${tag}".`);
+            if (tag in this.transformerHandlers) {
+                throw new Error(`Duplicate operator name: "${tag}".`);
+            }
         }
 
         return this.overrideTransformer(tag, handler);
@@ -124,7 +126,7 @@ export class Config {
                 Object.assign(this.messages, this.messagesCache[locale]);
                 this.locale = locale;
             } else {
-                throw new Error(`Messages of locale "${locale}" not loaded.`);            
+                throw new Error(`Messages of locale "${locale}" not loaded.`);
             }
         }
     }
@@ -136,7 +138,7 @@ const defaultConfig = new Config();
 export const initContext = (context, currentValue) => {
     if (context == null) {
         context = {
-            config: defaultConfig
+            config: defaultConfig,
         };
     }
 

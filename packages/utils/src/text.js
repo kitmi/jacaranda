@@ -21,6 +21,7 @@ export { default as csvLineParse } from './csvLineParse';
 export { default as baseName } from './baseName';
 export { default as changeExtName } from './changeExtName';
 export { default as splitBaseAndExt } from './splitBaseAndExt';
+export * from './split';
 export { default as suffixForDuplicate } from './suffixForDuplicate';
 export { default as countOfChar } from './countOfChar';
 export { default as deleteLines } from './deleteLines';

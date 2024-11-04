@@ -1,27 +1,37 @@
 class JsvError extends Error {
-    constructor(errorOrErrors, value, context) {
+    constructor(errorOrErrors, context) {
         const errors = [];
         let inner = [];
 
         (Array.isArray(errorOrErrors) ? errorOrErrors : [errorOrErrors]).forEach((err) => {
             if (err.name === 'JsvError') {
-                errors.push(...err.errors);
-                inner = [...inner, ...(err.inner.length > 0 ? err.inner : [err])];
+                if (err.errors) {
+                    // multiple errors
+                    errors.push(...err.errors);
+                    inner.push(...err.inner);
+                } else {
+                    errors.push(err.message);
+                    inner.push(err);
+                }
+            } else if (err instanceof Error) {
+                errors.push(err.message);
+                inner.push(err);
             } else {
                 errors.push(err);
-                if (err.inner && Array.isArray(err.inner)) {
-                    inner = [...inner, ...err.inner];
-                }
             }
         });
 
         super(errors.length > 1 ? context.config.messages.MULTI_ERRORS(errors.length) : errors[0]);
 
         this.name = 'JsvError';
-        this.value = value;
         this.path = context.path;
-        this.errors = errors;
-        this.inner = inner;
+
+        if (errors.length > 1) {
+            this.errors = errors;
+            this.inner = inner;            
+        } else if (inner.length > 0 && inner[0].path) {
+            this.path = inner[0].path;
+        }
     }
 }
 

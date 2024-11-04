@@ -1,5 +1,14 @@
 const path = require('node:path');
-const { _, naming, text, isPlainObject, baseName, isEmpty, pushIntoBucket } = require('@kitmi/utils');
+const {
+    _,
+    naming,
+    dropIfEndsWith,
+    isPlainObject,
+    baseName,
+    isEmpty,
+    pushIntoBucket,
+    splitFirst,
+} = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
 const swig = require('swig-templates');
 const esprima = require('esprima');
@@ -10,6 +19,30 @@ const XemlToAst = require('./util/xemlToAst');
 const Snippets = require('./dao/snippets');
 const Methods = require('./dao/methods');
 const { extractReferenceBaseName } = require('../lang/XemlUtils');
+const { globSync } = require('glob');
+const yaml = require('yaml');
+
+const INPUT_SCHEMA_DERIVED_KEYS = [
+    'type',
+    'noTrim',
+    'emptyAsNull',
+    'encoding',
+    'format',
+    'schema',
+    'element',
+    'keepUnsanitized',
+    'valueSchema',
+    'delimiter',
+    'csv',
+    'enum',
+];
+const DATASET_FIELD_KEYS = [...INPUT_SCHEMA_DERIVED_KEYS, 'optional', 'default'];
+
+const MAP_META_TO_MODIFIER = {
+    fixedLength: 'length',
+    maxLength: 'maxLength',
+    minLength: 'minLength',
+};
 
 const ChainableType = [
     XemlToAst.AST_BLK_VALIDATOR_CALL,
@@ -86,13 +119,80 @@ class DaoModeler {
     modeling_(schema, versionInfo) {
         this.linker.log('info', 'Generating entity models for schema "' + schema.name + '"...');
 
-        this._generateSchemaModel(schema, versionInfo);
-        this._generateEntityModel(schema, versionInfo);
+        this._generateDbModel(schema, versionInfo);
+        const datasetEntries = this._generateEntityDatasetSchema(schema, versionInfo);
+        const { sharedModifiers } = this._generateEntityModel(schema, datasetEntries, versionInfo);
+        this._generateSharedModifiers(schema, sharedModifiers, versionInfo);
         this._generateEnumTypes(schema, versionInfo);
-        this._generateEntityInputSchema(schema, versionInfo);
+        //this._generateEntityInputSchema(schema, versionInfo);
         this._generateEntityViews(schema);
+        this._generateApi(schema, versionInfo);
         //
         //this._generateViewModel();
+    }
+
+    buildApiClient(schema, versionInfo) {
+        this.linker.log('info', 'Generating API client for schema "' + schema.name + '"...');
+
+        const schemaPath = path.join(path.dirname(schema.linker.getModulePathById(schema.xemlModule.id)), 'api');
+
+        // check if api folder exists and read all yaml files under api folder
+        const datasetFiles = globSync('*.yaml', { nodir: true, cwd: schemaPath });
+        const datasetFilesSet = new Set(datasetFiles);
+
+        if (datasetFilesSet.size === 0) {
+            return;
+        }
+
+        const context = {
+            schema,
+            versionInfo,
+            sharedTypes: {},
+        };
+
+        const typeSpecialize = (typeInfo, argsMap) => {};
+
+        // process __types.yaml for type definitions
+        if (datasetFilesSet.has('__types.yaml')) {
+            const types = yaml.parse(fs.readFileSync(path.join(schemaPath, '__types.yaml'), 'utf8'));
+            // check if any type has $args property, change the type to a function
+
+            _.each(types, (type, typeName) => {
+                let typeInfo = type;
+
+                if (type.$args) {
+                    typeInfo = (variables) => {
+                        if (type.$args.find((arg) => !(arg in variables))) {
+                            throw new Error(
+                                `Specialization argument "${arg}" is required for type constructor "${typeName}".`
+                            );
+                        }
+                        return typeSpecialize(type, variables);
+                    };
+                }
+
+                context.sharedTypes[typeName] = typeInfo;
+            });
+            datasetFilesSet.delete('__types.yaml');
+        }
+
+        // process __groups.yaml for group definitions
+        if (datasetFilesSet.has('__groups.yaml')) {
+            context.groups = yaml.parse(fs.readFileSync(path.join(schemaPath, '__groups.yaml'), 'utf8'));
+            datasetFilesSet.delete('__groups.yaml');
+        }
+
+        for (const datasetFile of datasetFilesSet) {
+            if (datasetFile.startsWith('_')) {
+                continue;
+            }
+
+            const resourceName = path.basename(datasetFile, '.yaml');
+            const resources = yaml.parse(fs.readFileSync(path.join(schemaPath, datasetFile), 'utf8'));
+            _.each(resources, (resourceInfo, baseEndpoint) => {
+                this._generateResourceApi(context, resourceName, baseEndpoint, resourceInfo);
+            });
+        }
     }
 
     _featureReducer(schema, entity, featureName, feature) {
@@ -159,7 +259,7 @@ class DaoModeler {
         return [];
     }
 
-    _generateSchemaModel(schema, versionInfo) {
+    _generateDbModel(schema, versionInfo) {
         let capitalized = naming.pascalCase(schema.name);
 
         let locals = {
@@ -202,9 +302,18 @@ class DaoModeler {
         });
     }
 
-    _generateEntityModel(schema, versionInfo) {
+    _generateSharedModifiers(schema, sharedModifiers, versionInfo) {
+        _.each(sharedModifiers, (modifier) => {
+            this._generateFunctionTemplateFile(schema, modifier, versionInfo);
+        });
+    }
+
+    _generateEntityModel(schema, _datasetFiles, versionInfo) {
+        const sharedModifiers = {};
+
         _.forOwn(schema.entities, (entity, entityInstanceName) => {
             const extraMethods = [];
+            const datasetFiles = _datasetFiles[entityInstanceName];
 
             if (entity.features) {
                 _.forOwn(entity.features, (f, featureName) => {
@@ -292,38 +401,80 @@ class DaoModeler {
                 }
             });
 
-            //build customized interfaces
-            if (entity.interfaces) {
-                let astInterfaces = this._buildInterfaces(entity, modelMeta, sharedContext);
-                //console.log(astInterfaces);
-                //let astClass = astClassMain[astClassMain.length - 1];
-                //JsLang.astPushInBody(astClass, astInterfaces);
-                astClassMain = astClassMain.concat(astInterfaces);
-            }
-
             const importLines = [];
             const assignLines = [];
             const staticLines = [];
             const importBucket = {};
 
             importLines.push(JsLang.astToCode(Snippets.importFromData()));
+            if (datasetFiles) {
+                _.each(datasetFiles, (datasetFile, datasetName) => {
+                    importLines.push(
+                        JsLang.astToCode(
+                            JsLang.astImport('schema_' + datasetName, './' + path.join('schema', datasetFile))
+                        )
+                    );
+                });
+            }
+
+            if (entity.modifiers) {
+                const modifiers = this._processUsedModifiers(entity);
+
+                modifiers.forEach((modifier) => {
+                    importLines.push(
+                        JsLang.astToCode(
+                            JsLang.astImport(
+                                dropIfEndsWith(modifier.name, '_') +
+                                    modifier.$xt +
+                                    (modifier.name.endsWith('_') ? '_' : ''),
+                                './' + path.join(modifier.$xt.toLowerCase() + 's', modifier.name)
+                            )
+                        )
+                    );
+                    astClassMain.push(Snippets.modifierMethod(modifier));
+                });
+            }
+
+            if (!isEmpty(datasetFiles)) {
+                const datasetSchemas = {};
+                _.each(datasetFiles, (v, datasetName) => {
+                    const k = 'schema_' + datasetName;
+                    datasetSchemas[datasetName] = JsLang.astId(k);
+                });
+
+                staticLines.push(
+                    JsLang.astToCode(JsLang.astAssign(`${capitalized}.meta.schemas`, JsLang.astValue(datasetSchemas)))
+                );
+            }
 
             //generate functors if any
             if (!isEmpty(sharedContext.mapOfFunctorToFile)) {
                 _.forOwn(sharedContext.mapOfFunctorToFile, (fileName, functionName) => {
                     if (isPlainObject(fileName)) {
                         const importName = fileName.type + 's';
-                        const asLocalName = naming.camelCase(fileName.packageName) + importName;
-                        pushIntoBucket(importBucket, fileName.packageName, importName);
-                        assignLines.push(
-                            JsLang.astToCode(
-                                JsLang.astVarDeclare(
-                                    fileName.functorId,
-                                    JsLang.astVarRef(asLocalName + '.' + fileName.functionName, false),
-                                    true
+                        const asLocalName =
+                            (fileName.packageName ? naming.camelCase(fileName.packageName) : '') + importName;
+                        if (fileName.packageName) {
+                            pushIntoBucket(importBucket, fileName.packageName, importName);
+
+                            assignLines.push(
+                                JsLang.astToCode(
+                                    JsLang.astVarDeclare(
+                                        fileName.functorId,
+                                        JsLang.astVarRef(asLocalName + '.' + fileName.functionName, false),
+                                        true
+                                    )
                                 )
-                            )
-                        );
+                            );
+                        } else {
+                            // same package
+                            sharedModifiers[functionName] = fileName;
+                            importLines.push(
+                                JsLang.astToCode(
+                                    JsLang.astImport(fileName.functorId, baseName(fileName.fileName, true))
+                                )
+                            );
+                        }
                     } else {
                         importLines.push(JsLang.astToCode(JsLang.astImport(functionName, baseName(fileName, true))));
                     }
@@ -386,8 +537,11 @@ class DaoModeler {
 
             this.linker.log('info', 'Generated entity model: ' + modelFilePath);
         });
+
+        return { sharedModifiers };
     }
 
+    /*
     _generateEntityInputSchema(schema, versionInfo) {
         //generate validator config
         _.forOwn(schema.entities, (entity, entityInstanceName) => {
@@ -422,13 +576,13 @@ class DaoModeler {
                                     type: 'object',
                                     schema: JsLang.astCall(_.camelCase(dep), []),
                                 },
-                                ..._.pick(input, ['optional']),
+                                ..._.pick(input, ['optional', 'default']),
                             });
                         } else {
                             validationSchema[input.name] = JsLang.astValue({
                                 type: 'object',
                                 schema: JsLang.astCall(_.camelCase(dep), []),
-                                ..._.pick(input, ['optional']),
+                                ..._.pick(input, ['optional', 'default']),
                             });
                         }
                     } else {
@@ -440,7 +594,7 @@ class DaoModeler {
 
                         validationSchema[input.name] = JsLang.astValue({
                             ..._.pick(field, ['type', 'values']),
-                            ..._.pick(input, ['optional']),
+                            ..._.pick(input, ['optional', 'default']),
                         });
                     }
                 });
@@ -471,6 +625,141 @@ class DaoModeler {
                 this.linker.log('info', 'Generated entity input schema: ' + inputSchemaFilePath);
             });
         });
+    }
+    */
+
+    _fieldMetaToModifiers(fieldMeta) {
+        const result = [];
+        for (let key in fieldMeta) {
+            const mapped = MAP_META_TO_MODIFIER[key];
+            if (mapped) {
+                result.push([`~${mapped}`, fieldMeta[key]]);
+            }
+        }
+
+        return result;
+    }
+
+    _generateEntityDatasetSchema(schema, versionInfo) {
+        const _datasetEntries = {};
+
+        //generate validator config
+        _.forOwn(schema.entities, (entity, entityInstanceName) => {
+            const datasetEntries = {};
+            const entityPath = path.dirname(entity.linker.getModulePathById(entity.xemlModule.id));
+
+            // read <entity>-schema-<inputSetName>.yaml
+            const prefix = `${entityInstanceName}-schema-`;
+            const pattern = `${prefix}*.yaml`;
+            const datasetFiles = globSync(pattern, { nodir: true, cwd: entityPath });
+
+            datasetFiles.forEach((datasetFile) => {
+                const inputSetName = path.basename(datasetFile, '.yaml').substring(prefix.length);
+                const { schema: datasetSchema, ...others } = yaml.parse(
+                    fs.readFileSync(path.join(entityPath, datasetFile), 'utf8')
+                );
+
+                const _validationSchema = {};
+                const dependencies = new Set();
+                const ast = JsLang.astProgram(true);
+
+                for (let key in datasetSchema) {
+                    const name = key;
+                    const input = datasetSchema[key];
+
+                    //:address
+                    if (name.startsWith(':')) {
+                        const assoc = name.substring(1);
+                        const assocMeta = entity.associations[assoc];
+
+                        if (!assocMeta) {
+                            throw new Error(`Association "${assoc}" not found in entity [${entityInstanceName}].`);
+                        }
+
+                        if (!input.spec) {
+                            // link to the dataset of the referenced entity
+                            throw new Error(
+                                `Input "spec" is required for entity reference. Input set: ${inputSetName}, entity: ${entityInstanceName}, local: ${assoc}, referencedEntity: ${assocMeta.entity}`
+                            );
+                        }
+
+                        const dep = `${assocMeta.entity}-${input.spec}`;
+                        dependencies.add(dep);
+
+                        if (assocMeta.list) {
+                            _validationSchema[name] = JsLang.astValue({
+                                type: 'array',
+                                element: {
+                                    type: 'object',
+                                    schema: JsLang.astCall(_.camelCase(dep), []),
+                                },
+                                ..._.pick(input, DATASET_FIELD_KEYS),
+                            });
+                        } else {
+                            _validationSchema[name] = JsLang.astValue({
+                                type: 'object',
+                                schema: JsLang.astCall(_.camelCase(dep), []),
+                                ..._.pick(input, DATASET_FIELD_KEYS),
+                            });
+                        }
+                    } else {
+                        const field = entity.fields[name];
+
+                        if (!field) {
+                            throw new Error(`Field "${name}" not found in entity [${entityInstanceName}].`);
+                        }
+
+                        const mixed = { ...field, ...input };
+                        const postProcessors = this._fieldMetaToModifiers(mixed);
+                        const extra =
+                            postProcessors.length > 0
+                                ? { post: input?.post ? postProcessors.concat(input.post) : postProcessors }
+                                : {};
+
+                        _validationSchema[name] = JsLang.astValue({
+                            ..._.pick(field, INPUT_SCHEMA_DERIVED_KEYS),
+                            ..._.pick(input, DATASET_FIELD_KEYS),
+                            ...extra,
+                        });
+                    }
+                }
+
+                //console.dir(JsLang.astValue(validationSchema), {depth: 20});
+
+                const validationSchema = {
+                    schema: _validationSchema,
+                    ...others,
+                };
+
+                const exportBody = Array.from(dependencies).map((dep) =>
+                    JsLang.astImport(_.camelCase(dep), `./${dep}`)
+                );
+
+                JsLang.astPushInBody(
+                    ast,
+                    JsLang.astFunction('schemaCreator', [], exportBody.concat(JsLang.astReturn(validationSchema)))
+                );
+
+                JsLang.astPushInBody(ast, JsLang.astExportDefault('schemaCreator'));
+
+                let inputSchemaFilePath = path.join(
+                    this.outputPath,
+                    schema.name,
+                    'schema',
+                    entityInstanceName + '-' + inputSetName + '.js'
+                );
+                fs.ensureFileSync(inputSchemaFilePath);
+                const code = `// v.${versionInfo.version} by xeml\n` + JsLang.astToCode(ast);
+                fs.writeFileSync(inputSchemaFilePath, code);
+                datasetEntries[inputSetName] = entityInstanceName + '-' + inputSetName;
+
+                this.linker.log('info', 'Generated entity input schema: ' + inputSchemaFilePath);
+            });
+
+            _datasetEntries[entityInstanceName] = datasetEntries;
+        });
+
+        return _datasetEntries;
     }
 
     _generateEntityViews(schema) {
@@ -521,6 +810,372 @@ class DaoModeler {
                 this.linker.log('info', 'Generated entity views data set: ' + inputSchemaFilePath);
             }
         });
+    }
+
+    _generateApi(schema, versionInfo) {
+        const schemaPath = path.join(path.dirname(schema.linker.getModulePathById(schema.xemlModule.id)), 'api');
+
+        // check if api folder exists and read all yaml files under api folder
+        const datasetFiles = globSync('*.yaml', { nodir: true, cwd: schemaPath });
+        const datasetFilesSet = new Set(datasetFiles);
+
+        if (datasetFilesSet.size === 0) {
+            return;
+        }
+
+        const context = {
+            schema,
+            versionInfo,
+            sharedTypes: {},
+        };
+
+        // todo: typeSpecialize
+        const typeSpecialize = (typeInfo, argsMap) => {};
+
+        // process __types.yaml for type definitions
+        if (datasetFilesSet.has('__types.yaml')) {
+            const types = yaml.parse(fs.readFileSync(path.join(schemaPath, '__types.yaml'), 'utf8'));
+            // check if any type has $args property, change the type to a function
+
+            _.each(types, (type, typeName) => {
+                let typeInfo = type;
+
+                if (type.$args) {
+                    typeInfo = (variables) => {
+                        if (type.$args.find((arg) => !(arg in variables))) {
+                            throw new Error(
+                                `Specialization argument "${arg}" is required for type constructor "${typeName}".`
+                            );
+                        }
+                        return typeSpecialize(type, variables);
+                    };
+                }
+
+                context.sharedTypes[typeName] = typeInfo;
+            });
+            datasetFilesSet.delete('__types.yaml');
+        }
+
+        // process __groups.yaml for group definitions
+        if (datasetFilesSet.has('__groups.yaml')) {
+            context.groups = yaml.parse(fs.readFileSync(path.join(schemaPath, '__groups.yaml'), 'utf8'));
+            datasetFilesSet.delete('__groups.yaml');
+        }
+
+        for (const datasetFile of datasetFilesSet) {
+            if (datasetFile.startsWith('_')) {
+                continue;
+            }
+
+            const resourceName = path.basename(datasetFile, '.yaml');
+            const resources = yaml.parse(fs.readFileSync(path.join(schemaPath, datasetFile), 'utf8'));
+            _.each(resources, (resourceInfo, baseEndpoint) => {
+                this._generateResourceApi(context, resourceName, baseEndpoint, resourceInfo);
+            });
+        }
+    }
+
+    _generateResourceApi(context, resourceName, baseEndpoint, resourceInfo) {
+        const resourceClassName = naming.pascalCase(resourceName);
+        const { description, group, endpoints } = resourceInfo;
+
+        const groupInfo = context.groups[group];
+
+        if (groupInfo == null) {
+            throw new Error(`Group "${group}" not found in "api/__groups.yaml".`);
+        }
+
+        const locals = {
+            schemaVersion: context.versionInfo.version,
+            baseEndpoint,
+            className: resourceClassName,
+            resourceName,
+            description,
+            methods: [],
+        };
+
+        _.each(endpoints, (endpointInfo, endpoint) => {
+            if (endpoint.startsWith('/')) {
+                const paramName = endpoint.substring(2, endpoint.length - 1);
+
+                // routes with id
+                _.each(endpointInfo, (endpointInfo, endpoint) => {
+                    this._generateResourceEndpoint(context, locals, endpoint, endpointInfo, paramName);
+                });
+
+                return;
+            }
+
+            this._generateResourceEndpoint(context, locals, endpoint, endpointInfo);
+        });
+
+        locals.methods = locals.methods.join('\n\n');
+
+        const classTemplate = path.resolve(__dirname, 'dao', 'Api.js.swig');
+        const classCode = swig.renderFile(classTemplate, locals);
+
+        const resourceFilePath = path.join(
+            this.modelService.config.sourcePath,
+            groupInfo.controllerPath,
+            resourceName + '.js'
+        );
+        fs.ensureFileSync(resourceFilePath);
+        fs.writeFileSync(resourceFilePath, classCode);
+
+        this.linker.log('info', 'Generated api controller: ' + resourceFilePath);
+    }
+
+    _ensureEntity(localContext, entityName, codeBucket) {
+        if (!localContext.entities.has(entityName)) {
+            codeBucket.push(`const ${naming.pascalCase(entityName)} = this.$m('${entityName}');`);
+            localContext.entities.add(entityName);
+        }
+    }
+
+    _getReferencedMetadata(context, localContext, type, codeBucket) {
+        if (type.startsWith('$dataset.')) {
+            const [entityName, datasetName] = type.substring(9).split('.');
+            this._ensureEntity(localContext, entityName, codeBucket);
+            return JsLang.astVarRef(`${naming.pascalCase(entityName)}.datasetSchema('${datasetName}')`);
+        }
+
+        if (type.startsWith('$entity.')) {
+            const [entityName, fieldName] = type.substring(8).split('.');
+            this._ensureEntity(localContext, entityName, codeBucket);
+            return JsLang.astVarRef(`${naming.pascalCase(entityName)}.meta.fields['${fieldName}']`);
+        }
+
+        if (type.startsWith('$view.')) {
+            const [entityName, viewName] = type.substring(6).split('.');
+            this._ensureEntity(localContext, entityName, codeBucket);
+            return JsLang.astVarRef(`${naming.pascalCase(entityName)}.meta.views['${viewName}']`);
+        }
+
+        if (type.startsWith('$type.')) {
+            const typeName = type.substring(6);
+            return JsLang.astValue(context.sharedTypes[typeName]);
+        }
+
+        throw new Error(`Unsupported reference: ${type}`);
+    }
+
+    _processPlainObjectMetadata(context, localContext, object, codeBucket) {
+        return JsLang.astValue(
+            _.mapValues(object, (v) => this._getRequestSourceMetadata(context, localContext, v, codeBucket))
+        );
+    }
+
+    _getRequestSourceMetadata(context, localContext, typeInfo, codeBucket) {
+        if (typeof typeInfo === 'string') {
+            return this._getReferencedMetadata(context, localContext, typeInfo, codeBucket);
+        }
+
+        const { type, ...others } = typeInfo;
+
+        if (type[0] === '$') {
+            return JsLang.astObjectCreate(
+                JsLang.astSpread(this._getReferencedMetadata(context, localContext, type, codeBucket)),
+                ...JsLang.astValue(others).properties
+            );
+        }
+
+        return JsLang.astValue(typeInfo);
+    }
+
+    _extractRequestData(context, localContext, localName, collection, source, codeBucket) {
+        if (typeof collection === 'object') {
+            const { $base, ...others } = collection;
+            if ($base) {
+                const baseMetadata = this._getReferencedMetadata(context, localContext, $base, codeBucket);
+                codeBucket.push(
+                    `const ${localName} = Types.OBJECT.sanitize(${source}, ${JsLang.astToCode(baseMetadata)});`
+                );
+
+                const metadata = this._processPlainObjectMetadata(context, localContext, others, codeBucket);
+
+                codeBucket.push(
+                    `const ${localName}_ = Types.OBJECT.sanitize(${source}, { type: 'object', schema: ${JsLang.astToCode(
+                        metadata
+                    )} });`,
+                    `Object.assign(${localName}, ${localName}_)`
+                );
+
+                return;
+            }
+
+            const metadata = this._processPlainObjectMetadata(context, localContext, others, codeBucket);
+            codeBucket.push(
+                `const ${localName} = Types.OBJECT.sanitize(${source}, { type: 'object', schema: ${JsLang.astToCode(
+                    metadata
+                )} });`
+            );
+        }
+
+        const dataCode = this._getReferencedMetadata(context, localContext, collection, codeBucket);
+        const typeInfo = JsLang.astToCode(dataCode);
+        codeBucket.push(`const ${localName} = Types.OBJECT.sanitize(${source}, ${typeInfo});`);
+    }
+
+    _extractRequestVariables(context, localContext, collection, source, codeBucket) {
+        if (collection) {
+            _.each(collection, (typeInfo, key) => {
+                const localName = naming.camelCase(key);
+                const processsedTypeInfo = this._getRequestSourceMetadata(context, localContext, typeInfo, codeBucket);
+                let varDef = 'const ';
+
+                if (localContext.variables.has(localName)) {
+                    varDef = '';
+                }
+
+                if (source === 'ctx.params' && key === localContext.subRouteParam) {
+                    codeBucket.push(
+                        `${varDef}${localName} = typeSystem.sanitize(${key}, ${JsLang.astToCode(processsedTypeInfo)});`
+                    );
+                } else {
+                    codeBucket.push(
+                        `${varDef}${localName} = typeSystem.sanitize(${source}['${key}'], ${JsLang.astToCode(
+                            processsedTypeInfo
+                        )});`
+                    );
+                }
+            });
+        }
+    }
+
+    _translateArg(context, localContext, arg) {
+        if (arg.startsWith('$local.')) {
+            return arg.substring(7);
+        }
+    }
+
+    _generateCodeLine(context, localContext, line, codeBucket) {
+        if (line.startsWith('$business.')) {
+            const [business, calling] = splitFirst(line.substring(10), '.');
+            if (!localContext.businesses.has(business)) {
+                codeBucket.push(`const ${business}Bus = this.app.bus('${business}');`);
+            }
+
+            let [method, argsString] = splitFirst(calling, '(');
+            const endOfArg = argsString.lastIndexOf(')');
+
+            if (endOfArg === -1) {
+                throw new Error('Invalid business invoking syntax: ' + line);
+            }
+
+            argsString = argsString.substring(0, endOfArg);
+            const args = argsString.split(',').map((a) => this._translateArg(context, localContext, a.trim()));
+            const isAsync = method.endsWith('_');
+            codeBucket.push(
+                `let { result, payload } = ${isAsync ? 'await ' : ''}${business}Bus.${method}(${args.join(', ')});`
+            );
+        }
+    }
+
+    _generateResourceEndpoint(context, locals, method, endpointInfo, subRouteParam) {
+        const { description, request, responses, implementation } = endpointInfo;
+
+        const localContext = {
+            entities: new Set(),
+            businesses: new Set(),
+            variables: new Set(),
+            subRouteParam,
+        };
+
+        if (subRouteParam != null) {
+            localContext.variables.add(subRouteParam);
+        }
+
+        let codeSanitize = [];
+
+        if (request) {
+            const { headers, query, params, body, ctx } = request;
+
+            if (body) {
+                this._extractRequestData(context, localContext, 'body', body, 'ctx.request.body', codeSanitize);
+            }
+
+            if (query) {
+                this._extractRequestData(context, localContext, 'query', query, 'ctx.query', codeSanitize);
+            }
+
+            this._extractRequestVariables(context, localContext, headers, 'ctx.headers', codeSanitize);
+            this._extractRequestVariables(context, localContext, params, 'ctx.params', codeSanitize);
+        }
+
+        let codeImplement = [];
+
+        if (implementation) {
+            implementation.forEach((line) => {
+                this._generateCodeLine(context, localContext, line, codeImplement);
+            });
+        }
+
+        if (subRouteParam) {
+            const mapMethods = {
+                get: 'get_',
+                put: 'put_',
+                patch: 'patch_',
+                delete: 'delete_',
+            };
+
+            const classMethod = mapMethods[method];
+
+            if (classMethod == null) {
+                throw new Error('Invalid method: ' + method);
+            }
+
+            const methodBody = `
+    /**
+     * ${description}
+     * @param {object} ctx - Koa context
+     * @returns {Promise}
+     */        
+    async ${classMethod}(ctx, ${subRouteParam}) {
+        // sanitization
+        ${codeSanitize.join('\n')}
+
+        // business logic
+        ${codeImplement.join('\n')}
+
+        // return response
+        this.send(ctx, result, payload);
+    }
+`;
+            locals.methods.push(methodBody);
+        } else {
+            const mapMethods = {
+                get: 'query_',
+                post: 'post_',
+                put: 'putMany_',
+                patch: 'patchMany_',
+                delete: 'deleteMany_',
+            };
+
+            const classMethod = mapMethods[method];
+
+            if (classMethod == null) {
+                throw new Error('Invalid method: ' + method);
+            }
+
+            const methodBody = `
+    /**
+     * ${description}
+     * @param {object} ctx - Koa context
+     * @returns {Promise}
+     */        
+    async ${classMethod}(ctx) {
+        // sanitization
+        ${codeSanitize.join('\n')}
+
+        // business logic
+        ${codeImplement.join('\n')}
+
+        // return response
+        this.send(ctx, result, payload);
+    }
+`;
+            locals.methods.push(methodBody);
+        }
     }
 
     /*
@@ -625,6 +1280,12 @@ class DaoModeler {
         });
     };
     */
+
+    _processUsedModifiers(entity) {
+        return entity.modifiers.map((modifier) =>
+            this.linker.loadElement(entity.xemlModule, modifier.$xt, modifier.name, true)
+        );
+    }
 
     /**
      * Process field modifiers and generate ast and field references
@@ -839,117 +1500,6 @@ class DaoModeler {
         fs.ensureFileSync(filePath);
         fs.writeFileSync(filePath, JsLang.astToCode(ast));
         this.linker.log('info', `Generated ${functorType} file: ${filePath}`);
-    }
-
-    _buildInterfaces(entity, modelMetaInit, sharedContext) {
-        let ast = [];
-
-        _.forOwn(entity.interfaces, (method, name) => {
-            this.linker.info('Building interface: ' + name);
-
-            let astBody = [
-                JsLang.astVarDeclare(
-                    '$meta',
-                    JsLang.astVarRef('this.meta.interfaces.' + name),
-                    true,
-                    false,
-                    'Retrieving the meta data'
-                ),
-            ];
-
-            let compileContext = XemlToAst.createCompileContext(
-                entity.xemlModule.name,
-                entity.xemlModule,
-                this.linker,
-                sharedContext
-            );
-
-            let paramMeta;
-
-            if (method.accept) {
-                paramMeta = this._processParams(method.accept, compileContext);
-            }
-
-            //metadata
-            modelMetaInit['interfaces'] || (modelMetaInit['interfaces'] = {});
-            modelMetaInit['interfaces'][name] = { params: Object.values(paramMeta) };
-
-            _.each(method.implementation, (operation, index) => {
-                //let lastTopoId =
-                XemlToAst.compileDbOperation(index, operation, compileContext, compileContext.mainStartId);
-            });
-
-            if (method.return) {
-                XemlToAst.compileExceptionalReturn(method.return, compileContext);
-            }
-
-            let deps = compileContext.topoSort.sort();
-            //this.linker.verbose('All dependencies:\n' + JSON.stringify(deps, null, 2));
-
-            deps = deps.filter((dep) => compileContext.mapOfTokenToMeta.has(dep));
-            //this.linker.verbose('All necessary source code:\n' + JSON.stringify(deps, null, 2));
-
-            _.each(deps, (dep) => {
-                let sourceMap = compileContext.mapOfTokenToMeta.get(dep);
-                let astBlock = compileContext.astMap[dep];
-
-                //this.linker.verbose('Code point "' + dep + '":\n' + JSON.stringify(sourceMap, null, 2));
-
-                let targetFieldName = sourceMap.target; //getFieldName(sourceMap.target);
-
-                if (sourceMap.type === XemlToAst.AST_BLK_VALIDATOR_CALL) {
-                    astBlock = Snippets._validateCheck(targetFieldName, astBlock);
-                } else if (sourceMap.type === XemlToAst.AST_BLK_PROCESSOR_CALL) {
-                    if (sourceMap.needDeclare) {
-                        astBlock = JsLang.astVarDeclare(
-                            JsLang.astVarRef(sourceMap.target),
-                            astBlock,
-                            false,
-                            false,
-                            `Processing "${targetFieldName}"`
-                        );
-                    } else {
-                        astBlock = JsLang.astAssign(
-                            JsLang.astVarRef(sourceMap.target, true),
-                            astBlock,
-                            `Processing "${targetFieldName}"`
-                        );
-                    }
-                } else if (sourceMap.type === XemlToAst.AST_BLK_ACTIVATOR_CALL) {
-                    if (sourceMap.needDeclare) {
-                        astBlock = JsLang.astVarDeclare(
-                            JsLang.astVarRef(sourceMap.target),
-                            astBlock,
-                            false,
-                            false,
-                            `Processing "${targetFieldName}"`
-                        );
-                    } else {
-                        astBlock = JsLang.astAssign(
-                            JsLang.astVarRef(sourceMap.target, true),
-                            astBlock,
-                            `Activating "${targetFieldName}"`
-                        );
-                    }
-                }
-
-                astBody = astBody.concat(_.castArray(astBlock));
-            });
-
-            ast.push(
-                JsLang.astMemberMethod(
-                    asyncMethodNaming(name),
-                    Object.keys(paramMeta),
-                    astBody,
-                    false,
-                    true,
-                    true,
-                    text.replaceAll(_.kebabCase(name), '-', ' ')
-                )
-            );
-        });
-
-        return ast;
     }
 
     _processParams(acceptParams, compileContext) {

@@ -20,14 +20,10 @@ class T_BIGINT {
             value = BigInt(value);
         } catch (e) {
             throw new ValidationError(
-                'Invalid bigint value.',
+                'Invalid bigint value. ' + e.message,
                 {
-                    value,
-                    meta,
-                    rawValue: opts.rawValue,
-                    i18n: opts.i18n,
+                    value: opts.rawValue,
                     path: opts.path,
-                    error: e.message
                 }
             );
         }

@@ -20,14 +20,10 @@ class T_BOOLEAN {
             return toBoolean(value);
         } catch (e) {
             throw new ValidationError(
-                'Invalid boolean value.',
+                'Invalid boolean value. ' + e.message,
                 {
-                    value,
-                    meta,
-                    rawValue: opts.rawValue,
-                    i18n: opts.i18n,
+                    value: opts.rawValue,
                     path: opts.path,
-                    error: e.message
                 }
             );
         }

@@ -63,7 +63,7 @@ class DbModel {
         const modelClassName = naming.pascalCase(entityName);
         if (this._entities[modelClassName]) return this._entities[modelClassName];
 
-        return (this._entities[modelClassName] = new this.meta.Entities[modelClassName](this));
+        return (this._entities[modelClassName] = new this.meta.entities[modelClassName](this));
     }
 
     /**

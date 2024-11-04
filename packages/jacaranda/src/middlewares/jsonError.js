@@ -37,7 +37,7 @@ const jsonError = (opt, app) => {
             // accepted types
             if (handler) {
                 try {
-                    ctx.body = await handler(ctx, err);
+                    ctx.body = handler(ctx, err);
                     ctx.app.emit('error', err, ctx);
                     ctx.errorHandled = true;
                     return;

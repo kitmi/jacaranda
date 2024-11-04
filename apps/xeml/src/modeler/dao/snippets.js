@@ -1,4 +1,4 @@
-const { _, quote } = require('@kitmi/utils');
+const { _, quote, dropIfEndsWith } = require('@kitmi/utils');
 const { extractDotSeparateName } = require('../../lang/XemlUtils');
 const JsLang = require('../util/ast');
 
@@ -1874,6 +1874,66 @@ const processorMethod = (functor) => {
     };
 };
 
+const modifierMethod = (functor) => {
+    const args = functor.args
+        ? unctor.args.slice(3).map((arg) => ({
+              type: 'Identifier',
+              name: arg,
+          }))
+        : [];
+    return {
+        type: 'MethodDefinition',
+        key: {
+            type: 'Identifier',
+            name: functor.name,
+        },
+        computed: false,
+        value: {
+            type: 'FunctionExpression',
+            id: null,
+            params: args,
+            body: {
+                type: 'BlockStatement',
+                body: [
+                    {
+                        type: 'ReturnStatement',
+                        argument: {
+                            type: 'CallExpression',
+                            callee: {
+                                type: 'Identifier',
+                                name: `${dropIfEndsWith(functor.name, '_')}${functor.$xt}${
+                                    functor.name.endsWith('_') ? '_' : ''
+                                }`,
+                            },
+                            arguments: [
+                                {
+                                    type: 'ThisExpression',
+                                },
+                                {
+                                    type: 'Literal',
+                                    value: null,
+                                    raw: 'null',
+                                },
+                                {
+                                    type: 'Literal',
+                                    value: null,
+                                    raw: 'null',
+                                },
+                                ...args,
+                            ],
+                        },
+                    },
+                ],
+            },
+            generator: false,
+            expression: false,
+            async: functor.name.endsWith('_'),
+        },
+        kind: 'method',
+        static: false,
+    };
+};
+
 const importFromData = (extra) => ({
     type: 'ImportDeclaration',
     specifiers: [
@@ -2002,5 +2062,6 @@ module.exports = {
     _fieldRequirementCheck,
     restMethods,
     processorMethod,
+    modifierMethod,
     importFromData,
 };

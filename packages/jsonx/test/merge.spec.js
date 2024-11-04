@@ -80,8 +80,10 @@ describe('jsx:merge', function () {
                 $merge: [
                     {
                         $pick: {
-                            $not: {
-                                $startWith: ':',
+                            by: {
+                                $not: {
+                                    $startWith: ':',
+                                },
                             },
                         },
                     },

@@ -38,6 +38,7 @@ Keyword by state
         'abstract.entity': 'entity',       
 
         'entity.with': 'entity.with', 
+        'entity.use': 'entity.use', 
         'entity.has': 'entity.has', 
         'entity.key': 'entity.key', 
         'entity.index': 'entity.index', 
@@ -54,6 +55,8 @@ Keyword by state
 
         'entity.views.dataSet.item.select': 'entity.views.dataSet.item.select',
         'entity.views.dataSet.item.select.$INDENT': 'entity.views.dataSet.item.select.item',
+
+        'entity.views.dataSet.item.countBy': 'entity.views.dataSet.item.countBy',
 
         'entity.views.dataSet.item.groupBy': 'entity.views.dataSet.item.groupBy',
         'entity.views.dataSet.item.groupBy.$INDENT': 'entity.views.dataSet.item.groupBy.item',
@@ -87,7 +90,7 @@ Keyword by state
         'override': new Set(['entity']),
         'abstract': new Set(['entity']),    
         'schema': new Set(['entities', 'views']),
-        'entity': new Set([ 'is', 'extends', 'with', 'has', 'associations', 'key', 'index', 'data', 'input', 'views', /*'interface', 'code'*/, 'triggers' ]),
+        'entity': new Set([ 'is', 'extends', 'with', 'use', 'has', 'associations', 'key', 'index', 'data', 'input', 'views', /*'interface', 'code'*/, 'triggers' ]),
     
         // level 2
         'entity.associations': new Set(['hasOne', 'hasMany', 'refersTo', 'belongsTo', 'has', 'one', 'many', 'refers', 'to', 'belongs']),
@@ -105,9 +108,9 @@ Keyword by state
         // level 4
         'entity.associations.item.block': new Set(['when']),        
         
-        'entity.input.inputSet.item': new Set(['optional', 'with']),     
+        'entity.input.inputSet.item': new Set(['optional', 'default', 'with']),     
 
-        'entity.views.dataSet.item': new Set(['select', 'orderBy', 'order', 'groupBy', 'group', 'by', 'options']),     
+        'entity.views.dataSet.item': new Set(['select', 'orderBy', 'countBy', 'groupBy', 'options']),     
 
         // level 5
         'entity.associations.item.block.when': new Set(['being', 'with' ]),     
@@ -120,6 +123,7 @@ Keyword by state
     const DEDENT_STOPPER = new Map([      
         [ 'entity', 1 ],                                  
         [ 'entity.with', 1 ],
+        [ 'entity.use', 1 ],
         [ 'entity.has', 1 ],               
         [ 'entity.data', 1 ], 
         [ 'entity.index', 1 ],           
@@ -130,14 +134,15 @@ Keyword by state
         [ 'entity.associations', 1 ],
         [ 'entity.associations.item', 2 ],
         [ 'entity.associations.item.block.when', 2 ],  
-        [ 'entity.views.dataSet.item.select', 2 ],
-        [ 'entity.views.dataSet.item.select.item', 1 ],
-        [ 'entity.views.dataSet.item.groupBy', 2 ],
-        [ 'entity.views.dataSet.item.groupBy.item', 1 ],
-        [ 'entity.views.dataSet.item.orderBy', 2 ],
-        [ 'entity.views.dataSet.item.orderBy.item', 1 ],
-        [ 'entity.views.dataSet.item.options', 2 ],
-        [ 'entity.views.dataSet.item.options.item', 1 ],        
+        [ 'entity.views.dataSet.item.select', 1 ],
+        [ 'entity.views.dataSet.item.select.item', 2 ],
+        [ 'entity.views.dataSet.item.countBy', 1 ],
+        [ 'entity.views.dataSet.item.groupBy', 1 ],
+        [ 'entity.views.dataSet.item.groupBy.item', 2 ],
+        [ 'entity.views.dataSet.item.orderBy', 1 ],
+        [ 'entity.views.dataSet.item.orderBy.item', 2 ],
+        [ 'entity.views.dataSet.item.options', 1 ],
+        [ 'entity.views.dataSet.item.options.item', 2 ],        
     ]);
 
     //exit number of states on newline if exists in below table
@@ -155,6 +160,7 @@ Keyword by state
         [ 'entity.views.dataSet.item', 1 ],        
         [ 'entity.views.dataSet.item.select', 1 ],
         [ 'entity.views.dataSet.item.select.item', 1 ],
+        [ 'entity.views.dataSet.item.countBy', 1 ],
         [ 'entity.views.dataSet.item.groupBy', 1 ],
         [ 'entity.views.dataSet.item.groupBy.item', 1 ],
         [ 'entity.views.dataSet.item.orderBy', 1 ],
@@ -217,6 +223,8 @@ Keyword by state
         }
 
         doDedent() {
+            this.doNewline();
+
             this.dedented = 0;
 
             while (this.indents.length) {
@@ -1294,6 +1302,7 @@ entity_sub_items
 
 entity_sub_item
     : with_features
+    | use_modifiers
     | has_fields
     | associations_statement
     | key_statement
@@ -1302,7 +1311,6 @@ entity_sub_item
     | views_statement
     | data_statement
     | code_statement    
-    | interfaces_statement
     | triggers_statement
     ;
 
@@ -1323,6 +1331,16 @@ with_features_block
     : id_or_string_or_call NEWLINE -> [ $1 ]
     | id_or_string_or_call NEWLINE with_features_block -> [ $1 ].concat($3)
     ;
+
+use_modifiers
+    : "use" NEWLINE INDENT use_modifier_statement_block DEDENT NEWLINE? -> { modifiers: $4 }
+    ;
+
+use_modifier_statement_block
+    : type_modifier_def NEWLINE -> [ $1 ]
+    | type_modifier_def NEWLINE use_modifier_statement_block -> [ $1, ...$3 ]
+    ;
+
 
 has_fields
     : "has" NEWLINE INDENT has_fields_block DEDENT NEWLINE? -> { fields: $4 }
@@ -1507,7 +1525,8 @@ input_block_item
 
 input_block_item_base
     : identifier_or_string -> { name: $1 }
-    | identifier_or_string 'optional' -> { name: $1, optional: true }
+    | input_block_item_base 'optional' -> { ...$1, optional: true }
+    | input_block_item_base 'default' "(" nfc_param ")" -> { ...$1, default: $4 }
     ;    
 
 input_block_item_with_spec
@@ -1532,16 +1551,23 @@ views_statement_def
     ;
 
 entity_views_block
-    : views_statement_select views_statement_group_by? views_statement_order_by* views_statement_options? -> { $select: $1, ...($2 ? { $groupBy: $2 } : null), ...($3 && $3.length > 0 ? { $orderBySet: $3 } : null), ...$4 }
+    : views_statement_select views_statement_count_by? views_statement_group_by? views_statement_order_by* views_statement_options? -> { $select: $1,  ...($2 ? { $countBy: $2 } : null), ...($3 ? { $groupBy: $3 } : null), ...($4 && $4.length > 0 ? { $orderBySet: $4 } : null), ...$5 }
     ;
 
 views_statement_select
     : "select" NEWLINE INDENT entity_views_block_select DEDENT NEWLINE? -> $4
     ;
 
+countby_keywords
+    : "countBy" 
+    ;
+
+views_statement_count_by
+    : countby_keywords identifier_string_or_dotname NEWLINE -> $2
+    ;
+
 groupby_keywords
     : "groupBy" 
-    | "group" "by" 
     ;
 
 views_statement_group_by
@@ -1550,7 +1576,6 @@ views_statement_group_by
 
 orderby_keywords
     : "orderBy" 
-    | "order" "by" 
     ;
 
 views_statement_order_by
@@ -1602,6 +1627,7 @@ entity_views_block_select
 entity_views_block_select_item
     : identifier_string_or_dotname
     | SELECT_ALL  
+    | "*" -> "*"
     | "*" EXCLUDE_COLUMN+ -> { $xt: "ExclusiveSelect", columnSet: $1, excludes: $2 }
     | SELECT_ALL EXCLUDE_COLUMN+ -> { $xt: "ExclusiveSelect", columnSet: $1, excludes: $2 }
     ;    
@@ -1684,7 +1710,11 @@ id_or_string_or_call_list0
 /* simple function call, without modifiable support */
 simple_function_call
     : identifier "(" ")" -> { name: $1, args: [] }
-    | identifier "(" nfc_param_list ")" -> { name: $1, args: $3 }
+    | simple_function_call_with_args
+    ;    
+
+simple_function_call_with_args
+    : identifier "(" nfc_param_list ")" -> { name: $1, args: $3 }
     ;    
 
 nfc_param_list

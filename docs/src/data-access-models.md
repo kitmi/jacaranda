@@ -48,13 +48,22 @@ The `EntityModel` class serves as a base class for data entities with static `me
 
 ```javascript
 class EntityModel {
-  async findOne_(criteria); // Implement find one logic
-  async findMany_(criteria); // Implement find many logic
-  async findAll_(); // Implement find all logic
-  async createOne_(data); // Implement create one logic
-  async createMany_(dataArray); // Implement create many logic
-  async updateOne_(criteria, data); // Implement update one logic
-  async deleteOne_(criteria); // Implement delete one logic
+  async findOne_(findOptions); // Implement find one logic
+  async findMany_(findOptions); // Implement find many logic
+  async findManyByPage_(findOptions, page, rowsPerPage) // Implement find many with pagination logic
+  
+  async create_(data, createOptions); // Implement create one logic
+  async createFrom_(findOptions, columnMapping); // Implement create many from select logic
+
+  async updateOne_(data, updateOptions); // Implement update one logic
+  async updatemany_(data, updateOptions); // Implement update many logic
+
+  async deleteOne_(deleteOptions); // Implement delete one logic
+  async deleteMany_(deleteOptions); // Implement delete many logic
+  async deleteAll_(deleteOptions); // Implement delete all logic
+
+  getRelatedEntity(relationName); // Get related entity model by relation anchor.
+  datasetSchema(datasetName); // Get a map of fields schema by predefined input set.
 }
 ```
 

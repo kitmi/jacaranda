@@ -9,7 +9,8 @@ describe('all async', function () {
         await shouldThrow_(
             async () =>
                 Types.OBJECT.sanitize_({ a: 1 }, { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } }),
-            '"a" must be greater than 2.'
+            'Post-process validation failed.',
+            { info: { a: '"a" must be greater than 2.' } }
         );
     });
 
@@ -23,7 +24,8 @@ describe('all async', function () {
                     { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } },
                     { locale: 'zh-CN' }
                 ),
-            '"a" 的数值必须大于 2。'
+            'Post-process validation failed.',
+            { info: { a: '"a" 的数值必须大于 2。' } }
         );
     });
 });

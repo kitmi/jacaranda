@@ -689,6 +689,47 @@ const result = await Product.findOne_({
 });
 ```
 
+## Update with associations
+
+- Update 1:1 or m:1 association
+
+```js
+
+```
+
+- Update 1:m assoication with sub-operations  
+  - $delete : delete existing
+  - $update : update existing
+  - $create : create more
+
+```js
+await Product.updateOne_(
+    {
+        'name': 'Demo Product 200',
+        // a product has many assets
+        ':assets': { 
+            $delete: [existing[':assets'][0], existing[':assets'][1]],
+            $update: [
+                {
+                    ...Product.getRelatedEntity('assets').omitReadOnly(existing[':assets'][2]),
+                    tag: 'poster2',
+                },
+            ],
+            $create: [
+                {
+                    'tag': 'poster',
+                    ':resource': {
+                        mediaType: 'image',
+                        url: 'https://example.com/demo-poster2.jpg',
+                    },
+                },
+            ],
+        },
+    },
+    { $where: { id: insertId }, $getUpdated: true }
+);
+```
+
 ## License
 
 -   MIT

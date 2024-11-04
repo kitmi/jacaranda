@@ -3,17 +3,23 @@ import { Types } from '@kitmi/types';
 import { get as _get } from '@kitmi/utils';
 
 import _isEqual from 'lodash/isEqual';
+import _find from 'lodash/find';
 import _has from 'lodash/has';
 import _size from 'lodash/size';
 import _castArray from 'lodash/castArray';
 import _mapValues from 'lodash/mapValues';
 
-import JsvError from './JsvError';
-import validate, { test } from './validate';
+import { getChildContext } from './config';
+import validate, { handleErrors, handleResult, test } from './validate';
 
 import ops from './validateOperators';
 
-import { processExprLikeValue } from './transform';
+import transform, { processExprLikeValue } from './transform';
+
+const transfromOrValidate = (left, exprLikeValue, options, context) =>
+    typeof exprLikeValue === 'object' && exprLikeValue?.$expr !== undefined
+        ? transform(left, exprLikeValue.$expr, context)
+        : handleResult(validate(left, exprLikeValue, options, context), options, context);
 
 export default function validatorsFactory(config) {
     const MSG = config.messages;
@@ -34,8 +40,9 @@ export default function validatorsFactory(config) {
     const OP_MATCH = [ops.MATCH, '$has', '$match', '$all', '$should', '$and'];
     const OP_MATCH_ANY = [ops.MATCH_ANY, '$any', '$or', '$either'];
     const OP_ALL_MATCH = [ops.ALL_MATCH, '$allMatch', '|>$all', '|>$match'];
+    const OP_ALL_VALUES_MATCH = [ops.ALL_VALUES_MATCH, '$allValuesMatch', '|>$value'];
     const OP_ANY_ONE_MATCH = [ops.ANY_ONE_MATCH, '$anyOneMatch', '|*$any', '|*$match', '|*$either'];
-    const OP_TYPE = [ops.TYPE, '$is', '$typeOf'];
+    const OP_TYPE = [ops.TYPE, '$isType', '$typeOf'];
     const OP_HAS_KEYS = [ops.HAS_KEYS, '$hasKey', '$hasKeys', '$withKey', '$withKeys'];
     const OP_START_WITH = [ops.START_WITH, '$startWith', '$startsWith'];
     const OP_END_WITH = [ops.END_WITH, '$endWith', '$endsWith'];
@@ -104,7 +111,9 @@ export default function validatorsFactory(config) {
         return right.every((element) => notEqual(left, element, options, context));
     });
 
-    config.addValidatorToMap(OP_EXISTS, (left, right) => {
+    config.addValidatorToMap(OP_EXISTS, (left, right, options, context) => {
+        right = processExprLikeValue(right, context);
+
         if (typeof right !== 'boolean') {
             throw new Error(MSG.OPERAND_NOT_BOOL(ops.EXISTS));
         }
@@ -112,7 +121,7 @@ export default function validatorsFactory(config) {
         return right ? left != null : left == null;
     });
 
-    config.addValidatorToMap(OP_REQUIRED, (left, right) => {
+    config.addValidatorToMap(OP_REQUIRED, (left, right, options, context) => {
         right = processExprLikeValue(right, context);
 
         if (typeof right !== 'boolean') {
@@ -140,31 +149,10 @@ export default function validatorsFactory(config) {
                 return true;
             });
 
-            if (errors.length > 0) {
-                if (options.throwError) {
-                    throw new JsvError(errors, left, context);
-                }
-
-                if (!options.asPredicate) {
-                    context.ERROR = errors.length === 1 && options.plainError ? errors[0] : errors;
-                }
-
-                return false;
-            }
-
-            return true;
+            return handleErrors(errors, options, context);
         }
 
-        const reason2 = validate(left, right, options, context);
-        if (reason2 !== true) {
-            if (!options.asPredicate) {
-                context.ERROR = reason2;
-            }
-
-            return false;
-        }
-
-        return true;
+        return handleResult(validate(left, right, options, context), options, context);
     });
 
     config.addValidatorToMap(OP_MATCH_ANY, (left, right, options, context) => {
@@ -194,32 +182,54 @@ export default function validatorsFactory(config) {
         left.every((leftItem) => {
             const reason = validate(leftItem, right, { ...options, asPredicate: false }, context);
             if (reason !== true) {
-                errors.push(
-                    MSG.validationErrors[ops.ALL_MATCH](context.name, left, right, context),
-                    ..._castArray(reason)
-                );
-
                 if (options.abortEarly) {
+                    errors.push(
+                        MSG.validationErrors[ops.ALL_MATCH](context.name, left, right, context),
+                        ..._castArray(reason)
+                    );
                     return false;
+                } else {
+                    errors.push(..._castArray(reason));
                 }
             }
 
             return true;
         });
 
-        if (errors.length > 0) {
-            if (options.throwError) {
-                throw new JsvError(errors, left, context);
-            }
+        return handleErrors(errors, options, context);
+    });
 
-            if (!options.asPredicate) {
-                context.ERROR = errors.length === 1 && options.plainError ? errors[0] : errors;
+    config.addValidatorToMap(OP_ALL_VALUES_MATCH, (left, right, options, context) => {
+        if (typeof left !== 'object') {
+            throw new Error(MSG.VALUE_NOT_OBJECT(ops.ALL_VALUES_MATCH));
+        }
+
+        const errors = [];
+
+        _find(left, (leftValue, leftKey) => {
+            const reason = validate(
+                leftValue,
+                right,
+                { ...options, asPredicate: false },
+                getChildContext(context, left, leftKey, leftValue)
+            );
+            if (reason !== true) {
+                if (options.abortEarly) {
+                    errors.push(
+                        MSG.validationErrors[ops.ALL_MATCH](context.name, left, right, context),
+                        ..._castArray(reason)
+                    );
+
+                    return true;
+                } else {
+                    errors.push(..._castArray(reason));
+                }
             }
 
             return false;
-        }
+        });
 
-        return true;
+        return handleErrors(errors, options, context);
     });
 
     config.addValidatorToMap(OP_ANY_ONE_MATCH, (left, right, options, context) => {
@@ -248,10 +258,10 @@ export default function validatorsFactory(config) {
             throw new Error(MSG.UNSUPPORTED_TYPE(right));
         }
 
-        return Types[right].validate(left);
+        return handleResult(Types[right].validate(left), options, context);
     });
 
-    config.addValidatorToMap(OP_HAS_KEYS, (left, right) => {
+    config.addValidatorToMap(OP_HAS_KEYS, (left, right, _options, _context) => {
         if (typeof left !== 'object') {
             return false;
         }
@@ -259,7 +269,7 @@ export default function validatorsFactory(config) {
         return Array.isArray(right) ? right.every((key) => _has(left, key)) : _has(left, right);
     });
 
-    config.addValidatorToMap(OP_START_WITH, (left, right, options, context) => {
+    config.addValidatorToMap(OP_START_WITH, (left, right, _options, context) => {
         if (typeof left !== 'string') {
             return false;
         }
@@ -354,9 +364,13 @@ export default function validatorsFactory(config) {
         let result = true;
 
         if (condition) {
-            result = validate(left, right[1], options, context);
+            result = transfromOrValidate(left, right[1], options, context);
         } else if (right.length > 2) {
-            result = validate(left, right[2], options, context);
+            result = transfromOrValidate(left, right[2], options, context);
+        }
+
+        if (typeof result !== 'boolean') {
+            throw new Error(MSG.INVALID_OP_EXPR(ops.IF, condition ? right[1] : right[2], 'result as boolean'));
         }
 
         return result;

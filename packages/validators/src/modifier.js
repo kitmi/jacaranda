@@ -1,5 +1,5 @@
 import { InvalidArgument, ValidationError } from '@kitmi/types';
-import { eachAsync_ } from '@kitmi/utils';
+import { eachAsync_, _ } from '@kitmi/utils';
 
 function getHandler(modifier, handlers) {
     let handlerType = null;
@@ -36,14 +36,48 @@ function getHandler(modifier, handlers) {
     return processorWrapper(hanlder);
 }
 
+function handleErrors(reasons, errorDetail = {}) {
+    _.castArray(reasons).forEach((inner) => {
+        const detail = handleError(inner);
+        if (detail) {
+            _.each(detail, (message, key) => {
+                if (errorDetail[key]) {
+                    errorDetail[key] += '\n' + message;
+                } else {
+                    errorDetail[key] = message;
+                }
+            });
+        }
+    });     
+
+    return errorDetail;
+}
+
+function handleError(reason) {
+    if (reason instanceof Error) {
+        const _detail = {};
+
+        if (reason.inner) {
+            handleErrors(reason.inner, _detail);            
+        }        
+
+        _detail[reason.path || '_'] = reason.message;
+
+        return _detail;
+    }
+
+    return {  _: reason };
+}
+
 function validatorWrapper(validator) {
     return (value, options, meta, context) => {
         if (!validator.__metaCheckNull && value == null) return value;
 
-        const [validated, reason] = validator(value, options, meta, context);
+        let [validated, reason] = validator(value, options, meta, context);
 
-        if (!validated) {
-            throw new ValidationError(reason, { value, options });
+        if (!validated) {            
+            const details = handleErrors(reason);                     
+            throw new ValidationError('Post-process validation failed.', details);
         }
 
         return value;
@@ -80,8 +114,6 @@ function createModifier(modifierItem, handlers) {
     } else if (type === 'object') {
         modifier = modifierItem.name;
         options = modifierItem.options;
-    } else if (type === 'function') {
-        
     }
 
     if (!modifier) {

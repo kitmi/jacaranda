@@ -225,7 +225,7 @@ class Entity extends Clonable {
         this._events.emit('beforeAddingFields');
 
         // process fields
-        if (this.info.fields) {
+        if (this.info.fields) {            
             _.each(this.info.fields, (fieldInfo, fieldName) => this.addField(fieldName, fieldInfo));
         }
 
@@ -250,31 +250,9 @@ class Entity extends Clonable {
             this.views = this.info.views;
         }
 
-        /**
-         * @fires Entity#beforeAddingInterfaces
-         */
-        this._events.emit('beforeAddingInterfaces');
-
-        if (!isEmpty(this.info.interfaces)) {
-            this.interfaces = _.cloneDeep(this.info.interfaces);
-
-            _.forOwn(this.interfaces, (intf) => {
-                if (!isEmpty(intf.accept)) {
-                    intf.accept = _.map(intf.accept, (param) => {
-                        const [typeInfo, baseInfo] = this.linker.trackBackType(this.xemlModule, param);
-                        if (baseInfo != null) {
-                            this.addUsedType(param.type, baseInfo.xemlModule.id);
-                        }
-                        return typeInfo;
-                    });
-                }
-            });
+        if (this.info.modifiers) {
+            this.modifiers = this.info.modifiers;
         }
-
-        /**
-         * @fires Entity#afterAddingInterfaces
-         */
-        this._events.emit('afterAddingInterfaces');
 
         this.linked = true;
 
@@ -484,7 +462,8 @@ class Entity extends Clonable {
             field = rawInfo.clone();
             field.name = name; // todo: displayName
         } else {
-            let [fullRawInfo, baseInfo] = this.linker.trackBackType(this.xemlModule, rawInfo);
+            let [fullRawInfo, baseInfo] = this.linker.trackBackType(this.xemlModule, rawInfo);            
+
             if (baseInfo != null) {
                 this.addUsedType(rawInfo.type, baseInfo.xemlModule.id);
             }
@@ -613,6 +592,7 @@ class Entity extends Clonable {
         deepCloneField(this, entity, 'displayName');
         deepCloneField(this, entity, 'comment');
         deepCloneField(this, entity, 'features');
+        deepCloneField(this, entity, 'modifiers');
         deepCloneField(this, entity, 'fields');
         deepCloneField(this, entity, 'types');
         deepCloneField(this, entity, 'associations');
@@ -620,7 +600,6 @@ class Entity extends Clonable {
         deepCloneField(this, entity, 'indexes');
         deepCloneField(this, entity, 'inputs');
         deepCloneField(this, entity, 'views');
-        deepCloneField(this, entity, 'interfaces');
 
         entity.linked = true;
 
@@ -639,6 +618,7 @@ class Entity extends Clonable {
             comment: this.comment,
             ...(this.baseClasses ? { baseClasses: this.baseClasses } : {}),
             features: this.features,
+            modifiers: this.modifiers,
             types: this.types,
             fields: _.mapValues(this.fields, (field) => field.toJSON()),
             associations: this.associations,
@@ -757,6 +737,10 @@ class Entity extends Clonable {
 
         if (baseEntity.views) {
             overrideInfo.views = { ...baseEntity.views, ...this.info.views };
+        }
+
+        if (baseEntity.modifiers) {
+            overrideInfo.modifiers = [ ...baseEntity.modifiers, ...this.info.modifiers ];
         }
 
         if (!isEmpty(overrideInfo)) {

@@ -29,10 +29,7 @@ class T_TEXT {
                 value = null;
                 if (!meta.optional) {
                     throw new ValidationError('Missing a required value.', {
-                        value,
-                        meta,
-                        rawValue: opts.rawValue,
-                        i18n: opts.i18n,
+                        value: opts.rawValue,
                         path: opts.path,
                     });
                 }
@@ -43,10 +40,7 @@ class T_TEXT {
             }
 
             throw new ValidationError('Invalid text value.', {
-                value,
-                meta,
-                rawValue: opts.rawValue,
-                i18n: opts.i18n,
+                value: opts.rawValue,
                 path: opts.path,
             });
         }

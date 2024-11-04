@@ -22,10 +22,7 @@ class T_INTEGER {
 
         if (isNaN(value)) {
             throw new ValidationError('Invalid integer value.', {
-                value: null,
-                meta,
-                rawValue: opts.rawValue,
-                i18n: opts.i18n,
+                value: opts.rawValue,
                 path: opts.path,
             });
         }

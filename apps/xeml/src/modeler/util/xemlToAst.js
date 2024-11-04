@@ -424,7 +424,7 @@ function checkReferenceToField(obj) {
 }
 
 function addModifierToMap(functorId, functorType, functorJsFile, mapOfFunctorToFile) {
-    if (mapOfFunctorToFile[functorId] && mapOfFunctorToFile[functorId] !== functorJsFile) {
+    if (mapOfFunctorToFile[functorId] && mapOfFunctorToFile[functorId].fileName !== functorJsFile.fileName) {
         throw new Error(`Conflict: ${functorType} naming "${functorId}" conflicts!`);
     }
     mapOfFunctorToFile[functorId] = functorJsFile;
@@ -465,11 +465,6 @@ function translateModifier(functor, compileContext, args) {
             true
         );
 
-        if (!modifierInfo.xemlModule.packageName) {
-            // todo: reference to self package
-            throw new Error('To be implemented: reference to self package.');
-        }
-
         namespacePrefix = replaceAll(namespace, ':', '_');
         const isAsync = functionName.endsWith('_');
         functionName = isAsync ? functionName.substring(0, functionName.length - 1) : functionName;
@@ -484,16 +479,16 @@ function translateModifier(functor, compileContext, args) {
 
         fileName = {
             functorId,
-            packageName: compileContext.linker.dependencies[modifierInfo.xemlModule.packageName],
+            packageName:
+                compileContext.linker.dependencies[modifierInfo.xemlModule.packageName] ??
+                modifierInfo.xemlModule.packageName,
             type: modifierInfo.$xt,
             functionName: modifierInfo.name,
+            //used for shared modifier
+            args,
+            functorType: modifierInfo.$xt,
+            fileName: './' + XEML_MODIFIER_PATH[functor.$xt] + '/' + modifierInfo.name + '.js',
         };
-
-        if (!fileName.packageName) {
-            throw new Error(
-                `Xeml package "${modifierInfo.xemlModule.packageName}" not found in dataModel dependencies.`
-            );
-        }
 
         addModifierToMap(functorId, functor.$xt, fileName, compileContext.mapOfFunctorToFile);
     } else if (isDotSeparateName(functor.name)) {
@@ -729,7 +724,9 @@ function compileConcreteValueExpression(startTopoId, value, compileContext) {
         }
 
         if (value.$xt === XemlTypes.Lang.CONST_REF) {
-            compileContext.astMap[startTopoId] = JsLang.astValue(compileContext.linker.translateXemlValue(compileContext.xemlModule, value));
+            compileContext.astMap[startTopoId] = JsLang.astValue(
+                compileContext.linker.translateXemlValue(compileContext.xemlModule, value)
+            );
             return startTopoId;
         }
 

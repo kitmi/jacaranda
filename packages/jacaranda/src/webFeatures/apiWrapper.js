@@ -1,5 +1,5 @@
-import http from 'node:http';
 import Feature from '../Feature';
+import http from 'node:http';
 
 const statusToError = {
     400: 'invalid_request',
@@ -21,15 +21,17 @@ export default {
      * Load the feature
      * @param {App} app - The cli app module object
      * @param {object} settings - Settings of soal client
+     * @property {boolean} [settings.debug] - Debug mode
      * @returns {Promise.<*>}
      */
     load_: async function (app, settings, name) {
         const service = {
-            wrapResult: (ctx, result = null, others) => {
+            wrapResult: (ctx, data = null, others) => {
                 return {
-                    status: 'success',
+                    status: 'ok',
+                    ...ctx.resPayload,
                     ...others,
-                    result,
+                    data,
                 };
             },
 
@@ -38,10 +40,11 @@ export default {
 
                 return {
                     status: 'error',
+                    ...ctx.resPayload,
                     ...others,
                     error: {
                         code,
-                        message: error.expose ? error.message : http.STATUS_CODES[ctx.status],
+                        message: settings.debug || error.expose ? error.message : http.STATUS_CODES[ctx.status],
                         ...(error.info ? { info: error.info } : null),
                     },
                 };

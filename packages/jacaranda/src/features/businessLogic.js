@@ -4,7 +4,7 @@
  */
 
 import path from 'node:path';
-import { Feature } from '@kitmi/jacaranda';
+import Feature from '../Feature';
 import { _, get as _get } from '@kitmi/utils';
 import { InvalidArgument } from '@kitmi/types';
 

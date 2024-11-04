@@ -18,8 +18,7 @@ export const processExprLikeValue = (exprLikeValue, context) =>
 export const processExprLikeValueWithLeft = (left, exprLikeValue, context) =>
 typeof exprLikeValue === 'object' && exprLikeValue?.$expr !== undefined
     ? transform(left, exprLikeValue.$expr, context)
-    : exprLikeValue;
-    
+    : exprLikeValue;    
 
 const PFX_MAP = '|>'; // map
 const PFX_REDUCE = '|+'; // reduce 1. intermediate = result op [key, value] 2. result = result op intermediate
@@ -209,6 +208,7 @@ function transform(currentValue, jsx, context, replaceLeft) {
     }
 
     if (replaceLeft) {
+        jsx = processExprLikeValue(jsx, context);
         return _mapValues(jsx, (item) => transform(undefined, item, context, true));
     }
 

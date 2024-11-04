@@ -1,29 +1,28 @@
 import SYS, { Types } from '../src/allSync';
 import zh from '@kitmi/jsonv/locale/zh';
+import shouldThrow_ from '@kitmi/utils/testShouldThrow_';
 
 SYS.jsvConfig.loadMessages('zh-CN', zh);
 
 describe('all sync', function () {
-    it('bvt', function () {
+    it('bvt', async function () {
         SYS.jsvConfig.setLocale('en');
 
-        (() =>
-            Types.OBJECT.sanitize(
-                { a: 1 },
-                { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } }
-            )).should.Throw('"a" must be greater than 2.');
+        await shouldThrow_(
+            () => Types.OBJECT.sanitize({ a: 1 }, { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } }),
+            'Post-process validation failed.',
+            { info: { a: '"a" must be greater than 2.' } }
+        );
     });
 
-    it('bvt - zh-CN', function () {
+    it('bvt - zh-CN', async function () {
         SYS.jsvConfig.setLocale('zh-CN');
 
-        console.log(SYS.jsvConfig.locale);
-
-        (() =>
-            Types.OBJECT.sanitize(
-                { a: 1 },
-                { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } }
-            )).should.Throw('"a" 的数值必须大于 2。');
+        await shouldThrow_(
+            () => Types.OBJECT.sanitize({ a: 1 }, { schema: { a: { type: 'number', post: [['~jsv', { $gt: 2 }]] } } }),
+            'Post-process validation failed.',
+            { info: { a: '"a" 的数值必须大于 2。' } }
+        );
     });
 
     const meta = {
@@ -71,26 +70,37 @@ describe('all sync', function () {
 
     it('sample 1', function () {
         const obj1 = Types.OBJECT.sanitize({ key1: 20, key2: 15 }, meta);
-        obj1.should.eql([ { name: 'key1', value: 20 }, { name: 'key2', value: 15 } ]);
+        obj1.should.eql([
+            { name: 'key1', value: 20 },
+            { name: 'key2', value: 15 },
+        ]);
     });
 
-    it('sample 2', function () {
+    it('sample 2', async function () {
         SYS.jsvConfig.setLocale('en');
 
-        (() => Types.OBJECT.sanitize({ key1: 15, key2: 20 }, meta)).should.Throw('"key1" must be greater than {"$expr":"$root.key2"}.');
+        await shouldThrow_(
+            () => Types.OBJECT.sanitize({ key1: 15, key2: 20 }, meta),
+            'Post-process validation failed.',
+            { info: { key1: '"key1" must be greater than [$root.key2].' } }
+        );
     });
 
-    it('sample 3', function () {
-        const obj1 = Types.OBJECT.sanitize(null, meta);
-        obj1.should.be.eql({});
+    it('sample 3', async function () {
+        await shouldThrow_(() => Types.OBJECT.sanitize(null, meta), 'Post-process validation failed.', {
+            info: { key1: '"key1" must be greater than [$root.key2].' },
+        });
     });
 
     it('type', function () {
-        const obj1 = Types.OBJECT.sanitize({ key: 20 }, {
-            schema: {
-                key: { type: 'integer', post: [ '>typeOf' ] }
+        const obj1 = Types.OBJECT.sanitize(
+            { key: 20 },
+            {
+                schema: {
+                    key: { type: 'integer', post: ['>typeOf'] },
+                },
             }
-        });
+        );
         obj1.should.be.eql({ key: 'integer' });
     });
 });

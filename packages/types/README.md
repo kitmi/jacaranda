@@ -40,7 +40,7 @@ name: "type name",
 alias: ["type alias"],
 defaultValue: null,
 
-sanitize: (value, meta, i18n, path) => sanitized,
+sanitize: (value, meta, i18n, context) => sanitized,
 serialize: (value, meta) => string
 ```
 

@@ -3,7 +3,7 @@ import { remap, isPlainObject, get as _get, template, filterNull, objectToArray,
 import { Types, typeOf } from '@kitmi/types';
 import { validate, test, OP as v_ops, getChildContext } from '@kitmi/jsonv';
 import transform, { processExprLikeValue, processExprLikeValueWithLeft } from '@kitmi/jsonv/transform';
-import { matchOptions } from '@kitmi/jsonv/transformersLoader';
+import { queryOptions } from '@kitmi/jsonv/transformersLoader';
 
 import _size from 'lodash/size';
 import _reduce from 'lodash/reduce';
@@ -56,7 +56,8 @@ const OP_ENTRIES = [ops.ENTRIES, UNARY, '$entries', '$pairs'];
 const OP_FILTER_NULL = [ops.FILTER_NULL, UNARY, '$filterNull', '$filterNullValues'];
 
 const OP_OBJ_TO_ARRAY = [ops.OBJ_TO_ARRAY, BINARY, '$toArray', '$objectToArray'];
-const OP_PICK = [ops.PICK, BINARY, '$pick', '$pickBy', '$selectByKeys']; // filter by key
+const OP_PICK = [ops.PICK, BINARY, '$pick', '$pickBy', '$selectByKeys', '$filterByKeys']; // filter by key
+const OP_PICK_VALUES = [ops.PICK_VALUES, BINARY, '$pickValues', '$extract', '$extractByKeys'];
 const OP_OMIT = [ops.OMIT, BINARY, '$omit', '$omitBy', '$excludeByKeys'];
 const OP_SLICE = [ops.SLICE, BINARY, '$slice', '$limit'];
 const OP_GROUP = [ops.GROUP, BINARY, '$group', '$groupBy'];
@@ -121,7 +122,7 @@ function transformersFactory(config) {
         }
 
         const predicate = (value, key) =>
-            validate(value, jvs, matchOptions, getChildContext(context, left, key, value));
+            validate(value, jvs, queryOptions, getChildContext(context, left, key, value));
 
         return Array.isArray(left) ? _findIndex(left, predicate, fromIndex) : _findKey(left, predicate);
     });
@@ -142,7 +143,7 @@ function transformersFactory(config) {
         }
 
         const predicate = (value, key) =>
-            validate(value, jvs, matchOptions, getChildContext(context, left, key, value));
+            validate(value, jvs, queryOptions, getChildContext(context, left, key, value));
 
         return _find(left, predicate, fromIndex);
     });
@@ -200,6 +201,10 @@ function transformersFactory(config) {
             return null;
         }
 
+        if (!isPlainObject(left)) {
+            throw new Error(MSG.VALUE_NOT_OBJECT(ops.PICK));
+        }
+
         if (typeof right !== 'object') {
             right = [right];
         }
@@ -208,9 +213,60 @@ function transformersFactory(config) {
             return _pick(left, right);
         }
 
-        return _pickBy(left, (item, key) =>
-            test(key, v_ops.MATCH, right, matchOptions, getChildContext(context, left, key, item))
-        );
+        // right is object
+        const { keys, reserveEmptyEntry, by } = right;
+        if (!keys && !by) {
+            throw new Error(MSG.INVALID_OP_EXPR(ops.PICK, right));
+        }
+
+        let result;
+
+        if (!reserveEmptyEntry) {
+            result = keys ? _pick(left, keys) : left;
+            if (by) {
+                result = _pickBy(result, (value, key) =>
+                    test(key, v_ops.MATCH, by, queryOptions, getChildContext(context, left, key, value))
+                );
+            }
+            return result;
+        }
+
+        if (keys) {
+            result = {};
+            _each(keys, (key) => {
+                if (key in left) {
+                    result[key] = left[key];
+                } else {
+                    result[key] = null;
+                }
+            });
+        } else {
+            result = left;
+        }
+
+        if (by) {
+            result = _pickBy(result, (value, key) =>
+                test(key, v_ops.MATCH, by, queryOptions, getChildContext(context, left, key, value))
+            );
+        }
+
+        return result;
+    });
+
+    config.addTransformerToMap(OP_PICK_VALUES, (left, right, context) => {
+        if (left == null) {
+            return right.map(() => null);
+        }
+
+        if (!isPlainObject(left)) {
+            throw new Error(MSG.VALUE_NOT_OBJECT(ops.PICK_VALUES));
+        }
+
+        if (!Array.isArray(right)) {
+            right = [right];
+        }
+
+        return right.map((right) => transform(left, { $getByKey: right }, context));
     });
 
     config.addTransformerToMap(OP_OMIT, (left, right, context) => {
@@ -227,7 +283,7 @@ function transformersFactory(config) {
         }
 
         return _omitBy(left, (item, key) =>
-            test(key, v_ops.MATCH, right, matchOptions, getChildContext(context, left, key, item))
+            test(key, v_ops.MATCH, right, queryOptions, getChildContext(context, left, key, item))
         );
     });
 
@@ -320,7 +376,7 @@ function transformersFactory(config) {
         }
 
         return _filter(left, (value, key) =>
-            test(value, v_ops.MATCH, right, matchOptions, getChildContext(context, left, key, value))
+            test(value, v_ops.MATCH, right, queryOptions, getChildContext(context, left, key, value))
         );
     });
     config.addTransformerToMap(OP_REMAP, (left, right) => {

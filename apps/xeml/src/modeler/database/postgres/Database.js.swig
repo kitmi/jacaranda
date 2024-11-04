@@ -8,7 +8,7 @@ class {{ className }} extends DbModel {
 
 {{ className }}.meta = {
     schemaName: '{{ schemaName }}',
-    Entities: { {% for entity in entities %}
+    entities: { {% for entity in entities %}
         {{ entity }},{% endfor %}
     }
 }

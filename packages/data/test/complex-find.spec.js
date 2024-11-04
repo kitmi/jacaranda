@@ -200,11 +200,11 @@ describe('crud complex', function () {
             });
 
             const result = await Product.findMany_({
-                $select: [ 'assets.resource.url' ],
-                $relation: [ 'assets.resource', ],
+                $select: ['assets.resource.url'],
+                $relation: ['assets.resource'],
             });
 
-            should.exist(result.data[0]?.[":assets"]?.[0]?.[':resource']?.url);
+            should.exist(result.data[0]?.[':assets']?.[0]?.[':resource']?.url);
         });
     });
 });

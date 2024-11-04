@@ -25,6 +25,7 @@ const ENTRIES = 'pairs';
 const OBJ_TO_ARRAY = 'toArray'; // like $objectToArray of mongodb
 const FILTER_NULL = 'xNull';
 const PICK = 'pick'; // filter by key
+const PICK_VALUES = 'pickValues'; // filter by key
 const OMIT = 'omit';
 const SLICE = 'slice'; // limit offset, count
 const GROUP = 'groupBy';
@@ -47,10 +48,6 @@ const APPLY = 'apply';
 const SANITIZE = 'sanitize';
 const SPLIT = 'split';
 const INTERPOLATE = 'interpolate';
-
-//Colllection modifier
-const MAP = 'map';
-const REDUCE = 'reduce';
 
 export default {
     SIZE,
@@ -75,6 +72,7 @@ export default {
     OBJ_TO_ARRAY,
     FILTER_NULL,
     PICK, // filter by key
+    PICK_VALUES,
     OMIT,
     SLICE,
     GROUP,
@@ -96,7 +94,4 @@ export default {
     SANITIZE,
     SPLIT,
     INTERPOLATE,
-
-    MAP,
-    REDUCE,
 };

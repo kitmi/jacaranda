@@ -13,6 +13,7 @@ const REQUIRED = 'required';
 const MATCH = 'match';
 const MATCH_ANY = 'anyOf';
 const ALL_MATCH = 'all';
+const ALL_VALUES_MATCH = 'allValues';
 const ANY_ONE_MATCH = 'any';
 const TYPE = 'type';
 const HAS_KEYS = 'has';
@@ -39,6 +40,7 @@ export default {
     MATCH,
     MATCH_ANY,
     ALL_MATCH,
+    ALL_VALUES_MATCH,
     ANY_ONE_MATCH,
     TYPE,
     HAS_KEYS,

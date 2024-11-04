@@ -35,17 +35,20 @@ class T_ARRAY {
             if (meta.element) {
                 const schema = typeof meta.element === 'function' ? meta.element() : meta.element;
 
-                return value.map((a, i) => this.system.sanitize(a, schema, opts.i18n, padLeft(`[${i}]`, opts.path)));
+                return value.map((a, i) =>
+                    this.system.sanitize(a, schema, opts.i18n, {
+                        root: opts.root,
+                        parent: value,
+                        path: padLeft(`[${i}]`, opts.path),
+                    })
+                );
             }
 
             return value;
         }
 
         throw new ValidationError('Invalid array value.', {
-            value,
-            meta,
-            rawValue: opts.rawValue,
-            i18n: opts.i18n,
+            value: opts.rawValue,
             path: opts.path,
         });
     }
@@ -66,17 +69,20 @@ class T_ARRAY {
             if (meta.element) {
                 const schema = typeof meta.element === 'function' ? meta.element() : meta.element;
 
-                return batchAsync_(value, (a, i) => this.system.sanitize_(a, schema, opts.i18n, padLeft(`[${i}]`, opts.path)));
+                return batchAsync_(value, (a, i) =>
+                    this.system.sanitize_(a, schema, opts.i18n, {
+                        root: opts.root,
+                        parent: value,
+                        path: padLeft(`[${i}]`, opts.path),
+                    })
+                );
             }
 
             return value;
         }
 
         throw new ValidationError('Invalid array value.', {
-            value,
-            meta,
-            rawValue: opts.rawValue,
-            i18n: opts.i18n,
+            value: opts.rawValue,
             path: opts.path,
         });
     }

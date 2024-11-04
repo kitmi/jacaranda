@@ -35,6 +35,7 @@ Types.ASSOC_EXCLUDE_QUALIFIERS = [
     'freezeAfterNonDefault',
     'constraintOnUpdate',
     'constraintOnDelete',
+    'hasActivator',
 ];
 
 Types.RESERVED_QUALIFIERS = new Set(['name', 'type', 'modifiers', 'subClass']);

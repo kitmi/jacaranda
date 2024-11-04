@@ -37,6 +37,8 @@ const messages = {
             `${formatName(name, left, context)} 不能為 ${JSON.stringify(right)}。`,
         [vops.ALL_MATCH]: (name, left, right, context) =>
             `${formatName(name, left, context)} 的所有項中至少一個不符合要求。`,
+        [vops.ALL_VALUES_MATCH]: (name, left, right, context) =>
+            `${formatName(name, left, context)} 的所有項中至少一個值不符合要求。`,
         [vops.ANY_ONE_MATCH]: (name, left, right, context) =>
             `${formatName(name, left, context)} 的所有項中没有任何一個符合要求。`,
         [vops.HAS_KEYS]: (name, left, right, context) =>
@@ -51,7 +53,7 @@ const messages = {
         [vops.CONTAINS]: (name, left, right, context) => `${formatName(name, left, context)} 必須包含 "${right}".`,
         [vops.SAME_AS]: (name, left, right, context) =>
             `${formatName(name, left, context)} 與 ${formatName(right)} 不一樣。`,
-        [vops.IF]: (name, left, right, context) => null, // error of branch should be returned in context
+        [vops.IF]: (_name, _left, _right, _context) => null, // error of branch should be returned in context
     },
 };
 

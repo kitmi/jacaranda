@@ -14,7 +14,7 @@ function getUnmatchedExplanation(op, leftValue, rightValue, context) {
     if (formatter == null) {
         throw new Error('Missing validation error formatter for operator: ' + op);
     }
-    
+
     return formatter(context.name, leftValue, rightValue, context);
 }
 
@@ -38,6 +38,34 @@ export function test(left, op, right, options, context) {
     return handler(left, right, options, context);
 }
 
+export function handleErrors(errors, options, context) {
+    if (errors.length > 0) {
+        if (options.throwError) {
+            throw new JsvError(errors, context);
+        }
+
+        if (!options.asPredicate) {
+            context.ERROR = errors.length === 1 && options.plainError ? errors[0] : errors;
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+export function handleResult(result, options, context) {
+    if (result !== true) {
+        if (!options.asPredicate) {
+            context.ERROR = result;
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
 /**
  * Validate the given object with JSON Expression Syntax (JES)
  * @param {*} actual - The object to match
@@ -55,9 +83,9 @@ export function test(left, op, right, options, context) {
  * @property {string} [context.name] - The name of the current field being validated, provided by the user
  * @returns {array} - [ {boolean} matched, {string} unmatchedReason ]
  */
-function validate(actual, jsv, options, context) {
+function validate(actual, jsv, options, context) {    
     if (jsv == null) {
-        return true;
+        return true; 
     }
 
     context = initContext(context, actual);
@@ -65,11 +93,8 @@ function validate(actual, jsv, options, context) {
     const type = typeof jsv;
 
     if (type === 'string') {
-        if (!isOperator(jsv)) {
-            throw new Error(context.config.messages.SYNTAX_INVALID_EXPR(jsv));
-        }
-
-        return validate(actual, { [jsv]: null }, options, context);
+        // validator does not support unary operator
+        throw new Error(context.config.messages.SYNTAX_INVALID_EXPR(jsv));
     }
 
     const { throwError, abortEarly, asPredicate, plainError } = options;
@@ -81,7 +106,7 @@ function validate(actual, jsv, options, context) {
     if (type !== 'object') {
         return validate(actual, { $equal: jsv }, options, context);
     }
-    
+
     const errors = [];
     const _options = !abortEarly && throwError ? { ...options, throwError: false } : options;
 
@@ -121,10 +146,10 @@ function validate(actual, jsv, options, context) {
 
             const reason = getUnmatchedExplanation(op, left, opValue, _context);
             if (abortEarly && throwError) {
-                throw new JsvError(reason, left, _context);
+                throw new JsvError(reason, _context);
             }
 
-            errors.push(plainError ? reason : new JsvError(reason, left, _context));
+            errors.push(plainError ? reason : new JsvError(reason, _context));
             if (abortEarly) {
                 break;
             }
@@ -137,7 +162,7 @@ function validate(actual, jsv, options, context) {
         }
 
         if (throwError) {
-            throw new JsvError(errors, actual, context);
+            throw new JsvError(errors, context);
         }
 
         return errors.length === 1 && plainError ? errors[0] : errors;

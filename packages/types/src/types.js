@@ -58,16 +58,26 @@ export class TypeSystem {
     addType(name, TypeMeta) {
         const typeMeta = new TypeMeta(this);
 
-        typeMeta.sanitize = (value, meta, i18n, path) => {
+        typeMeta.sanitize = (value, meta, i18n, context) => {
             meta = { type: typeMeta.name, ...meta };
-            const opts = { rawValue: value, i18n, path, system: this };
+            const opts = {
+                ...(typeof context === 'string' ? { path: context } : context),
+                rawValue: value,
+                i18n,
+                system: this,
+            };
             const [isDone, sanitized] = this.beginSanitize(value, meta, opts);
             return this.endSanitize(isDone ? sanitized : typeMeta._sanitize(value, meta, opts), meta, opts);
         };
 
-        typeMeta.sanitize_ = async (value, meta, i18n, path) => {
+        typeMeta.sanitize_ = async (value, meta, i18n, context) => {
             meta = { type: typeMeta.name, ...meta };
-            const opts = { rawValue: value, i18n, path, system: this };
+            const opts = {
+                ...(typeof context === 'string' ? { path: context } : context),
+                rawValue: value,
+                i18n,
+                system: this,
+            };
             const [isDone, sanitized] = await this.beginSanitize(value, meta, opts);
             return this.endSanitize(
                 isDone
@@ -89,7 +99,7 @@ export class TypeSystem {
     }
 
     callByType(method) {
-        return (value, typeInfo, i18n, fieldPath) => {
+        return (value, typeInfo, i18n, context) => {
             if (typeInfo.type == null) {
                 throw new InvalidArgument(`Missing type info: ${JSON.stringify(typeInfo)}`);
             }
@@ -98,8 +108,8 @@ export class TypeSystem {
                 throw new InvalidArgument(`Unsupported primitive type: "${typeInfo.type}".`);
             }
 
-            const typeObject = this.types[typeInfo.type];            
-            return typeObject[method](value, typeInfo, i18n, fieldPath);
+            const typeObject = this.types[typeInfo.type];
+            return typeObject[method](value, typeInfo, i18n, context);
         };
     }
 
@@ -132,10 +142,7 @@ export class TypeSystem {
             }
 
             throw new ValidationError('Missing a required value.', {
-                value,
-                meta,
-                rawValue: opts.rawValue,
-                i18n: opts.i18n,
+                value: opts.rawValue,
                 path: opts.path,
             });
         }
@@ -167,10 +174,7 @@ export class TypeSystem {
 
         if (meta.enum && !meta.enum.includes(value)) {
             throw new ValidationError('Invalid enum value.', {
-                value,
-                meta,
-                rawValue: opts.rawValue,
-                i18n: opts.i18n,
+                value: opts.rawValue,
                 path: opts.path,
             });
         }

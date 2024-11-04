@@ -205,9 +205,9 @@ describe('jsv:validator', function () {
                 key23: { $nin: ['ng1', 'ng2'] },
 
                 key4: { $exists: false },
-                key2: { $is: 'string' },
-                key7: { $is: 'array' },
-                key1: { $is: 'integer' },
+                key2: { $isType: 'string' },
+                key7: { $isType: 'array' },
+                key1: { $isType: 'integer' },
             })
             .match({
                 key3: {
@@ -219,12 +219,12 @@ describe('jsv:validator', function () {
             });
 
         Jsvo.match({
-            key1: { $is: 'integer' },
+            key1: { $isType: 'integer' },
         });
 
         should.throws(() => {
             Jsvo.match({
-                key1: { $is: 'string' },
+                key1: { $isType: 'string' },
             });
         }, 'The value of "key1" must be a(n) "string"');
 
@@ -284,7 +284,7 @@ describe('jsv:validator', function () {
 
         should.throws(() => {
             Jsvo.match({
-                key1: { $is: 'string' },
+                key1: { $isType: 'string' },
             });
         }, 'The value of "key1" must be a(n) "string".');
 

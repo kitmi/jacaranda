@@ -267,6 +267,21 @@ passwordSalt : text fixedLength(16) readOnly |=random -- "User password salt"
 - `passwordSalt`是只读字段，它的值由`random`生成器生成固定长度为16的随机字符串作为密码哈希的干扰码。
 - `password`字段会检测输入是否满足`strongPassword`要求，默认是最小8个字符，需要包含至少一个大小写、数字和特殊字，符合要求后会与最新的`passwordSalt`进行哈希，处理器`hashPassword`并非内置的处理器，`xeml命令行`会在models目录中生成一个处理器的模板文件，供开发人员填入具体的哈希代码。
 
+#### 公共修饰器
+
+在一个`xeml`模块中可以定义公共修饰器：
+
+```
+modifier
+    |=uuidPrefetch_
+```
+
+然后用以下语法在其他`xeml`模块引用这个修饰器：
+
+```
+[<包名>:]<模块文件名>:<修饰器名称>
+```
+
 ## 关系定义 
 
 ### 单向引用(refers to)
@@ -345,6 +360,27 @@ hasOne的一方不会在Entity中添加任何字段。
 index
   <字段> [is unique]
   "[" <字段数组> "]" [is unique]
+```
+
+- 在子实体中移除父实体的索引
+
+```
+index
+  "-" (<字段>|"[" <字段数组> "]") 
+```
+
+## 输入数据集
+
+如果实体定义的同一个目录下存在 `<实体名称>-input-*.yaml` 文件，则这些文件将被当作数据集定义处理。
+
+## 视图(views)
+
+- 语法
+
+```
+views
+  <视图名称>
+    $select
 ```
 
 ## 初始化数据

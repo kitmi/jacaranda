@@ -47,10 +47,7 @@ class T_DATETIME {
 
             if (isNaN(value)) {
                 throw new ValidationError('Invalid datetime value.', {
-                    value: null,
-                    meta,
-                    rawValue: opts.rawValue,
-                    i18n: opts.i18n,
+                    value: opts.rawValue,
                     path: opts.path,
                 });
             }

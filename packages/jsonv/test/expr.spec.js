@@ -37,7 +37,7 @@ describe('jsv:expr', function () {
                     },
                 },
             }
-        ).should.be.eql([false, '"key1" must be greater than {"$expr":"$parent.key2.key3"}.']);
+        ).should.be.eql([false, '"key1" must be greater than [$parent.key2.key3].']);
     });
 
     it('case 3', function () {

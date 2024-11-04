@@ -370,6 +370,15 @@ class Linker {
     }
 
     /**
+     * Get the path of a module by its id.
+     * @param {String} moduleId 
+     * @returns {String} absolute path of the module
+     */
+    getModulePathById(moduleId) {
+        return moduleId.startsWith('./') ? path.resolve(this.sourcePath, moduleId) : path.resolve(BUILTINS_PATH, moduleId);
+    }
+
+    /**
      * Get the unique name of an element.
      * @param {object} refererModule
      * @param {string} elementType

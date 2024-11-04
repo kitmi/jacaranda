@@ -30,7 +30,11 @@ class T_OBJECT {
             const errors = [];
             const foundMatched = validationObject.find((_validationObject) => {
                 try {
-                    _fieldValue = this.system.sanitize(fieldValue, _validationObject, opts.i18n, fieldPath);
+                    _fieldValue = this.system.sanitize(fieldValue, _validationObject, opts.i18n, {
+                        root: opts.root,
+                        parent: value,
+                        path: fieldPath,
+                    });
                     return true;
                 } catch (error) {
                     errors.push(ValidationError.extractFromError(error));
@@ -40,16 +44,17 @@ class T_OBJECT {
 
             if (foundMatched == null) {
                 throw new ValidationError('Object member schema validation failed.', {
-                    value: fieldValue,
-                    meta: validationObject,
-                    rawValue: opts.rawValue,
-                    i18n: opts.i18n,
+                    value: fieldValue,                    
                     path: fieldPath,
                     errors,
                 });
             }
         } else {
-            _fieldValue = this.system.sanitize(fieldValue, validationObject, opts.i18n, fieldPath);
+            _fieldValue = this.system.sanitize(fieldValue, validationObject, opts.i18n, {
+                root: opts.root,
+                parent: value,
+                path: fieldPath,
+            });
         }
 
         if (_fieldValue != null || fieldName in value) {
@@ -67,7 +72,11 @@ class T_OBJECT {
             const errors = [];
             const foudMatched = await findAsync_(validationObject, async (_validationObject) => {
                 try {
-                    _fieldValue = await this.system.sanitize_(fieldValue, _validationObject, opts.i18n, fieldPath);
+                    _fieldValue = await this.system.sanitize_(fieldValue, _validationObject, opts.i18n, {
+                        root: opts.root,
+                        parent: value,
+                        path: fieldPath,
+                    });
                     return true;
                 } catch (error) {
                     errors.push(ValidationError.extractFromError(error));
@@ -77,16 +86,17 @@ class T_OBJECT {
 
             if (foudMatched == null) {
                 throw new ValidationError('Object member schema validation failed.', {
-                    value: fieldValue,
-                    meta: validationObject,
-                    rawValue: opts.rawValue,
-                    i18n: opts.i18n,
+                    value: fieldValue,                    
                     path: fieldPath,
                     errors,
                 });
             }
         } else {
-            _fieldValue = await this.system.sanitize_(fieldValue, validationObject, opts.i18n, fieldPath);
+            _fieldValue = await this.system.sanitize_(fieldValue, validationObject, opts.i18n, {
+                root: opts.root,
+                parent: value,
+                path: fieldPath,
+            });
         }
 
         if (_fieldValue != null || fieldName in value) {
@@ -114,10 +124,7 @@ class T_OBJECT {
         if (meta.schema) {
             if (typeof value !== 'object') {
                 throw new ValidationError('Invalid object value.', {
-                    value,
-                    meta,
-                    rawValue: opts.rawValue,
-                    i18n: opts.i18n,
+                    value: opts.rawValue,
                     path: opts.path,
                 });
             }
@@ -140,10 +147,7 @@ class T_OBJECT {
 
                 if (pass == null) {
                     throw new ValidationError('Object schema validation failed.', {
-                        value,
-                        meta,
-                        rawValue: opts.rawValue,
-                        i18n: opts.i18n,
+                        value: opts.rawValue,
                         path: opts.path,
                         errors,
                     });
@@ -162,7 +166,7 @@ class T_OBJECT {
 
         const { valueSchema, ..._meta } = meta;
         if (valueSchema) {
-            const schema = _mapValues(value, () => valueSchema);            
+            const schema = _mapValues(value, () => valueSchema);
             return this._sanitize(value, { schema, ..._meta }, opts);
         }
 
@@ -181,10 +185,7 @@ class T_OBJECT {
         if (meta.schema) {
             if (typeof value !== 'object') {
                 throw new ValidationError('Invalid object value.', {
-                    value,
-                    meta,
-                    rawValue: opts.rawValue,
-                    i18n: opts.i18n,
+                    value: opts.rawValue,
                     path: opts.path,
                 });
             }
@@ -207,10 +208,7 @@ class T_OBJECT {
 
                 if (pass == null) {
                     throw new ValidationError('Object schema validation failed.', {
-                        value,
-                        meta,
-                        rawValue: opts.rawValue,
-                        i18n: opts.i18n,
+                        value: opts.rawValue,
                         path: opts.path,
                         errors,
                     });

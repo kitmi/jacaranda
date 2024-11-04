@@ -22,10 +22,7 @@ class T_NUMBER {
 
         if (isNaN(value)) {
             throw new ValidationError('Invalid number value.', {
-                value: null,
-                meta,
-                rawValue: opts.rawValue,
-                i18n: opts.i18n,
+                value: opts.rawValue,
                 path: opts.path,
             });
         }

@@ -29,6 +29,7 @@ import { typeOf } from '@kitmi/types';
  *      - options: undefined
  */
 function fxargs(args, types) {
+    // eslint-disable-next-line no-new-array
     const result = new Array(types.length).fill(undefined);
     let argIndex = 0,
         lt = types.length,

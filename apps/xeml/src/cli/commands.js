@@ -1,8 +1,9 @@
-exports.Commands = {   
+exports.Commands = {
     'clean': 'Remove auto-generated files.',
     'list-modifiers': 'List built-in modifiers.',
     'build': 'Generate database scripts and entity models.',
-    'migrate': 'Create database structure.',            
+    'build-api-client': 'Generate API client-side code.',
+    'migrate': 'Create database structure.',
     'import': 'Import data set.',
 };
 
@@ -23,6 +24,7 @@ exports.getCommandOptions = (cli, command) => {
             break;
 
         case 'build':
+        case 'build-api-client':
             break;
 
         case 'migrate':
@@ -32,38 +34,38 @@ exports.getCommandOptions = (cli, command) => {
                 promptDefault: false,
                 inquire: true,
                 required: true,
-                alias: [ 'reset' ],
-                bool: true
+                alias: ['reset'],
+                bool: true,
             };
-            break;        
+            break;
 
         case 'import':
             cmdOptions['schema'] = {
-                desc: 'The schema to list',                               
-                required: true                
+                desc: 'The schema to list',
+                required: true,
             };
             cmdOptions['dataset'] = {
-                desc: 'The name of the data set to import',                
-                alias: [ 'ds', 'data' ],
-                required: true                
+                desc: 'The name of the data set to import',
+                alias: ['ds', 'data'],
+                required: true,
             };
             cmdOptions['ignore'] = {
-                desc: 'Ignore exception on duplicate',                
-                alias: [ 'ignore-duplicate' ],
-                bool: true                
+                desc: 'Ignore exception on duplicate',
+                alias: ['ignore-duplicate'],
+                bool: true,
             };
             break;
 
         case 'export':
             cmdOptions['schema'] = {
                 desc: 'The schema to export',
-                required: true        
-            };      
+                required: true,
+            };
             cmdOptions['override'] = {
                 desc: 'Override same day output',
-                alias: [ 'O' ],
-                bool: true
-            };            
+                alias: ['O'],
+                bool: true,
+            };
             break;
 
         default:
@@ -73,4 +75,3 @@ exports.getCommandOptions = (cli, command) => {
 
     return cmdOptions;
 };
-

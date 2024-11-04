@@ -1,6 +1,6 @@
 import { ApplicationError, InvalidArgument, ValidationError, HttpCode } from '@kitmi/types';
 import { _, eachAsync_, isPlainObject, isEmpty, get as _get } from '@kitmi/utils';
-import typeSystem, { Types } from '@kitmi/validators/allSync';
+import typeSystem from '@kitmi/validators/allSync';
 import * as Features from './entityFeatures';
 import Rules from './Rules';
 import defaultGenerator from './TypeGenerators';
@@ -48,70 +48,23 @@ class EntityModel {
     }
 
     /**
-     * Get a field schema based on the metadata of the field.
-     * @param {string} name - Field name
-     * @param {object} [extra] - Extra schema options
-     * @return {object|array} Schema object
+     * Get a map of fields schema by predefined input set.
+     * @param {string} datasetName - Input set name, predefined in geml
+     * @return {object} Schema object
      */
-    fieldSchema(name, extra) {
-        const meta = this.meta.fields[name];
-        if (!meta) {
-            throw new InvalidArgument(`Unknown field "${name}" of entity "${this.meta.name}".`);
+    datasetSchema(datasetName) {
+        const creator = this.meta.schemas[datasetName];
+        if (creator == null) {
+            throw new InvalidArgument(`Unknown dataset "${datasetName}" of entity "${this.meta.name}".`);
         }
-
-        const schema = _.omit(meta, ['default', 'optional']);
-
-        if (extra) {
-            const { $addEnumValues, $orAsArray, ...others } = extra;
-            let arrayElem = schema;
-
-            if ($orAsArray) {
-                arrayElem = { ...schema, ...others };
-            }
-
-            if (meta.type === Types.ENUM.name && $addEnumValues) {
-                schema.values = schema.values.concat($addEnumValues);
-            }
-
-            Object.assign(schema, others);
-
-            if ($orAsArray) {
-                return [
-                    schema,
-                    {
-                        type: 'array',
-                        elementSchema: arrayElem,
-                    },
-                ];
-            }
-        }
-
-        return schema;
+        return creator();
     }
 
     /**
-     * Get a map of fields schema by predefined input set.
-     * @param {string} inputSetName - Input set name, predefined in geml
-     * @param {object} [options] - Input set options
-     * @return {object} Schema object
+     * Remove readonly fields from data record.
+     * @param {Object} data 
+     * @returns {Object}
      */
-    inputSchema(inputSetName, options) {
-        const key = inputSetName + (options == null ? '{}' : JSON.stringify(options));
-
-        if (this._cachedSchema) {
-            const cache = this._cachedSchema[key];
-            if (cache) {
-                return cache;
-            }
-        } else {
-            this._cachedSchema = {};
-        }
-
-        const schemaGenerator = this.db.require(`inputs/${this.meta.name}-${inputSetName}`);
-
-        return (this._cachedSchema[key] = schemaGenerator(options));
-    }
-
     omitReadOnly(data) {
         return _.omitBy(data, (value, key) => !this.meta.fields[key] || this.meta.fields[key].readOnly);
     }
@@ -338,6 +291,7 @@ class EntityModel {
 
     async _find_(findOptions, isOne) {
         findOptions = this._wrapCtx(findOptions);
+        findOptions = this._tryUseView(findOptions);
         findOptions = this._normalizeQuery(findOptions, isOne /* for single record */);
 
         const context = {
@@ -447,6 +401,19 @@ class EntityModel {
         } finally {
             this._safeFlag = false;
         }
+    }
+
+    _tryUseView(findOptions) {
+        if (findOptions.$view) {
+            const baseView = this.meta.views[findOptions.$view];
+            if (baseView == null) {
+                throw new InvalidArgument(`View "${findOptions.$view}" not found, available: ${Object.keys(this.meta.views)}`); 
+            }
+
+            return { ...baseView, ...findOptions };
+        }
+
+        return findOptions;
     }
 
     /**
