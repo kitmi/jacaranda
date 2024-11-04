@@ -1304,6 +1304,7 @@ class DaoModeler {
         compileContext.variables['i18n'] = { source: 'context', finalized: true };
         compileContext.variables['connector'] = { source: 'context', finalized: true };
         compileContext.variables['latest'] = { source: 'context' };
+        compileContext.variables['app'] = { source: 'context', finalized: true, shortFor: 'this.db.app' };
 
         const allFinished = XemlToAst.createTopoId(compileContext, 'done.');
 

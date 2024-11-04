@@ -548,6 +548,7 @@ function translateModifier(functor, compileContext, args) {
                 functorId = '_' + functor.$xt + 's.' + functionName;
             }
         } else {
+            // todo: bug here, if the modifier is defined in same file
             const namespace = `${compileContext.xemlModule.packageName}:${compileContext.xemlModule.name}`;
             const namespacePrefix = replaceAll(namespace, ':', '_');
             const isAsync = functionName.endsWith('_');
@@ -709,6 +710,13 @@ function compileConcreteValueExpression(startTopoId, value, compileContext) {
             if (dependency) {
                 dependsOn(compileContext, dependency, startTopoId);
             }
+
+            if (compileContext.variables[refBase].shortFor) {
+                value = {
+                    ...value,
+                    name: compileContext.variables[refBase].shortFor + '.' + rest.join('.'),
+                };                
+            } 
 
             return compileVariableReference(startTopoId, value, compileContext);
         }

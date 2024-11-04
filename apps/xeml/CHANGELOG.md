@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.9.1
+
+### Patch Changes
+
+-   Add app reference as context in entity modifiers definition.
+
 ## 0.9.0
 
 ### Minor Changes
