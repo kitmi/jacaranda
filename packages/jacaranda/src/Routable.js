@@ -39,11 +39,9 @@ const Routable = (T) =>
                 this.options.logMiddlewareRegistry &&
                 (this.options.logLevel === 'verbose' || this.options.logLevel === 'debug')
             ) {
-                this.log(
-                    'verbose',
-                    'Registered middlewares:',
-                    { middlewares: this.registry.middlewares ? Object.keys(this.registry.middlewares) : [] }
-                );
+                this.log('verbose', 'Registered middlewares:', {
+                    middlewares: this.registry.middlewares ? Object.keys(this.registry.middlewares) : [],
+                });
             }
 
             return this;
@@ -88,17 +86,22 @@ const Routable = (T) =>
                 return factory;
             }
 
-            const registryEntry = await tryLoadFrom_(this, "Middleware", {
-                registry: {
-                    name,
-                    path: 'middlewares'
+            const registryEntry = await tryLoadFrom_(
+                this,
+                'Middleware',
+                {
+                    registry: {
+                        name,
+                        path: 'middlewares',
+                    },
+                    project: {
+                        name,
+                        path: path.join(this.sourcePath, 'middlewares'),
+                    },
                 },
-                project: {
-                    name,
-                    path: path.join(this.sourcePath, 'middlewares')
-                }
-            }, true /* no throw */);
-            
+                true /* no throw */
+            );
+
             if (registryEntry != null) {
                 this._middlewareFactories[name] = registryEntry;
                 return registryEntry;

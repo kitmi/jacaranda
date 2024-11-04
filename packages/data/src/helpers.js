@@ -17,7 +17,12 @@ export const xrCall = xrFunction;
 export const xrExpression = (left, op, right, alias) => ({ $xr: 'BinExpr', left, op, right, alias });
 export const xrExpr = xrExpression;
 
-export const xrDataSet = (model, query, alias) => ({ $xr: 'DataSet', model, query: { $skipOrm: true, ...query }, alias });
+export const xrDataSet = (model, query, alias) => ({
+    $xr: 'DataSet',
+    model,
+    query: { $skipOrm: true, ...query },
+    alias,
+});
 
 export const xrGet = (field, key, alias) => ({ $xr: 'OpGet', field, key, alias });
 export const xrSet = (obj) => ({ $set: obj });
@@ -47,7 +52,7 @@ export function mergeWhere(condition1, condition2, operator = '$and') {
     }
 
     if (operator === '$and' && isPlainObject(condition1) && isPlainObject(condition2)) {
-        return { ...condition1, ...condition2 };    
+        return { ...condition1, ...condition2 };
     }
 
     return { [operator]: [condition1, condition2] };

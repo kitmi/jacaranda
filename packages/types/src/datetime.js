@@ -6,7 +6,7 @@ class T_DATETIME {
     primitive = true;
     scalar = true;
     defaultValue = new Date(0);
-    
+
     constructor(system) {
         this.system = system;
     }
@@ -59,6 +59,6 @@ class T_DATETIME {
     serialize(value) {
         return value?.toISOString();
     }
-};
+}
 
 export default T_DATETIME;

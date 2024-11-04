@@ -1,5 +1,12 @@
 # @kitmi/jsonx
 
+## 1.3.0
+
+### Minor Changes
+
+-   Differentiate jsv query and jsv match
+-   Add $pickValues operator
+
 ## 1.2.1
 
 ### Patch Changes

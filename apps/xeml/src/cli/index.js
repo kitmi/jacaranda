@@ -66,8 +66,7 @@ function main() {
             commandName: binItem,
             config: {
                 version: pkg.version,
-                logger: {                      
-                },
+                logger: {},
                 commandLine: {
                     banner: () => {
                         return (

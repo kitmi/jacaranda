@@ -2,10 +2,9 @@
 
 ## Jacaranda Framework AI Features
 
-`@kitmi/feat-ai-kits` 
+`@kitmi/feat-ai-kits`
 
 ## Features
-
 
 ## Installation
 
@@ -22,5 +21,6 @@ npm install @kitmi/feat-ai-kits
 ```
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

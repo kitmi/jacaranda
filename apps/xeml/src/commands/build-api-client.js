@@ -1,5 +1,5 @@
 const path = require('node:path');
-const { fs, cmd } = require("@kitmi/sys");
+const { fs, cmd } = require('@kitmi/sys');
 const { _, eachAsync_, isEmpty, sleep_ } = require('@kitmi/utils');
 const { InvalidArgument } = require('@kitmi/types');
 const Linker = require('../lang/Linker');
@@ -11,21 +11,21 @@ const { getVersionInfo, getSchemaDigest, writeVersionInfo } = require('../utils/
  * @returns {Promise}
  */
 module.exports = async (app) => {
-    app.log('verbose', `${app.name} build-api-client`);    
+    app.log('verbose', `${app.name} build-api-client`);
 
     const modelService = app.getService('dataModel');
 
-    const schemaObjects = Linker.buildSchemaObjects(app, modelService.config);   
+    const schemaObjects = Linker.buildSchemaObjects(app, modelService.config);
 
-    await eachAsync_(modelService.config.schemaSet, async (schemaConfig, schemaName) => {      
-        app.log('verbose', `Processing schema "${schemaName}" ...`);   
-        
+    await eachAsync_(modelService.config.schemaSet, async (schemaConfig, schemaName) => {
+        app.log('verbose', `Processing schema "${schemaName}" ...`);
+
         let schema = schemaObjects[schemaName];
 
         if (!schema) {
             throw new InvalidArgument(`Schema "${schemaName}" not found in xeml entry files."`, {
                 schemaName,
-                schemaPath: path.resolve(modelService.config.schemaPath)
+                schemaPath: path.resolve(modelService.config.schemaPath),
             });
         }
 
@@ -41,7 +41,7 @@ module.exports = async (app) => {
 
         const verContent = getVersionInfo(modelService, schemaName);
         return daoModeler.buildApiClient(refinedSchema, verContent);
-    });  
+    });
 
     app.logger.flush();
 };

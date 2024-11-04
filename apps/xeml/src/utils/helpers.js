@@ -106,4 +106,4 @@ exports.writeVersionInfo = (modelService, schemaName, verContent) => {
 exports.getSchemaDigest = (schemaJSON) => {
     const stringifiedContent = JSON.stringify(schemaJSON);
     return hash('sha256', stringifiedContent);
-}
+};

@@ -29,11 +29,11 @@ async function run(cli, command) {
                 features: {
                     dataModel,
                     dataSource,
-                    db
+                    db,
                 },
             },
 
-            argv: cli.argv
+            argv: cli.argv,
         });
     } catch (error) {
         if (verboseMode) {

@@ -1,5 +1,12 @@
 # @kitmi/xeml
 
+## 0.9.0
+
+### Minor Changes
+
+-   Add API generation feature.
+-   Separate dataset schema from entity definition into dedicated yaml files.
+
 ## 0.8.0
 
 ### Minor Changes
@@ -40,13 +47,13 @@
 
 ### Patch Changes
 
--   Fix cloneSubTree_ bug.
+-   Fix cloneSubTree\_ bug.
 
 ## 0.6.0
 
 ### Minor Changes
 
--   Add more closureTable methods, e.g. removeSubTree_, cloneSubTree_
+-   Add more closureTable methods, e.g. removeSubTree*, cloneSubTree*
 -   Add index remove via overriding
 -   Minor bug fixes
 

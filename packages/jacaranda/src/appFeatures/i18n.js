@@ -8,15 +8,14 @@ export default {
         options = app.featureConfig(
             options,
             {
-                schema: 
-                    {
-                        locale: { type: 'text', default: 'en' },
-                        timezone: { type: 'text', optional: true },
-                    }
+                schema: {
+                    locale: { type: 'text', default: 'en' },
+                    timezone: { type: 'text', optional: true },
+                },
             },
             name
         );
-        
+
         app.i18n = {
             ...options,
             datePlus: (date, duration) => {

@@ -6,7 +6,7 @@ export default {
     shutdown: async function (ctx) {
         ctx.body = 'Shutting down...';
         setTimeout(() => {
-            process.kill(process.pid, "SIGINT");
+            process.kill(process.pid, 'SIGINT');
         }, 100);
-    }
+    },
 };

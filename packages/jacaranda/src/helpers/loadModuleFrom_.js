@@ -2,14 +2,14 @@ import { get as _get, _, findKeyAsync_, esmCheck } from '@kitmi/utils';
 import { InvalidArgument } from '@kitmi/types';
 
 /**
- *
- * @param {*} app
- * @param {*} source
- * @param {*} name
- * @param {*} payloadPath
- * @param {*} noThrow
- * @param {*} namedExport
- * @returns
+ * Load a module from speficied source.
+ * @param {App} app
+ * @param {string} source
+ * @param {string} name
+ * @param {string|array} payloadPath
+ * @param {string} namedExport
+ * @param {boolean} [noThrow]
+ * @returns {*}
  */
 const loadModuleFrom_ = async (app, source, name, payloadPath, namedExport, noThrow) => {
     if (!name) {

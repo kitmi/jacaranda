@@ -7,8 +7,8 @@ import http from 'node:http';
 
 /**
  * Wrap the error response into json format and with the apiWrapper service if exists.
- * @param {*} opt 
- * @param {*} app 
+ * @param {*} opt
+ * @param {*} app
  * @returns {Function} Middleware function
  */
 const jsonError = (opt, app) => {

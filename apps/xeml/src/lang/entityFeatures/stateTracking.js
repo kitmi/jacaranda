@@ -21,8 +21,8 @@ function timestampFieldNaming(field, state) {
  * @property {bool} [options.reversible=false] - Specify whether the field can be set to a previous state again
  */
 function feature(entity, args = []) {
-    let [ options ] = args;
-    
+    let [options] = args;
+
     if (!options) {
         throw new Error('Missing field options!');
     }
@@ -38,7 +38,7 @@ function feature(entity, args = []) {
     let stateSetTimestamp = {
         type: 'datetime',
         optional: true,
-        auto: true
+        auto: true,
     };
 
     if (!options.reversible) {
@@ -58,23 +58,27 @@ function feature(entity, args = []) {
 
         let stateMapping = {};
 
-        fieldInfo.enum.forEach(state => {
+        fieldInfo.enum.forEach((state) => {
             let fieldName = timestampFieldNaming(options.field, state);
 
             entity.addField(fieldName, stateSetTimestamp);
             stateMapping[state] = fieldName;
         });
 
-        entity.addFeature(FEATURE_NAME, {
-            field: options.field,
-            stateMapping
-        }, true);
+        entity.addFeature(
+            FEATURE_NAME,
+            {
+                field: options.field,
+                stateMapping,
+            },
+            true
+        );
 
-        const indexFields = [ options.field ];
+        const indexFields = [options.field];
 
         if (!entity.hasIndexOn(indexFields)) {
             entity.addIndex({
-                fields: indexFields
+                fields: indexFields,
             });
         }
     });

@@ -16,8 +16,8 @@ engine:
             jsonLimit: 15mb
 
 appRouting:
-  /test-app:
-    name: test
+    /test-app:
+        name: test
 
 routing:
     /:

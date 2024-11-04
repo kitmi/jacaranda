@@ -21,11 +21,7 @@ const common = {
         (value, minLength) => value.length >= minLength,
         'The length of the value must be greater than or equal to the min length.'
     ),
-    exist: makeValidator(
-        (value, required) => !required || value != null,
-        'The value must not NULL.',
-        true
-    )
+    exist: makeValidator((value, required) => !required || value != null, 'The value must not NULL.', true),
 };
 
 common.required = common.exist;

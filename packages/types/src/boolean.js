@@ -19,13 +19,10 @@ class T_BOOLEAN {
         try {
             return toBoolean(value);
         } catch (e) {
-            throw new ValidationError(
-                'Invalid boolean value. ' + e.message,
-                {
-                    value: opts.rawValue,
-                    path: opts.path,
-                }
-            );
+            throw new ValidationError('Invalid boolean value. ' + e.message, {
+                value: opts.rawValue,
+                path: opts.path,
+            });
         }
     }
 

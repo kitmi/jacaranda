@@ -1,5 +1,12 @@
 # @kitmi/validators
 
+## 1.4.0
+
+### Minor Changes
+
+-   Bug fixes
+-   Refine error reporting
+
 ## 1.3.0
 
 ### Minor Changes

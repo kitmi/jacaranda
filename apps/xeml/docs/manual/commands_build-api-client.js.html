@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>commands/build-api-client.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="DaoModeler.html">DaoModeler</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="DaoModeler.html#_processFieldModifiers">_processFieldModifiers</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Dataset.html">Dataset</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dataset.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dataset.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dataset.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Entity.html">Entity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addAssocField">addAssocField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addAssociation">addAssociation</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addFeature">addFeature</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addField">addField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addIndex">addIndex</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#addIndexes">addIndexes</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#getEntityAttribute">getEntityAttribute</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#getKeyField">getKeyField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#getReferenceTo">getReferenceTo</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#hasField">hasField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#hasIndexOn">hasIndexOn</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#once">once</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#setKey">setKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Entity.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Field.html">Field</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Field.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Field.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Field.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Linker.html">Linker</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#getElementUniqueId">getElementUniqueId</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#getModuleById">getModuleById</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#getModuleIdByPath">getModuleIdByPath</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#getModulePathById">getModulePathById</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#isModuleLoaded">isModuleLoaded</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#loadElement">loadElement</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#loadModule">loadModule</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#log">log</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#trackBackType">trackBackType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#translateXemlValue">translateXemlValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#.buildSchemaObjects">buildSchemaObjects</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Linker.html#.getXemlFiles">getXemlFiles</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="PostgresMigration.html">PostgresMigration</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="PostgresModeler.html">PostgresModeler</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresModeler.html#_processAssociation">_processAssociation</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresModeler.html#_updateRelationEntity">_updateRelationEntity</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Schema.html">Schema</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#addEntity">addEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#addType">addType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#addView">addView</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#ensureGetEntity">ensureGetEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#getDocumentHierachy">getDocumentHierachy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#getReferencedEntity">getReferencedEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#hasEntity">hasEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#hasView">hasView</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Schema.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="View.html">View</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="View.html#clone">clone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="View.html#link">link</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="View.html#toJSON">toJSON</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="XemlLinker.html">XemlLinker</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_AtLeastOneNotNull.html">EntityFeature_AtLeastOneNotNull</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_AtLeastOneNotNull.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_AutoId.html">EntityFeature_AutoId</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_AutoId.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_ChangeLog.html">EntityFeature_ChangeLog</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_ChangeLog.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_CreateAfter.html">EntityFeature_CreateAfter</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_CreateAfter.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_CreateBefore.html">EntityFeature_CreateBefore</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_CreateBefore.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_CreateTimestamp.html">EntityFeature_CreateTimestamp</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_CreateTimestamp.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_HasClosureTable.html">EntityFeature_HasClosureTable</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_HasClosureTable.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_I18n.html">EntityFeature_I18n</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_I18n.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_IsCacheTable.html">EntityFeature_IsCacheTable</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_IsCacheTable.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_LogicalDeletion.html">EntityFeature_LogicalDeletion</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_LogicalDeletion.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_StateTracking.html">EntityFeature_StateTracking</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_StateTracking.html#~feature">feature</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_UpdateTimestamp.html">EntityFeature_UpdateTimestamp</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_UpdateTimestamp.html#~initialize">initialize</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeature_UserEditTracking.html">EntityFeature_UserEditTracking</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-EntityFeature_UserEditTracking.html#~feature">feature</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#_fieldRequirementCheck">_fieldRequirementCheck</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getCommandOptions">getCommandOptions</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getDateNamedDir">getDateNamedDir</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">commands/build-api-client.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const path = require('node:path');
+const { fs, cmd } = require('@kitmi/sys');
+const { _, eachAsync_, isEmpty, sleep_ } = require('@kitmi/utils');
+const { InvalidArgument } = require('@kitmi/types');
+const Linker = require('../lang/Linker');
+const { getVersionInfo, getSchemaDigest, writeVersionInfo } = require('../utils/helpers');
+
+/**
+ * Build database scripts and entity models from oolong files.
+ * @param {ServiceContainer} app
+ * @returns {Promise}
+ */
+module.exports = async (app) => {
+    app.log('verbose', `${app.name} build-api-client`);
+
+    const modelService = app.getService('dataModel');
+
+    const schemaObjects = Linker.buildSchemaObjects(app, modelService.config);
+
+    await eachAsync_(modelService.config.schemaSet, async (schemaConfig, schemaName) => {
+        app.log('verbose', `Processing schema "${schemaName}" ...`);
+
+        let schema = schemaObjects[schemaName];
+
+        if (!schema) {
+            throw new InvalidArgument(`Schema "${schemaName}" not found in xeml entry files."`, {
+                schemaName,
+                schemaPath: path.resolve(modelService.config.schemaPath),
+            });
+        }
+
+        // cannot use db here, because the db model is not yet built
+        const connector = modelService.getConnector(schemaName);
+
+        const DbModeler = require(`../modeler/database/${connector.driver}/Modeler`);
+        const dbModeler = new DbModeler(modelService, schema.linker, connector, schemaConfig.options);
+        const refinedSchema = await dbModeler.modeling_(schema, true);
+
+        const DaoModeler = require('../modeler/Dao');
+        let daoModeler = new DaoModeler(modelService, schema.linker, connector);
+
+        const verContent = getVersionInfo(modelService, schemaName);
+        return daoModeler.buildApiClient(refinedSchema, verContent);
+    });
+
+    app.logger.flush();
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Mon Nov 04 2024 16:08:52 GMT+0800 (China Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

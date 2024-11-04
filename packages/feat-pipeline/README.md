@@ -2,10 +2,9 @@
 
 ## Jacaranda Framework Pipeline Features
 
-`@kitmi/feat-pipeline` 
+`@kitmi/feat-pipeline`
 
 ## Features
-
 
 ## Installation
 
@@ -35,7 +34,7 @@ pre:
     fileInfo: # get file info, e.g. size, mime, etc.
         file: 'pathResolve'
 
-    hashFile: 
+    hashFile:
         algorithm: 'define.hashAlgorithm'
         file: 'pathResolve'
 
@@ -52,17 +51,17 @@ pre:
         where:
             ref: '$input.ref'
             checksum: 'hashFile'
-                
+
     formatObjectKey: # format the object key with string template
         task: format
         template: '${$input.remotePath}/${transform}${fileInfo.extName}'
 
     uploadCloud:
-        when: 
+        when:
             dbExistUnique: false
-        file: 'pathResolve'        
+        file: 'pathResolve'
         objectKey: 'formatObjectKey'
-        contentType: 'fileInfo.mime'        
+        contentType: 'fileInfo.mime'
         service: 'cloudStorage.aws'
         payload:
             publicRead: true
@@ -73,8 +72,8 @@ pre:
             - localPath
             - remotePath
 
-    setUrl:        
-        when: 
+    setUrl:
+        when:
             dbExistUnique: false
         task: fill
         data:
@@ -94,9 +93,10 @@ pre:
 Task interface
 
 ```
+
 ```
 
-
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

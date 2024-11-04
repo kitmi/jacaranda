@@ -66,7 +66,6 @@ class RuntimeRegistry {
 
         delete this.modulesRegistry[moduleName];
     }
-
 }
 
 export default RuntimeRegistry;

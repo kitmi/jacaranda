@@ -3,7 +3,12 @@ import vops from '../validateOperators';
 
 const nameOfValue = (custom) => (custom?.lowerCase ? 'the value' : 'The value');
 const formatName = namingFactory(nameOfValue);
-const formatValue = value => (typeof value === 'object' && value.$expr) ? (typeof value.$expr === 'object' ? formatValue(value.$expr) : `[${value.$expr}]`) : JSON.stringify(value);
+const formatValue = (value) =>
+    typeof value === 'object' && value.$expr
+        ? typeof value.$expr === 'object'
+            ? formatValue(value.$expr)
+            : `[${value.$expr}]`
+        : JSON.stringify(value);
 
 const messages = {
     formatName,

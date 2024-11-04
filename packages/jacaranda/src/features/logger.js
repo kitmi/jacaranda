@@ -52,7 +52,7 @@ export default {
             config ?? {},
             {
                 schema: {
-                    transport: { type: 'object', optional: true },                    
+                    transport: { type: 'object', optional: true },
                 },
                 keepUnsanitized: true,
             },
@@ -67,7 +67,7 @@ export default {
                 options: {
                     levelFirst: true,
                     colorize: true,
-                    ignore: "time,hostname,pid",
+                    ignore: 'time,hostname,pid',
                 },
             },
             ...config,
@@ -108,12 +108,12 @@ export default {
                 },
                 flush: () => {
                     logger.flush();
-                },                                
+                },
             });
 
             app.logger = makeLogger(logger);
             app.log = app._loggerLog;
-        } 
+        }
 
         app.registerService(name, logger);
     },

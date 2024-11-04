@@ -1,5 +1,12 @@
 # @kitmi/data
 
+## 0.8.0
+
+### Minor Changes
+
+-   Add predefined dataset schema
+-   Add view use
+
 ## 0.7.10
 
 ### Patch Changes
@@ -22,7 +29,7 @@
 
 ### Patch Changes
 
--   Fix bug directly using entity processor 
+-   Fix bug directly using entity processor
 
 ## 0.7.6
 
@@ -58,16 +65,16 @@
 
 ### Patch Changes
 
--   Add $upsert option for createFrom_ 
--   Fix db.transaction_ bug.
+-   Add $upsert option for createFrom\_
+-   Fix db.transaction\_ bug.
 
 ## 0.7.0
 
 ### Minor Changes
 
 -   Add $countBy operator
--   Add findManyByPage_ method
--   Add createMany_ method for directly inserting multiple records
+-   Add findManyByPage\_ method
+-   Add createMany\_ method for directly inserting multiple records
 
 ## 0.6.4
 
@@ -112,7 +119,7 @@
 
 ### Patch Changes
 
--   Fix: add topo sorting for custom joining clauses 
+-   Fix: add topo sorting for custom joining clauses
 
 ## 0.5.4
 
@@ -130,12 +137,12 @@
 
 ### Patch Changes
 
--   Add closureTable methods 
-    -   getAllDescendants_, 
-    -   getAllAncestors_,
-    -   addChildNode_,
-    -   getTopNodes_,
--   Add noORM query 
+-   Add closureTable methods
+    -   getAllDescendants\_,
+    -   getAllAncestors\_,
+    -   addChildNode\_,
+    -   getTopNodes\_,
+-   Add noORM query
 -   Minor bug fixes
 
 ## 0.5.1

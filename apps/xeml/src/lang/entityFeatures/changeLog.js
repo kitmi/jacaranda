@@ -10,7 +10,7 @@ const FEATURE_NAME = 'changeLog';
  * @param {Entity} entity - Entity to apply this feature
  */
 function feature(entity, args = []) {
-    let [ options ] = args;
+    let [options] = args;
 
     options = { storeEntity: 'changeLog', ...options };
 

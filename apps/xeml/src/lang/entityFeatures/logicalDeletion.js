@@ -1,4 +1,4 @@
-const { isPlainObject } = require('@kitmi/utils')
+const { isPlainObject } = require('@kitmi/utils');
 
 const FEATURE_NAME = 'logicalDeletion';
 
@@ -13,15 +13,18 @@ const FEATURE_NAME = 'logicalDeletion';
  * @param {object} options - Field options, can be a string as a new status field or an object reference to a certain status of an existing field
  */
 function feature(entity, args = []) {
-    let newField = true, fieldInfo = {
-        name: 'isDeleted',
-        type: 'boolean',
-        'default': false,
-        readOnly: true,
-        autoByDb: true
-    }, fieldName, featureSetting;
+    let newField = true,
+        fieldInfo = {
+            name: 'isDeleted',
+            type: 'boolean',
+            default: false,
+            readOnly: true,
+            autoByDb: true,
+        },
+        fieldName,
+        featureSetting;
 
-    let [ options ] = args;
+    let [options] = args;
 
     if (options) {
         if (isPlainObject(options)) {
@@ -36,9 +39,8 @@ function feature(entity, args = []) {
 
             featureSetting = {
                 field: fieldName,
-                value: options[fieldName]
+                value: options[fieldName],
             };
-
         } else if (typeof options === 'string') {
             Object.assign(fieldInfo, { name: options });
         } else {
@@ -55,13 +57,13 @@ function feature(entity, args = []) {
             readOnly: true,
             optional: true,
             writeOnce: true,
-            auto: 'now'
+            auto: 'now',
         };
 
         entity.addFeature(FEATURE_NAME, {
             field: fieldName,
             value: true,
-            timestampField: timestampFieldName
+            timestampField: timestampFieldName,
         });
 
         entity.once('afterAddingFields', () => {
@@ -73,7 +75,9 @@ function feature(entity, args = []) {
 
         entity.once('afterAddingFields', () => {
             if (!entity.hasField(featureSetting.field)) {
-                throw new Error(`Field "${featureSetting.field}" used by feature "${FEATURE_NAME}" is not found in entity "${entity.name}".`);
+                throw new Error(
+                    `Field "${featureSetting.field}" used by feature "${FEATURE_NAME}" is not found in entity "${entity.name}".`
+                );
             }
         });
     }

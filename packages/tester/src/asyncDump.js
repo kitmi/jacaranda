@@ -26,8 +26,7 @@ const asyncDump = async (dumpFile) => {
 
     allResources.forEach((value) => {
         const filteredStack = filterStack(value.stack);
-        if (filteredStack.includes('at promiseInitHookWithDestroyTracking'))
-        {
+        if (filteredStack.includes('at promiseInitHookWithDestroyTracking')) {
             // ignore promiseInitHookWithDestroyTracking
             return;
         }

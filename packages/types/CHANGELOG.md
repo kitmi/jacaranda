@@ -1,5 +1,11 @@
 # @kitmi/types
 
+## 1.3.4
+
+### Patch Changes
+
+-   Change santizer context structure (internal use)
+
 ## 1.3.3
 
 ### Patch Changes

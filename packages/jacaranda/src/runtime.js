@@ -1,4 +1,4 @@
-import RuntimeRegistry from "./helpers/RuntimeRegistry";
+import RuntimeRegistry from './helpers/RuntimeRegistry';
 
 export const NS_APP = 'apps';
 export const NS_LIB = 'libs';

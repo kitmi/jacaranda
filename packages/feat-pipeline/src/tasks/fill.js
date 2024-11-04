@@ -24,10 +24,10 @@ export default function fill(step, settings) {
         }
 
         result[key] = value;
-    });    
+    });
 
     step.syslog('info', 'Filled output data.', {
-        result
+        result,
     });
 
     return result;

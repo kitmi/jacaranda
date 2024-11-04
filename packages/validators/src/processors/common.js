@@ -34,10 +34,8 @@ export default {
 
     fromCsv: (value, options) => csvLineParse(value, options), // delimiter, emptyAsNull
 
-    padLeft: (value, options) =>
-        padLeft(value, typeof options === 'string' ? options : _.repeat(' ', options)),
-    padRight: (value, options) =>
-        padRight(value, typeof options === 'string' ? options : _.repeat(' ', options)),
+    padLeft: (value, options) => padLeft(value, typeof options === 'string' ? options : _.repeat(' ', options)),
+    padRight: (value, options) => padRight(value, typeof options === 'string' ? options : _.repeat(' ', options)),
 
     toBase64: (value) => base64Encode(value),
     fromBase64: (value) => base64Decode(value),

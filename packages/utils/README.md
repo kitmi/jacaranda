@@ -6,7 +6,7 @@
 
 ## Features
 
--   _: universal lodash
+-   \_: universal lodash
 -   lang: `sleep_`, `waitUntil_`, `pipeAsync_`, `Box`, `fxargs`, type checks, ...
 -   array: `arrayToCsv`, `arrayToObject`, `zipAndFlat`, immutable operations, ...
 -   object: `objectToArray`, `pushIntoBucket`, `remap`, `keyAt`, ...
@@ -31,8 +31,9 @@ npm install @kitmi/utils
 ```
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD
 
 ## Test helper (not exposed in index)
 
@@ -41,6 +42,7 @@ npm install @kitmi/utils
 Add below lines in `.mocharc.js` after `@babel/register` or `@swc-node/register`
 
 E.g.
+
 ```
 require('@swc-node/register');
 require('@kitmi/utils/testRegister');

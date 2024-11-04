@@ -22,18 +22,18 @@ const XemlTypes = {
         SCHEMA: 'schema',
         DATASET: 'dataset',
         VIEW: 'view',
-        ENTITY_OVERRIDE: 'entityOverride'
+        ENTITY_OVERRIDE: 'entityOverride',
     }),
     Relationship: Object.freeze({
         HAS_ONE: 'hasOne',
-        HAS_MANY: 'hasMany',        
+        HAS_MANY: 'hasMany',
         BELONGS_TO: 'belongsTo',
-        REFERS_TO: 'refersTo'
+        REFERS_TO: 'refersTo',
     }),
     Modifier: Object.freeze({
         VALIDATOR: 'Validator',
         PROCESSOR: 'Processor',
-        ACTIVATOR: 'Activator'
+        ACTIVATOR: 'Activator',
     }),
     MetadataEntity: 'jacaranda',
 };

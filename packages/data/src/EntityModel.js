@@ -62,7 +62,7 @@ class EntityModel {
 
     /**
      * Remove readonly fields from data record.
-     * @param {Object} data 
+     * @param {Object} data
      * @returns {Object}
      */
     omitReadOnly(data) {
@@ -262,7 +262,7 @@ class EntityModel {
      * @param {object} findOptions
      * @param {integer} page
      * @param {integer} rowsPerPage
-     * @returns
+     * @returns {array}
      */
     async findManyByPage_(findOptions, page, rowsPerPage) {
         return this.findMany_({ ...findOptions, $limit: rowsPerPage, $offset: (page - 1) * rowsPerPage });
@@ -407,7 +407,9 @@ class EntityModel {
         if (findOptions.$view) {
             const baseView = this.meta.views[findOptions.$view];
             if (baseView == null) {
-                throw new InvalidArgument(`View "${findOptions.$view}" not found, available: ${Object.keys(this.meta.views)}`); 
+                throw new InvalidArgument(
+                    `View "${findOptions.$view}" not found, available: ${Object.keys(this.meta.views)}`
+                );
             }
 
             return { ...baseView, ...findOptions };
@@ -553,7 +555,9 @@ class EntityModel {
                 if (shouldUpsert) {
                     let result = await this.db.connector.upsert_(
                         this.meta.name,
-                        typeof opOptions.$upsert === 'object' ? { ...dataForUpdating, ...opOptions.$upsert } : dataForUpdating,
+                        typeof opOptions.$upsert === 'object'
+                            ? { ...dataForUpdating, ...opOptions.$upsert }
+                            : dataForUpdating,
                         uniqueKeys,
                         context.latest,
                         opOptions,
@@ -606,9 +610,9 @@ class EntityModel {
 
     /**
      * Create a new entity with selecting data from database and return the created entity.
-     * @param {object} findOptions 
+     * @param {object} findOptions
      * @param {object} columnMapping - Column mapping from the selected data to the input of new entity
-     * @returns 
+     * @returns {object} { data, affectedRows }
      */
     async createFrom_(findOptions, columnMapping) {
         findOptions = this._wrapCtx(findOptions);
@@ -648,7 +652,7 @@ class EntityModel {
             context.result = await this.db.connector.createFrom_(
                 this.meta.name,
                 opOptions,
-                columnMapping,         
+                columnMapping,
                 uniqueKeys,
                 this.db.transaction
             );
@@ -1263,7 +1267,7 @@ class EntityModel {
                                 {
                                     entity: name,
                                     field: fieldName,
-                                    value
+                                    value,
                                 }
                             );
                         }
@@ -1281,7 +1285,7 @@ class EntityModel {
                                 {
                                     entity: name,
                                     field: fieldName,
-                                    value
+                                    value,
                                 }
                             );
                         }
@@ -1491,7 +1495,7 @@ class EntityModel {
                 _.find(dep, (d) => {
                     if (isPlainObject(d)) {
                         if (d.whenNull) {
-                            if ((fieldName in input) && input[fieldName] == null) {
+                            if (fieldName in input && input[fieldName] == null) {
                                 nullDepends.add(dep);
                             }
 

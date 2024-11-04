@@ -1,5 +1,12 @@
 # @kitmi/utils
 
+## 1.2.3
+
+### Patch Changes
+
+-   Add splitLast utils
+-   Add eslint comment
+
 ## 1.2.2
 
 ### Patch Changes

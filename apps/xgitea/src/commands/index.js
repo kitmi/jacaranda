@@ -6,9 +6,9 @@ exports.commandHandlers = {
     merge,
 };
 
-exports.commands = {   
-    'pr': 'Create a pull request.',
-    'merge': 'Merge a pull request.'
+exports.commands = {
+    pr: 'Create a pull request.',
+    merge: 'Merge a pull request.',
 };
 
 /**
@@ -23,19 +23,19 @@ exports.getCommandOptions = (cli, command) => {
     let cmdOptions = {};
 
     switch (command) {
-        case 'pr':            
+        case 'pr':
             cmdOptions['from'] = {
                 desc: 'The branch to create the pull request from',
                 inquire: true,
                 required: true,
-                alias: [ 'from-branch' ],
+                alias: ['from-branch'],
             };
 
             cmdOptions['to'] = {
                 desc: 'The branch to create the pull request to',
                 inquire: true,
                 required: true,
-                alias: [ 'to-branch' ],
+                alias: ['to-branch'],
             };
 
             const titleDefault = (cmd) => `Auto-created pull request from ${cmd.option('from')} to ${cmd.option('to')}`;
@@ -51,13 +51,13 @@ exports.getCommandOptions = (cli, command) => {
             cmdOptions['number'] = {
                 desc: 'Only output the number of the pull request',
                 bool: true,
-                alias: [ 'output-number-only' ],
+                alias: ['output-number-only'],
             };
 
             cmdOptions['merge'] = {
                 desc: 'Automatically merge the pull request after creating it',
                 bool: true,
-                alias: [ 'auto-merge' ],
+                alias: ['auto-merge'],
             };
             break;
 
@@ -66,9 +66,9 @@ exports.getCommandOptions = (cli, command) => {
                 desc: 'The pull request number to merge',
                 inquire: true,
                 required: true,
-                alias: [ 'pull-request' ],
+                alias: ['pull-request'],
             };
-            break;        
+            break;
 
         default:
             //module general options
@@ -77,4 +77,3 @@ exports.getCommandOptions = (cli, command) => {
 
     return cmdOptions;
 };
-

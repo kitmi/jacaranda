@@ -48,7 +48,7 @@ function handleErrors(reasons, errorDetail = {}) {
                 }
             });
         }
-    });     
+    });
 
     return errorDetail;
 }
@@ -58,15 +58,15 @@ function handleError(reason) {
         const _detail = {};
 
         if (reason.inner) {
-            handleErrors(reason.inner, _detail);            
-        }        
+            handleErrors(reason.inner, _detail);
+        }
 
         _detail[reason.path || '_'] = reason.message;
 
         return _detail;
     }
 
-    return {  _: reason };
+    return { _: reason };
 }
 
 function validatorWrapper(validator) {
@@ -75,8 +75,8 @@ function validatorWrapper(validator) {
 
         let [validated, reason] = validator(value, options, meta, context);
 
-        if (!validated) {            
-            const details = handleErrors(reason);                     
+        if (!validated) {
+            const details = handleErrors(reason);
             throw new ValidationError('Post-process validation failed.', details);
         }
 

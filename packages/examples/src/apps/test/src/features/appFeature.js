@@ -1,4 +1,4 @@
-import { Feature } from "@kitmi/jacaranda";
+import { Feature } from '@kitmi/jacaranda';
 
 export default {
     /**

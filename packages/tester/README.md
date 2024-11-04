@@ -6,24 +6,26 @@
 
 ## Features
 
-* [x] Support coverage test of @kitmi/jacaranda applicaiton 
-* [x] Support allure report
-* [x] Support async dump for debugging application hanging issue caused by pending async event
-* [x] Support @kitmi/jacaranda worker 
-* [x] Support authencation protected api test
-* [x] Support JSON Validation Syntax
-* [x] Support configurable test case on/off switches
-* [x] Support profiling 
-* [x] Support benchmark 
-* [x] Support test step and progress record
-* Support job pipeline for long-run test
+-   [x] Support coverage test of @kitmi/jacaranda applicaiton
+-   [x] Support allure report
+-   [x] Support async dump for debugging application hanging issue caused by pending async event
+-   [x] Support @kitmi/jacaranda worker
+-   [x] Support authencation protected api test
+-   [x] Support JSON Validation Syntax
+-   [x] Support configurable test case on/off switches
+-   [x] Support profiling
+-   [x] Support benchmark
+-   [x] Support test step and progress record
+-   Support job pipeline for long-run test
 
 ## Interface
 
 gobal object `jacat`, or can also be imported by
+
 ```js
 import { jacat } from '@kitmi/tester';
 ```
+
 -   `startServer_(serverName?)`: start a server with options specified by serverName in the test config
 
 -   `startWorker_(name?, async app => {/* test to run */}, options)`: start a worker
@@ -59,13 +61,13 @@ module.exports = {
 ### 2. add `test/mocha-multi-reporters.json` config
 
 ```json
-{       
+{
     "spec": {
-        "stdout": "-",        
+        "stdout": "-",
         "options": {
             "verbose": true
         }
-    },     
+    },
     "allure-mocha": {
         "stdout": "-",
         "options": {
@@ -80,8 +82,7 @@ module.exports = {
 ```json
 {
     "skip": {
-        "suites": {            
-        }
+        "suites": {}
     },
     "enableAsyncDump": false,
     "enableAllure": true,
@@ -94,7 +95,7 @@ module.exports = {
         }
     },
     "workers": {
-        "tester": { 
+        "tester": {
             "configName": "test",
             "configPath": "test/conf"
         }
@@ -164,12 +165,12 @@ nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open 
 
 ### Authentication
 
-- loginType
-  - password
-- accessType
-  - jwt
-- loginOptions:
-  - 
+-   loginType
+    -   password
+-   accessType
+    -   jwt
+-   loginOptions:
+    -
 
 ```json
 {

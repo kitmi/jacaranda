@@ -1,1 +1,1 @@
-export { default } from "lodash/toNumber";
+export { default } from 'lodash/toNumber';

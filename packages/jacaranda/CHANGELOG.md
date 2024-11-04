@@ -1,16 +1,22 @@
 # @kitmi/jacaranda
 
+## 3.4.3
+
+### Patch Changes
+
+-   Minor adjustments
+
 ## 3.4.2
 
 ### Patch Changes
 
--  Add graceful stop when worker throws exception
+-   Add graceful stop when worker throws exception
 
 ## 3.4.1
 
 ### Patch Changes
 
--  Add middlewares connect helper
+-   Add middlewares connect helper
 
 ## 3.4.0
 

@@ -14,7 +14,7 @@ export default function pathResolve(step, settings) {
     const result = path.resolve(_base, step.getValue(_path));
 
     step.syslog('info', `Resolved path: ${result}`, {
-        result
+        result,
     });
 
     return result;

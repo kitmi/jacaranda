@@ -44,8 +44,7 @@ async function startWorker(worker, options) {
         if (app.started) {
             try {
                 await app.stop_();
-            } catch (_e) {
-            }
+            } catch (_e) {}
         }
 
         if (throwOnError) {
@@ -55,7 +54,7 @@ async function startWorker(worker, options) {
         // eslint-disable-next-line no-undef
         console.error(verbose ? error : error.message);
         process.exit(1);
-    } 
+    }
 }
 
 export default startWorker;

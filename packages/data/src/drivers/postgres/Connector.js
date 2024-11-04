@@ -356,7 +356,7 @@ class PostgresConnector extends RelationalConnector {
             return adapted;
         } catch (err) {
             err.info || (err.info = {});
-            Object.assign(err.info, _.omit(options, ['$assoc', '$data']));            
+            Object.assign(err.info, _.omit(options, ['$assoc', '$data']));
 
             throw err;
         } finally {
@@ -413,7 +413,7 @@ class PostgresConnector extends RelationalConnector {
 
     /**
      * Create a new entity from a select result.
-     * @param {string} model     
+     * @param {string} model
      * @param {object} options
      * @param {array} insertColumns
      * @param {array} uniqueKeys
@@ -445,8 +445,11 @@ class PostgresConnector extends RelationalConnector {
             });
 
             sql +=
-            ` ON CONFLICT (${conflicts.slice(0, -1)}) DO UPDATE SET ` +
-                this._splitColumnsAsInput(options.$upsert, sqlInfo.params, model, { [model]: model, [`${model}.EXCLUDED`]: 'EXCLUDED' }).join(', ');
+                ` ON CONFLICT (${conflicts.slice(0, -1)}) DO UPDATE SET ` +
+                this._splitColumnsAsInput(options.$upsert, sqlInfo.params, model, {
+                    [model]: model,
+                    [`${model}.EXCLUDED`]: 'EXCLUDED',
+                }).join(', ');
         }
 
         if (options.$getCreated) {

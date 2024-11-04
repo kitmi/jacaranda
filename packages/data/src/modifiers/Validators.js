@@ -16,7 +16,10 @@ export const _Validators = _.mapValues(
         if (!validated) {
             if (context.options.$dryRun) {
                 context.options.$errors || (context.options.$errors = []);
-                context.options.$errors.push({ message: reason, info: { entity: entity.meta.name, field: field.name, value } });
+                context.options.$errors.push({
+                    message: reason,
+                    info: { entity: entity.meta.name, field: field.name, value },
+                });
                 return value;
             }
 

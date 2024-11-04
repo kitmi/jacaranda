@@ -10,7 +10,7 @@ const FEATURE_NAME = 'isCacheTable';
  * @param {Entity} entity - Entity to apply this feature
  */
 function feature(entity, args = []) {
-    let [ autoExpiry ] = args;
+    let [autoExpiry] = args;
 
     entity.addFeature(FEATURE_NAME, { autoExpiry });
 }

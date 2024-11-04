@@ -2,7 +2,7 @@ import { serve } from '@kitmi/jacaranda';
 import test from './apps/test';
 
 const modulesRegistry = {
-    test
+    test,
 };
 
 const server = serve({
@@ -11,8 +11,8 @@ const server = serve({
     logFeatures: true,
     logMiddlewareRegistry: true,
     registry: {
-        apps: modulesRegistry
-    }
+        apps: modulesRegistry,
+    },
 });
 
 export default server;

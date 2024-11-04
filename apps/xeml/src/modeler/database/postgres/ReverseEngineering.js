@@ -1,11 +1,11 @@
-const path = require("path");
-const { _, eachAsync_, pushIntoBucket } = require("@genx/july");
-const { fs } = require("@genx/sys");
-const GemlCodeGen = require("../../../lang/XemlCodeGen");
-const GemlUtils = require("../../../lang/XemlUtils");
+const path = require('path');
+const { _, eachAsync_, pushIntoBucket } = require('@genx/july');
+const { fs } = require('@genx/sys');
+const GemlCodeGen = require('../../../lang/XemlCodeGen');
+const GemlUtils = require('../../../lang/XemlUtils');
 
 const defaultRules = {
-    skip: ["_prisma_migrations"],
+    skip: ['_prisma_migrations'],
 };
 
 class MySQLReverseEngineering {
@@ -19,17 +19,17 @@ class MySQLReverseEngineering {
 
     async reverse_(outputDir) {
         this.logger.log(
-            "info",
+            'info',
             `Pulling schema from ${this.connector.driver} database "${this.connector.database}" ...`
         );
 
-        let tables = await this.connector.execute_("select * from information_schema.tables where table_schema = ?", [
+        let tables = await this.connector.execute_('select * from information_schema.tables where table_schema = ?', [
             this.connector.database,
         ]);
 
         if (this.saveIntermediate) {
             fs.writeFileSync(
-                path.join(outputDir, this.connector.database + ".meta.json"),
+                path.join(outputDir, this.connector.database + '.meta.json'),
                 JSON.stringify(tables, null, 2)
             );
         }
@@ -37,7 +37,7 @@ class MySQLReverseEngineering {
         let entities = [],
             mapOfEntities = {};
 
-        let entitiesGemlPath = path.join(outputDir, "entities");
+        let entitiesGemlPath = path.join(outputDir, 'entities');
         fs.ensureDirSync(entitiesGemlPath);
 
         const skipTables = new Set(this.reverseRules.skip ?? []);
@@ -63,19 +63,19 @@ class MySQLReverseEngineering {
             };
 
             let entityContent = GemlCodeGen.transform(entity);
-            let entityFile = path.join(entitiesGemlPath, entityName + ".geml");
+            let entityFile = path.join(entitiesGemlPath, entityName + '.geml');
 
             if (this.saveIntermediate) {
-                fs.writeFileSync(entityFile + ".json", JSON.stringify(entity, null, 2));
+                fs.writeFileSync(entityFile + '.json', JSON.stringify(entity, null, 2));
             }
             fs.writeFileSync(entityFile, entityContent);
-            this.logger.log("info", `Generated entity definition file "${entityFile}".`);
+            this.logger.log('info', `Generated entity definition file "${entityFile}".`);
         });
 
         let schemaName = this._schemaNaming(this.connector.database);
 
         let json = {
-            namespace: ["entities/**"],
+            namespace: ['entities/**'],
             schema: {
                 [schemaName]: {
                     entities: entities,
@@ -84,34 +84,34 @@ class MySQLReverseEngineering {
         };
 
         let schemaContent = GemlCodeGen.transform(json);
-        let schemaFile = path.join(outputDir, schemaName + ".geml");
+        let schemaFile = path.join(outputDir, schemaName + '.geml');
         if (this.saveIntermediate) {
-            fs.writeFileSync(schemaFile + ".json", JSON.stringify(json, null, 2));
+            fs.writeFileSync(schemaFile + '.json', JSON.stringify(json, null, 2));
         }
         fs.writeFileSync(schemaFile, schemaContent);
-        this.logger.log("info", `Extracted schema entry file "${schemaFile}".`);
+        this.logger.log('info', `Extracted schema entry file "${schemaFile}".`);
     }
 
     async extractTable_(entityName, table, targetGemlPath) {
         let columns = await this.connector.execute_(
-            "select * from information_schema.columns where table_schema = ? and table_name = ?",
+            'select * from information_schema.columns where table_schema = ? and table_name = ?',
             [this.connector.database, table.TABLE_NAME]
         );
 
         if (this.saveIntermediate) {
             fs.writeFileSync(
-                path.join(targetGemlPath, table.TABLE_NAME + ".meta.json"),
+                path.join(targetGemlPath, table.TABLE_NAME + '.meta.json'),
                 JSON.stringify(columns, null, 2)
             );
         }
 
         let { features, fields, types } = this._processFields(table, columns);
 
-        let indexInfo = await this.connector.execute_("SHOW INDEXES FROM ??", [table.TABLE_NAME]);
+        let indexInfo = await this.connector.execute_('SHOW INDEXES FROM ??', [table.TABLE_NAME]);
 
         if (this.saveIntermediate && !_.isEmpty(indexInfo)) {
             fs.writeFileSync(
-                path.join(targetGemlPath, table.TABLE_NAME + ".index.json"),
+                path.join(targetGemlPath, table.TABLE_NAME + '.index.json'),
                 JSON.stringify(indexInfo, null, 2)
             );
         }
@@ -123,13 +123,13 @@ class MySQLReverseEngineering {
         }
 
         let referencesInfo = await this.connector.execute_(
-            "SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE `REFERENCED_TABLE_SCHEMA` = ? AND `TABLE_NAME` = ? AND `REFERENCED_TABLE_NAME` IS NOT NULL",
+            'SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE `REFERENCED_TABLE_SCHEMA` = ? AND `TABLE_NAME` = ? AND `REFERENCED_TABLE_NAME` IS NOT NULL',
             [this.connector.database, table.TABLE_NAME]
         );
 
         if (this.saveIntermediate && !_.isEmpty(referencesInfo)) {
             fs.writeFileSync(
-                path.join(targetGemlPath, table.TABLE_NAME + ".ref.json"),
+                path.join(targetGemlPath, table.TABLE_NAME + '.ref.json'),
                 JSON.stringify(referencesInfo, null, 2)
             );
         }
@@ -183,13 +183,13 @@ class MySQLReverseEngineering {
 
             if (unique) {
                 associations.push({
-                    type: "belongsTo",
+                    type: 'belongsTo',
                     srcField: fkColName,
                     destEntity: this._entityNaming(ref.REFERENCED_TABLE_NAME),
                 });
             } else {
                 associations.push({
-                    type: "hasMany",
+                    type: 'hasMany',
                     srcField: fkColName,
                     destEntity: this._entityNaming(ref.REFERENCED_TABLE_NAME),
                 });
@@ -212,14 +212,14 @@ class MySQLReverseEngineering {
         });
 
         _.forOwn(mapNameToIndex, (fields, name) => {
-            if (name === "PRIMARY") {
+            if (name === 'PRIMARY') {
                 pk.push(fields.map((f) => this._fieldNaming(f.Column_name)));
             } else {
                 indexes.push({
                     name: name,
                     fields: fields.map((f) => this._fieldNaming(f.Column_name)),
                     unique: fields[0].Non_unique === 0,
-                    nullable: fields[0].Null === "YES",
+                    nullable: fields[0].Null === 'YES',
                 });
             }
         });
@@ -234,9 +234,9 @@ class MySQLReverseEngineering {
 
         columns.forEach((col) => {
             let fieldName = this._fieldNaming(col.COLUMN_NAME);
-            if (col.EXTRA === "auto_increment") {
+            if (col.EXTRA === 'auto_increment') {
                 let featureInfo = {
-                    name: "autoId",
+                    name: 'autoId',
                     options: table.AUTO_INCREMENT
                         ? {
                               startFrom: table.AUTO_INCREMENT,
@@ -244,32 +244,32 @@ class MySQLReverseEngineering {
                         : {},
                 };
 
-                if (fieldName !== "id") {
+                if (fieldName !== 'id') {
                     featureInfo.options.name = fieldName;
                 }
                 features.push(featureInfo);
                 return;
             }
 
-            if (col.COLUMN_DEFAULT === "CURRENT_TIMESTAMP") {
+            if (col.COLUMN_DEFAULT === 'CURRENT_TIMESTAMP') {
                 let featureInfo = {
-                    name: "createTimestamp",
+                    name: 'createTimestamp',
                 };
                 features.push(featureInfo);
                 return;
             }
 
-            if (col.EXTRA === "on update CURRENT_TIMESTAMP") {
+            if (col.EXTRA === 'on update CURRENT_TIMESTAMP') {
                 let featureInfo = {
-                    name: "updateTimestamp",
+                    name: 'updateTimestamp',
                 };
                 features.push(featureInfo);
                 return;
             }
 
-            if (fieldName === "isDeleted" && col.COLUMN_TYPE === "tinyint(1)") {
+            if (fieldName === 'isDeleted' && col.COLUMN_TYPE === 'tinyint(1)') {
                 let featureInfo = {
-                    name: "logicalDeletion",
+                    name: 'logicalDeletion',
                 };
                 features.push(featureInfo);
                 return;
@@ -277,7 +277,7 @@ class MySQLReverseEngineering {
 
             let fieldInfo = this._mysqlTypeToGemlType(table, col, fieldName, types);
 
-            if (col.IS_NULLABLE === "YES") {
+            if (col.IS_NULLABLE === 'YES') {
                 fieldInfo.optional = true;
             }
 
@@ -331,76 +331,76 @@ class MySQLReverseEngineering {
         }
 
         switch (col.DATA_TYPE) {
-            case "varchar":
-                typeInfo.type = "text";
+            case 'varchar':
+                typeInfo.type = 'text';
                 if (col.CHARACTER_MAXIMUM_LENGTH) {
                     typeInfo.maxLength = col.CHARACTER_MAXIMUM_LENGTH;
                 }
                 break;
 
-            case "char":
-                typeInfo.type = "text";
+            case 'char':
+                typeInfo.type = 'text';
                 if (col.CHARACTER_MAXIMUM_LENGTH) {
                     typeInfo.fixedLength = col.CHARACTER_MAXIMUM_LENGTH;
                 }
                 break;
 
-            case "blob":
-                typeInfo.type = "binary";
+            case 'blob':
+                typeInfo.type = 'binary';
                 if (col.CHARACTER_MAXIMUM_LENGTH) {
                     typeInfo.maxLength = col.CHARACTER_MAXIMUM_LENGTH;
                 }
                 break;
 
-            case "bigint":
-                typeInfo.type = "integer";
+            case 'bigint':
+                typeInfo.type = 'integer';
                 typeInfo.digits = col.NUMERIC_PRECISION || 18;
                 typeInfo.bytes = 8;
-                if (_.endsWith(col.COLUMN_TYPE, " unsigned")) typeInfo.unsigned = true;
+                if (_.endsWith(col.COLUMN_TYPE, ' unsigned')) typeInfo.unsigned = true;
                 break;
 
-            case "int":
-                typeInfo.type = "integer";
+            case 'int':
+                typeInfo.type = 'integer';
                 typeInfo.digits = col.NUMERIC_PRECISION || 10;
                 typeInfo.bytes = 4;
-                if (_.endsWith(col.COLUMN_TYPE, " unsigned")) typeInfo.unsigned = true;
+                if (_.endsWith(col.COLUMN_TYPE, ' unsigned')) typeInfo.unsigned = true;
                 break;
 
-            case "mediumint":
-                typeInfo.type = "integer";
+            case 'mediumint':
+                typeInfo.type = 'integer';
                 typeInfo.digits = col.NUMERIC_PRECISION || 7;
                 typeInfo.bytes = 3;
-                if (_.endsWith(col.COLUMN_TYPE, " unsigned")) typeInfo.unsigned = true;
+                if (_.endsWith(col.COLUMN_TYPE, ' unsigned')) typeInfo.unsigned = true;
                 break;
 
-            case "smallint":
-                typeInfo.type = "integer";
+            case 'smallint':
+                typeInfo.type = 'integer';
                 typeInfo.digits = col.NUMERIC_PRECISION || 4;
                 typeInfo.bytes = 2;
-                if (_.endsWith(col.COLUMN_TYPE, " unsigned")) typeInfo.unsigned = true;
+                if (_.endsWith(col.COLUMN_TYPE, ' unsigned')) typeInfo.unsigned = true;
                 break;
 
-            case "tinyint":
-                if (_.startsWith(col.COLUMN_TYPE, "tinyint(1)")) {
-                    typeInfo.type = "boolean";
+            case 'tinyint':
+                if (_.startsWith(col.COLUMN_TYPE, 'tinyint(1)')) {
+                    typeInfo.type = 'boolean';
                 } else {
-                    typeInfo.type = "integer";
+                    typeInfo.type = 'integer';
                     typeInfo.digits = col.NUMERIC_PRECISION || 2;
                     typeInfo.bytes = 1;
-                    if (_.endsWith(col.COLUMN_TYPE, " unsigned")) typeInfo.unsigned = true;
+                    if (_.endsWith(col.COLUMN_TYPE, ' unsigned')) typeInfo.unsigned = true;
                 }
                 break;
 
-            case "enum":
-                let left = col.COLUMN_TYPE.indexOf("(");
-                let right = col.COLUMN_TYPE.lastIndexOf(")");
+            case 'enum':
+                let left = col.COLUMN_TYPE.indexOf('(');
+                let right = col.COLUMN_TYPE.lastIndexOf(')');
 
                 let typeName = table.TABLE_NAME + _.upperFirst(col.COLUMN_NAME);
 
                 types[typeName] = {
-                    type: "enum",
+                    type: 'enum',
                     values: col.COLUMN_TYPE.substring(left + 1, right)
-                        .split(",")
+                        .split(',')
                         .map((v) => v.substr(1, v.length - 2)),
                 };
 
@@ -408,34 +408,34 @@ class MySQLReverseEngineering {
 
                 break;
 
-            case "text":
-                typeInfo.type = "text";
+            case 'text':
+                typeInfo.type = 'text';
                 typeInfo.maxLength = col.CHARACTER_MAXIMUM_LENGTH;
                 break;
 
-            case "datetime":
-            case "timestamp":
-                typeInfo.type = "datetime";
+            case 'datetime':
+            case 'timestamp':
+                typeInfo.type = 'datetime';
                 break;
 
-            case "decimal":
-                typeInfo.type = "number";
+            case 'decimal':
+                typeInfo.type = 'number';
                 typeInfo.totalDigits = col.NUMERIC_PRECISION;
                 typeInfo.decimalDigits = col.NUMERIC_SCALE;
                 typeInfo.exact = true;
                 break;
 
-            case "double":
+            case 'double':
                 typeInfo.bytes = 8;
-            case "float":
-                typeInfo.type = "number";
+            case 'float':
+                typeInfo.type = 'number';
                 typeInfo.totalDigits = col.NUMERIC_PRECISION;
                 typeInfo.decimalDigits = col.NUMERIC_SCALE;
                 break;
 
             default:
                 console.log(col);
-                throw new Error("To be implemented.");
+                throw new Error('To be implemented.');
         }
 
         //_.find(this.reverseRules.columnTypeOptimization, rule => rule.test(table, col));
@@ -454,26 +454,26 @@ class MySQLReverseEngineering {
                 let refedEntity = mapOfEntities[destEntity];
                 let backRef = _.find(refedEntity.associations, (assoc) => assoc.destEntity === name);
 
-                if (type === "hasMany") {
+                if (type === 'hasMany') {
                     if (!backRef) {
                         //one-side relation
-                        pushIntoBucket(entityAssoc, name, { type: "refersTo", srcField, destEntity });
+                        pushIntoBucket(entityAssoc, name, { type: 'refersTo', srcField, destEntity });
                         return;
                     }
 
                     //todo:
                     console.log(entityInfo);
                     throw new Error(`Back reference: ${backRef.entity} ${backRef.type} ${name}`);
-                } else if (type === "belongsTo") {
+                } else if (type === 'belongsTo') {
                     pushIntoBucket(entityAssoc, name, { type, srcField, destEntity });
 
                     if (!backRef) {
                         //one-side relation
-                        pushIntoBucket(entityAssoc, entity, { type: "hasMany", destEntity: name });
+                        pushIntoBucket(entityAssoc, entity, { type: 'hasMany', destEntity: name });
                         return;
                     }
                 } else {
-                    throw new Error("Unexpected association type: " + type);
+                    throw new Error('Unexpected association type: ' + type);
                 }
             });
         });
@@ -507,8 +507,8 @@ class MySQLReverseEngineering {
     }
 
     _makeEntityManyToMany(entityName1, entityName2, entityAssoc) {
-        pushIntoBucket(entityAssoc, entityName1, { type: "hasMany", destEntity: entityName2 });
-        pushIntoBucket(entityAssoc, entityName2, { type: "hasMany", destEntity: entityName1 });
+        pushIntoBucket(entityAssoc, entityName1, { type: 'hasMany', destEntity: entityName2 });
+        pushIntoBucket(entityAssoc, entityName2, { type: 'hasMany', destEntity: entityName1 });
     }
 }
 

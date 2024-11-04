@@ -28,30 +28,30 @@ const action = async (controllerAction, app) => {
     let controller = controllerAction.substring(0, pos);
     let action = controllerAction.substring(pos + 1);
 
-    let ctrl = await tryLoadFrom_(app, "Controller", {
-        'registry': {
+    let ctrl = await tryLoadFrom_(app, 'Controller', {
+        registry: {
             name: controller,
             path: 'controllers.actions',
         },
-        'project': {
+        project: {
             name: controller,
-            path: path.join(app.sourcePath, 'actions')
-        }
-    });  
+            path: path.join(app.sourcePath, 'actions'),
+        },
+    });
 
     let isController = false;
 
-    if (typeof ctrl === 'function') {    
+    if (typeof ctrl === 'function') {
         isController = true;
 
         let _ctrl = _get(app.__controllerCache, controller);
 
-        if (_ctrl == null){            
+        if (_ctrl == null) {
             if (!app.__controllerCache) {
                 app.__controllerCache = {};
             }
 
-            _ctrl = new ctrl(app);            
+            _ctrl = new ctrl(app);
             _set(app.__controllerCache, controller, _ctrl);
         }
 

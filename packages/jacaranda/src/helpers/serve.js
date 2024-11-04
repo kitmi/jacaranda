@@ -1,4 +1,4 @@
-import WebServer from "../WebServer";
+import WebServer from '../WebServer';
 
 export default function serve(options) {
     const server = new WebServer(null, options);
@@ -7,4 +7,4 @@ export default function serve(options) {
     });
 
     return server;
-};
+}

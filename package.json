@@ -30,15 +30,17 @@
     "@swc-node/register": "^1.9.0",
     "@swc/cli": "^0.3.12",
     "@swc/core": "^1.5.7",
-    "pino-pretty": "^10.0.0",
-    "shx": "0.3.4",
+    "chai": "^4.3.7",
+    "fs-extra": "^11.2.0",
+    "glob": "^10.3.10",
     "jsdoc": "^4.0.2",
     "minami": "^1.2.3",
-    "taffydb": "^2.7.3",
-    "chai": "^4.3.7",
     "mocha": "^10.0.0",
     "mocha-multi": "^1.1.7",
-    "nyc": "^15.1.0"
+    "nyc": "^15.1.0",
+    "pino-pretty": "^10.0.0",
+    "shx": "0.3.4",
+    "taffydb": "^2.7.3"
   },
   "resolutions": {
     "@kitmi/adapters": "workspace:*",

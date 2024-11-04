@@ -24,7 +24,7 @@ const bootstrap = () => {
 
     if (_config.enableAsyncDump) {
         _asyncDump = esmCheck(require('./asyncDump'));
-    }    
+    }
 
     const _jacat = new JacaTester(_config);
     setJacat(_jacat);

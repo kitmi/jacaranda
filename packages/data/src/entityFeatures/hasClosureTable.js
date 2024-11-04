@@ -20,7 +20,7 @@ export default {
         };
 
         await RelatedEntity.create_(data);
-    },          
+    },
     [Rules.RULE_BEFORE_DELETE]: async (feature, entity, context) => {
         if (!context.options.$dryRun) {
             await entity.ensureTransaction_();
@@ -38,7 +38,7 @@ export default {
                         $select: ['ancestorId'],
                         $where: { descendantId: keyValue, depth: { $gt: 0 } },
                     }),
-                },           
+                },
                 descendantId: {
                     $in: xrDataSet(RelatedEntity.meta.name, {
                         $select: ['descendantId'],
@@ -46,8 +46,8 @@ export default {
                     }),
                 },
             });
-        }); 
-    },   
+        });
+    },
     /*
     [Rules.RULE_AFTER_DELETE]: async (feature, entity, context) => {
         const data = context.result.data;

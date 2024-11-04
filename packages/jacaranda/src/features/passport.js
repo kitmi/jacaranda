@@ -66,7 +66,7 @@ export default {
         passport.middleware = async (ctx, next) => {
             if (ctx.isAuthenticated != null) {
                 return next();
-            } 
+            }
 
             await initializeMiddleware(ctx, () => {
                 if (useSession) {
@@ -74,8 +74,8 @@ export default {
                 }
 
                 return next();
-            });            
-        };        
+            });
+        };
 
         passport.hasStrategy = (name) => {
             return name in passport._strategies;
@@ -89,16 +89,16 @@ export default {
 
         return batchAsync_(strategies, async (strategy) => {
             const strategyInitiator = await tryLoadFrom_(app, 'Passport strategy', {
-                'registry': {
+                registry: {
                     name: strategy,
-                    path: 'passports'
+                    path: 'passports',
                 },
-                'project': {
+                project: {
                     name: strategy,
-                    path: path.join(app.sourcePath, 'passports')
-                }
+                    path: path.join(app.sourcePath, 'passports'),
+                },
             });
-            
+
             return strategyInitiator(app, passport);
         });
     },

@@ -18,7 +18,7 @@ export function createJSV(_config) {
     class JSV {
         static get config() {
             return _config;
-        } 
+        }
 
         static match(value, jsv, options, context) {
             const reason = validate(

@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/xeml",
-    "version": "0.8.0",
+    "version": "0.9.0",
     "description": "Jacaranda data entity modeling tool",
     "main": "src/index.js",
     "bin": {
@@ -11,7 +11,7 @@
     },
     "scripts": {
         "test": "mocha --recursive test/**/*.spec.js",
-        "doc": "jsdoc --configure .jsdoc.json --verbose && bun x prepack",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && node ../../scripts/prepack.js",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
         "prettier": "prettier --write ./src",
         "lint": "eslint \"**/*.js\"",

@@ -43,10 +43,16 @@ class Entity extends Clonable {
                     newIndexes.push(index);
                 }
             });
-            const keepIndexes = sourceInfo.indexes ? sourceInfo.indexes.filter((index) => {
-                const fields = _.castArray(index.fields);
-                return !removeIndexes.find((removeFields) => fields.length === removeFields.length && fields.every((field) => removeFields.includes(field)));                
-            }) : [];
+            const keepIndexes = sourceInfo.indexes
+                ? sourceInfo.indexes.filter((index) => {
+                      const fields = _.castArray(index.fields);
+                      return !removeIndexes.find(
+                          (removeFields) =>
+                              fields.length === removeFields.length &&
+                              fields.every((field) => removeFields.includes(field))
+                      );
+                  })
+                : [];
             sourceInfo.indexes = [...keepIndexes, ...newIndexes];
         }
 
@@ -58,10 +64,7 @@ class Entity extends Clonable {
         }
 
         if (overrideInfo.data) {
-            sourceInfo.data = [
-                ...(sourceInfo.data ?? []),
-                ...overrideInfo.data,
-            ];
+            sourceInfo.data = [...(sourceInfo.data ?? []), ...overrideInfo.data];
         }
 
         if (overrideInfo.views) {
@@ -69,7 +72,7 @@ class Entity extends Clonable {
                 ...sourceInfo.views,
                 ...overrideInfo.views,
             };
-        }        
+        }
 
         if (overrideInfo.xemlModule) {
             sourceInfo.namespace = overrideInfo.xemlModule.namespace;
@@ -114,13 +117,15 @@ class Entity extends Clonable {
          * Owner geml module
          * @member {object}
          */
-        this.xemlModule = info.namespace ? { ...xemlModule, namespace: uniqNamespace([ ...(xemlModule.namespace ?? []), ...info.namespace ]) } : xemlModule;
+        this.xemlModule = info.namespace
+            ? { ...xemlModule, namespace: uniqNamespace([...(xemlModule.namespace ?? []), ...info.namespace]) }
+            : xemlModule;
 
         /**
          * Raw metadata
          * @member {Object}
          */
-        this.info = info;        
+        this.info = info;
     }
 
     /**
@@ -168,7 +173,7 @@ class Entity extends Clonable {
                 }
 
                 if (!baseEntity.linked) {
-                    throw new Error(`Entity [${baseEntity.name}] is not linked when is inherited.`)
+                    throw new Error(`Entity [${baseEntity.name}] is not linked when is inherited.`);
                 }
 
                 this._inherit(baseEntity);
@@ -214,7 +219,7 @@ class Entity extends Clonable {
                         throw new Error(`Unknown feature "${featureName}" reference in entity "${this.name}"`);
                     }
                 }
-                
+
                 fn(this, this.linker.translateXemlValue(this.xemlModule, feature.args));
             });
         }
@@ -225,7 +230,7 @@ class Entity extends Clonable {
         this._events.emit('beforeAddingFields');
 
         // process fields
-        if (this.info.fields) {            
+        if (this.info.fields) {
             _.each(this.info.fields, (fieldInfo, fieldName) => this.addField(fieldName, fieldInfo));
         }
 
@@ -462,7 +467,7 @@ class Entity extends Clonable {
             field = rawInfo.clone();
             field.name = name; // todo: displayName
         } else {
-            let [fullRawInfo, baseInfo] = this.linker.trackBackType(this.xemlModule, rawInfo);            
+            let [fullRawInfo, baseInfo] = this.linker.trackBackType(this.xemlModule, rawInfo);
 
             if (baseInfo != null) {
                 this.addUsedType(rawInfo.type, baseInfo.xemlModule.id);
@@ -652,7 +657,7 @@ class Entity extends Clonable {
             let baseFeatures = _.cloneDeep(baseEntity.info.features);
 
             if (this.info.features) {
-                this.info.features.forEach(f => {
+                this.info.features.forEach((f) => {
                     const featureName = this._getFeatureNameFromInfo(f);
                     const baseFeatureMeta = baseEntity.features[featureName];
                     if (baseFeatureMeta && !Array.isArray(baseFeatureMeta)) {
@@ -740,7 +745,7 @@ class Entity extends Clonable {
         }
 
         if (baseEntity.modifiers) {
-            overrideInfo.modifiers = [ ...baseEntity.modifiers, ...this.info.modifiers ];
+            overrideInfo.modifiers = [...baseEntity.modifiers, ...this.info.modifiers];
         }
 
         if (!isEmpty(overrideInfo)) {

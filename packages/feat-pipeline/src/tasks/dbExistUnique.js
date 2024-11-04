@@ -5,9 +5,9 @@ export default async function dbExistUnique(step, settings) {
     const record = await findUnique_(step, settings);
     const recordExists = record != null;
 
-    step.syslog('info', recordExists ? 'Record exists.' : 'Record not found.', {        
+    step.syslog('info', recordExists ? 'Record exists.' : 'Record not found.', {
         record,
-        result: recordExists
+        result: recordExists,
     });
 
     return recordExists;

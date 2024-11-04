@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
--   Add hashFiles_ function
+-   Add hashFiles\_ function
 
 ## 2.0.0
 

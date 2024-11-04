@@ -156,7 +156,7 @@ class JacaTester {
         let server;
 
         if (typeof serverOptions === 'string') {
-            server = esmCheck(require(path.resolve(serverOptions)));            
+            server = esmCheck(require(path.resolve(serverOptions)));
 
             await new Promise((resolve) => {
                 server.on('ready', resolve);

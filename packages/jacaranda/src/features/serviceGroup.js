@@ -48,7 +48,7 @@ export default {
         await eachAsync_(features, async ([feature]) => {
             const instances = instancesMap[feature.name];
             await batchAsync_(instances, async (serviceOptions, instanceName) => {
-                const fullName = `${feature.name}.${instanceName}`;                
+                const fullName = `${feature.name}.${instanceName}`;
                 const { load_, ...others } = feature;
                 await load_(app, serviceOptions, fullName);
                 others.enabled = true;

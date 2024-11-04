@@ -36,13 +36,19 @@ const restRouter = async (app, baseRoute, options) => {
     let resourcesPath = options.$controllerPath ?? 'resources';
     const kebabify = options.$urlDasherize;
 
-    app.useMiddleware(router, await (await app.getMiddlewareFactory_('jsonError'))(options.$errorOptions, app), 'jsonError');
+    app.useMiddleware(
+        router,
+        await (
+            await app.getMiddlewareFactory_('jsonError')
+        )(options.$errorOptions, app),
+        'jsonError'
+    );
 
     if (options.$middlewares) {
         await app.useMiddlewares_(router, options.$middlewares);
     }
 
-    const controllers = await loadControllers_(app, options.$source, resourcesPath, options.$packageName); 
+    const controllers = await loadControllers_(app, options.$source, resourcesPath, options.$packageName);
 
     await batchAsync_(controllers, async (controller, relPath) => {
         let batchUrl = text.ensureStartsWith(

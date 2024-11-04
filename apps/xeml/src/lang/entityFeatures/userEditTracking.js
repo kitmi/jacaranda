@@ -1,4 +1,4 @@
-const FEATURE_NAME = "userEditTracking";
+const FEATURE_NAME = 'userEditTracking';
 
 /**
  * A rule specifies the entity to automatically record the creation time
@@ -12,11 +12,11 @@ const FEATURE_NAME = "userEditTracking";
  */
 function feature(entity, [option]) {
     const options = {
-        userEntity: "user",
-        uidSource: "state.user.id",
-        trackCreate: "createdBy",
-        trackUpdate: "updatedBy",
-        revisionField: "revision",
+        userEntity: 'user',
+        uidSource: 'state.user.id',
+        trackCreate: 'createdBy',
+        trackUpdate: 'updatedBy',
+        revisionField: 'revision',
         addFieldsOnly: false,
         ...option,
     };
@@ -33,7 +33,7 @@ function feature(entity, [option]) {
 
     if (!trackCreate && !trackUpdate) {
         entity.linker.log(
-            "warn",
+            'warn',
             'Since both "trackCreate" and "trackUpdate" are disabled, the "userEditTracking" feature will not take any effect.'
         );
         return;
@@ -43,11 +43,11 @@ function feature(entity, [option]) {
     const fields = {};
 
     if (trackCreate) {
-        fields["createdBy"] = trackCreate;
+        fields['createdBy'] = trackCreate;
 
         entity.info.associations || (entity.info.associations = []);
         entity.info.associations.push({
-            type: "refersTo",
+            type: 'refersTo',
             destEntity: userEntityName,
             srcField: trackCreate,
             fieldProps: {
@@ -58,19 +58,19 @@ function feature(entity, [option]) {
     }
 
     if (trackUpdate) {
-        entity.once("afterAddingFields", () => {
+        entity.once('afterAddingFields', () => {
             entity.addField(revisionField, {
-                type: "integer",
+                type: 'integer',
                 default: 0,
             });
         });
 
-        fields["updatedBy"] = trackUpdate;
-        fields["revision"] = revisionField;
+        fields['updatedBy'] = trackUpdate;
+        fields['revision'] = revisionField;
 
         entity.info.associations || (entity.info.associations = []);
         entity.info.associations.push({
-            type: "refersTo",
+            type: 'refersTo',
             destEntity: userEntityName,
             srcField: trackUpdate,
             fieldProps: {

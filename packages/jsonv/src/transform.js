@@ -16,9 +16,9 @@ export const processExprLikeValue = (exprLikeValue, context) =>
         : exprLikeValue;
 
 export const processExprLikeValueWithLeft = (left, exprLikeValue, context) =>
-typeof exprLikeValue === 'object' && exprLikeValue?.$expr !== undefined
-    ? transform(left, exprLikeValue.$expr, context)
-    : exprLikeValue;    
+    typeof exprLikeValue === 'object' && exprLikeValue?.$expr !== undefined
+        ? transform(left, exprLikeValue.$expr, context)
+        : exprLikeValue;
 
 const PFX_MAP = '|>'; // map
 const PFX_REDUCE = '|+'; // reduce 1. intermediate = result op [key, value] 2. result = result op intermediate
@@ -173,16 +173,16 @@ function transform(currentValue, jsx, context, replaceLeft) {
     if (typeExpr === 'string') {
         if (replaceLeft) {
             return jsx;
-        }        
+        }
 
         if (isOperator(jsx)) {
             const posDot = jsx.indexOf('.');
             if (posDot !== -1) {
-                const arrayOp = [ jsx.substring(0, posDot), jsx.substring(posDot + 1) ];
+                const arrayOp = [jsx.substring(0, posDot), jsx.substring(posDot + 1)];
                 if (context.config.getTransformerTagAndType(arrayOp[0]) != null) {
-                    return transform(currentValue, [ arrayOp[0], { $valueOf: arrayOp[1] } ], context);
+                    return transform(currentValue, [arrayOp[0], { $valueOf: arrayOp[1] }], context);
                 }
-            }            
+            }
 
             const opMeta = context.config.getTransformerTagAndType(jsx);
             if (!opMeta) {

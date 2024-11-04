@@ -44,7 +44,7 @@ describe('excel loaderr', function () {
                 }
             );
 
-            if (result2.errors) {   
+            if (result2.errors) {
                 console.error(result2.errors);
             }
 

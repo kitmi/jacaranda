@@ -12,7 +12,7 @@ export default function copy(step, settings) {
     let result = step.getValue(input);
 
     if (filter) {
-        result = _.omit(result, filter);        
+        result = _.omit(result, filter);
     }
 
     step.setData(result);

@@ -18,11 +18,11 @@ class T_BINARY {
         if (value instanceof Buffer) {
             return value;
         }
-    
+
         if (typeof value === 'string') {
             return Buffer.from(value, meta.encoding || 'base64');
         }
-    
+
         throw new ValidationError('Invalid binary value.', {
             value: opts.rawValue,
             path: opts.path,
@@ -30,8 +30,8 @@ class T_BINARY {
     }
 
     serialize(value, meta) {
-        return (value == null ? null : value.toString(meta.encoding || 'base64'));
+        return value == null ? null : value.toString(meta.encoding || 'base64');
     }
-};
+}
 
 export default T_BINARY;

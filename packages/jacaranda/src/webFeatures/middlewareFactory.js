@@ -71,7 +71,10 @@ export default {
                                 );
                             }
 
-                            return (await app.getMiddlewareFactory_(middlewareInfo.name))(middlewareInfo.options, targetApp);
+                            return (await app.getMiddlewareFactory_(middlewareInfo.name))(
+                                middlewareInfo.options,
+                                targetApp
+                            );
                         }
 
                         if (Array.isArray(middlewareInfo)) {

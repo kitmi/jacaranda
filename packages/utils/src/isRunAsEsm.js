@@ -8,7 +8,7 @@ function isRunAsEsm() {
         if (e.name === 'ReferenceError') {
             return true;
         }
-    }   
+    }
 
     return false;
 }

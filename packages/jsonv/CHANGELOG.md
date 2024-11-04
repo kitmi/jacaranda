@@ -1,5 +1,12 @@
 # @kitmi/jsonv
 
+## 1.3.0
+
+### Minor Changes
+
+-   Bug fixing
+-   Refind error reporting
+
 ## 1.2.1
 
 ### Patch Changes

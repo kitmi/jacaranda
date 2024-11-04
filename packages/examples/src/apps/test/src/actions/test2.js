@@ -1,12 +1,11 @@
 import { httpMethod } from '@kitmi/jacaranda';
 
-async function middleware1(ctx, next) {    
+async function middleware1(ctx, next) {
     ctx.state1 = 'Hello';
     return next();
 }
 
 class Module2Controller {
-
     @httpMethod('get')
     async action1(ctx) {
         ctx.body = 'action1';

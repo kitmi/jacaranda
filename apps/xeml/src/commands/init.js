@@ -9,14 +9,14 @@ const gxModelPkg = 'genx-tech/gx-model#v2';
 /**
  * Build database scripts and entity models from oolong files.
  * @param {ServiceContainer} app
- * @param {object} context 
+ * @param {object} context
  * @property {string} context.gemlPath
- * @property {string} context.modelPath         
+ * @property {string} context.modelPath
  * @property {string} context.scriptPath
  * @property {string} context.manifestPath
  * @property {bool} context.useJsonSource
  * @property {bool} context.saveIntermediate
- * @property {object} context.schemas   
+ * @property {object} context.schemas
  * @returns {Promise}
  */
 module.exports = async (app, context) => {
@@ -32,7 +32,7 @@ module.exports = async (app, context) => {
         if (!fs.existsSync(configFile)) {
             throw new Error('Either "conf/app.default.json" or "conf/server.default.json" not found.');
         }
-    }    
+    }
 
     const config = await fs.readJson(configFile);
     if (config.settings?.geml) {
@@ -42,11 +42,11 @@ module.exports = async (app, context) => {
     config.settings = {
         ...config.settings,
         geml: {
-            gemlPath: "geml",
-            modelPath: "src/models",
-            scriptPath: "src/scripts",
-            manifestPath: "manifests"
-        }
+            gemlPath: 'geml',
+            modelPath: 'src/models',
+            scriptPath: 'src/scripts',
+            manifestPath: 'manifests',
+        },
     };
 
     await fs.writeJson(configFile, config, { spaces: 4 });
@@ -68,5 +68,5 @@ module.exports = async (app, context) => {
     app.log('info', `Created ${entityFile}`);
 
     await npmInstall_(app, workingPath, [gxDataPkg]);
-    await npmInstall_(app, workingPath, ['-D', gxModelPkg]);    
+    await npmInstall_(app, workingPath, ['-D', gxModelPkg]);
 };

@@ -4,7 +4,7 @@ import { esTemplate } from '@kitmi/utils';
 export default function format(step, settings) {
     let { template } = Types.OBJECT.sanitize(settings, {
         schema: {
-            template: { type: 'text' }
+            template: { type: 'text' },
         },
     });
 
@@ -13,8 +13,8 @@ export default function format(step, settings) {
     const result = esTemplate(template, variables);
 
     step.syslog('info', 'Formatted by template.', {
-        result
+        result,
     });
 
     return result;
-};
+}

@@ -16,28 +16,28 @@ import { supportedMethods } from '../helpers';
  * '<base path>': {
  *     rule: {
  *         $middlewares: {} | [],
-*          // type 1, default is "get", methods mapped to one action
-*          '<sub route>': '<controller with relative path>.<action>',
-*
-*          // type 2, different methods mapped to different method
-*          '<sub route>': {
-*             '<method>': '<controller with relative path>.<action>'
-*          },
-*
-*          // type 3, with middleware
-*          '<sub route>': {
-*              '<method>': {
-*                 '<middleware name>': { //middleware options }
-*              }
-*          },
-*
-*          // type 4, all methods mapped to one action
-*          '<method>:/<sub route>': '<controller with relative path>.<action>'
-*
-*          // type 5, all methods mapped to one action
-*          '<method>:/<sub route>': {
-*              '<middleware name>': { //middleware options }
-*          }
+ *          // type 1, default is "get", methods mapped to one action
+ *          '<sub route>': '<controller with relative path>.<action>',
+ *
+ *          // type 2, different methods mapped to different method
+ *          '<sub route>': {
+ *             '<method>': '<controller with relative path>.<action>'
+ *          },
+ *
+ *          // type 3, with middleware
+ *          '<sub route>': {
+ *              '<method>': {
+ *                 '<middleware name>': { //middleware options }
+ *              }
+ *          },
+ *
+ *          // type 4, all methods mapped to one action
+ *          '<method>:/<sub route>': '<controller with relative path>.<action>'
+ *
+ *          // type 5, all methods mapped to one action
+ *          '<method>:/<sub route>': {
+ *              '<middleware name>': { //middleware options }
+ *          }
  *     }
  * }
  */

@@ -48,7 +48,11 @@ export default {
                 `libs.[${name}]`
             );
 
-            let lib = new LibModule(app, name, appPath, { ...options, ...moduleMeta?.options, registry: moduleMeta?.registry });       
+            let lib = new LibModule(app, name, appPath, {
+                ...options,
+                ...moduleMeta?.options,
+                registry: moduleMeta?.registry,
+            });
 
             lib.once('configLoaded', () => {
                 if (!_.isEmpty(config.settings)) {
@@ -62,9 +66,8 @@ export default {
 
             await lib.start_();
 
-            app.registerLib(lib);  
-            app.log('verbose', `Lib [${lib.name}] is loaded.`);            
+            app.registerLib(lib);
+            app.log('verbose', `Lib [${lib.name}] is loaded.`);
         });
     },
 };
-

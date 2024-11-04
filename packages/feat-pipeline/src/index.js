@@ -29,28 +29,28 @@ export default {
             {
                 schema: {
                     taskProvider: { type: 'text' },
-                    stepLogger: { type: 'text', optional: true, default: "logger" },
+                    stepLogger: { type: 'text', optional: true, default: 'logger' },
                 },
             },
             name
         );
 
-        app.requireServices([ taskProvider, stepLogger ]);
+        app.requireServices([taskProvider, stepLogger]);
 
         const service = {
             create(name, steps, env) {
-                const _steps = normalizeSteps(steps)
+                const _steps = normalizeSteps(steps);
 
-                return async (input, variables) => {                    
+                return async (input, variables) => {
                     const pipeline = new Pipeline(app, name, _steps, { env, taskProvider, stepLogger });
                     if (variables) {
                         pipeline.setVariables(variables);
                     }
-                    return [ pipeline, await pipeline.run_(input) ];
+                    return [pipeline, await pipeline.run_(input)];
                 };
-            }
+            },
         };
 
         app.registerService(name, service);
-    }
+    },
 };

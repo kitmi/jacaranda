@@ -26,7 +26,7 @@ class WebModule extends ModuleBase(Routable(ServiceContainer)) {
          * Mounting route.
          * @member {string}
          */
-        this.route = text.ensureStartsWith(text.dropIfEndsWith(route, '/'), '/');        
+        this.route = text.ensureStartsWith(text.dropIfEndsWith(route, '/'), '/');
     }
 }
 

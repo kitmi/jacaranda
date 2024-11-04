@@ -26,7 +26,7 @@
     "license": "MIT",
     "scripts": {
         "test": "mocha --recursive test/**/*.spec.js",
-        "doc": "jsdoc --configure .jsdoc.json --verbose && pnpm prepack",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && node ../../scripts/prepack.js",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
         "prettier": "prettier --write .",
         "lint": "eslint \"**/*.js\"",

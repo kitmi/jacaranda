@@ -87,7 +87,7 @@ class DbModel {
             let result = await transactionFunc(db);
             await db.connector.commit_(db.transaction);
             return result;
-        } catch (error) {            
+        } catch (error) {
             db && (await db.connector.rollback_(db.transaction, error));
             throw error;
         } finally {

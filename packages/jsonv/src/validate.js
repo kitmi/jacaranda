@@ -83,9 +83,9 @@ export function handleResult(result, options, context) {
  * @property {string} [context.name] - The name of the current field being validated, provided by the user
  * @returns {array} - [ {boolean} matched, {string} unmatchedReason ]
  */
-function validate(actual, jsv, options, context) {    
+function validate(actual, jsv, options, context) {
     if (jsv == null) {
-        return true; 
+        return true;
     }
 
     context = initContext(context, actual);

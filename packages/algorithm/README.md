@@ -6,18 +6,20 @@
 
 ## Features
 
-- **Search Algorithms**: 
-  - Breadth-First Search (BFS)
-  - Depth-First Search (DFS)
+-   **Search Algorithms**:
 
-- **Structures**:
-  - Directed Graph
-  - Tree
-  - Key Tree
-  - Finite State Machine
+    -   Breadth-First Search (BFS)
+    -   Depth-First Search (DFS)
 
-- **Other Algorithms**:
-  - Topo Sorting
+-   **Structures**:
+
+    -   Directed Graph
+    -   Tree
+    -   Key Tree
+    -   Finite State Machine
+
+-   **Other Algorithms**:
+    -   Topo Sorting
 
 ## Installation
 
@@ -34,5 +36,6 @@ npm install @kitmi/algo
 ```
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

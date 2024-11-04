@@ -4,7 +4,7 @@ function trimLines(textData, lineDelimiter) {
     // Split the file into lines
     let lines = textData.split(lineDelimiter);
 
-   return lines.map((line) => line.trim()).join(lineDelimiter);
+    return lines.map((line) => line.trim()).join(lineDelimiter);
 }
 
 export default trimLines;

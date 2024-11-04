@@ -11,7 +11,7 @@ const fetchAdapter = () => {
             let query;
 
             const options = {
-                redirect: "follow", // manual, *follow, error
+                redirect: 'follow', // manual, *follow, error
             };
 
             const requestWrapper = {
@@ -59,10 +59,10 @@ const fetchAdapter = () => {
                         ...options,
                         method: __method, // *GET, POST, PUT, DELETE, etc.
                         headers,
-                    });                                      
-                    
+                    });
+
                     return ResponseWrapper.create_({ headers, method: __method, url }, response).then(callback);
-                }
+                },
             };
 
             return requestWrapper;

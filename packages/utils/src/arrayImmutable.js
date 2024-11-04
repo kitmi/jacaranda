@@ -1,9 +1,9 @@
 /**
  * Move a value in an array-like object as a new copy.
  * @function array.move
- * @param {*} array 
- * @param {*} from 
- * @param {*} to 
+ * @param {*} array
+ * @param {*} from
+ * @param {*} to
  * @returns {Array}
  */
 export const move = (array, from, to) => {
@@ -21,9 +21,9 @@ export const move = (array, from, to) => {
 /**
  * Swap two values in an array-like object as a new copy.
  * @function array.swap
- * @param {*} arrayLike 
- * @param {integer} indexA 
- * @param {integer} indexB 
+ * @param {*} arrayLike
+ * @param {integer} indexA
+ * @param {integer} indexB
  * @returns {Array}
  */
 export const swap = (arrayLike, indexA, indexB) => {
@@ -40,9 +40,9 @@ export const swap = (arrayLike, indexA, indexB) => {
 /**
  * Insert a value into an array-like object as a new copy.
  * @function array.insert
- * @param {*} arrayLike 
- * @param {integer} index 
- * @param {*} value 
+ * @param {*} arrayLike
+ * @param {integer} index
+ * @param {*} value
  * @returns {Array}
  */
 export const insert = (arrayLike, index, value) => {
@@ -54,7 +54,7 @@ export const insert = (arrayLike, index, value) => {
 /**
  * Copy an array-like object to an array, return an empty array if the argument is null or undefined.
  * @function array.copyArrayLike
- * @param {*} arrayLike 
+ * @param {*} arrayLike
  * @returns {Array}
  */
 export const copyArrayLike = (arrayLike) => {
@@ -68,8 +68,8 @@ export const copyArrayLike = (arrayLike) => {
 /**
  * Push a value into an array-like object if the value is not in the array-like object.
  * @function array.uniqPush
- * @param {*} arrayLike 
- * @param {*} value 
+ * @param {*} arrayLike
+ * @param {*} value
  * @returns {Array}
  */
 export const uniqPush = (arrayLike, value) => {

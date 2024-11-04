@@ -1,4 +1,4 @@
-const { _, isPlainObject } = require('@kitmi/utils')
+const { _, isPlainObject } = require('@kitmi/utils');
 const FEATURE_NAME = 'i18n';
 
 /**
@@ -9,21 +9,21 @@ const FEATURE_NAME = 'i18n';
 /**
  * Initialize the feature
  * @param {Entity} entity - Entity to apply this feature
- * @param {object} options - Tracking field options 
- * 
+ * @param {object} options - Tracking field options
+ *
  * 1. add locale suffix to field
  * 2. set a default locale
  * 3. if query with default locale, fallback to the field without suffix
- * 
+ *
  */
 function feature(entity, args = []) {
-    let [ options ] = args;
-    
+    let [options] = args;
+
     if (!options) {
         throw new Error('Missing feature options!');
     }
 
-    const [ field, locales ] = options;
+    const [field, locales] = options;
 
     if (!field) {
         throw new Error('Missing field name in options!');
@@ -52,7 +52,6 @@ function feature(entity, args = []) {
             entity.addField(fieldName, fieldInfo);
         }
     });
-
 }
 
 module.exports = feature;

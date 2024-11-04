@@ -22,16 +22,16 @@ npm install @kitmi/types
 
 ### Types
 
-- any
-- array
-- bigint
-- binary
-- boolean
-- datetime
-- integer
-- number
-- object
-- text
+-   any
+-   array
+-   bigint
+-   binary
+-   boolean
+-   datetime
+-   integer
+-   number
+-   object
+-   text
 
 ### Type Interface
 
@@ -72,16 +72,17 @@ serialize: (value, meta) => string
 -   preProcess - [sync/async] (value, meta, opts: { rawValue, i18n, path }) => [ finished, processedValue ] or [ false ]
 -   postProcess - [sync/async] (value, meta, opts: { rawValue, i18n, path }) => processedValue
 
-Note: if preProcess or postProcess is async function, sanitize_ should be called instead of sanitize
+Note: if preProcess or postProcess is async function, sanitize\_ should be called instead of sanitize
 
-See `@kitmi/validators` for semantic validation. 
+See `@kitmi/validators` for semantic validation.
 
 ### Notes
 
-- Object sanitization
+-   Object sanitization
 
 Use `keepUnsanitized` for keeping those entries not defined in the object schema.
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

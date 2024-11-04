@@ -28,7 +28,7 @@ class JsvError extends Error {
 
         if (errors.length > 1) {
             this.errors = errors;
-            this.inner = inner;            
+            this.inner = inner;
         } else if (inner.length > 0 && inner[0].path) {
             this.path = inner[0].path;
         }

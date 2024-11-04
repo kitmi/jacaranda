@@ -3,9 +3,9 @@ import quote from './quote';
 /**
  * Convert an array to CSV string.
  * @alias array.arrayToCsv
- * @param {Array} data 
- * @param {*} [separator=','] - Separator, default , 
- * @param {*} [replacer] - Replacer function 
+ * @param {Array} data
+ * @param {*} [separator=','] - Separator, default ,
+ * @param {*} [replacer] - Replacer function
  * @returns {String}
  */
 const arrayToCsv = (data, separator = ',', replacer) => {

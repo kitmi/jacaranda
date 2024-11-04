@@ -82,7 +82,9 @@ export function createWebServer(Base) {
             });
 
             process.once('SIGINT', () => {
-                this.stop_().then(() => {}).catch((error) => console.error(error.message || error));
+                this.stop_()
+                    .then(() => {})
+                    .catch((error) => console.error(error.message || error));
             });
         }
 

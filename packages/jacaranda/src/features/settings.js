@@ -17,7 +17,7 @@ import { InvalidConfiguration } from '@kitmi/types';
 import { _, isPlainObject } from '@kitmi/utils';
 import Feature from '../Feature';
 import runtime, { K_ENV } from '../runtime';
-import { getNodeEnv } from '../ServiceContainer';;
+import { getNodeEnv } from '../ServiceContainer';
 
 const KEY_ENV = 'env:';
 const KEY_STAGE = 'stage:';

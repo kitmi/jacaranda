@@ -5,7 +5,7 @@ class Graph {
     /**
      * Directed graph.
      * @constructs Graph
-     * @param {object} json 
+     * @param {object} json
      * @property {object} json.nodes - key-value pairs of nodes
      * @property {object} json.edges - key-value pairs of edges, source => [target1, target2, ...]
      */

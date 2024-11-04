@@ -23,22 +23,23 @@ export default {
     },
 
     [Rules.RULE_BEFORE_UPDATE]: (feature, entityModel, context) => {
-        context.options.$logicalDeletion || _.each(feature, (item) => {
-            if (
-                _.every(item, (fieldName) =>
-                    fieldName in context.latest
-                        ? context.latest[fieldName] == null
-                        : context.existing && context.existing[fieldName] == null
-                )
-            ) {
-                throw new ValidationError(
-                    `At least one of these fields ${item.map((f) => quote(f)).join(', ')} should not be null.`,
-                    {
-                        entity: entityModel.meta.name,
-                        fields: feature,
-                    }
-                );
-            }
-        });
+        context.options.$logicalDeletion ||
+            _.each(feature, (item) => {
+                if (
+                    _.every(item, (fieldName) =>
+                        fieldName in context.latest
+                            ? context.latest[fieldName] == null
+                            : context.existing && context.existing[fieldName] == null
+                    )
+                ) {
+                    throw new ValidationError(
+                        `At least one of these fields ${item.map((f) => quote(f)).join(', ')} should not be null.`,
+                        {
+                            entity: entityModel.meta.name,
+                            fields: feature,
+                        }
+                    );
+                }
+            });
     },
 };

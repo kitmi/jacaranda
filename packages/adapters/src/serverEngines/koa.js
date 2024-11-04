@@ -128,7 +128,7 @@ class KoaEngine {
                     }
 
                     server.httpHost = `${host}:${address.port}`;
-                    server.httpPort = address.port;                    
+                    server.httpPort = address.port;
 
                     server.log('info', `A koa http service is listening on port [${address.port}] ...`);
                     resolve();

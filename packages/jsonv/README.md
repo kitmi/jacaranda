@@ -17,70 +17,70 @@ Or if you're using npm:
 ```bash
 npm install @kitmi/jsonv
 ```
+
 ## Syntax Rules
 
 ### Basic Validation
 
-- **Equality (`$eq` or `$equal`)**: Checks if the value is equal to the specified value.
-- **Inequality (`$ne` or `$neq` or `$notEqual`)**: Checks if the value is not equal to the specified value.
-- **Greater Than (`$gt` or `$greaterThan`)**: Checks if the value is greater than the specified value.
-- **Greater Than or Equal (`$gte` or `$greaterThanOrEqual` or `$min`)**: Checks if the value is greater than or equal to the specified value.
-- **Less Than (`$lt` or `$lessThan`)**: Checks if the value is less than the specified value.
-- **Less Than or Equal (`$lte` or `$lessThanOrEqual` or `$max`)**: Checks if the value is less than or equal to the specified value.
-- **Exists (`$exists`)**: Checks if the value exists (is not null or undefined).
-- **Required (`$required`)**: Checks if the value is present and not null or undefined.
+-   **Equality (`$eq` or `$equal`)**: Checks if the value is equal to the specified value.
+-   **Inequality (`$ne` or `$neq` or `$notEqual`)**: Checks if the value is not equal to the specified value.
+-   **Greater Than (`$gt` or `$greaterThan`)**: Checks if the value is greater than the specified value.
+-   **Greater Than or Equal (`$gte` or `$greaterThanOrEqual` or `$min`)**: Checks if the value is greater than or equal to the specified value.
+-   **Less Than (`$lt` or `$lessThan`)**: Checks if the value is less than the specified value.
+-   **Less Than or Equal (`$lte` or `$lessThanOrEqual` or `$max`)**: Checks if the value is less than or equal to the specified value.
+-   **Exists (`$exists`)**: Checks if the value exists (is not null or undefined).
+-   **Required (`$required`)**: Checks if the value is present and not null or undefined.
 
 ### Advanced Validation
 
-- **Match (`$match`)**: Validates the value against all specified validation rules.
-- **Match Any (`$any` or `$or` or `$either`)**: Validates the value against any of the specified validation rules.
-- **All Match (`$allMatch` or `|>$all` or `|>$match`)**: Checks if all elements in an array satisfy the specified validation rule.
-- **Any One Match (`$anyOneMatch` or `|*$any` or `|*$match` or `|*$either`)**: Checks if at least one element in an array satisfies the specified validation rule.
-- **Type (`$typeOf`)**: Checks if the value is of the specified type.
-- **Has Keys (`$hasKey` or `$hasKeys`)**: Checks if the object has all the specified keys.
-- **Start With (`$startWith` or `$startsWith`)**: Checks if the string value starts with the specified substring.
-- **End With (`$endWith` or `$endsWith`)**: Checks if the string value ends with the specified substring.
-- **Match Pattern (`$pattern` or `$matchPattern` or `$matchRegex`)**: Checks if the string value matches the specified regular expression pattern.
-- **Contains (`$contain` or `$contains`)**: Checks if the string value contains the specified substring.
-- **Same As (`$sameAs`)**: Checks if the value is the same as the value of the specified field in the parent object.
+-   **Match (`$match`)**: Validates the value against all specified validation rules.
+-   **Match Any (`$any` or `$or` or `$either`)**: Validates the value against any of the specified validation rules.
+-   **All Match (`$allMatch` or `|>$all` or `|>$match`)**: Checks if all elements in an array satisfy the specified validation rule.
+-   **Any One Match (`$anyOneMatch` or `|*$any` or `|*$match` or `|*$either`)**: Checks if at least one element in an array satisfies the specified validation rule.
+-   **Type (`$typeOf`)**: Checks if the value is of the specified type.
+-   **Has Keys (`$hasKey` or `$hasKeys`)**: Checks if the object has all the specified keys.
+-   **Start With (`$startWith` or `$startsWith`)**: Checks if the string value starts with the specified substring.
+-   **End With (`$endWith` or `$endsWith`)**: Checks if the string value ends with the specified substring.
+-   **Match Pattern (`$pattern` or `$matchPattern` or `$matchRegex`)**: Checks if the string value matches the specified regular expression pattern.
+-   **Contains (`$contain` or `$contains`)**: Checks if the string value contains the specified substring.
+-   **Same As (`$sameAs`)**: Checks if the value is the same as the value of the specified field in the parent object.
 
 ### Use Expression as Operand
 
-Use { $expr:  } to wrap the value as a JSX expression
+Use { $expr: } to wrap the value as a JSX expression
 
 ```json
 {
-    $if: [
-        { $expr: [
-            '$parent.type', 
-            { $match: { $eq: 'array' } } 
-        ] }, // use an expression as condition
-        [ // then
-            { $required: true }, [{ type: { $in: ['text', 'integer'] } }]
-        ],
+    "$if": [
+        { "$expr": ["$parent.type", { "$match": { "$eq": "array" } }] }, // use an expression as condition
+        [
+            // then
+            { "$required": true },
+            [{ "type": { "$in": ["text", "integer"] } }]
+        ]
         // else
-    ],
+    ]
 }
 ```
 
 ### Special Cases
 
-- **Validation with `null`**: Invoking `Jsv.match(value, null)` will always return `true`. It means the jsv is null, nothing to validate. To explicitly match `null`, use `{ $exist: false }`.
-- **Validation with Array**: Using `Jsv.match(value, [ ... ])` will validate the value against all JSV objects in the array. To check for equality with an array, use `{ $eq: [ ... ] }`. To check whether the value matches one of the element in the array, use `{ $in: [ ... ] }`.
+-   **Validation with `null`**: Invoking `Jsv.match(value, null)` will always return `true`. It means the jsv is null, nothing to validate. To explicitly match `null`, use `{ $exist: false }`.
+-   **Validation with Array**: Using `Jsv.match(value, [ ... ])` will validate the value against all JSV objects in the array. To check for equality with an array, use `{ $eq: [ ... ] }`. To check whether the value matches one of the element in the array, use `{ $in: [ ... ] }`.
 
 ### Context Variables
 
-- **`$root`**: Represents the root value being validated.
-- **`$this`**: Represents the current value being validated.
-- **`$parent`**: Represents the parent object of the current value being validated.
-- **`$key`**: Represents the current key being validated.
+-   **`$root`**: Represents the root value being validated.
+-   **`$this`**: Represents the current value being validated.
+-   **`$parent`**: Represents the parent object of the current value being validated.
+-   **`$key`**: Represents the current key being validated.
 
 ### Validation Options
 
-- **`throwError`**: If set to `true`, throws an error when validation fails.
-- **`abortEarly`**: If set to `true`, stops validation on the first failure.
-- **`plainError`**: If set to `true`, returns a plain error message instead of an error object.
-- **`asPredicate`**: If set to `true`, returns a boolean result instead of throwing an error or returning an error message.
+-   **`throwError`**: If set to `true`, throws an error when validation fails.
+-   **`abortEarly`**: If set to `true`, stops validation on the first failure.
+-   **`plainError`**: If set to `true`, returns a plain error message instead of an error object.
+-   **`asPredicate`**: If set to `true`, returns a boolean result instead of throwing an error or returning an error message.
 
 ## Usage Examples
 
@@ -94,10 +94,11 @@ Jsv.match(obj, { key1: { $gt: 1000 } });
 Jsv.match(obj, { key4: { $exists: false } });
 
 // Validate that 'key8' has all specified keys: 'name', 'type'
-Jsv.match(obj, { key8: { $hasKeys: [ 'name', 'type' ] } });
+Jsv.match(obj, { key8: { $hasKeys: ['name', 'type'] } });
 ```
 
 Specific locale only
+
 ```js
 import Jsv from '@kitmi/jsonv';
 import En from '@kitmi/jsonv/locale/en';
@@ -110,5 +111,6 @@ Jsv.match(...);
 Note that the JSV framework is designed to be extensible and can be customized with additional validation rules and operators as needed. The syntax rules outlined in this document represent the core set of validation capabilities provided by the JSV framework.
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

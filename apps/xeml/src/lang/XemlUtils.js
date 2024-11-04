@@ -4,26 +4,26 @@ const pluralize = require('pluralize');
 class Clonable {
     linked = false;
 
-    clone() {      
+    clone() {
         if (!this.linked) {
             throw new Error('An element becomes clonable only after being linked.');
         }
     }
 }
 
-const deepClone = (value) => _.cloneDeepWith(value, el => (el instanceof Clonable) ? el.clone() : undefined);
+const deepClone = (value) => _.cloneDeepWith(value, (el) => (el instanceof Clonable ? el.clone() : undefined));
 
 const deepCloneField = (src, dest, field) => {
     if (field in src) dest[field] = deepClone(src[field]);
 };
 
-const isDotSeparateName = (name) => (name.indexOf('.') > 0);
+const isDotSeparateName = (name) => name.indexOf('.') > 0;
 
-const isIdWithNamespace = (name) => (name.indexOf(':') > 0);
+const isIdWithNamespace = (name) => name.indexOf(':') > 0;
 
-const extractNamespace = (name) => { 
+const extractNamespace = (name) => {
     const pos = name.lastIndexOf(':');
-    return [ name.substring(0, pos), name.substring(pos+1) ];
+    return [name.substring(0, pos), name.substring(pos + 1)];
 };
 
 const extractDotSeparateName = (name) => name.split('.');
@@ -37,16 +37,16 @@ const uniqNamespace = (namespace) => {
     namespace.forEach((ns) => {
         let uid;
 
-        if (typeof ns === 'string') {            
+        if (typeof ns === 'string') {
             uid = ns;
         } else {
             uid = ns[1] + ':' + ns[0];
         }
 
-        if (!_set.has(uid)) { 
+        if (!_set.has(uid)) {
             result.push(ns);
             _set.add(uid);
-        }        
+        }
     });
 
     return result;
@@ -55,7 +55,7 @@ const uniqNamespace = (namespace) => {
 const prefixNaming = (prefix, name) => {
     let leftParts = _.kebabCase(prefix).split('-');
     let rightParts = _.kebabCase(extractReferenceBaseName(name)).split('-');
-    
+
     let reservedLeft, reservedRight;
 
     if (leftParts.length > rightParts.length) {
@@ -71,14 +71,14 @@ const prefixNaming = (prefix, name) => {
     if (_.isEqual(leftParts, rightParts)) {
         return combine();
     }
-    
+
     while (leftParts.length > 0) {
         reservedLeft.push(leftParts.shift());
         reservedRight.unshift(rightParts.pop());
         if (_.isEqual(leftParts, rightParts)) {
             break;
         }
-    } 
+    }
 
     return combine();
 };
@@ -91,15 +91,15 @@ const getReferenceNameIfItIs = (obj) => {
     return undefined;
 };
 
-exports.parseReferenceInDocument = (schema, doc, ref) => {    
+exports.parseReferenceInDocument = (schema, doc, ref) => {
     let parts = ref.split('.');
     let parent;
     let l = parts.length;
     let entityNode, entity, field;
-    
+
     for (let i = 0; i < l; i++) {
         let p = parts[i];
-        
+
         if (!entityNode) {
             if (doc.entity === p) {
                 entityNode = doc;
@@ -115,14 +115,14 @@ exports.parseReferenceInDocument = (schema, doc, ref) => {
 
             if (attr instanceof Field) {
                 field = attr;
-                if (i !== l-1) {
+                if (i !== l - 1) {
                     throw new Error(`Reference by path "${ref}" not found in given document.`);
                 }
 
                 return {
                     entityNode,
                     entity,
-                    field
+                    field,
                 };
             } else {
                 parent = attr;
@@ -130,11 +130,11 @@ exports.parseReferenceInDocument = (schema, doc, ref) => {
 
             continue;
         }
-        
+
         if (parent) {
             parent = parent[p];
         } else {
-            if (i === l-1) {
+            if (i === l - 1) {
                 //last part
                 entity = schema.entities[entityNode.entity];
                 field = entity.getEntityAttribute(p);
@@ -142,7 +142,7 @@ exports.parseReferenceInDocument = (schema, doc, ref) => {
                 return {
                     entityNode,
                     entity,
-                    field
+                    field,
                 };
             }
 
@@ -167,11 +167,11 @@ exports.parseReferenceInDocument = (schema, doc, ref) => {
             throw new Error(`Reference by path "${ref}" not found in given document.`);
         }
     }
-    
+
     return {
         entityNode,
         entity,
-        field
+        field,
     };
 };
 
@@ -190,11 +190,11 @@ exports.extractNamespace = extractNamespace;
 exports.extractDotSeparateName = extractDotSeparateName;
 exports.extractReferenceBaseName = extractReferenceBaseName;
 exports.getReferenceNameIfItIs = getReferenceNameIfItIs;
-exports.schemaNaming = name => _.camelCase(name);
-exports.entityNaming = name => _.camelCase(name);
-exports.fieldNaming = name => _.camelCase(name);
+exports.schemaNaming = (name) => _.camelCase(name);
+exports.entityNaming = (name) => _.camelCase(name);
+exports.fieldNaming = (name) => _.camelCase(name);
 exports.prefixNaming = prefixNaming;
-exports.generateDisplayName = name => _.startCase(name);
-exports.formatFields = field => Array.isArray(field) ? field.join(', ') : field;
+exports.generateDisplayName = (name) => _.startCase(name);
+exports.formatFields = (field) => (Array.isArray(field) ? field.join(', ') : field);
 exports.Clonable = Clonable;
 exports.uniqNamespace = uniqNamespace;

@@ -153,7 +153,12 @@ const Runnable = (T) =>
             const configSource = config.source || (config.npmModule ? 'runtime' : null);
 
             if (configSource != null) {
-                moduleMeta = await loadModuleFrom_(this, configSource, configSource === 'direct' ? (config.packageName ?? name) : name, configSource === 'registry' ? 'modules' : null);
+                moduleMeta = await loadModuleFrom_(
+                    this,
+                    configSource,
+                    configSource === 'direct' ? config.packageName ?? name : name,
+                    configSource === 'registry' ? 'modules' : null
+                );
                 appPath = moduleMeta.appPath;
             } else {
                 appPath = path.join(defaultBasePath, name);

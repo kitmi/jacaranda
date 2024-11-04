@@ -2,12 +2,12 @@
 
 ## Jacaranda Framework Adapters
 
-`@kitmi/adapters` provides a unified interface for interacting with various components that share similar functionalities but may have different underlying implementations or interfaces. By using this library, developers can switch between different components such as HTTP clients or JavaScript package managers without changing the consuming codebase, making the code more modular and easier to maintain. 
+`@kitmi/adapters` provides a unified interface for interacting with various components that share similar functionalities but may have different underlying implementations or interfaces. By using this library, developers can switch between different components such as HTTP clients or JavaScript package managers without changing the consuming codebase, making the code more modular and easier to maintain.
 
 ## Features
 
-- **HTTP Client Adapters**: Abstract the differences between various HTTP clients like Fetch API, or SuperAgent, allowing for easy interchangeability.
-- **JS Package Manager Adapters**: Seamlessly switch between package managers like npm, Yarn, or pnpm without altering the workflow scripts.
+-   **HTTP Client Adapters**: Abstract the differences between various HTTP clients like Fetch API, or SuperAgent, allowing for easy interchangeability.
+-   **JS Package Manager Adapters**: Seamlessly switch between package managers like npm, Yarn, or pnpm without altering the workflow scripts.
 
 ## Installation
 
@@ -49,5 +49,6 @@ await pkgManager.addPackage_('express');
 ```
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

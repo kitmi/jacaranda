@@ -81,15 +81,19 @@ class Pipeline {
         } else {
             throw new Error('Invalid arguments.');
         }
-    }        
+    }
 
     getStepVariables() {
-        return _.reduce(this.variables, (acc, value, key) => {
-            if (!key.startsWith('$')) {
-                acc[key] = value;
-            }
-            return acc;
-        }, {});
+        return _.reduce(
+            this.variables,
+            (acc, value, key) => {
+                if (!key.startsWith('$')) {
+                    acc[key] = value;
+                }
+                return acc;
+            },
+            {}
+        );
     }
 
     getValue(name) {
@@ -213,7 +217,7 @@ class Pipeline {
                     }
 
                     this.app.error(`Step "${name}" failed.`, { job: this.name, ...stepMeta });
-                    
+
                     throw error;
                 }
 

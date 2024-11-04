@@ -35,7 +35,7 @@ class FiniteStateMachine {
      * If any of the conditions in the array is met, return OK, otherwise fail with a reason.
      * @memberof FiniteStateMachine
      * @static
-     * @param {Array} array 
+     * @param {Array} array
      * @returns {function}
      */
     static ifAny =
@@ -62,7 +62,7 @@ class FiniteStateMachine {
      * If all of the conditions in the array are met, return OK, otherwise fail with a reason.
      * @memberof FiniteStateMachine
      * @static
-     * @param {Array} array 
+     * @param {Array} array
      * @returns {function}
      */
     static ifAll =
@@ -87,7 +87,7 @@ class FiniteStateMachine {
      * @constructs FiniteStateMachine
      * @param {*} app - Application instance, can be null if not needed
      * @param {object} transitionTable - { state: { action: { desc, when, target, before, after } } }
-     * 
+     *
      *  Action rule:
      * <ul>
      *      <li>desc: description of this transition</li>
@@ -97,7 +97,7 @@ class FiniteStateMachine {
      *      <li>after: trigger another action after transition, can be async</li>
      * </ul>
      * @param {function} stateFetcher - (app, context, fetcherOpts) => state
-     * @param {function} stateUpdater - (app, context, payload, targetState, updaterOpts) => [actuallyUpdated, updateResult]          
+     * @param {function} stateUpdater - (app, context, payload, targetState, updaterOpts) => [actuallyUpdated, updateResult]
      */
     constructor(app, transitionTable, stateFetcher, stateUpdater) {
         this.app = app;

@@ -2,7 +2,7 @@ import install from '@kitmi/jacaranda/serverInstall';
 import test from './apps/test';
 
 const modulesRegistry = {
-    test
+    test,
 };
 
 install({
@@ -10,6 +10,6 @@ install({
     logFeatures: true,
     logMiddlewareRegistry: true,
     registry: {
-        apps: modulesRegistry
-    }
+        apps: modulesRegistry,
+    },
 });

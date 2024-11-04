@@ -1,4 +1,4 @@
-import { _, isPlainObject, ensureStartsWith } from "@kitmi/utils";
+import { _, isPlainObject, ensureStartsWith } from '@kitmi/utils';
 import { ApplicationError } from '@kitmi/types';
 
 /**
@@ -63,7 +63,8 @@ function httpMethod(method, middlewares) {
     };
 }
 
-const makeShortcut = (method) => (route, middlewares) => httpMethod(route ? `${method}:${ensureStartsWith(route, '/')}` : method, middlewares);
+const makeShortcut = (method) => (route, middlewares) =>
+    httpMethod(route ? `${method}:${ensureStartsWith(route, '/')}` : method, middlewares);
 
 // nestjs like decorators
 export const Get = makeShortcut('get');

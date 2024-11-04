@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/data",
-    "version": "0.7.10",
+    "version": "0.8.0",
     "description": "Jacaranda Framework Data Access Model",
     "publishConfig": {
         "access": "public"
@@ -30,7 +30,7 @@
         "test": "pnpm build && SWCRC=true mocha --recursive test/**/*.spec.js",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
         "report": "allure generate allure-results --clean -o allure-report && serve ./allure-report",
-        "doc": "jsdoc --configure .jsdoc.json --verbose && pnpm prepack",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && node ../../scripts/prepack.js",
         "prettier": "prettier --write ./src",
         "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",
         "lint-fix": "pnpm lint --fix",

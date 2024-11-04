@@ -12,7 +12,7 @@ import { OpCompleted } from '../utils/errors';
 
 const beforeFind = (feature, entityModel, context) => {
     const findOptions = context.options;
-    if (!findOptions.$includeDeleted) {            
+    if (!findOptions.$includeDeleted) {
         findOptions.$where = mergeWhere(findOptions.$where, {
             [feature.field]: { $ne: feature.value },
         });
@@ -42,16 +42,10 @@ export default {
             };
 
             if (context.isOne) {
-                context.result = await entityModel.updateOne_(
-                    updateTo,
-                    updateOpts
-                );
+                context.result = await entityModel.updateOne_(updateTo, updateOpts);
             } else {
-                context.result = await entityModel.updateMany_(
-                    updateTo,
-                    updateOpts
-                );
-            }            
+                context.result = await entityModel.updateMany_(updateTo, updateOpts);
+            }
 
             throw new OpCompleted(context.result);
         }

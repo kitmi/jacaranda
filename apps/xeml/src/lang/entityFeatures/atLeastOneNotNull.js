@@ -10,15 +10,15 @@ const FEATURE_NAME = 'atLeastOneNotNull';
  * @param {Entity} entity - Entity to apply this feature
  * @param {array} fields - List of field names
  */
-function feature(entity, [ fields ]) {
+function feature(entity, [fields]) {
     if (!fields) {
         throw new Error('Missing field names!');
     }
 
-    Array.isArray(fields) || (fields = [ fields ]);
+    Array.isArray(fields) || (fields = [fields]);
 
     entity.addFeature(FEATURE_NAME, fields, true).once('afterAddingFields', () => {
-        fields.forEach(fieldName => {
+        fields.forEach((fieldName) => {
             let field = entity.fields[fieldName];
 
             if (!field) {

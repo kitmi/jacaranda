@@ -60,7 +60,7 @@ export async function hashFiles_(hashAlgorithm, basePath, files, encoding = 'hex
         });
     }
 
-    if (encoding === 'buffer') {        
+    if (encoding === 'buffer') {
         return hash.digest();
     }
 

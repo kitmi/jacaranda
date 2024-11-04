@@ -3,7 +3,7 @@ import isTypedArray from './isTypedArray';
 /**
  * Get the size of a collection.
  * Note: lodash's size does not check symbol properties and will return unicode length for strings.
- * @param {*} collection 
+ * @param {*} collection
  * @returns {number}
  */
 function size(collection) {

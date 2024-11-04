@@ -6,11 +6,11 @@
 
 ## Features
 
-- Environment-aware: Automatically loads configuration files based on the environment setting.
-- Supports JSON and YAML: Seamlessly works with both JSON and YAML configuration files.
-- Easy to use: Provides a straight forward API to access configuration values.
-- Customizable: Allows custom environment variable names and custom configuration file paths.
-- Fallbacks: Supports default configuration for unspecified environments.
+-   Environment-aware: Automatically loads configuration files based on the environment setting.
+-   Supports JSON and YAML: Seamlessly works with both JSON and YAML configuration files.
+-   Easy to use: Provides a straight forward API to access configuration values.
+-   Customizable: Allows custom environment variable names and custom configuration file paths.
+-   Fallbacks: Supports default configuration for unspecified environments.
 
 ## Installation
 
@@ -41,22 +41,25 @@ await configLoader.load_();
 
 3. Variables referenced in config
 
-- Reference to `settings.jwtSecret` node in the same config file.
+-   Reference to `settings.jwtSecret` node in the same config file.
+
 ```json
 {
     "jwt": "#!jsv: $this.settings.jwtSecret"
 }
 ```
 
-- Reference to a env variable using ES string template.
+-   Reference to a env variable using ES string template.
+
 ```yaml
 dataSource:
-  postgres:
-    wisley:
-      connection: "${env.WISLEY_DB_URL}"
-      logStatement: true
+    postgres:
+        wisley:
+            connection: '${env.WISLEY_DB_URL}'
+            logStatement: true
 ```
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

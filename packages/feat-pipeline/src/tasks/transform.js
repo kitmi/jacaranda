@@ -13,8 +13,8 @@ export default function transform(step, settings) {
 
     const result = Ts.sanitize(input, schema);
 
-    step.syslog('info', 'Object transformed.', {  
-        result
+    step.syslog('info', 'Object transformed.', {
+        result,
     });
 
     return result;

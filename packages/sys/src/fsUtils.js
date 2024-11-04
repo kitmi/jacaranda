@@ -1,5 +1,5 @@
 import fs from 'fs-extra';
-import os from 'node:os'; 
+import os from 'node:os';
 import path from 'node:path';
 
 /**
@@ -41,13 +41,12 @@ export const isDirEmpty_ = async (path) => {
  * Read a file list.
  * @param {string} basePath - Base path to resolve of files in the list
  * @param {string} listFile - List file path
- * @param {string} [eol = os.EOL] 
+ * @param {string} [eol = os.EOL]
  * @returns {array}
  */
 export const readFileList_ = async (basePath, listFile, eol) => {
     const fileList = await fs.readFile(listFile, 'utf-8');
-    const list = fileList
-        .split(eol ?? os.EOL);
+    const list = fileList.split(eol ?? os.EOL);
 
     return list.reduce((acc, file) => {
         if (file.startsWith('#')) {
@@ -58,8 +57,8 @@ export const readFileList_ = async (basePath, listFile, eol) => {
 
         if (file.length === 0) {
             return acc;
-        }        
+        }
 
         return [...acc, path.resolve(basePath, file)];
-    }, []);        
+    }, []);
 };

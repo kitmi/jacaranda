@@ -2,8 +2,8 @@ import { get } from '@kitmi/utils';
 
 /**
  * Use username and password to login and get the access token.
- * @param {*} client 
- * @param {Object} loginOptions 
+ * @param {*} client
+ * @param {Object} loginOptions
  * @property {String} loginOptions.endpoint - The login endpoint.
  * @property {String} loginOptions.username - The username, can be customized by usernameField.
  * @property {String} loginOptions.password - The password.
@@ -29,7 +29,7 @@ const passwordAuth = async (client, loginOptions) => {
         loginOptions.headers ? { headers: loginOptions.headers } : null
     );
     let accessToken;
-    
+
     if (loginOptions.tokenKey) {
         accessToken = get(body, loginOptions.tokenKey);
     } else {

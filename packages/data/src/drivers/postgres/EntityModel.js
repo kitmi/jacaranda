@@ -73,11 +73,11 @@ class PostgresEntityModel extends EntityModel {
         const self = this;
 
         // map postgres fields result into array of { table <table alias>, name: <column name> }
-        const columns = fields.map((col) => {       
-            const l = col.name.length-1;     
+        const columns = fields.map((col) => {
+            const l = col.name.length - 1;
             if (col.name[l] === '$') {
                 return {
-                    table: col.name.substring(0, l)
+                    table: col.name.substring(0, l),
                 };
             }
 
@@ -89,92 +89,77 @@ class PostgresEntityModel extends EntityModel {
 
         // map flat record into hierachy
         function mergeRecord(existingRow, rowObject, associations, nodePath) {
-            return _.each(
-                associations,
-                ({ sql, key, list, subAssocs }, anchor) => {
-                    if (sql) return;
+            return _.each(associations, ({ sql, key, list, subAssocs }, anchor) => {
+                if (sql) return;
 
-                    const currentPath = nodePath.concat();
-                    currentPath.push(anchor);
+                const currentPath = nodePath.concat();
+                currentPath.push(anchor);
 
-                    const objKey = nestedKeyGetter(anchor);
-                    const subObj = rowObject[objKey];
+                const objKey = nestedKeyGetter(anchor);
+                const subObj = rowObject[objKey];
 
-                    if (!subObj) {
-                        // associated entity not in result set, probably when custom projection is used
-                        return;
-                    }
+                if (!subObj) {
+                    // associated entity not in result set, probably when custom projection is used
+                    return;
+                }
 
-                    const subIndexes = existingRow.subIndexes[objKey];
+                const subIndexes = existingRow.subIndexes[objKey];
 
-                    // joined an empty record
-                    const rowKeyValue = subObj[key];
-                    if (_.isNil(rowKeyValue)) {
-                        if (list && rowKeyValue == null) {
-                            if (existingRow.rowObject[objKey]) {
-                                existingRow.rowObject[objKey].push(subObj);
-                            } else {
-                                existingRow.rowObject[objKey] = [subObj];
-                            }
-                        }
-
-                        return;
-                    }
-
-                    const existingSubRow = subIndexes && subIndexes[rowKeyValue];
-                    if (existingSubRow) {
-                        if (subAssocs) {
-                            return mergeRecord(
-                                existingSubRow,
-                                subObj,
-                                subAssocs,
-                                currentPath
-                            );
-                        }
-                    } else {
-                        if (!list) {
-                            throw new ApplicationError(
-                                `The structure of association "${currentPath.join(
-                                    '.'
-                                )}" with [key=${key}] of entity "${
-                                    self.meta.name
-                                }" should be a list.`,
-                                { existingRow, rowObject }
-                            );
-                        }
-
+                // joined an empty record
+                const rowKeyValue = subObj[key];
+                if (_.isNil(rowKeyValue)) {
+                    if (list && rowKeyValue == null) {
                         if (existingRow.rowObject[objKey]) {
                             existingRow.rowObject[objKey].push(subObj);
                         } else {
                             existingRow.rowObject[objKey] = [subObj];
                         }
-
-                        const subIndex = {
-                            rowObject: subObj,
-                        };
-
-                        if (subAssocs) {
-                            subIndex.subIndexes = buildSubIndexes(
-                                subObj,
-                                subAssocs
-                            );
-                        }
-
-                        if (!subIndexes) {
-                            throw new ApplicationError(
-                                `The subIndexes of association "${currentPath.join(
-                                    '.'
-                                )}" with [key=${key}] of entity "${
-                                    self.meta.name
-                                }" does not exist.`,
-                                { existingRow, rowObject }
-                            );
-                        }
-
-                        subIndexes[rowKeyValue] = subIndex;
                     }
+
+                    return;
                 }
-            );
+
+                const existingSubRow = subIndexes && subIndexes[rowKeyValue];
+                if (existingSubRow) {
+                    if (subAssocs) {
+                        return mergeRecord(existingSubRow, subObj, subAssocs, currentPath);
+                    }
+                } else {
+                    if (!list) {
+                        throw new ApplicationError(
+                            `The structure of association "${currentPath.join('.')}" with [key=${key}] of entity "${
+                                self.meta.name
+                            }" should be a list.`,
+                            { existingRow, rowObject }
+                        );
+                    }
+
+                    if (existingRow.rowObject[objKey]) {
+                        existingRow.rowObject[objKey].push(subObj);
+                    } else {
+                        existingRow.rowObject[objKey] = [subObj];
+                    }
+
+                    const subIndex = {
+                        rowObject: subObj,
+                    };
+
+                    if (subAssocs) {
+                        subIndex.subIndexes = buildSubIndexes(subObj, subAssocs);
+                    }
+
+                    if (!subIndexes) {
+                        throw new ApplicationError(
+                            `The subIndexes of association "${currentPath.join('.')}" with [key=${key}] of entity "${
+                                self.meta.name
+                            }" does not exist.`,
+                            { existingRow, rowObject }
+                        );
+                    }
+
+                    subIndexes[rowKeyValue] = subIndex;
+                }
+            });
         }
 
         // build sub index for list member
@@ -197,7 +182,7 @@ class PostgresEntityModel extends EntityModel {
                         // associated entity not in result set, probably when custom projection is used
                         rowObject[objKey] = [];
                         return;
-                    }                    
+                    }
 
                     // many to *
                     if (subObject[key] == null) {
@@ -211,10 +196,7 @@ class PostgresEntityModel extends EntityModel {
 
                 if (subObject) {
                     if (subAssocs) {
-                        subIndex.subIndexes = buildSubIndexes(
-                            subObject,
-                            subAssocs
-                        );
+                        subIndex.subIndexes = buildSubIndexes(subObject, subAssocs);
                     }
 
                     indexes[objKey] = subObject[key]
@@ -246,18 +228,18 @@ class PostgresEntityModel extends EntityModel {
                 }
 
                 return result;
-            }, {});            
+            }, {});
 
             _.forOwn(tableCache, (obj, table) => {
                 const nodePath = aliasMap[table];
-                let node = rowObject
+                let node = rowObject;
                 for (let i = 0; i < nodePath.length; i++) {
                     const objKey = nodePath[i];
-                    node = node[objKey] = node[objKey] || {};                                        
+                    node = node[objKey] = node[objKey] || {};
                 }
                 Object.assign(node, obj);
             });
-        
+
             const rowKey = rowObject[self.meta.keyField];
             const existingRow = mainIndex[rowKey];
             if (existingRow) {

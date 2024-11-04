@@ -11,7 +11,7 @@
 -   A feature can register a service (recommended) or extend the app prototype.
 -   Features are loaded on different stages from CONF -> INIT -> SERVICE -> PLUGIN -> FINAL. They are also loaded according to their dependency relation in the same stage.
 -   Features include built-in features and all custom features under the app's features directory (configurable in app options through the constructor of App or startWorker argument)
--   Configuration is environment awareness, the default one is `<configName>.default.json`. If the app is run under `NODE_ENV=development`, the `<configName>.development.json` if exist will override the default one. 
+-   Configuration is environment awareness, the default one is `<configName>.default.json`. If the app is run under `NODE_ENV=development`, the `<configName>.development.json` if exist will override the default one.
 -   Configuration can also be overridden by CONF level features.
 
 ## Built-in features
@@ -171,5 +171,6 @@ startWorker(
 ```
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

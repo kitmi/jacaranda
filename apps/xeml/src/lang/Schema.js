@@ -11,7 +11,7 @@ class Schema extends Clonable {
      * Types in this schema, map of <typeName, typeInfo>
      * @member {object.<String, Object>}
      */
-     types = {};
+    types = {};
 
     /**
      * Entities in this schema, map of <entityName, entityObject>
@@ -26,14 +26,14 @@ class Schema extends Clonable {
     datasets = {};
 
     /**
-     * Views, view = dataset + filters 
+     * Views, view = dataset + filters
      * @member {object}
      */
-    views = {};    
+    views = {};
 
-    /**     
+    /**
      * @param {Linker} linker
-     * @param {string} name     
+     * @param {string} name
      * @param {object} info
      */
     constructor(linker, name, info) {
@@ -61,7 +61,7 @@ class Schema extends Clonable {
          * Raw metadata
          * @member {object}
          */
-        this.info = info;       
+        this.info = info;
     }
 
     /**
@@ -90,7 +90,7 @@ class Schema extends Clonable {
         //1st round, get direct output entities
         this.info.entities || (this.info.entities = []);
 
-        this.info.entities.forEach(entityEntry => {            
+        this.info.entities.forEach((entityEntry) => {
             let entity = this.linker.loadEntity(this.xemlModule, entityEntry.entity);
             if (!entity.linked) {
                 throw new Error(`Entity [${entity.name}] not linked after loading.`);
@@ -109,7 +109,7 @@ class Schema extends Clonable {
         }
 
         if (!_.isEmpty(this.info.views)) {
-            this.info.views.forEach(viewName => {
+            this.info.views.forEach((viewName) => {
                 let view = this.linker.loadView(this.xemlModule, viewName);
                 if (!view.linked) {
                     throw new Error(`View [${entity.name}] not linked after loading.`);
@@ -126,8 +126,8 @@ class Schema extends Clonable {
 
     /**
      * Add an type into the schema
-     * @param {*} type 
-     * @param {*} typeLocation 
+     * @param {*} type
+     * @param {*} typeLocation
      * @returns {Schema}
      */
     addType(type, typeLocation) {
@@ -150,7 +150,7 @@ class Schema extends Clonable {
      * @returns {boolean}
      */
     hasEntity(entityName) {
-        return (entityName in this.entities);
+        return entityName in this.entities;
     }
 
     /**
@@ -176,12 +176,12 @@ class Schema extends Clonable {
      * @returns {boolean}
      */
     hasView(viewName) {
-        return (viewName in this.views);
+        return viewName in this.views;
     }
 
     /**
      * Add a view into the schema
-     * @param {View} view 
+     * @param {View} view
      * @returns {Schema}
      */
     addView(view) {
@@ -224,9 +224,9 @@ class Schema extends Clonable {
     }
 
     /**
-     * 
-     * @param {*} refererModule 
-     * @param {*} entityName 
+     *
+     * @param {*} refererModule
+     * @param {*} entityName
      */
     ensureGetEntity(refererModule, entityName, newlyAdded) {
         if (this.hasEntity(entityName)) return this.entities[entityName];
@@ -234,7 +234,7 @@ class Schema extends Clonable {
         let entity = this.linker.loadEntity(refererModule, entityName, false);
 
         if (entity) {
-            this.addEntity(entity);   
+            this.addEntity(entity);
 
             if (!entity.info.abstract && newlyAdded) {
                 newlyAdded.push(entity.name);
@@ -251,15 +251,15 @@ class Schema extends Clonable {
      */
     clone() {
         super.clone();
-        
+
         let schema = new Schema(this.linker, this.name, this.info);
-        
+
         deepCloneField(this, schema, 'displayName');
-        deepCloneField(this, schema, 'comment');        
-        deepCloneField(this, schema, 'entities');   
-        deepCloneField(this, schema, 'types');        
+        deepCloneField(this, schema, 'comment');
+        deepCloneField(this, schema, 'entities');
+        deepCloneField(this, schema, 'types');
         deepCloneField(this, schema, 'datasets');
-        deepCloneField(this, schema, 'views');        
+        deepCloneField(this, schema, 'views');
 
         schema.linked = true;
 
@@ -274,17 +274,17 @@ class Schema extends Clonable {
         const result = {
             name: this.name,
             displayName: this.displayName,
-            comment: this.comment,        
-            entities: _.mapValues(this.entities, entity => entity.toJSON()),   
-            types: this.types,         
-            datasets: _.mapValues(this.datasets, dataset => dataset.toJSON()), 
-            views: _.mapValues(this.views, view => view.toJSON()),
+            comment: this.comment,
+            entities: _.mapValues(this.entities, (entity) => entity.toJSON()),
+            types: this.types,
+            datasets: _.mapValues(this.datasets, (dataset) => dataset.toJSON()),
+            views: _.mapValues(this.views, (view) => view.toJSON()),
         };
 
         // extra metadata for storing in database
         if (this.relations) {
             result.relations = this.relations;
-        }            
+        }
 
         return result;
     }

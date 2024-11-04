@@ -17,7 +17,12 @@ const defaultQuoteChars = new Set(['"']);
  * @returns {array}
  */
 const simpleCsvParser = (str, options) => {
-    const { delimiter, emptyAsNull, quoteChars } = { delimiter: ',', emptyAsNull: false, quoteChars: defaultQuoteChars, ...options };
+    const { delimiter, emptyAsNull, quoteChars } = {
+        delimiter: ',',
+        emptyAsNull: false,
+        quoteChars: defaultQuoteChars,
+        ...options,
+    };
 
     let inQuote = null;
     let start = 0;

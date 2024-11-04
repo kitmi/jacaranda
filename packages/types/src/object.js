@@ -44,7 +44,7 @@ class T_OBJECT {
 
             if (foundMatched == null) {
                 throw new ValidationError('Object member schema validation failed.', {
-                    value: fieldValue,                    
+                    value: fieldValue,
                     path: fieldPath,
                     errors,
                 });
@@ -86,7 +86,7 @@ class T_OBJECT {
 
             if (foudMatched == null) {
                 throw new ValidationError('Object member schema validation failed.', {
-                    value: fieldValue,                    
+                    value: fieldValue,
                     path: fieldPath,
                     errors,
                 });

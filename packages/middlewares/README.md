@@ -2,10 +2,9 @@
 
 ## Jacaranda Framework Common Middlewares
 
-`@kitmi/middlewares` 
+`@kitmi/middlewares`
 
 ## Features
-
 
 ## Installation
 
@@ -22,5 +21,6 @@ npm install @kitmi/middlewares
 ```
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

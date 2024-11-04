@@ -26,7 +26,12 @@ export class ValidationError extends ExposableError {
                 fullMessage +=
                     '\nAll of these alternative validations failed:\n' +
                     error.info.errors
-                        .map((_error, i) => `Option ${i + 1}${_error.info?.path ? ' field ' + _error.info.path : ''}: ${_error.message}`)
+                        .map(
+                            (_error, i) =>
+                                `Option ${i + 1}${_error.info?.path ? ' field ' + _error.info.path : ''}: ${
+                                    _error.message
+                                }`
+                        )
                         .join('\n');
             }
         }

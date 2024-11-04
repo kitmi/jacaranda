@@ -6,7 +6,7 @@ import mime from 'mime';
 export default async function fileInfo(step, settings) {
     let { file } = Types.OBJECT.sanitize(settings, {
         schema: {
-            file: { type: 'text' }
+            file: { type: 'text' },
         },
     });
 

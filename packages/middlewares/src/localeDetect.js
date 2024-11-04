@@ -41,7 +41,7 @@ const localeDetect = async (options, app) => {
         if (reqLang) {
             reqLang = reqLang.replace('-', '_');
         }
-        const locales = new locale.Locales(reqLang ?? ctx.headers['accept-language']);        
+        const locales = new locale.Locales(reqLang ?? ctx.headers['accept-language']);
         ctx.state.locale = locales.best(supported).normalized.replace('_', '-');
         return next();
     };

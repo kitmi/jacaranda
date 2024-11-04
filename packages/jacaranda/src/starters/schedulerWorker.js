@@ -13,10 +13,10 @@ export const cronPatterns = {
 };
 
 /**
- *
+ * Convert the schedule pattern to cron format.
  * @param {object} nodeSchedule
- * @param {object} cronInfo 
- * @returns 
+ * @param {object} cronInfo
+ * @returns {array} [rule, description]
  */
 const toCronFormat = (nodeSchedule, { pattern, perUnit, day, hour, minute, second, tz, date }) => {
     perUnit = perUnit != null ? toInteger(perUnit) : 0;

@@ -34,9 +34,9 @@ export default {
         const perfCounter = {
             numTasks: 0,
             numTasksCompleted: 0,
-            numTasksFailed: 0,         
+            numTasksFailed: 0,
             totalTaskTime: 0,
-            averageTaskTime: 0,   
+            averageTaskTime: 0,
             maxTaskTime: 0,
         };
 

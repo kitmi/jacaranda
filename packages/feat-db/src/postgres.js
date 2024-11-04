@@ -25,8 +25,7 @@ export default {
             name
         );
 
-        const { Pool, types, escapeLiteral, escapeIdentifier } =
-            await app.tryRequire_('pg');
+        const { Pool, types, escapeLiteral, escapeIdentifier } = await app.tryRequire_('pg');
 
         const pool = new Pool(options);
 

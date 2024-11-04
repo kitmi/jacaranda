@@ -6,11 +6,11 @@
 
 ## Features
 
-- cmd helpers: `run_`, `runLive_`, `runSync`
-- require from specified location and throw friendly error: `tryRequire`
-- fs utils: `isDir`, `isDirEmpty`, fs from fs-extra
-- reboot: `reboot`
-- eval: `interpolate`, `evaluate`
+-   cmd helpers: `run_`, `runLive_`, `runSync`
+-   require from specified location and throw friendly error: `tryRequire`
+-   fs utils: `isDir`, `isDirEmpty`, fs from fs-extra
+-   reboot: `reboot`
+-   eval: `interpolate`, `evaluate`
 
 ## Installation
 
@@ -27,5 +27,6 @@ npm install @kitmi/sys
 ```
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

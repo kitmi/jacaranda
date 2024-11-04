@@ -1,71 +1,71 @@
 {
-  "name": "@kitmi/feat-vision",
-  "version": "2.0.0",
-  "description": "Computer vision & image processing related utilities",
-  "publishConfig": {
-    "access": "public"
-  },
-  "main": "cjs/index.js",
-  "module": "src/index.js",
-  "react-native": "src/index.js",
-  "exports": {
-    ".": {
-      "import": "./src/index.js",
-      "require": "./cjs/index.js"
+    "name": "@kitmi/feat-vision",
+    "version": "2.0.0",
+    "description": "Computer vision & image processing related utilities",
+    "publishConfig": {
+        "access": "public"
     },
-    "./*": {
-      "import": "./src/*.js",
-      "require": "./cjs/*.js"
+    "main": "cjs/index.js",
+    "module": "src/index.js",
+    "react-native": "src/index.js",
+    "exports": {
+        ".": {
+            "import": "./src/index.js",
+            "require": "./cjs/index.js"
+        },
+        "./*": {
+            "import": "./src/*.js",
+            "require": "./cjs/*.js"
+        },
+        "./**/*": {
+            "import": "./src/**/*.js",
+            "require": "./cjs/**/*.js"
+        }
     },
-    "./**/*": {
-      "import": "./src/**/*.js",
-      "require": "./cjs/**/*.js"
+    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "license": "MIT",
+    "scripts": {
+        "test": "SWCRC=true mocha --recursive test/**/*.spec.js",
+        "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
+        "report": "allure generate allure-results --clean -o allure-report && serve ./allure-report",
+        "doc": "echo skipped",
+        "prettier": "prettier --write .",
+        "lint": "eslint \"**/*.js\"",
+        "lint-fix": "eslint \"**/*.js\" --fix",
+        "clean": "shx rm -rf cjs coverage .nyc_output",
+        "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
+    },
+    "keywords": [
+        "jacaranda",
+        "vision",
+        "image",
+        "sharp"
+    ],
+    "nyc": {
+        "exclude": [
+            ".*",
+            "cjs",
+            "test",
+            "**/*.spec.js"
+        ]
+    },
+    "dependencies": {
+        "sharp": "^0.33.4"
+    },
+    "peerDependencies": {
+        "@kitmi/jacaranda": "workspace:*",
+        "@kitmi/types": "workspace:*",
+        "sharp": "^0.33.4"
+    },
+    "devDependencies": {
+        "@kitmi/tester": "workspace:*"
+    },
+    "prettier": {
+        "quoteProps": "consistent",
+        "printWidth": 120,
+        "singleQuote": true,
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "useTabs": false
     }
-  },
-  "author": "Rockie Guo <rockie@kitmi.com.au>",
-  "license": "MIT",
-  "scripts": {
-    "test": "SWCRC=true mocha --recursive test/**/*.spec.js",
-    "cover": "nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
-    "report": "allure generate allure-results --clean -o allure-report && serve ./allure-report",
-    "doc": "echo skipped",
-    "prettier": "prettier --write .",
-    "lint": "eslint \"**/*.js\"",
-    "lint-fix": "eslint \"**/*.js\" --fix",
-    "clean": "shx rm -rf cjs coverage .nyc_output",
-    "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
-  },
-  "keywords": [
-    "jacaranda",
-    "vision",
-    "image",
-    "sharp"
-  ],
-  "nyc": {
-    "exclude": [
-      ".*",
-      "cjs",
-      "test",
-      "**/*.spec.js"
-    ]
-  },
-  "dependencies": {
-    "sharp": "^0.33.4"
-  },
-  "peerDependencies": {
-    "@kitmi/jacaranda": "workspace:*",
-    "@kitmi/types": "workspace:*",
-    "sharp": "^0.33.4"
-  },
-  "devDependencies": {
-    "@kitmi/tester": "workspace:*"
-  },
-  "prettier": {
-    "quoteProps": "consistent",
-    "printWidth": 120,
-    "singleQuote": true,
-    "trailingComma": "es5",
-    "tabWidth": 4,
-    "useTabs": false
-  }
 }

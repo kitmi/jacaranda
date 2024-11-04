@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/utils",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "description": "A JavaScript utility library for both server and browser",
     "main": "cjs/index",
     "module": "src/index.js",
@@ -34,7 +34,7 @@
     },
     "scripts": {
         "test": "mocha --recursive ./__test__/*.spec.js",
-        "doc": "jsdoc --configure .jsdoc.json --verbose && pnpm prepack",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && node ../../scripts/prepack.js",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive ./__test__/*.spec.js && open ./coverage/index.html",
         "prettier": "prettier --write .",
         "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",

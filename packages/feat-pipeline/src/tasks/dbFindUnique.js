@@ -6,7 +6,7 @@ export async function findUnique_(step, settings) {
         schema: {
             service: { type: 'text' },
             model: { type: 'text' },
-            where: { type: 'object' }
+            where: { type: 'object' },
         },
     });
 
@@ -20,15 +20,15 @@ export async function findUnique_(step, settings) {
     return record;
 }
 
-export default async function dbFindUnique(step, settings) {    
+export default async function dbFindUnique(step, settings) {
     const record = await findUnique_(step, settings);
 
     if (record == null) {
         throw new Error('Record not found.');
     }
 
-    step.syslog('info', 'Record found.' , {        
-        result: record
+    step.syslog('info', 'Record found.', {
+        result: record,
     });
 
     return record;

@@ -17,7 +17,7 @@ class BasicController {
 
     /**
      * Return a service by name
-     * @param {string} serviceName 
+     * @param {string} serviceName
      * @returns {object}
      */
     $(serviceName) {
@@ -31,8 +31,8 @@ class BasicController {
 
     /**
      * Return a db model by name [ and schema ]
-     * @param {*} name 
-     * @param {*} [schema] 
+     * @param {*} name
+     * @param {*} [schema]
      * @returns {EntityModel}
      */
     $m(name, schema) {
@@ -40,7 +40,7 @@ class BasicController {
             throw new ApplicationError('Database service (i.e. db feature) is not enabled.');
         }
 
-        const db = this.app.db(schema);        
+        const db = this.app.db(schema);
         return db.entity(name);
     }
 
@@ -72,7 +72,7 @@ class BasicController {
 
     /**
      * Delete a memory cache entry by key
-     * @param {*} key 
+     * @param {*} key
      */
     deleteCache(key) {
         const ttlCache = this.app.getService('ttlMemCache');
@@ -81,10 +81,10 @@ class BasicController {
 
     /**
      * Send response with cache and wrapped by apiWrapper feature
-     * @param {*} ctx 
-     * @param {*} result 
-     * @param {*} payload 
-     * @param {*} ttlCacheInfo 
+     * @param {*} ctx
+     * @param {*} result
+     * @param {*} payload
+     * @param {*} ttlCacheInfo
      */
     send(ctx, result, payload, ttlCacheInfo) {
         ctx.body = this.apiWrapper.wrapResult(ctx, result, payload);
@@ -95,7 +95,7 @@ class BasicController {
                 value.push(payload);
             }
 
-            if (!ttlCacheInfo.key)  {
+            if (!ttlCacheInfo.key) {
                 throw new ApplicationError('"key" of TTL cache is required.');
             }
 

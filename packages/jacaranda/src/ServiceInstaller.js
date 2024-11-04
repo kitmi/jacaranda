@@ -6,7 +6,7 @@ import ServiceContainer from './ServiceContainer';
  * Service dependencies installer.
  * @class
  */
-class ServiceInstaller extends ServiceContainer {     
+class ServiceInstaller extends ServiceContainer {
     async _loadFeatureGroup_(featureGroup, groupStage) {
         const npm = packageManagers[this.options.packageManager];
 
@@ -24,11 +24,15 @@ class ServiceInstaller extends ServiceContainer {
 
             depends && this._dependsOn(depends, name);
 
-            const requiredPackages = feature.packages ? (typeof feature.packages === 'function' ? feature.packages(options) : feature.packages) : [];
+            const requiredPackages = feature.packages
+                ? typeof feature.packages === 'function'
+                    ? feature.packages(options)
+                    : feature.packages
+                : [];
             if (this.options.dryRun) {
-                this.log('info', `Detected dependencies: [${requiredPackages.join(', ')}]`)
+                this.log('info', `Detected dependencies: [${requiredPackages.join(', ')}]`);
             } else {
-                await eachAsync_(requiredPackages, pkg => npm.addPackage_(pkg));
+                await eachAsync_(requiredPackages, (pkg) => npm.addPackage_(pkg));
             }
 
             this.features[name].enabled = true;

@@ -15,18 +15,17 @@ routing:
         module:
             $middlewares:
                 - dummy
-            $controllerPath: actions            
+            $controllerPath: actions
             '/': test
-    /module2:        
+    /module2:
         module:
             $controllerPath: actions
             '/': test2
     /api:
-        rest: 
+        rest:
             $urlDasherize: true
     /api/v2:
         jacaranda:
             $controllerPath: actions2
             $urlDasherize: true
             pet: '/store/:storeId/pet'
-                

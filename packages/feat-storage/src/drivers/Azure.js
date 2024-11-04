@@ -8,7 +8,7 @@ class AzureService {
     constructor(app, options) {
         if (!app.enabled('i18n')) {
             throw new ApplicationError('"i18n" feature is required.');
-        }   
+        }
 
         const { accountName, accountKey, bucket: containerName } = options;
         const StorageBlob = app.tryRequire('@azure/storage-blob');

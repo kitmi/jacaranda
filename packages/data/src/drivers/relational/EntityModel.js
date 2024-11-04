@@ -1,12 +1,6 @@
 import { _, eachAsync_, batchAsync_, isPlainObject, isEmpty, set as _set, get as _get } from '@kitmi/utils';
 import EntityModel, { FLAG_DRY_RUN_IGNORE } from '../../EntityModel';
-import {
-    ApplicationError,
-    ReferencedNotExist,
-    ValidationError,
-    InvalidArgument,
-    DatabaseError,
-} from '@kitmi/types';
+import { ApplicationError, ReferencedNotExist, ValidationError, InvalidArgument, DatabaseError } from '@kitmi/types';
 import { TopoSort } from '@kitmi/algo';
 
 import { getValueFromAny, isSelectAll } from '../../helpers';
@@ -70,7 +64,7 @@ class RelationalEntityModel extends EntityModel {
         const assocTable = {};
         const cache = {};
 
-        const topoSort = new TopoSort();        
+        const topoSort = new TopoSort();
 
         associations.forEach((assoc) => {
             if (typeof assoc === 'object') {
@@ -84,7 +78,7 @@ class RelationalEntityModel extends EntityModel {
                     alias = assoc.entity;
                 }
 
-                if (this.meta.associations && (alias in this.meta.associations)) {
+                if (this.meta.associations && alias in this.meta.associations) {
                     throw new InvalidArgument(`Alias "${alias}" conflicts with a predefined association.`, {
                         entity: this.meta.name,
                         alias,
@@ -99,17 +93,17 @@ class RelationalEntityModel extends EntityModel {
                 }
 
                 putInTopoSort(topoSort, assoc, alias);
-    
+
                 cache[alias] = assocTable[alias] = {
-                    ...assoc   
+                    ...assoc,
                 };
             } else {
                 this._loadAssocIntoTable(findOptions, assocTable, cache, assoc);
-            }               
+            }
         });
 
         const dependencies = topoSort.sort();
-        dependencies.forEach(dep => {
+        dependencies.forEach((dep) => {
             const item = assocTable[dep];
             if (item == null) {
                 throw new InvalidArgument(`Association "${dep}" not found.`, {
@@ -126,7 +120,7 @@ class RelationalEntityModel extends EntityModel {
     }
 
     /**
-     * Load association into table 
+     * Load association into table
      * @param {*} assocTable - Hierarchy with subAssocs
      * @param {*} cache - Dotted path as key
      * @param {*} assoc - Dotted path
@@ -144,7 +138,7 @@ class RelationalEntityModel extends EntityModel {
                 throw new InvalidArgument(`Entity "${this.meta.name}" does not have the association "${assoc}".`);
             }
 
-            if (assocInfo.list && !findOptions.$skipOrm && !isSelectAll(findOptions.$select)) {                
+            if (assocInfo.list && !findOptions.$skipOrm && !isSelectAll(findOptions.$select)) {
                 findOptions.$select.add(assoc + '.' + assocInfo.key);
             }
 
@@ -152,7 +146,7 @@ class RelationalEntityModel extends EntityModel {
             cache[assoc] = result;
         } else {
             const base = assoc.substring(0, lastPos);
-            const last = assoc.substring(lastPos + 1);            
+            const last = assoc.substring(lastPos + 1);
 
             let baseNode = cache[base];
             if (!baseNode) {
@@ -349,7 +343,7 @@ class RelationalEntityModel extends EntityModel {
                 }
 
                 return batchAsync_(data, (item) =>
-                    assocModel.create_({ ...item, [assocMeta.field]: keyValue }, { ...passOnOptions, '$upsert': true })
+                    assocModel.create_({ ...item, [assocMeta.field]: keyValue }, { ...passOnOptions, $upsert: true })
                 );
             }
 
@@ -366,7 +360,7 @@ class RelationalEntityModel extends EntityModel {
                 data = { ...data, [assocMeta.field]: keyValue };
             }
 
-            let created = await assocModel.create_(data, { ...passOnOptions, '$upsert': true });
+            let created = await assocModel.create_(data, { ...passOnOptions, $upsert: true });
 
             if (!beforeEntityCreate) {
                 return;

@@ -32,31 +32,22 @@ export default {
 
         const service = {
             async speakToFile_(text, filename, language) {
-                const voiceName =
-                    voiceMapping[language] ?? 'en-US-JennyMultilingualNeural';
+                const voiceName = voiceMapping[language] ?? 'en-US-JennyMultilingualNeural';
 
-                const speechConfig = sdk.SpeechConfig.fromSubscription(
-                    apiKey,
-                    region
-                );
+                const speechConfig = sdk.SpeechConfig.fromSubscription(apiKey, region);
 
                 // setting the synthesis language, voice name, and output audio format.
                 // see https://aka.ms/speech/tts-languages for available languages and voices
                 //speechConfig.speechSynthesisLanguage = language;
                 speechConfig.speechSynthesisVoiceName = voiceName;
-                speechConfig.speechSynthesisOutputFormat =
-                    sdk.SpeechSynthesisOutputFormat.Audio24Khz48KBitRateMonoMp3;
+                speechConfig.speechSynthesisOutputFormat = sdk.SpeechSynthesisOutputFormat.Audio24Khz48KBitRateMonoMp3;
 
                 // now create the audio-config pointing to the output file.
                 // You can also use audio output stream to initialize the audio config, see the docs for details.
-                const audioConfig =
-                    sdk.AudioConfig.fromAudioFileOutput(filename);
+                const audioConfig = sdk.AudioConfig.fromAudioFileOutput(filename);
 
                 // create the speech synthesizer.
-                let synthesizer = new sdk.SpeechSynthesizer(
-                    speechConfig,
-                    audioConfig
-                );
+                let synthesizer = new sdk.SpeechSynthesizer(speechConfig, audioConfig);
 
                 // start the synthesizer and wait for a result.
                 return new Promise((resolve, reject) => {
@@ -77,17 +68,12 @@ export default {
             },
 
             async speakToBuffer_(text, language) {
-                const voiceName =
-                    voiceMapping[language] ?? 'en-US-JennyMultilingualNeural';
+                const voiceName = voiceMapping[language] ?? 'en-US-JennyMultilingualNeural';
 
-                const speechConfig = sdk.SpeechConfig.fromSubscription(
-                    apiKey,
-                    region
-                );
+                const speechConfig = sdk.SpeechConfig.fromSubscription(apiKey, region);
 
                 speechConfig.speechSynthesisVoiceName = voiceName;
-                speechConfig.speechSynthesisOutputFormat =
-                    sdk.SpeechSynthesisOutputFormat.Audio16Khz64KBitRateMonoMp3;
+                speechConfig.speechSynthesisOutputFormat = sdk.SpeechSynthesisOutputFormat.Audio16Khz64KBitRateMonoMp3;
 
                 let synthesizer = new sdk.SpeechSynthesizer(speechConfig);
 
@@ -102,7 +88,7 @@ export default {
 
                             // convert arrayBuffer to stream
                             // return stream
-                            
+
                             resolve(result.audioData);
                         },
                         (err) => {

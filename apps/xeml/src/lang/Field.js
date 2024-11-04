@@ -1,6 +1,6 @@
-const { _ } = require("@kitmi/utils");
-const { generateDisplayName, deepCloneField, Clonable, fieldNaming } = require("./XemlUtils");
-const Types = require("./Types");
+const { _ } = require('@kitmi/utils');
+const { generateDisplayName, deepCloneField, Clonable, fieldNaming } = require('./XemlUtils');
+const Types = require('./Types');
 
 /**
  * Geml entity field class.
@@ -20,11 +20,11 @@ class Field extends Clonable {
          * Original type information.
          * @member {object}
          */
-        this.info = info;        
+        this.info = info;
     }
 
     /**
-     * Linking the 
+     * Linking the
      */
     link() {
         if (!(this.info.type in Types)) {
@@ -36,16 +36,18 @@ class Field extends Clonable {
             if (Types.RESERVED_QUALIFIERS.has(key)) {
                 this[key] = value;
                 return;
-            }       
-
-            if (!typeObject.qualifiers.includes(key)) {
-                throw new Error(`Unsupported field qualifier "${key}" for type "${this.info.type}" of field "${this.name}."`);
             }
 
-            this[key] = key === 'enum' ? value : (Array.isArray(value) && value.length === 1 ? value[0] : value);
+            if (!typeObject.qualifiers.includes(key)) {
+                throw new Error(
+                    `Unsupported field qualifier "${key}" for type "${this.info.type}" of field "${this.name}."`
+                );
+            }
+
+            this[key] = key === 'enum' ? value : Array.isArray(value) && value.length === 1 ? value[0] : value;
         });
 
-        if (this.info.modifiers && _.find(this.info.modifiers, mod => mod.$xt === 'Activator')) {
+        if (this.info.modifiers && _.find(this.info.modifiers, (mod) => mod.$xt === 'Activator')) {
             this.hasActivator = true;
         }
 
@@ -53,7 +55,7 @@ class Field extends Clonable {
          * The default name of the field
          * @member {string}
          */
-        this.displayName = generateDisplayName(this.name);        
+        this.displayName = generateDisplayName(this.name);
 
         deepCloneField(this.info, this, 'modifiers');
 
@@ -65,7 +67,7 @@ class Field extends Clonable {
     }
 
     /**
-     * Clone the field     
+     * Clone the field
      * @returns {Field}
      */
     clone() {
@@ -74,7 +76,7 @@ class Field extends Clonable {
         let field = new Field(this.name, this.info);
         Object.assign(field, this.toJSON());
         field.linked = true;
-        
+
         return field;
     }
 
@@ -83,7 +85,7 @@ class Field extends Clonable {
      * @returns {object}
      */
     toJSON() {
-        return _.omit(_.toPlainObject(this), [ 'linked', 'info' ]);
+        return _.omit(_.toPlainObject(this), ['linked', 'info']);
     }
 }
 

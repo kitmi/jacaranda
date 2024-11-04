@@ -20,7 +20,7 @@ export default {
      * @param {object} routes - Routes and configuration
      * @returns {Promise.<*>}
      */
-    load_: (app, routes) => { 
+    load_: (app, routes) => {
         if (app.router == null) {
             // if mount to server level
             app.createServerModuleRouter();

@@ -214,7 +214,7 @@ $$ LANGUAGE plpgsql;\n\n`;
                 path.join(this.outputPath, initFilePath),
                 JSON.stringify(
                     {
-                        [XemlTypes.MetadataEntity]: metadata
+                        [XemlTypes.MetadataEntity]: metadata,
                     },
                     null,
                     4
@@ -1917,9 +1917,11 @@ $$ LANGUAGE plpgsql;\n`);
                         )} SET${_targetDefault};\n`;
                     }
 
-                    //column definitions        
+                    //column definitions
                     if (targetField.comment !== currentField.comment) {
-                        sql += `COMMENT ON COLUMN "${entityName}"."${name}" IS ${this.quoteString(targetField.comment)};\n\n`;
+                        sql += `COMMENT ON COLUMN "${entityName}"."${name}" IS ${this.quoteString(
+                            targetField.comment
+                        )};\n\n`;
                     }
 
                     sql += '\n';
@@ -1929,7 +1931,9 @@ $$ LANGUAGE plpgsql;\n`);
 
         if (fieldsToDrop.size > 0) {
             for (let fieldName of fieldsToDrop) {
-                this.warnings[`Delete ${entityName}.${fieldName}`] = `Field "${fieldName}" of entity "${entityName}" should be deleted.`;
+                this.warnings[
+                    `Delete ${entityName}.${fieldName}`
+                ] = `Field "${fieldName}" of entity "${entityName}" should be deleted.`;
             }
         }
 
@@ -2014,7 +2018,8 @@ $$ LANGUAGE plpgsql;\n`);
             }
 
             sql +=
-                'INDEX ' + (indexName.startsWith(XemlTypes.MetadataEntity + '_') ? 'IF NOT EXISTS "' : '"') +
+                'INDEX ' +
+                (indexName.startsWith(XemlTypes.MetadataEntity + '_') ? 'IF NOT EXISTS "' : '"') +
                 indexName +
                 '" ON "' +
                 entityName +

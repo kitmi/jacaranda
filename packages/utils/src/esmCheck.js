@@ -1,6 +1,6 @@
 /**
  * Check whether the object is an ES module, if yes, return the default export.
- * @param {*} obj 
+ * @param {*} obj
  * @returns {*}
  */
 const esmCheck = (obj) => {

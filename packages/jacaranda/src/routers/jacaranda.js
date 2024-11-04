@@ -20,7 +20,7 @@ const appendId = (baseEndpoint, idName) => (idName ? `${baseEndpoint}/:${idName}
  *  '<base path>': {
  *      jacaranda: {
  *          $controllerPath:
- *          $source: registry | runtime | direct | project 
+ *          $source: registry | runtime | direct | project
  *          $middlewares:
  *          $errorOptions
  *          $urlDasherize: false
@@ -46,13 +46,19 @@ const jaRestRouter = async (app, baseRoute, options) => {
     let resourcesPath = options.$controllerPath || 'resources';
     const kebabify = options.$urlDasherize;
 
-    app.useMiddleware(router, await (await app.getMiddlewareFactory_('jsonError'))(options.$errorOptions, app), 'jsonError');
+    app.useMiddleware(
+        router,
+        await (
+            await app.getMiddlewareFactory_('jsonError')
+        )(options.$errorOptions, app),
+        'jsonError'
+    );
 
     if (options.$middlewares) {
         await app.useMiddlewares_(router, options.$middlewares);
-    }    
+    }
 
-    const controllers = await loadControllers_(app, options.$source, resourcesPath, options.$packageName); 
+    const controllers = await loadControllers_(app, options.$source, resourcesPath, options.$packageName);
 
     await batchAsync_(controllers, async (controller, entityNameWithPath) => {
         if (typeof controller === 'function') {
@@ -66,9 +72,7 @@ const jaRestRouter = async (app, baseRoute, options) => {
         if (entityNameWithPath in options) {
             baseEndpoint = text.ensureStartsWith(text.dropIfEndsWith(options[entityNameWithPath], '/'), '/');
         } else {
-            const urlPath = pathNodes
-                .map((p) => kebabify ? naming.kebabCase(p) : p)
-                .join('/');
+            const urlPath = pathNodes.map((p) => (kebabify ? naming.kebabCase(p) : p)).join('/');
             baseEndpoint = text.ensureStartsWith(urlPath, '/');
         }
 
@@ -81,7 +85,12 @@ const jaRestRouter = async (app, baseRoute, options) => {
             if (hasMethod(controller, methodName)) {
                 const _action = controller[methodName].bind(controller);
                 const _middlewares = controller[methodName].__metaMiddlewares;
-                await app.addRoute_(router, httpMethod, baseEndpoint, _middlewares ? [..._middlewares, _action] : _action);
+                await app.addRoute_(
+                    router,
+                    httpMethod,
+                    baseEndpoint,
+                    _middlewares ? [..._middlewares, _action] : _action
+                );
             }
         }
 
@@ -89,7 +98,12 @@ const jaRestRouter = async (app, baseRoute, options) => {
             if (hasMethod(controller, methodName)) {
                 const _action = (ctx) => controller[methodName](ctx, ctx.params[idName]);
                 const _middlewares = controller[methodName].__metaMiddlewares;
-                await app.addRoute_(router, httpMethod, endpointWithId, _middlewares ? [..._middlewares, _action] : _action);
+                await app.addRoute_(
+                    router,
+                    httpMethod,
+                    endpointWithId,
+                    _middlewares ? [..._middlewares, _action] : _action
+                );
             }
         }
 
@@ -98,11 +112,11 @@ const jaRestRouter = async (app, baseRoute, options) => {
         await addRoute_('post_', 'post');
         await addRouteWithId_('put_', 'put');
         await addRouteWithId_('patch_', 'patch');
-        await addRouteWithId_('delete_', 'delete');        
-        
+        await addRouteWithId_('delete_', 'delete');
+
         await addRoute_('putMany_', 'put');
         await addRoute_('patchMany_', 'patch');
-        await addRoute_('deleteMany_', 'delete');        
+        await addRoute_('deleteMany_', 'delete');
     });
 
     app.addRouter(router);

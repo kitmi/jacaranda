@@ -60,7 +60,7 @@ export class GeneralError extends Error {
 }
 
 /**
- * Application errors mostly caused wrong coding or usage of functions. 
+ * Application errors mostly caused wrong coding or usage of functions.
  * @class
  * @extends GeneralError
  */

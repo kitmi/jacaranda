@@ -15,7 +15,7 @@ const KW_ASSOCIATIONS = 'associations';
 const KW_KEY = 'key';
 const KW_INDEXES = 'index';
 
-const Types = require("./Types");
+const Types = require('./Types');
 const GemlTypes = require('./XemlTypes');
 
 class GemlCodeGen {
@@ -40,7 +40,7 @@ class GemlCodeGen {
     appendLine(line) {
         if (line) {
             if (arguments.length > 1) {
-                line = [ ...arguments].join(' ');
+                line = [...arguments].join(' ');
             }
 
             this.content += (this.indented > 0 ? _.repeat(' ', this.indented) : '') + line + '\n';
@@ -62,7 +62,7 @@ class GemlCodeGen {
     }
 
     generateObject(obj) {
-        _.forOwn(obj, (v,k) => {
+        _.forOwn(obj, (v, k) => {
             let generateMethod = 'generate_' + k;
 
             if (generateMethod in this) {
@@ -82,7 +82,7 @@ class GemlCodeGen {
         if (namespaces.length > 0) {
             this.appendLine(KW_NAMESPACE).indent();
 
-            namespaces.forEach(ns => {
+            namespaces.forEach((ns) => {
                 this.appendLine(quote(ns, "'"));
             });
 
@@ -93,7 +93,7 @@ class GemlCodeGen {
     }
 
     generate_schema(schema) {
-        pre: {            
+        pre: {
             this.indented == 0, 'Unexpected indented state.';
         }
 
@@ -103,7 +103,7 @@ class GemlCodeGen {
             if (schemaInfo.entities) {
                 this.appendLine(KW_ENTITIES).indent();
 
-                schemaInfo.entities.forEach(entityEntry => {
+                schemaInfo.entities.forEach((entityEntry) => {
                     if (entityEntry.alias) {
                         this.appendLine(entityEntry.entity, KW_ENTITY_AS_ALIAS, entityEntry.alias);
                     } else {
@@ -115,7 +115,7 @@ class GemlCodeGen {
             }
 
             this.dedent();
-        });        
+        });
 
         post: this.indented == 0, 'Unexpected indented state.';
     }
@@ -130,7 +130,7 @@ class GemlCodeGen {
             this.appendLine(KW_TYPE_DEFINE).indent();
 
             _.forOwn(types, (type, name) => {
-                let lineInfo = [ name, ':', type.type ];
+                let lineInfo = [name, ':', type.type];
 
                 this._translateType(type, lineInfo);
 
@@ -145,14 +145,14 @@ class GemlCodeGen {
 
     generate_field_comment(entityName, colName) {
         let colNameFullSnake = _.trimStart(_.snakeCase(colName), '_');
-        let  [ colNameFirstWord, colNameRest ] = colNameFullSnake.split('_', 2);
+        let [colNameFirstWord, colNameRest] = colNameFullSnake.split('_', 2);
 
         let result;
 
         let entityNameFullSnake = _.trim(_.snakeCase(entityName), '_');
         if (_.endsWith(entityNameFullSnake, colNameFirstWord)) {
             result = entityNameFullSnake;
-            
+
             if (colNameRest) {
                 result += '_' + colNameRest;
             }
@@ -183,7 +183,7 @@ class GemlCodeGen {
             if (!_.isEmpty(entity.features)) {
                 this.appendLine(KW_WITH_FEATURE).indent();
 
-                entity.features.forEach(feature => {
+                entity.features.forEach((feature) => {
                     if (typeof feature === 'string') {
                         feature = { name: feature };
                     }
@@ -193,7 +193,9 @@ class GemlCodeGen {
                     }
 
                     if (feature.args) {
-                        this.appendLine(feature.name + '(' + feature.args.map(a => JSON.stringify(a)).join(', ') + ')');
+                        this.appendLine(
+                            feature.name + '(' + feature.args.map((a) => JSON.stringify(a)).join(', ') + ')'
+                        );
                     } else {
                         this.appendLine(feature.name);
                     }
@@ -206,19 +208,21 @@ class GemlCodeGen {
                 this.appendLine().appendLine(KW_FIELDS).indent();
 
                 _.forOwn(entity.fields, (field, name) => {
-                    assert: field.type;                    
+                    assert: field.type;
 
                     let lineInfo = [];
-                    lineInfo.push(name in Types ? quote(name) : name);                    
-                    
+                    lineInfo.push(name in Types ? quote(name) : name);
+
                     if (field.type !== name) {
                         lineInfo.push(':');
                         lineInfo.push(field.type);
-                    }                  
+                    }
 
                     this._translateType(field, lineInfo);
 
-                    lineInfo.push(KW_COMMENT + ' ' + quote(field.comment || this.generate_field_comment(enityName, name)));
+                    lineInfo.push(
+                        KW_COMMENT + ' ' + quote(field.comment || this.generate_field_comment(enityName, name))
+                    );
 
                     this.appendLine(...lineInfo);
                 });
@@ -236,25 +240,25 @@ class GemlCodeGen {
                         this.appendLine(type, quote(destEntity, "'"), 'connectedBy', quote(connectedBy, "'"));
                     } else {
                         this.appendLine(type, quote(destEntity, "'"));
-                    }                    
+                    }
                 });
 
                 this.dedent();
             }
 
             if (entity.key && !hasAutoId) {
-                let key = (Array.isArray(entity.key) && entity.key.length === 1) ? entity.key[0] : entity.key;
+                let key = Array.isArray(entity.key) && entity.key.length === 1 ? entity.key[0] : entity.key;
                 if (Array.isArray(key)) {
                     this.appendLine().appendLine(KW_KEY, '[ ' + key.join(', ') + ' ]');
                 } else {
                     this.appendLine().appendLine(KW_KEY, key);
-                }                
+                }
             }
 
             if (!_.isEmpty(entity.indexes)) {
                 this.appendLine().appendLine(KW_INDEXES).indent();
 
-                entity.indexes.forEach(i => {
+                entity.indexes.forEach((i) => {
                     let indexInfo = [];
 
                     if (Array.isArray(i.fields)) {
@@ -301,30 +305,30 @@ class GemlCodeGen {
 
         if (field.modifiers) {
             this._translatePipedValue(lineInfo, field);
-        }        
+        }
     }
 
-    _translatePipedValue(lineInfo, value) {        
+    _translatePipedValue(lineInfo, value) {
         if (value.modifiers) {
-            value.modifiers.forEach(v => {
+            value.modifiers.forEach((v) => {
                 switch (v.$xt) {
                     case GemlTypes.Lang.VALIDATOR:
-                    lineInfo.push('|~' + this._translateModifier(v));
-                    break;
+                        lineInfo.push('|~' + this._translateModifier(v));
+                        break;
 
                     case GemlTypes.Lang.PROCESSOR:
-                    lineInfo.push('|>' + this._translateModifier(v));
-                    break;
+                        lineInfo.push('|>' + this._translateModifier(v));
+                        break;
 
                     case GemlTypes.Lang.ACTIVATOR:
-                    lineInfo.push('|=' + this._translateModifier(v));
-                    break;
+                        lineInfo.push('|=' + this._translateModifier(v));
+                        break;
 
                     default:
                         throw new Error(`Unknown modifier type: "${v.$xt}"!`);
-                }                                
+                }
             });
-        } 
+        }
     }
 
     _translateModifier(f) {
@@ -342,13 +346,13 @@ class GemlCodeGen {
     }
 
     _translateArgs(args) {
-        return args.map(a => this._translateArg(a)).join(', ');
+        return args.map((a) => this._translateArg(a)).join(', ');
     }
 
     _translateArg(a) {
         if (_.isPlainObject(a) && a.hasOwnProperty('$xt')) {
             if (a.$xt === 'PipedValue') {
-                let pipeline = [ this._translateArg(a.value) ];
+                let pipeline = [this._translateArg(a.value)];
 
                 if (a.modifiers) {
                     this._translatePipedValue(pipeline, a);
@@ -360,10 +364,10 @@ class GemlCodeGen {
             } else {
                 throw new Error('Not supported $xt: ' + a.$xt);
             }
-        } 
+        }
 
         if (typeof a === 'string' && isWrappedWith(a, '/')) return a;
-        
+
         return JSON.stringify(a);
     }
 }

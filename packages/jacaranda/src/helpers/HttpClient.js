@@ -101,7 +101,7 @@ class HttpClient {
                     req.field(k, v);
                 });
             }
-            
+
             let fileOpts = null;
             if (_options.fileName) {
                 fileOpts = { filename: _options.fileName };
@@ -114,7 +114,7 @@ class HttpClient {
             req.attach(_options.fileField ?? 'file', body, fileOpts);
         } else if (httpMethod !== 'get') {
             if (_options.usePipe) {
-                req = new Promise((resolve, reject) => {                    
+                req = new Promise((resolve, reject) => {
                     req.on('response', resolve);
                     req.on('error', reject);
                     body.pipe(req);
@@ -145,14 +145,14 @@ class HttpClient {
             const onOtherError = _options.onOtherError ?? this.onOtherError;
             const onResponseError = _options.onResponseError ?? this.onResponseError;
 
-            if (error.response) {                
+            if (error.response) {
                 if (onResponseError) {
                     let body = error.response.body;
                     if (!body && error.response.type === 'application/json') {
                         try {
                             body = JSON.parse(error.response.text);
                         } catch (e) {}
-                    }                    
+                    }
 
                     return onResponseError(body, error);
                 }
@@ -192,7 +192,7 @@ class HttpClient {
         return this.do('upload', resToPath(resource), query, file, options);
     }
 
-    async download(resource, query, options) {        
+    async download(resource, query, options) {
         return this.do('download', resToPath(resource), query, null, options);
     }
 }

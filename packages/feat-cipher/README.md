@@ -2,11 +2,11 @@
 
 ## Jacaranda Framework AI Features
 
-`@kitmi/feat-cipher` 
+`@kitmi/feat-cipher`
 
 ## Features
 
-- cipher
+-   cipher
 
 ## Installation
 
@@ -25,15 +25,17 @@ npm install @kitmi/feat-cipher
 ## Usage
 
 1. Export the feature in the app module
+
 ```js
 import cipher from '@kitmi/feat-cipher';
 
 export default {
-    cipher
+    cipher,
 };
 ```
 
 2. Add the feature into config
+
 ```yaml
 cipher:
     key: '' # optional
@@ -41,12 +43,14 @@ cipher:
     # ...
 ```
 
-3. Use anywhere 
+3. Use anywhere
+
 ```js
 const cipher = app.getService('cipher');
 cipher.hash();
 ```
 
 ## License
-- MIT
-- Copyright (c) 2023 KITMI PTY LTD
+
+-   MIT
+-   Copyright (c) 2023 KITMI PTY LTD

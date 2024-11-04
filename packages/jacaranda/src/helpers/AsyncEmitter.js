@@ -51,7 +51,7 @@ class AsyncEmitter {
             delete this._handlers[event];
         } else {
             this._handlers[event] = filtered;
-        }         
+        }
 
         await batchAsync_(_handlers, (item) => item.handler(...args));
 

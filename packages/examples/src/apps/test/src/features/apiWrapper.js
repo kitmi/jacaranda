@@ -1,5 +1,5 @@
-import { Feature } from "@kitmi/jacaranda";
-import http from "node:http";
+import { Feature } from '@kitmi/jacaranda';
+import http from 'node:http';
 
 const statusToError = {
     400: 'invalid_request',
@@ -11,7 +11,6 @@ const statusToError = {
 const unknownError = 'unknown_error';
 
 export default {
-
     /**
      * This feature is loaded at init stage
      * @member {string}
@@ -21,7 +20,7 @@ export default {
     /**
      * Load the feature
      * @param {App} app - The cli app module object
-     * @param {object} settings - Settings of soal client   
+     * @param {object} settings - Settings of soal client
      * @returns {Promise.<*>}
      */
     load_: async function (app, settings, name) {
@@ -33,24 +32,22 @@ export default {
                     result,
                 };
             },
-        
+
             wrapError: (ctx, error, others) => {
                 const code = error.code || statusToError[ctx.status] || unknownError;
-                                
+
                 return {
                     status: 'error',
-                    ...others,                    
+                    ...others,
                     error: {
                         code,
-                        message: error.expose
-                            ? error.message
-                            : http.STATUS_CODES[ctx.status],
-                        ...(error.info ? { info: error.info }: null)
+                        message: error.expose ? error.message : http.STATUS_CODES[ctx.status],
+                        ...(error.info ? { info: error.info } : null),
                     },
                 };
             },
         };
 
         app.registerService(name, service);
-    }
+    },
 };

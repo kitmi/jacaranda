@@ -41,12 +41,7 @@ class S3Service {
     }
 
     async upload_(...args) {
-        const [objectKey, file, contentType, payload] = fxargs(args, [
-            'string',
-            'string',
-            'string?',
-            'object?',
-        ]);
+        const [objectKey, file, contentType, payload] = fxargs(args, ['string', 'string', 'string?', 'object?']);
 
         const { PutObjectCommand } = this.SDK;
 

@@ -6,7 +6,7 @@ class HonoEngine {
     }
 
     async init_(config) {
-        const { Hono } = await this.app.tryRequire_('hono');        
+        const { Hono } = await this.app.tryRequire_('hono');
 
         //create a hono instance and inject the appModule instance in the first middleware
         const createEngine = (engineWrapper) => {

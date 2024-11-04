@@ -45,8 +45,8 @@ class ResponseWrapper {
                 this.error.text = this.text;
             }
             //console.log(this.body);
-        } else {            
-            this.body = this.res.body;            
+        } else {
+            this.body = this.res.body;
         }
 
         if (this.error) {
@@ -109,7 +109,7 @@ class ResponseWrapper {
         const _url = new URL(url);
         const __url = _url.pathname;
         const message = `cannot ${method} ${__url} (${this.status})`;
-        const error = new Error(message);   
+        const error = new Error(message);
         error.status = this.status;
         error.method = method;
         error.url = __url;

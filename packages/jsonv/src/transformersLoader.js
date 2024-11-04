@@ -72,7 +72,7 @@ export default function transformersFactory(config) {
     config.addTransformerToMap(OP_MATCH, (left, right, context) => {
         right = processExprLikeValue(right, context);
         right = typeof right === 'object' ? right : { $eq: right };
-        
+
         return handleResult(validate(left, right, matchOptions, context), matchOptions, context);
     });
 }

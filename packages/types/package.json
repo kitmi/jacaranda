@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/types",
-    "version": "1.3.3",
+    "version": "1.3.4",
     "description": "JavaScript semantic data types",
     "main": "cjs/index.js",
     "module": "src/index.js",
@@ -26,7 +26,7 @@
     "license": "MIT",
     "scripts": {
         "test": "mocha --recursive ./test/*.spec.js",
-        "doc": "jsdoc --configure .jsdoc.json --verbose && pnpm prepack",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && node ../../scripts/prepack.js",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive ./test/*.spec.js && open ./coverage/index.html",
         "prettier": "prettier --write .",
         "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",

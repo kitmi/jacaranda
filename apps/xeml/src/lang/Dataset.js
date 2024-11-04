@@ -6,7 +6,7 @@ const { deepCloneField, Clonable, isDotSeparateName } = require('./XemlUtils');
  * @class Dataset
  */
 class Dataset extends Clonable {
-    /**     
+    /**
      * @param {Linker} linker
      * @param {string} name - Dataset name
      * @param {object} xemlModule - Source ool module
@@ -14,7 +14,7 @@ class Dataset extends Clonable {
      */
     constructor(linker, name, xemlModule, info) {
         super();
-        
+
         /**
          * Linker to process this document
          * @member {Linker}
@@ -57,7 +57,7 @@ class Dataset extends Clonable {
             this.mainEntity = dataset.mainEntity;
             this.joinWith = _.cloneDeep(dataset.joinWith);
         }
-        
+
         if (!_.isEmpty(this.info.joinWith)) {
             if (!this.joinWith) {
                 this.joinWith = _.cloneDeep(this.info.joinWith);
@@ -80,12 +80,12 @@ class Dataset extends Clonable {
         let leftEntity = inSchema.entities[dataset.mainEntity];
 
         if (dataset.joinWith) {
-            dataset.joinWith.forEach(joining => {
+            dataset.joinWith.forEach((joining) => {
                 let leftField, rightEntity, rightField;
 
                 if (isDotSeparateName(joining.on.left)) {
                     let lastPos = joining.on.left.lastIndexOf('.');
-                    let fieldRef = joining.on.left.substr(lastPos+1);
+                    let fieldRef = joining.on.left.substr(lastPos + 1);
                     let entityRef = joining.on.left.substr(0, lastPos);
 
                     if (entityRef === leftEntity.name) {
@@ -93,7 +93,6 @@ class Dataset extends Clonable {
                     } else {
                         throw new Error(`Unsupported syntax of left side joining field "${joining.on.left}".`);
                     }
-
                 } else {
                     //field of leftEntity
                     leftField = leftEntity.getEntityAttribute(joining.on.left);
@@ -105,23 +104,27 @@ class Dataset extends Clonable {
                     if (isDotSeparateName(joining.on.right)) {
                         let parts = joining.on.right.split('.');
                         if (parts.length > 2) {
-                            throw new Error('Joining a document should only referencing to a field of its main entity.');
+                            throw new Error(
+                                'Joining a document should only referencing to a field of its main entity.'
+                            );
                         }
 
-                        let [ entityRef, fieldRef ] = parts;
+                        let [entityRef, fieldRef] = parts;
 
                         if (entityRef !== rightHierarchy.entity) {
-
-                            throw new Error(`Referenced field "${joining.on.right}" not found while linking to document "${joining.dataset}".`);
+                            throw new Error(
+                                `Referenced field "${joining.on.right}" not found while linking to document "${joining.dataset}".`
+                            );
                         }
 
-                        assert: !hierarchy[leftField.name], 'Duplicate joinings on the same field of the left side entity.';
+                        assert: !hierarchy[leftField.name],
+                            'Duplicate joinings on the same field of the left side entity.';
 
                         rightEntity = inSchema.entities[entityRef];
                         rightField = rightEntity.getEntityAttribute(fieldRef);
 
                         hierarchy[leftField.name] = Object.assign({}, rightHierarchy, {
-                            linkWithField: rightField.name
+                            linkWithField: rightField.name,
                         });
 
                         return;
@@ -133,7 +136,9 @@ class Dataset extends Clonable {
                     rightEntity = inSchema.entities[joining.entity];
 
                     if (isDotSeparateName(joining.on.right)) {
-                        throw new Error(`Referenced field "${joining.on.right}" not found while linking to entity "${joining.entity}".`);
+                        throw new Error(
+                            `Referenced field "${joining.on.right}" not found while linking to entity "${joining.entity}".`
+                        );
                     }
                 }
 
@@ -145,7 +150,7 @@ class Dataset extends Clonable {
                 hierarchy[leftField.name] = {
                     $xt: 'DocumentHierarchyNode',
                     entity: rightEntity.name,
-                    linkWithField: rightField.name
+                    linkWithField: rightField.name,
                 };
             });
         }
@@ -153,7 +158,7 @@ class Dataset extends Clonable {
         return {
             $xt: 'DocumentHierarchyNode',
             entity: leftEntity.name,
-            subDocuments: hierarchy
+            subDocuments: hierarchy,
         };
     }
 
@@ -174,16 +179,15 @@ class Dataset extends Clonable {
         return dataset;
     }
 
-
     /**
      * Translate the document into a plain JSON object
      * @returns {object}
      */
     toJSON() {
-        return {            
+        return {
             name: this.name,
             mainEntity: this.mainEntity.toJSON(),
-            joinWith: this.joinWith
+            joinWith: this.joinWith,
         };
     }
 }

@@ -5,14 +5,14 @@ const { fs, isDirEmpty } = require('@genx/sys');
 /**
  * Pull schema from database (reverse engineering).
  * @param {ServiceContainer} app
- * @param {object} context 
+ * @param {object} context
  * @property {string} context.gemlPath
- * @property {string} context.modelPath         
+ * @property {string} context.modelPath
  * @property {string} context.scriptPath
  * @property {string} context.manifestPath
  * @property {bool} context.useJsonSource
  * @property {bool} context.saveIntermediate
- * @property {object} context.schemas   
+ * @property {object} context.schemas
  * @returns {Promise}
  */
 module.exports = async (app, context) => {

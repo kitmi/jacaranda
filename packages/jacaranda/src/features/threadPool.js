@@ -18,7 +18,7 @@ const recreateWorkerError = (sourceError) => {
 let poolIdCounter = 0;
 
 export class WorkerPool {
-    constructor(app, options) {        
+    constructor(app, options) {
         const { name, workerFile, lowThreadNum, highThreadNum, workerOptions } = options;
 
         this.app = app;

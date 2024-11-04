@@ -1,100 +1,100 @@
 {
-  "name": "@kitmi/jacaranda",
-  "version": "3.4.2",
-  "description": "JavaScript application framework",
-  "main": "cjs/index.js",
-  "module": "src/index.js",
-  "react-native": "src/index.js",
-  "exports": {
-    ".": {
-      "import": "./src/index.js",
-      "require": "./cjs/index.js"
+    "name": "@kitmi/jacaranda",
+    "version": "3.4.3",
+    "description": "JavaScript application framework",
+    "main": "cjs/index.js",
+    "module": "src/index.js",
+    "react-native": "src/index.js",
+    "exports": {
+        ".": {
+            "import": "./src/index.js",
+            "require": "./cjs/index.js"
+        },
+        "./*": {
+            "import": "./src/*.js",
+            "require": "./cjs/*.js"
+        },
+        "./**/*": {
+            "import": "./src/**/*.js",
+            "require": "./cjs/**/*.js"
+        }
     },
-    "./*": {
-      "import": "./src/*.js",
-      "require": "./cjs/*.js"
+    "publishConfig": {
+        "access": "public"
     },
-    "./**/*": {
-      "import": "./src/**/*.js",
-      "require": "./cjs/**/*.js"
+    "author": "Rockie Guo <rockie@kitmi.com.au>",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kitmi/jacaranda.git"
+    },
+    "license": "MIT",
+    "scripts": {
+        "test": "NODE_OPTIONS=--enable-source-maps SWCRC=true mocha --recursive test/**/*.spec.js",
+        "doc": "jsdoc --configure .jsdoc.json --verbose && node ../../scripts/prepack.js",
+        "cover": "NODE_OPTIONS=--enable-source-maps SWCRC=true nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
+        "prettier": "prettier --write .",
+        "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",
+        "lint-fix": "pnpm lint --fix",
+        "clean": "shx rm -rf cjs coverage .nyc_output",
+        "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths",
+        "prepublishOnly": "pnpm build"
+    },
+    "keywords": [
+        "kitmi",
+        "jacaranda",
+        "app",
+        "framework"
+    ],
+    "nyc": {
+        "exclude": [
+            ".*",
+            "cjs",
+            "test",
+            "**/*.spec.js"
+        ]
+    },
+    "dependencies": {
+        "@kitmi/adapters": "workspace:^",
+        "@kitmi/algo": "workspace:^",
+        "@kitmi/config": "workspace:^",
+        "@kitmi/sys": "workspace:^",
+        "@kitmi/types": "workspace:^",
+        "@kitmi/utils": "workspace:^",
+        "@kitmi/validators": "workspace:^",
+        "collections": "^5.1.13",
+        "glob": "^10.3.10",
+        "luxon": "^3.4.4",
+        "minimist": "^1.2.8",
+        "pino": "^8.14.1",
+        "pino-pretty": "^10.0.0"
+    },
+    "peerDependencies": {
+        "@kitmi/algo": "workspace:^",
+        "@kitmi/config": "workspace:^",
+        "@kitmi/sys": "workspace:^",
+        "@kitmi/types": "workspace:^",
+        "@kitmi/utils": "workspace:^",
+        "@kitmi/validators": "workspace:^"
+    },
+    "devDependencies": {
+        "capture-console": "^1.0.1",
+        "inquirer": "^8.2.6",
+        "jsonwebtoken": "^9.0.0",
+        "koa": "^2.14.2",
+        "koa-body": "^6.0.1",
+        "koa-compress": "^5.1.1",
+        "koa-etag": "^4.0.0",
+        "koa-mount": "^4.0.0",
+        "koa-static": "^5.0.0",
+        "nanoid": "^3.3.7",
+        "oxlint": "^0.4.4"
+    },
+    "prettier": {
+        "quoteProps": "consistent",
+        "printWidth": 120,
+        "singleQuote": true,
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "useTabs": false
     }
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "author": "Rockie Guo <rockie@kitmi.com.au>",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kitmi/jacaranda.git"
-  },
-  "license": "MIT",
-  "scripts": {
-    "test": "NODE_OPTIONS=--enable-source-maps SWCRC=true mocha --recursive test/**/*.spec.js",
-    "doc": "jsdoc --configure .jsdoc.json --verbose && pnpm prepack",
-    "cover": "NODE_OPTIONS=--enable-source-maps SWCRC=true nyc --reporter=html --reporter=text mocha --recursive test/**/*.spec.js && open ./coverage/index.html",
-    "prettier": "prettier --write .",
-    "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",
-    "lint-fix": "pnpm lint --fix",
-    "clean": "shx rm -rf cjs coverage .nyc_output",
-    "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths",
-    "prepublishOnly": "pnpm build"
-  },
-  "keywords": [
-    "kitmi",
-    "jacaranda",
-    "app",
-    "framework"
-  ],
-  "nyc": {
-    "exclude": [
-      ".*",
-      "cjs",
-      "test",
-      "**/*.spec.js"
-    ]
-  },
-  "dependencies": {
-    "@kitmi/adapters": "workspace:^",
-    "@kitmi/algo": "workspace:^",
-    "@kitmi/config": "workspace:^",
-    "@kitmi/sys": "workspace:^",
-    "@kitmi/types": "workspace:^",
-    "@kitmi/utils": "workspace:^",
-    "@kitmi/validators": "workspace:^",
-    "collections": "^5.1.13",
-    "glob": "^10.3.10",
-    "luxon": "^3.4.4",
-    "minimist": "^1.2.8",
-    "pino": "^8.14.1",
-    "pino-pretty": "^10.0.0"
-  },
-  "peerDependencies": {
-    "@kitmi/algo": "workspace:^",
-    "@kitmi/config": "workspace:^",
-    "@kitmi/sys": "workspace:^",
-    "@kitmi/types": "workspace:^",
-    "@kitmi/utils": "workspace:^",
-    "@kitmi/validators": "workspace:^"
-  },
-  "devDependencies": {
-    "capture-console": "^1.0.1",
-    "inquirer": "^8.2.6",
-    "jsonwebtoken": "^9.0.0",
-    "koa": "^2.14.2",
-    "koa-body": "^6.0.1",
-    "koa-compress": "^5.1.1",
-    "koa-etag": "^4.0.0",
-    "koa-mount": "^4.0.0",
-    "koa-static": "^5.0.0",
-    "nanoid": "^3.3.7",
-    "oxlint": "^0.4.4"
-  },
-  "prettier": {
-    "quoteProps": "consistent",
-    "printWidth": 120,
-    "singleQuote": true,
-    "trailingComma": "es5",
-    "tabWidth": 4,
-    "useTabs": false
-  }
 }

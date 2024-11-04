@@ -33,7 +33,7 @@ export default {
                 throw new InvalidConfiguration(`Unsupported config file type: ${configPath}`, app, name);
             }
         }
-        
+
         return app.loadConfig_();
     },
 };

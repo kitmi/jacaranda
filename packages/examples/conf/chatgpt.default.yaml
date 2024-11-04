@@ -1,6 +1,5 @@
-logger: 
+logger:
 
 openai:
-  "organization": "org-xxx"
-  "apiKey": "sk-xxx"
-
+    'organization': 'org-xxx'
+    'apiKey': 'sk-xxx'
