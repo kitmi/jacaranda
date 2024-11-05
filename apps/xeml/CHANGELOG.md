@@ -1,5 +1,13 @@
 # @kitmi/xeml
 
+## 0.9.2
+
+### Patch Changes
+
+-   Bug fixing
+-   Add custom fields (which does not belong to an entity) for predefined schema with "+" prefix
+-   Add separate build-api command for app module
+
 ## 0.9.1
 
 ### Patch Changes

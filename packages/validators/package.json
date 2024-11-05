@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/validators",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "description": "Dynamic validators to be used with @kitmi/types based on @kitmi/jsonv and @kitmi/jsonx",
     "main": "cjs/index",
     "module": "src/index.js",

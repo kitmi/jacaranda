@@ -14,6 +14,7 @@ const swig = require('swig-templates');
 const esprima = require('esprima');
 
 const XemlTypes = require('../lang/XemlTypes');
+const Field = require('../lang/Field');
 const JsLang = require('./util/ast');
 const XemlToAst = require('./util/xemlToAst');
 const Snippets = require('./dao/snippets');
@@ -126,7 +127,7 @@ class DaoModeler {
         this._generateEnumTypes(schema, versionInfo);
         //this._generateEntityInputSchema(schema, versionInfo);
         this._generateEntityViews(schema);
-        this._generateApi(schema, versionInfo);
+        this.generateApi(schema, versionInfo);
         //
         //this._generateViewModel();
     }
@@ -664,11 +665,29 @@ class DaoModeler {
                 const ast = JsLang.astProgram(true);
 
                 for (let key in datasetSchema) {
-                    const name = key;
+                    let name = key;
                     const input = datasetSchema[key];
 
                     //:address
-                    if (name.startsWith(':')) {
+                    if (name.startsWith('+')) {
+                        // extra field that not in the entity
+                        name = name.substring(1);
+
+                        let [mixed] = this.linker.trackBackType(entity.xemlModule, input);
+                        const field = new Field(name, mixed);
+                        field.link();
+
+                        const postProcessors = this._fieldMetaToModifiers(field);
+                        const extra =
+                            postProcessors.length > 0
+                                ? { post: input?.post ? postProcessors.concat(input.post) : postProcessors }
+                                : {};
+
+                        _validationSchema[name] = JsLang.astValue({
+                            ..._.pick(field, DATASET_FIELD_KEYS),
+                            ...extra,
+                        });
+                    } else if (name.startsWith(':')) {
                         const assoc = name.substring(1);
                         const assocMeta = entity.associations[assoc];
 
@@ -812,14 +831,14 @@ class DaoModeler {
         });
     }
 
-    _generateApi(schema, versionInfo) {
+    generateApi(schema, versionInfo) {
         const schemaPath = path.join(path.dirname(schema.linker.getModulePathById(schema.xemlModule.id)), 'api');
 
         // check if api folder exists and read all yaml files under api folder
-        const datasetFiles = globSync('*.yaml', { nodir: true, cwd: schemaPath });
-        const datasetFilesSet = new Set(datasetFiles);
+        const apiDefFiles = globSync('*.yaml', { nodir: true, cwd: schemaPath });
+        const apiDefFilesSet = new Set(apiDefFiles);
 
-        if (datasetFilesSet.size === 0) {
+        if (apiDefFilesSet.size === 0) {
             return;
         }
 
@@ -833,7 +852,7 @@ class DaoModeler {
         const typeSpecialize = (typeInfo, argsMap) => {};
 
         // process __types.yaml for type definitions
-        if (datasetFilesSet.has('__types.yaml')) {
+        if (apiDefFilesSet.has('__types.yaml')) {
             const types = yaml.parse(fs.readFileSync(path.join(schemaPath, '__types.yaml'), 'utf8'));
             // check if any type has $args property, change the type to a function
 
@@ -853,16 +872,16 @@ class DaoModeler {
 
                 context.sharedTypes[typeName] = typeInfo;
             });
-            datasetFilesSet.delete('__types.yaml');
+            apiDefFilesSet.delete('__types.yaml');
         }
 
         // process __groups.yaml for group definitions
-        if (datasetFilesSet.has('__groups.yaml')) {
+        if (apiDefFilesSet.has('__groups.yaml')) {
             context.groups = yaml.parse(fs.readFileSync(path.join(schemaPath, '__groups.yaml'), 'utf8'));
-            datasetFilesSet.delete('__groups.yaml');
+            apiDefFilesSet.delete('__groups.yaml');
         }
 
-        for (const datasetFile of datasetFilesSet) {
+        for (const datasetFile of apiDefFilesSet) {
             if (datasetFile.startsWith('_')) {
                 continue;
             }

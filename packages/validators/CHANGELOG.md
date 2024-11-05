@@ -1,5 +1,11 @@
 # @kitmi/validators
 
+## 1.4.1
+
+### Patch Changes
+
+-   Refine error messages
+
 ## 1.4.0
 
 ### Minor Changes

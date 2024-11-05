@@ -76,7 +76,10 @@ function validatorWrapper(validator) {
         let [validated, reason] = validator(value, options, meta, context);
 
         if (!validated) {
-            const details = handleErrors(reason);
+            let details = handleErrors(reason);
+            if (context.path) {
+                details = _.mapKeys(details, (value, key) => (key === '_' ? context.path : `${context.path}.${key}`));
+            }
             throw new ValidationError('Post-process validation failed.', details);
         }
 

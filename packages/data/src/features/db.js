@@ -18,6 +18,7 @@ export default {
                     type: 'object',
                     schema: {
                         dataSource: { type: 'text' },
+                        fromServer: { type: 'boolean', optional: true },
                         fromLib: { type: 'text', optional: true },
                     },
                 },
@@ -51,7 +52,18 @@ export default {
                 let connector;
                 let sourceApp;
 
-                if (dbConfig.fromLib) {
+                if (dbConfig.fromServer) {
+                    if (app.isServer) {
+                        throw new InvalidConfiguration(
+                            '"fromServer" should not be used in the server app itself.',
+                            app,
+                            `db.[${dbName}].fromServer`
+                        );
+                    }
+
+                    sourceApp = app.server;
+                    connector = sourceApp.getService(dbConfig.dataSource, true);
+                } else if (dbConfig.fromLib) {
                     if (dbConfig.fromLib === app.name) {
                         throw new InvalidConfiguration(
                             '"fromLib" should not be used in the source libModule itself.',

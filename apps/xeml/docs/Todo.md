@@ -43,3 +43,4 @@ e.g.
 ## Known issues
 
 - [ ] saveIntermediate should not save JSON to dependency package
+- [ ] modifiers from dependent package wrongly generated in the referencing package

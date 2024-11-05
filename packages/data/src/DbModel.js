@@ -63,7 +63,13 @@ class DbModel {
         const modelClassName = naming.pascalCase(entityName);
         if (this._entities[modelClassName]) return this._entities[modelClassName];
 
-        return (this._entities[modelClassName] = new this.meta.entities[modelClassName](this));
+        const EntityModel = this.meta.entities[modelClassName];
+
+        if (typeof EntityModel !== 'function') {
+            throw new Error(`Entity "${entityName}" not found in the db model.`);
+        }
+
+        return (this._entities[modelClassName] = new EntityModel(this));
     }
 
     /**

@@ -1,5 +1,12 @@
 # @kitmi/data
 
+## 0.8.1
+
+### Patch Changes
+
+-   Add fromServer for db feature
+-   Refine error message for using entity model
+
 ## 0.8.0
 
 ### Minor Changes

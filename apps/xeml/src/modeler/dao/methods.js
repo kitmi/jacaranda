@@ -387,7 +387,7 @@ const retry = () => {
      */
     async retry_(jobId) {
         const result = await this.updateOne_({ status: 'pending', currentRetry: xrExpr(xrCol('currentRetry'), '+', 1) }, { $where: { id: jobId, status: 'failed', currentRetry: { $lt: xrCol('maxRetry') } }, $getUpdated: true });
-        if (affectedRows === 0) {
+        if (result.affectedRows === 0) {
             const job = result.data;
             if (job.currentRetry >= job.maxRetry) {
                 throw new ValidationError('Max retry reached.', { entity: this.meta.name, job });
