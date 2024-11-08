@@ -111,7 +111,8 @@ class PostgresModeler {
                 entityName,
                 data,
                 extraFunctions,
-                triggers
+                triggers,
+                skipGeneration
             );
             tableSQL += entitySQL;
         });
@@ -507,7 +508,7 @@ $$ LANGUAGE plpgsql;\n\n`;
         return script;
     }
 
-    _generateEntityScripts(modelingSchema, entity, entityName, data, functions, triggers) {
+    _generateEntityScripts(modelingSchema, entity, entityName, data, functions, triggers, skipGeneration) {
         let tableSQL = '';
 
         if (entityName !== entity.name) {
@@ -547,24 +548,26 @@ $$ LANGUAGE plpgsql;\n\n`;
         }
 
         // add enum types
-        _.each(entity.fields, (field, name) => {
-            if (field.enum) {
-                let enumName = prefixNaming(entity.name, name);
+        if (!skipGeneration) {
+            _.each(entity.fields, (field, name) => {
+                if (field.enum) {
+                    let enumName = prefixNaming(entity.name, name);
 
-                if (modelingSchema.types[enumName]) {
-                    this.warnings[
-                        enumName
-                    ] = `Enum type "${enumName}" already exists. The one in entity "${entity.name}" will be renamed.`;
+                    if (modelingSchema.types[enumName]) {
+                        this.warnings[
+                            enumName
+                        ] = `Enum type "${enumName}" already exists. The one in entity "${entity.name}" will be renamed.`;
 
-                    enumName = suffixForDuplicate(enumName, (newName) => newName in modelingSchema.types);
+                        enumName = suffixForDuplicate(enumName, (newName) => newName in modelingSchema.types);
+                    }
+
+                    modelingSchema.types[enumName] = _.omit(field, ['name']);
+                    field.domain = enumName;
+
+                    tableSQL += this._addEnumType(enumName, field);
                 }
-
-                modelingSchema.types[enumName] = _.omit(field, ['name']);
-                field.domain = enumName;
-
-                tableSQL += this._addEnumType(enumName, field);
-            }
-        });
+            });
+        }
 
         tableSQL += this._createTableStatement(entityName, entity /*, mapOfEntityNameToCodeName*/) + '\n';
 

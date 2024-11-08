@@ -51,6 +51,8 @@ async function moduleRouter(app, baseRoute, options) {
             return;
         }
 
+        
+
         if (!Array.isArray(controllers)) {
             controllers = [controllers];
         }
@@ -84,13 +86,13 @@ async function moduleRouter(app, baseRoute, options) {
                 if (typeof action !== 'function' || !action.__metaHttpMethod) continue; // only marked httpMethod should be mounted
 
                 const method = action.__metaHttpMethod;
-                const subRoute = urlUtil.join(
+                const subRoute = text.ensureStartsWith(urlUtil.join(
                     subBaseRoute,
                     text.dropIfStartsWith(
                         action.__metaRoute || (kebabify ? naming.kebabCase(actionName) : actionName),
                         '/'
                     )
-                );
+                ), '/');
 
                 let bindAction;
 

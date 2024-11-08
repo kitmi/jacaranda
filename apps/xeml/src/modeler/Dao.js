@@ -641,6 +641,26 @@ class DaoModeler {
         return result;
     }
 
+    _processTypeInfo(typeInfo, entity, name) {
+        if (entity && typeInfo.type && name) {
+            let [mixed] = this.linker.trackBackType(entity.xemlModule, typeInfo);
+            const field = new Field(name, mixed);
+            field.link();
+            typeInfo = field;
+        }
+
+        const postProcessors = this._fieldMetaToModifiers(typeInfo);
+        const extra =
+            postProcessors.length > 0
+                ? { post: typeInfo?.post ? postProcessors.concat(typeInfo.post) : postProcessors }
+                : {};
+
+        return JsLang.astValue({
+            ..._.pick(typeInfo, DATASET_FIELD_KEYS),
+            ...extra,
+        });
+    }
+
     _generateEntityDatasetSchema(schema, versionInfo) {
         const _datasetEntries = {};
 
@@ -671,22 +691,8 @@ class DaoModeler {
                     //:address
                     if (name.startsWith('+')) {
                         // extra field that not in the entity
-                        name = name.substring(1);
-
-                        let [mixed] = this.linker.trackBackType(entity.xemlModule, input);
-                        const field = new Field(name, mixed);
-                        field.link();
-
-                        const postProcessors = this._fieldMetaToModifiers(field);
-                        const extra =
-                            postProcessors.length > 0
-                                ? { post: input?.post ? postProcessors.concat(input.post) : postProcessors }
-                                : {};
-
-                        _validationSchema[name] = JsLang.astValue({
-                            ..._.pick(field, DATASET_FIELD_KEYS),
-                            ...extra,
-                        });
+                        name = name.substring(1);                        
+                        _validationSchema[name] = this._processTypeInfo(input, entity, name);
                     } else if (name.startsWith(':')) {
                         const assoc = name.substring(1);
                         const assocMeta = entity.associations[assoc];
@@ -892,9 +898,34 @@ class DaoModeler {
                 this._generateResourceApi(context, resourceName, baseEndpoint, resourceInfo);
             });
         }
+
+        // generate index file for all groups
+        for (let key in context.groups) {
+            const groupInfo = context.groups[key];
+            const groupPath = path.join(this.modelService.config.sourcePath, groupInfo.controllerPath);
+
+            const apiFiles = globSync('*.js', { nodir: true, cwd: groupPath });
+
+            // filter out index.js and sort the rest and make an export list
+            const exportList = apiFiles
+                .filter((f) => f !== 'index.js')
+                .sort()
+                .map((f) => {
+                    const name = path.basename(f, '.js');
+                    return `export { default as ${name} } from './${name}';`;
+                });
+
+            // override index.js
+            const indexFilePath = path.join(groupPath, 'index.js');
+            fs.writeFileSync(indexFilePath, exportList.join('\n'));
+        }
     }
 
     _generateResourceApi(context, resourceName, baseEndpoint, resourceInfo) {
+        if (!baseEndpoint.startsWith('/')) {
+            throw new Error("Base endpoint should start with '/'.");
+        }
+
         const resourceClassName = naming.pascalCase(resourceName);
         const { description, group, endpoints } = resourceInfo;
 
@@ -936,7 +967,11 @@ class DaoModeler {
         const resourceFilePath = path.join(
             this.modelService.config.sourcePath,
             groupInfo.controllerPath,
-            resourceName + '.js'
+            baseEndpoint
+                .split('/')
+                .filter((p) => p)
+                .map((p) => naming.camelCase(p))
+                .join('/') + '.js'
         );
         fs.ensureFileSync(resourceFilePath);
         fs.writeFileSync(resourceFilePath, classCode);
@@ -997,8 +1032,8 @@ class DaoModeler {
                 ...JsLang.astValue(others).properties
             );
         }
-
-        return JsLang.astValue(typeInfo);
+        
+        return this._processTypeInfo(typeInfo);
     }
 
     _extractRequestData(context, localContext, localName, collection, source, codeBucket) {
@@ -1028,6 +1063,7 @@ class DaoModeler {
                     metadata
                 )} });`
             );
+            return;
         }
 
         const dataCode = this._getReferencedMetadata(context, localContext, collection, codeBucket);
@@ -1107,7 +1143,7 @@ class DaoModeler {
         let codeSanitize = [];
 
         if (request) {
-            const { headers, query, params, body, ctx } = request;
+            const { headers, query, params, body, state, ctx } = request;
 
             if (body) {
                 this._extractRequestData(context, localContext, 'body', body, 'ctx.request.body', codeSanitize);
@@ -1119,6 +1155,7 @@ class DaoModeler {
 
             this._extractRequestVariables(context, localContext, headers, 'ctx.headers', codeSanitize);
             this._extractRequestVariables(context, localContext, params, 'ctx.params', codeSanitize);
+            this._extractRequestVariables(context, localContext, state, 'ctx.state', codeSanitize);
         }
 
         let codeImplement = [];

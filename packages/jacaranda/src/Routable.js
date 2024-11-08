@@ -267,9 +267,9 @@ const Routable = (T) =>
 
             router[method](route, ...handlers);
 
-            let endpoint = router.opts.prefix
+            let endpoint = text.dropIfEndsWith(router.opts.prefix
                 ? urlUtil.join(this.route, router.opts.prefix, route)
-                : urlUtil.join(this.route, route);
+                : urlUtil.join(this.route, route), '/');
 
             this.log('verbose', `Route "${method}:${endpoint}" is added from app [${this.name}].`);
 
