@@ -1,5 +1,12 @@
 # @kitmi/xeml
 
+## 0.9.3
+
+### Patch Changes
+
+-   Fixed migration bug.
+-   Fixed api generation bug.
+
 ## 0.9.2
 
 ### Patch Changes

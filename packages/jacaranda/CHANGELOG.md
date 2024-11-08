@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.4.4
+
+### Patch Changes
+
+-   Refined router behavior.
+
 ## 3.4.3
 
 ### Patch Changes
