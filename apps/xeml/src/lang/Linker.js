@@ -37,7 +37,7 @@ const ELEMENT_WITH_MODULE = new Set([
 const XEML_SOURCE_EXT = '.xeml';
 const BUILTINS_PATH = path.resolve(__dirname, 'builtins');
 
-const CONTEXT_REFS = new Set(['latest', 'existing', 'raw']);
+const CONTEXT_REFS = new Set(['latest', 'existing', 'raw', 'this']);
 
 /**
  * Linker of xeml

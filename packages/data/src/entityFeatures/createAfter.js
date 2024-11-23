@@ -10,10 +10,7 @@ export default {
     [Rules.RULE_AFTER_CREATE]: async (feature, entity, context) => {
         const RelatedEntity = entity.getRelatedEntity(feature.relation);
         const assocInfo = entity.meta.associations[feature.relation];
-
-        const data = {
-            ...feature.initData,
-        };
+        const data = entity._translateValue(feature.initData, { $data: { this: context.latest } });
 
         if (!assocInfo.type) {
             data[assocInfo.field] = context.latest[entity.meta.keyField];
