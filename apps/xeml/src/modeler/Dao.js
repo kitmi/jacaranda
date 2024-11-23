@@ -8,6 +8,8 @@ const {
     isEmpty,
     pushIntoBucket,
     splitFirst,
+    replaceAll,
+    
 } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
 const swig = require('swig-templates');
@@ -902,22 +904,25 @@ class DaoModeler {
         // generate index file for all groups
         for (let key in context.groups) {
             const groupInfo = context.groups[key];
-            const groupPath = path.join(this.modelService.config.sourcePath, groupInfo.controllerPath);
+            if (groupInfo.moduleSource === 'project') {
+                const groupPath = path.join(this.modelService.config.sourcePath, groupInfo.controllerPath);
 
-            const apiFiles = globSync('*.js', { nodir: true, cwd: groupPath });
+                const apiFiles = globSync('**/*.js', { nodir: true, cwd: groupPath });                
 
-            // filter out index.js and sort the rest and make an export list
-            const exportList = apiFiles
-                .filter((f) => f !== 'index.js')
-                .sort()
-                .map((f) => {
-                    const name = path.basename(f, '.js');
-                    return `export { default as ${name} } from './${name}';`;
-                });
+                // filter out index.js and sort the rest and make an export list
+                const exportList = apiFiles
+                    .filter((f) => f !== 'index.js')
+                    .sort()
+                    .map((f) => {
+                        const name = baseName(f, true);
+                        const localName = replaceAll(name, '/', '__');
+                        return `export { default as ${localName} } from './${name}';`;
+                    });
 
-            // override index.js
-            const indexFilePath = path.join(groupPath, 'index.js');
-            fs.writeFileSync(indexFilePath, exportList.join('\n'));
+                // override index.js
+                const indexFilePath = path.join(groupPath, 'index.js');
+                fs.writeFileSync(indexFilePath, exportList.join('\n'));
+            }
         }
     }
 
@@ -1071,6 +1076,26 @@ class DaoModeler {
         codeBucket.push(`const ${localName} = Types.OBJECT.sanitize(${source}, ${typeInfo});`);
     }
 
+    _extractTrustVariables(context, localContext, collection, source, codeBucket) {
+        if (collection) {
+            if (!Array.isArray(collection)) {
+                throw new Error(`Variable source "${source}" should be an array of keys.`);
+            }
+
+            collection.forEach((key) => {
+                const localName = naming.camelCase(replaceAll(key, '.', '-'));
+
+                if (localContext.variables.has(localName)) {
+                    throw new Error(`Variable "${localName}" conflicts with local context.`);
+                }
+
+                codeBucket.push(
+                    `const ${localName} = _.get(${source}, '${key}');`
+                );
+            });
+        }
+    }
+
     _extractRequestVariables(context, localContext, collection, source, codeBucket) {
         if (collection) {
             _.each(collection, (typeInfo, key) => {
@@ -1155,7 +1180,7 @@ class DaoModeler {
 
             this._extractRequestVariables(context, localContext, headers, 'ctx.headers', codeSanitize);
             this._extractRequestVariables(context, localContext, params, 'ctx.params', codeSanitize);
-            this._extractRequestVariables(context, localContext, state, 'ctx.state', codeSanitize);
+            this._extractTrustVariables(context, localContext, state, 'ctx.state', codeSanitize);
         }
 
         let codeImplement = [];

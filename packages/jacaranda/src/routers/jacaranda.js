@@ -1,4 +1,4 @@
-import { _, naming, text, hasMethod, eachAsync_, batchAsync_, get as _get, set as _set } from '@kitmi/utils';
+import { _, naming, text, hasMethod, eachAsync_, batchAsync_, get as _get, set as _set, replaceAll } from '@kitmi/utils';
 import { loadControllers_ } from '../helpers/loadModuleFrom_';
 
 /**
@@ -68,6 +68,8 @@ const jaRestRouter = async (app, baseRoute, options) => {
                 controller = new controller(app);
             }
 
+            // compatible with the api generator
+            entityNameWithPath = replaceAll(entityNameWithPath, '__', '/');
             const pathNodes = entityNameWithPath.split('/');
             const entityName = pathNodes[pathNodes.length - 1];
 
