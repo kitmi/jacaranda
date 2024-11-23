@@ -423,7 +423,7 @@ class EntityModel {
      * @param {object} opOptions - [out]
      */
     _normalizeReturning(opOptions, returningKey) {
-        const returningFields = opOptions[returningKey];
+        let returningFields = opOptions[returningKey];
 
         if (returningFields) {
             const t = typeof returningFields;
@@ -443,8 +443,18 @@ class EntityModel {
             }
 
             if (t === 'object') {
+                if (isPlainObject(returningFields)) {
+                    const _returningFields = this._tryUseView(returningFields).$select;
+                    if (_returningFields == null) {
+                        throw new InvalidArgument(`Invalid "${returningKey}": ${JSON.stringify(returningFields)}`);
+                    }
+
+                    returningFields = _returningFields;
+                }
+
                 if (Array.isArray(returningFields)) {
                     if (returningFields.every((v) => v.indexOf('.') === -1)) {
+                        opOptions[returningKey] = returningFields;
                         return;
                     }
 
@@ -1875,7 +1885,7 @@ class EntityModel {
                     case 'Data':
                         if (opPayload.$data == null) {
                             throw new InvalidArgument(
-                                '`$data` field is required for "latest|existing|raw" value reference.',
+                                '`$data` field is required for "latest|existing|raw|this" value reference.',
                                 {
                                     entity: this.meta.name,
                                     value,
