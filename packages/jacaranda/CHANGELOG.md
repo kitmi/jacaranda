@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.4.5
+
+### Patch Changes
+
+-   Fix jacaranda router nested path
+
 ## 3.4.4
 
 ### Patch Changes

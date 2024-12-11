@@ -1,5 +1,12 @@
 # @kitmi/data
 
+## 0.8.2
+
+### Patch Changes
+
+-   use $view in getCreated, getUpdated
+-   add `this` reference in createAfter to use just created entity
+
 ## 0.8.1
 
 ### Patch Changes

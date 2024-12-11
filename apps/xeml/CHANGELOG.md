@@ -1,5 +1,12 @@
 # @kitmi/xeml
 
+## 0.9.4
+
+### Patch Changes
+
+-   add `this` context reference in entity definition 
+-   fix: api generation bug for nested path
+
 ## 0.9.3
 
 ### Patch Changes
