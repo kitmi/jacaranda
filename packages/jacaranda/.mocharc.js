@@ -6,4 +6,5 @@ module.exports = {
     require: ['@kitmi/tester'],
     reporter: 'mocha-multi',
     reporterOptions: 'mocha-multi=test/mocha-multi-reporters.json',
+    noParallel: true
 };

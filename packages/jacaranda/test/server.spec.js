@@ -48,8 +48,8 @@ describe('server', function () {
         await jacat.withClient_('server1', async (client, server) => {
             // directly from ./test/customModules/moduleExtendsController.js
             const res = await client.get('/multi-modules/abc');
-            res.status.should.be.exactly('success');
-            res.result.should.be.eql({
+            res.status.should.be.exactly('ok');
+            res.data.should.be.eql({
                 custom: 'custom',
             });
         });
@@ -62,8 +62,8 @@ describe('server', function () {
             // get book list
             let res = await client.get('/rest1/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -73,8 +73,8 @@ describe('server', function () {
             // get book with id=2
             res = await client.get('/rest1/book/2');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 2, name: 'book 2' },
+                status: 'ok',
+                data: { id: 2, name: 'book 2' },
             });
 
             // add new book
@@ -82,8 +82,8 @@ describe('server', function () {
                 name: 'my book',
             });
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my book' },
+                status: 'ok',
+                data: { id: 4, name: 'my book' },
             });
 
             // update book with id=4
@@ -91,21 +91,21 @@ describe('server', function () {
                 name: 'my new book',
             });
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             res = await client.get('/rest1/book/4');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             // delete book with id=4
             res = await client.get('/rest1/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -115,14 +115,14 @@ describe('server', function () {
 
             res = await client.del('/rest1/book/4');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             res = await client.get('/rest1/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -138,8 +138,8 @@ describe('server', function () {
             // get book list
             let res = await client.get('/rest2/another-book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -149,8 +149,8 @@ describe('server', function () {
             // get book with id=2
             res = await client.get('/rest2/another-book/2');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 2, name: 'book 2' },
+                status: 'ok',
+                data: { id: 2, name: 'book 2' },
             });
 
             // add new book
@@ -158,8 +158,8 @@ describe('server', function () {
                 name: 'my book',
             });
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my book' },
+                status: 'ok',
+                data: { id: 4, name: 'my book' },
             });
 
             // update book with id=4
@@ -167,21 +167,21 @@ describe('server', function () {
                 name: 'my new book',
             });
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             res = await client.get('/rest2/another-book/4');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             // delete book with id=4
             res = await client.get('/rest2/another-book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -191,14 +191,14 @@ describe('server', function () {
 
             res = await client.del('/rest2/another-book/4');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             res = await client.get('/rest2/another-book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -214,8 +214,8 @@ describe('server', function () {
             // get book list
             let res = await client.get('/rest2/store/1811/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -225,8 +225,8 @@ describe('server', function () {
             // get book with id=2
             res = await client.get('/rest2/store/1811/book/2');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 2, name: 'book 2' },
+                status: 'ok',
+                data: { id: 2, name: 'book 2' },
             });
 
             // add new book
@@ -234,8 +234,8 @@ describe('server', function () {
                 name: 'my book',
             });
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my book' },
+                status: 'ok',
+                data: { id: 4, name: 'my book' },
             });
 
             // update book with id=4
@@ -243,21 +243,21 @@ describe('server', function () {
                 name: 'my new book',
             });
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             res = await client.get('/rest2/store/1811/book/4');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             // delete book with id=4
             res = await client.get('/rest2/store/1811/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -267,14 +267,14 @@ describe('server', function () {
 
             res = await client.del('/rest2/store/1811/book/4');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             res = await client.get('/rest2/store/1811/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -290,8 +290,8 @@ describe('server', function () {
             // get book list
             let res = await client.get('/rest3/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -301,8 +301,8 @@ describe('server', function () {
             // get book with id=2
             res = await client.get('/rest3/book/2');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 2, name: 'book 2' },
+                status: 'ok',
+                data: { id: 2, name: 'book 2' },
             });
 
             // add new book
@@ -310,8 +310,8 @@ describe('server', function () {
                 name: 'my book',
             });
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my book' },
+                status: 'ok',
+                data: { id: 4, name: 'my book' },
             });
 
             // update book with id=4
@@ -319,21 +319,21 @@ describe('server', function () {
                 name: 'my new book',
             });
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             res = await client.get('/rest3/book/4');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             // delete book with id=4
             res = await client.get('/rest3/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -343,14 +343,14 @@ describe('server', function () {
 
             res = await client.del('/rest3/book/4');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             res = await client.get('/rest3/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -366,8 +366,8 @@ describe('server', function () {
             // get book list
             let res = await client.get('/rest4/some/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -377,8 +377,8 @@ describe('server', function () {
             // get book with id=2
             res = await client.get('/rest4/some/book/2');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 2, name: 'book 2' },
+                status: 'ok',
+                data: { id: 2, name: 'book 2' },
             });
 
             // add new book
@@ -386,8 +386,8 @@ describe('server', function () {
                 name: 'my book',
             });
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my book' },
+                status: 'ok',
+                data: { id: 4, name: 'my book' },
             });
 
             // update book with id=4
@@ -395,21 +395,21 @@ describe('server', function () {
                 name: 'my new book',
             });
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             res = await client.get('/rest4/some/book/4');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             // delete book with id=4
             res = await client.get('/rest4/some/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },
@@ -419,14 +419,14 @@ describe('server', function () {
 
             res = await client.del('/rest4/some/book/4');
             res.should.be.eql({
-                status: 'success',
-                result: { id: 4, name: 'my new book' },
+                status: 'ok',
+                data: { id: 4, name: 'my new book' },
             });
 
             res = await client.get('/rest4/some/book');
             res.should.be.eql({
-                status: 'success',
-                result: [
+                status: 'ok',
+                data: [
                     { id: 1, name: 'book 1' },
                     { id: 2, name: 'book 2' },
                     { id: 3, name: 'book 3' },

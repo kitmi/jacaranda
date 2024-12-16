@@ -2,7 +2,7 @@ apiWrapper:
 
 engine:
     type: koa
-    port: 3000
+    port: 3001
 
 middlewareFactory:
     bodyParser:

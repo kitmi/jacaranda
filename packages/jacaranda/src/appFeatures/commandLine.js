@@ -4,7 +4,7 @@
  */
 
 import path from 'node:path';
-import { _, pushIntoBucket, eachAsync_ } from '@kitmi/utils';
+import { _, pushIntoBucket, eachAsync_, findAsync_ } from '@kitmi/utils';
 import { ApplicationError, InvalidConfiguration } from '@kitmi/types';
 import Feature from '../Feature';
 import minimist from 'minimist';
@@ -138,7 +138,7 @@ class CommandLine {
         return typeof argIndex === 'undefined' ? name in this.argv : this.argv._.length > argIndex;
     }
 
-    async inquire_() {
+    async inquire_(startIndex = 0) {
         const inquirer = await this.app.tryRequire_('inquirer', true);
 
         const doInquire_ = (item, argIndex) =>
@@ -149,7 +149,13 @@ class CommandLine {
                     if (typeof argIndex === 'undefined') {
                         this.updateOption(name, ans);
                     } else {
-                        assert: this.argv._.length === argIndex;
+                        if (this.argv._.length !== argIndex) {
+                            throw new CommandLineArgumentError(
+                                `Invalid argument value "${name}" at position ${argIndex}!`,
+                                name,
+                                true
+                            );
+                        }
 
                         this.argv._ = this.argv._.concat([ans]);
                     }
@@ -200,13 +206,19 @@ class CommandLine {
                     await this.doFilter_(name, opts, argIndex);
 
                     if (opts.afterInquire) {
-                        await opts.afterInquire(this);
+                        const ignoreRest = await opts.afterInquire(this);
+                        if (ignoreRest) {
+                            return true;
+                        }
                     }
                 }
             } else if (argExists) {
                 await this.doFilter_(name, opts, argIndex);
                 if (opts.onArgumentExists) {
-                    await opts.onArgumentExists(this);
+                    const ignoreRest = await opts.onArgumentExists(this);
+                    if (ignoreRest) {
+                        return true;
+                    }
                 }
             }
 
@@ -220,16 +232,35 @@ class CommandLine {
         };
 
         if (!_.isEmpty(this.usage.arguments)) {
-            await eachAsync_(this.usage.arguments, async (argOpt, index) => {
+            await findAsync_(this.usage.arguments.slice(startIndex), async (argOpt, index) => {
                 let { name, ...opts } = argOpt;
 
-                return prepareInquire_(opts, name, index);
+                return prepareInquire_(opts, name, startIndex + index);
             });
         }
 
         return (
-            _.isEmpty(this.usage.options) || eachAsync_(this.usage.options, (opts, name) => prepareInquire_(opts, name))
+            _.isEmpty(this.usage.options) || findAsync_(this.usage.options, (opts, name) => prepareInquire_(opts, name))
         );
+    }
+
+    async preValidate_(argOffset) {
+        let silentMode = this.usage.silentMode;
+
+        if (silentMode && typeof silentMode === 'function') {
+            silentMode = silentMode(this);
+        }
+
+        this.silentMode = silentMode;
+
+        if (silentMode) {
+            await this.processSilentModeArguments_(argOffset);
+        } else {
+            if (!argOffset) {
+                this.showBannar();
+            }
+            await this.inquire_(argOffset);
+        }        
     }
 
     /**
@@ -294,9 +325,11 @@ class CommandLine {
         }
     }
 
-    async processSilentModeArguments_() {
+    async processSilentModeArguments_(argOffset = 0) {
         if (this.usage.arguments) {
-            await eachAsync_(this.usage.arguments, async (arg, index) => {
+            await findAsync_(this.usage.arguments.slice(argOffset), async (arg, index) => {
+                index += argOffset;
+
                 if (this.argv._.length <= index) {
                     if (arg.hasOwnProperty('silentModeDefault')) {
                         for (let i = this.argv._.length; i < index; i++) {
@@ -309,7 +342,10 @@ class CommandLine {
                     const { name, ...opts } = arg;
                     await this.doFilter_(name, opts, index);
                     if (opts.onArgumentExists) {
-                        await opts.onArgumentExists(this);
+                        const ignoreRest = await opts.onArgumentExists(this);
+                        if (ignoreRest) {
+                            return true;
+                        }
                     }
                 }
             });
@@ -320,7 +356,10 @@ class CommandLine {
                 if (this.argExist(name)) {
                     await this.doFilter_(name, opts);
                     if (opts.onArgumentExists) {
-                        await opts.onArgumentExists(this);
+                        const ignoreRest = await opts.onArgumentExists(this);
+                        if (ignoreRest) {
+                            return true;
+                        }
                     }
                 } else if (opts.hasOwnProperty('silentModeDefault')) {
                     this.updateOption(name, await this.valueOrFunctionCall_(opts.silentModeDefault));
@@ -370,7 +409,7 @@ class CommandLine {
         let fmtArgs = '';
         if (!_.isEmpty(this.usage.arguments)) {
             fmtArgs =
-                ' ' + this.usage.arguments.map((arg) => (arg.required ? `<${arg.name}>` : `[${arg.name}]`)).join(' ');
+                ' ' + this.usage.arguments.map((arg, index) => (this.argv._.length > index ? this.argv._[index] : (arg.required ? `<${arg.name}>` : `[${arg.name}]`))).join(' ');
         }
 
         usage += `Usage: ${this.usage.program || path.basename(process.argv[1])}${fmtArgs} [options]\n\n`;
@@ -405,7 +444,7 @@ class CommandLine {
                 if (opts.choicesProvider && Array.isArray(opts.choicesProvider)) {
                     line += '    available values:\n';
                     opts.choicesProvider.forEach((choice) => {
-                        line += `        "${choice.value}": ${choice.name}\n`;
+                        line += typeof choice === 'string' ? `        "${choice}"\n` : `        "${choice.value}": ${choice.name}\n`;
                     });
                 }
 
@@ -493,21 +532,11 @@ export default {
             gArgv = testArgs;
         }
 
-        app.commandLine = new CommandLine(app, usageOptions);
+        app.commandLine = new CommandLine(app, usageOptions);      
+        await app.commandLine.preValidate_();  
 
-        let silentMode = usageOptions.silentMode;
-
-        if (silentMode && typeof silentMode === 'function') {
-            silentMode = silentMode(app.commandLine);
-        }
-
-        app.commandLine.silentMode = silentMode;
-
-        if (silentMode) {
-            await app.commandLine.processSilentModeArguments_();
-        } else {
-            app.commandLine.showBannar();
-            await app.commandLine.inquire_();
+        if (usageOptions.beforeValidate) {
+            await usageOptions.beforeValidate(app.commandLine);
         }
 
         let nonValidationMode = usageOptions.nonValidationMode;
