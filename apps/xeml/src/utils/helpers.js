@@ -1,4 +1,5 @@
 const path = require('node:path');
+const { createRequire } = require('node:module');
 const { _, eachAsync_ } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
 const { hash } = require('@kitmi/feat-cipher');
@@ -46,7 +47,16 @@ async function importDataFilesByList(migrator, dataSetPath, dataListFile, ignore
         line = line.trim();
 
         if (line.length > 0 && line[0] !== '#') {
-            let dataFile = path.join(dataSetPath, line);
+            let dataFile;
+
+            if (line[0] === '>') {
+                // reference to data file in npm package
+                const require = createRequire(process.cwd() + '/');
+                dataFile = require.resolve(line.substr(1));
+            } else {
+                dataFile = path.join(dataSetPath, line);
+            }
+
             if (!fs.existsSync(dataFile)) {
                 throw new Error(`Data file "${dataFile}" not found.`);
             }
@@ -100,6 +110,7 @@ exports.getVersionInfo = (modelService, schemaName) => {
 
 exports.writeVersionInfo = (modelService, schemaName, verContent) => {
     const verFile = path.resolve(modelService.config.migrationPath, schemaName + '.ver.json');
+    fs.ensureFileSync(verFile);
     fs.writeFileSync(verFile, JSON.stringify(verContent, null, 4));
 };
 

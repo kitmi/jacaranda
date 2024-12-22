@@ -13,14 +13,6 @@
             "appModulesPath": "src/apps"
         }
     },
-    "workers": {
-        "tester": {
-            "configName": "worker",
-            "configType": "yaml",
-            "configPath": "test/conf",
-            "featuresPath": "test/features"
-        }
-    },
     "authentications": {
         "client1": {
             "loginType": "password",

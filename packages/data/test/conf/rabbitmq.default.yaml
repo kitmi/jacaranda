@@ -1,0 +1,10 @@
+logger:
+    level: verbose
+
+dataSource:
+    rabbitmq:
+        test:
+            connection: 'amqp://rabbitmq:rabbitmq@localhost:5672'            
+            logStatement: true
+            publishers:
+                - queue: 'test-queue'                    

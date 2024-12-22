@@ -21,6 +21,26 @@ const start_ = async (test) => {
     });
 };
 
+const startMQ_ = async (test) => {
+    return jacat.startWorker_(test, {
+        configPath: './test/conf',
+        configType: 'yaml',
+        configName: 'rabbitmq',
+        registry: {
+            features: {
+                dataModel,
+                dataSource,
+                db,
+            },
+            db: {
+                test: TestDb,
+                test2: Test2Db,
+            },
+        },
+    });
+};
+
 global.tester = {
     start_,
+    startMQ_,
 };

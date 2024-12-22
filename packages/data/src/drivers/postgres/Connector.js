@@ -134,7 +134,7 @@ class PostgresConnector extends RelationalConnector {
         if (this.pool) {
             await this.pool.end();
             if (this.options.logConnection) {
-                this.app.log('info', `Close connection pool "${this.pool[connSym]}".`);
+                this.app.log('info', `${this.driver}: closed connection pool "${this.pool[connSym]}".`);
             }
             delete this.pool[connSym];
             delete this.pool;
@@ -177,7 +177,7 @@ class PostgresConnector extends RelationalConnector {
                     const connStrForDisplay = this.getConnectionStringWithoutCredential(csKey);
                     client[connSym] = connStrForDisplay;
 
-                    this.app.log('info', `Create non-pool connection to "${connStrForDisplay}".`);
+                    this.app.log('info', `${this.driver}: create non-pool connection to "${connStrForDisplay}".`);
                 }
 
                 return client;
@@ -188,7 +188,7 @@ class PostgresConnector extends RelationalConnector {
             this.pool = new Pool(connectionStringToObject(this.connectionString));
 
             this.pool.on('error', (err) => {
-                this.app.logError(err, 'Unexpected error on idle postgres client');
+                this.app.logError(err, `${this.driver}: unexpected error on idle postgres client`);
             });
 
             if (this.options.logConnection) {
@@ -196,7 +196,7 @@ class PostgresConnector extends RelationalConnector {
                 this.pool[connSym] = connStrForDisplay;
 
                 this.pool.on('connect', () => {
-                    this.app.log('info', 'info', `Create connection pool to "${connStrForDisplay}".`, {
+                    this.app.log('info', `${this.driver}: create connection pool to "${connStrForDisplay}".`, {
                         connections: this.pool.totalCount,
                     });
                 });
@@ -207,7 +207,7 @@ class PostgresConnector extends RelationalConnector {
         this.acitveClients.add(client);
 
         if (this.options.logConnection) {
-            this.app.log('info', `Get connection from pool "${this.pool[connSym]}".`);
+            this.app.log('info', `${this.driver}: get connection from pool "${this.pool[connSym]}".`);
         }
 
         return client;
@@ -222,14 +222,14 @@ class PostgresConnector extends RelationalConnector {
 
         if (this.acitveClients.has(client)) {
             if (this.options.logConnection) {
-                this.app.log('info', `Release connection to pool "${this.pool[connSym]}".`);
+                this.app.log('info', `${this.driver}: release connection to pool "${this.pool[connSym]}".`);
             }
             this.acitveClients.delete(client);
 
             return client.release();
         } else {
             if (this.options.logConnection) {
-                this.app.log('info', `Disconnect non-pool connection to "${client[connSym]}".`);
+                this.app.log('info', `${this.driver}: disconnect non-pool connection to "${client[connSym]}".`);
             }
 
             delete client[connSym];
@@ -247,7 +247,7 @@ class PostgresConnector extends RelationalConnector {
         const client = await this.connect_();
         const tid = (client[tranSym] = ++this.transactionId);
         if (this.options.logTransaction) {
-            this.app.log('info', `Begins a new transaction [id: ${tid}].`);
+            this.app.log('info', `${this.driver}: begins a new transaction [id: ${tid}].`);
         }
         await client.query('BEGIN');
         return client;
@@ -262,7 +262,7 @@ class PostgresConnector extends RelationalConnector {
             await client.query('COMMIT');
             if (this.options.logTransaction) {
                 const tid = client[tranSym];
-                this.app.log('info', `Commits a transaction [id: ${tid}].`);
+                this.app.log('info', `${this.driver}: committed a transaction [id: ${tid}].`);
             }
         } finally {
             this.disconnect_(client);
@@ -277,7 +277,7 @@ class PostgresConnector extends RelationalConnector {
         try {
             await client.query('ROLLBACK;');
             const tid = client[tranSym];
-            this.app.log('error', `Rollbacked a transaction [id: ${tid}].`, {
+            this.app.log('error', `${this.driver}: rollbacked a transaction [id: ${tid}].`, {
                 type: error?.name,
                 error: error.message,
                 info: error.info,
@@ -325,7 +325,7 @@ class PostgresConnector extends RelationalConnector {
                 }
 
                 (async () => {
-                    this.app.log('info', sql, meta);
+                    this.app.log('info', `${this.driver}: ${sql}`, meta);
                 })();
             }
 
@@ -881,7 +881,7 @@ class PostgresConnector extends RelationalConnector {
             }
 
             if (!queryOptions.$skipOrmWarn) {
-                this.app.log('warn', 'Skip ORM for joining query may cause unexpected result.', { query });
+                this.app.log('warn', `${this.driver}: skip ORM for joining query may cause unexpected result.`, { query });
             }
         }
 

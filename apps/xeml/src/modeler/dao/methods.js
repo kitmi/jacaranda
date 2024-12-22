@@ -297,11 +297,11 @@ const getChildren = (ancestorsAnchor) => `
 
 const getParents = (descendantsAnchor) => `
     /**
-    * Get the parent node of the given child node.
-    * @param {*} currentId - The current node id.
-    * @param {array} [selectColumns] - The columns to select.
-    * @returns {Promise<Object>} { data }.
-    */ 
+     * Get the parent node of the given child node.
+     * @param {*} currentId - The current node id.
+     * @param {array} [selectColumns] - The columns to select.
+     * @returns {Promise<Object>} { data }.
+     */ 
     async getParents_(currentId, selectColumns) {
         return this.findMany_({
             $select: selectColumns ?? ['*', '${descendantsAnchor}.depth'],

@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.9.0
+
+### Minor Changes
+
+-   add rabbitmq driver
+
 ## 0.8.2
 
 ### Patch Changes

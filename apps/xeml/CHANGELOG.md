@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.10.0
+
+### Minor Changes
+
+-   add migration file reference from xem package
+
 ## 0.9.4
 
 ### Patch Changes

@@ -17,7 +17,8 @@ export default {
                 valueSchema: {
                     type: 'object',
                     schema: {
-                        dataSource: { type: 'text' },
+                        dataSource: { type: 'text', optional: true },
+                        dbName: { type: 'text', optional: true },
                         fromServer: { type: 'boolean', optional: true },
                         fromLib: { type: 'text', optional: true },
                     },
@@ -49,8 +50,10 @@ export default {
                         `db.[${dbName}]`
                     );
                 }
+
                 let connector;
                 let sourceApp;
+                let sourceDbName = dbConfig.dbName || dbName;
 
                 if (dbConfig.fromServer) {
                     if (app.isServer) {
@@ -62,7 +65,18 @@ export default {
                     }
 
                     sourceApp = app.server;
-                    connector = sourceApp.getService(dbConfig.dataSource, true);
+                    let dataSource = dbConfig.dataSource;
+                    if (!dataSource) {
+                        if (!dbConfig.dbName) {
+                            throw new InvalidConfiguration(
+                                'Either "dataSource" or "dbName" should be provided.',
+                                app,
+                                `db.[${dbName}]`
+                            );
+                        }
+                        dataSource = sourceApp.config.db[dbConfig.dbName].dataSource;
+                    }
+                    connector = sourceApp.getService(dataSource, true);
                 } else if (dbConfig.fromLib) {
                     if (dbConfig.fromLib === app.name) {
                         throw new InvalidConfiguration(
@@ -73,8 +87,27 @@ export default {
                     }
 
                     sourceApp = (app.server ? app.server : app).getLib(dbConfig.fromLib);
-                    connector = sourceApp.getService(dbConfig.dataSource, true);
+                    let dataSource = dbConfig.dataSource;
+                    if (!dataSource) {
+                        if (!dbConfig.dbName) {
+                            throw new InvalidConfiguration(
+                                'Either "dataSource" or "dbName" should be provided.',
+                                app,
+                                `db.[${dbName}]`
+                            );
+                        }
+                        dataSource = sourceApp.config.db[dbConfig.dbName].dataSource;
+                    }
+                    connector = sourceApp.getService(dataSource, true);
                 } else {
+                    if (!dbConfig.dataSource) {
+                        throw new InvalidConfiguration(
+                            '"dataSource" should be provided for local db instance.',
+                            app,
+                            `db.[${dbName}]`
+                        );
+                    }
+
                     sourceApp = app;
                     connector = sourceApp.getService(dbConfig.dataSource);
                 }
@@ -87,16 +120,16 @@ export default {
                     );
                 }
 
-                const DbModel = sourceApp.registry?.db?.[dbName];
+                const DbModel = sourceApp.registry?.db?.[sourceDbName];
                 if (DbModel == null) {
                     throw new ApplicationError(
-                        `"${dbName}" cannot be found in "registry.db" of app "${sourceApp.name}".`
+                        `"${sourceDbName}" cannot be found in "registry.db" of app "${sourceApp.name}".`
                     );
                 }
 
-                if (DbModel.meta.schemaName !== dbName) {
+                if (DbModel.meta.schemaName !== sourceDbName) {
                     throw new ApplicationError(
-                        `"${DbModel.meta.schemaName}" is not matching with the dbName "${dbName}". Please rebuild the model and make sure you configured the correct schema name.`
+                        `"${DbModel.meta.schemaName}" is not matching with the source dbName "${sourceDbName}". Please rebuild the model and make sure you configured the correct schema name.`
                     );
                 }
 
