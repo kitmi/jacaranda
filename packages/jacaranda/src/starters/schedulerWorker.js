@@ -109,16 +109,13 @@ async function startScheduler(schedules, jobs, options) {
         throw new InvalidArgument('Invalid jobs.');
     }
 
+    const scheduledJobs = {};
+
     return startWorker(async (app) => {
         const nodeSchedule = await app.tryRequire_('node-schedule', true);
 
-        process.once('SIGINT', () => {
-            nodeSchedule
-                .gracefulShutdown()
-                .then(() => {
-                    return app.stop_();
-                })
-                .catch((error) => console.error(error.message || error));
+        app.on('stopping', async () => {
+            nodeSchedule.gracefulShutdown().catch((error) => console.error(error.message || error));
         });
 
         const counters = _.mapValues(jobs, () => 0);
@@ -136,17 +133,26 @@ async function startScheduler(schedules, jobs, options) {
                 });
             }
 
-            nodeSchedule.scheduleJob(cron, function () {
-                fnJob(app)
+            const reportInterval = schedule.reportInterval ?? 1;
+
+            scheduledJobs[job] = nodeSchedule.scheduleJob(cron, function () {
+                let asyncCall = job === '_report-schedules' ? fnJob(app, schedules, scheduledJobs) : fnJob(app);
+
+                asyncCall
                     .then(() => {
                         const completed = ++counters[job];
-                        app.log('info', `Job [${job}] has been executed for ${completed} time(s).`);
+
+                        if (completed % reportInterval === 0) {
+                            app.log('info', `Job [${job}] has been executed for ${completed} time(s).`);
+                        }
                     })
                     .catch((error) => {
                         app.logError(error);
                     });
             });
         });
+
+        return app;
     }, workerOptions);
 }
 

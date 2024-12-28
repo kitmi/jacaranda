@@ -1,5 +1,11 @@
 # @kitmi/tester
 
+## 1.2.0
+
+### Minor Changes
+
+-   Added direct entry file support for startWorker_  
+
 ## 1.1.2
 
 ### Patch Changes

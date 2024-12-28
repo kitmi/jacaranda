@@ -673,6 +673,29 @@ class EntityModel {
     }
 
     /**
+     * Spin up a new entity with data generator.
+     * @param {Function} dataGenerator_ 
+     * @param {Object} createOptions 
+     * @returns {Promise<Object>}
+     */
+    async spinCreate_(dataGenerator_, createOptions) {
+        while (true) {
+            const data = await dataGenerator_();
+
+            try {
+                const result = await this.create_(data, createOptions);
+                return result;
+            } catch (err) {
+                if (err.code === this.errCodeDuplicate) {
+                    this.db.app.warn(`Duplicate "${this.meta.name}", will retry.`);                    
+                } else {
+                    throw err;
+                }
+            }
+        }
+    }
+
+    /**
      * Update an existing entity with given data.
      * @param {object} data - Entity data with at least one unique key (pair) given
      * @param {object} [updateOptions] - Update options
@@ -766,10 +789,6 @@ class EntityModel {
                     // has associated data depending on this record
                     // should ensure the latest result will contain the key of this record
                     opOptions.$getUpdated = true;
-                }
-
-                if (!opOptions.$limit) {
-                    opOptions.$limit = 1;
                 }
 
                 context.result = await this.db.connector.update_(
@@ -1107,7 +1126,7 @@ class EntityModel {
                         latest[fieldName] = null;
                     }
                 } else {
-                    if (typeof value === 'object' && (value.$xr || value.$set || value.$setAt || value.$setSlice)) {
+                    if (typeof value === 'object' && (value.$xr || value.$set || value.$setAt || value.$setSlice || value.$case)) {
                         latest[fieldName] = value;
 
                         return;
@@ -1694,10 +1713,7 @@ class EntityModel {
             qOptions.$assoc = this._prepareAssociations(qOptions);
         }
 
-        if (qOptions.$hasSubQuery) {
-            qOptions.$entity = this;
-        }
-
+        qOptions.$entity = this;
         qOptions.$key = this.meta.keyField;
     }
 

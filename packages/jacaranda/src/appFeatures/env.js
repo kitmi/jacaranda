@@ -45,8 +45,9 @@ export default {
             throw new InvalidConfiguration('NODE_ENV cannot be added', app, `${name}.add.NODE_ENV`);
         }
 
+        const asDefaultOnly = true; // for running worker app within a server, usually test only
         const exposed = _.pick(process.env, Array.from(expose));
-        runtime.register(K_ENV, { ...exposed, ...add });
+        runtime.register(K_ENV, { ...exposed, ...add }, asDefaultOnly);
 
         app.once('stopped', () => {
             runtime.deregister(K_ENV);

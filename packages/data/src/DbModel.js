@@ -1,4 +1,5 @@
-import { naming } from '@kitmi/utils';
+import { naming, sleep_ } from '@kitmi/utils';
+import { ApplicationError, UnexpectedState } from '@kitmi/types';
 
 class DbModel {
     constructor(app, connector, transaction) {
@@ -30,6 +31,7 @@ class DbModel {
 
     /**
      * Get the schema name.
+     * @returns {string}
      */
     get schemaName() {
         return this.meta.schemaName;
@@ -99,6 +101,55 @@ class DbModel {
         } finally {
             db.end();
         }
+    }
+
+    /**
+     * Run an action and automatically retry when failed.
+     * @param {String} transactionName - Name of the transaction for tracking purpose.
+     * @param {Function} action_ - The action to run.
+     * @param {Function} onNextRetry_ - The action to run if action failed and before next retry.
+     * @param {*} maxRetry
+     * @param {*} interval
+     * @returns {Promise} result
+     */
+    async retry_(transactionName, action_, onRetry_, payload, maxRetry, interval) {
+        if (this.transaction != null) {
+            throw new ApplicationError('"db.retry_" is not allowed in a transaction for performance issue.');
+        }
+
+        let i = 0;
+        if (maxRetry == null) maxRetry = 2;
+
+        while (i++ <= maxRetry) {
+            try {
+                const [finished, result] = await action_(payload);
+
+                if (finished) {
+                    return result;
+                }
+            } catch (error) {
+                this.app.logErrorAsWarning(
+                    error,
+                    `Unable to complete "${transactionName}" transaction and will try ${
+                        maxRetry - i + 1
+                    } more times after ${interval || 0} ms.`
+                );
+            }
+
+            if (i > maxRetry) {
+                break;
+            }
+
+            if (interval != null) {
+                await sleep_(interval);
+            }
+
+            if (onRetry_) {
+                await onRetry_(payload);
+            }
+        }
+
+        throw new UnexpectedState(`Failed to complete "${transactionName}" transaction after ${maxRetry} retries.`);
     }
 
     /**

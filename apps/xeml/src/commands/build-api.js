@@ -1,9 +1,8 @@
 const path = require('node:path');
-const { fs, cmd } = require('@kitmi/sys');
+const { cmd } = require('@kitmi/sys');
 const { _, eachAsync_, isEmpty, sleep_ } = require('@kitmi/utils');
 const { InvalidArgument } = require('@kitmi/types');
 const Linker = require('../lang/Linker');
-const { getVersionInfo, getSchemaDigest, writeVersionInfo } = require('../utils/helpers');
 
 /**
  * Build database scripts and entity models from oolong files.
@@ -16,8 +15,6 @@ module.exports = async (app) => {
     const modelService = app.getService('dataModel');
 
     const schemaObjects = Linker.buildSchemaObjects(app, modelService.config);
-
-    const duplicateEntities = new Set();
 
     await eachAsync_(modelService.config.schemaSet, async (schemaConfig, schemaName) => {
         app.log('verbose', `Processing schema "${schemaName}" ...`);
@@ -36,30 +33,16 @@ module.exports = async (app) => {
 
         const DbModeler = require(`../modeler/database/${connector.driver}/Modeler`);
         const dbModeler = new DbModeler(modelService, schema.linker, connector, schemaConfig.options);
-        const refinedSchema = await dbModeler.modeling_(schema, true, duplicateEntities);
-        Object.keys(refinedSchema.entities).forEach((entityName) => duplicateEntities.add(entityName));
-
-        const schemaJSON = refinedSchema.toJSON();
+        const refinedSchema = await dbModeler.modeling_(schema, true);
 
         if (!isEmpty(dbModeler.warnings)) {
             Object.values(dbModeler.warnings).forEach((warning) => app.log('warn', warning));
         }
 
-        const digest = getSchemaDigest(schemaJSON);
-        const verContent = getVersionInfo(modelService, schemaName);
-
-        if (!verContent.digest || verContent.digest !== digest) {
-            verContent.digest = digest;
-            verContent.version = verContent.version + 1;
-            writeVersionInfo(modelService, schemaName, verContent);
-
-            app.log('info', `Schema "${schemaName}" updated to version ${verContent.version}.`);
-        }
-
         const DaoModeler = require('../modeler/Dao');
         let daoModeler = new DaoModeler(modelService, schema.linker, connector);
 
-        return daoModeler.generateApi(refinedSchema, verContent);
+        return daoModeler.generateApi(refinedSchema);
     });
 
     app.logger.flush();

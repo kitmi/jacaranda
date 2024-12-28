@@ -839,7 +839,7 @@ class DaoModeler {
         });
     }
 
-    generateApi(schema, versionInfo) {
+    generateApi(schema) {
         const schemaPath = path.join(path.dirname(schema.linker.getModulePathById(schema.xemlModule.id)), 'api');
 
         // check if api folder exists and read all yaml files under api folder
@@ -852,7 +852,6 @@ class DaoModeler {
 
         const context = {
             schema,
-            versionInfo,
             sharedTypes: {},
         };
 
@@ -941,7 +940,6 @@ class DaoModeler {
         }
 
         const locals = {
-            schemaVersion: context.versionInfo.version,
             baseEndpoint,
             className: resourceClassName,
             resourceName,

@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.10.1
+
+### Minor Changes
+
+-   Removed version info requirement while generating api
+
 ## 0.10.0
 
 ### Minor Changes

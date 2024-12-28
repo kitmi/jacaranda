@@ -4,7 +4,11 @@ logger:
 dataSource:
     rabbitmq:
         test:
-            connection: 'amqp://rabbitmq:rabbitmq@localhost:5672'            
+            connection: 'amqp://rabbitmq:rabbitmq@localhost:5672'
             logStatement: true
+            logConnection: true
             publishers:
-                - queue: 'test-queue'                    
+                - queue: 'test-queue'
+                - exchange: 'testlogs'
+                  durable: false
+                  confirm: false

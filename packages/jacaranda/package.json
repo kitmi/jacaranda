@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/jacaranda",
-    "version": "3.4.6",
+    "version": "3.5.0",
     "description": "JavaScript application framework",
     "main": "cjs/index.js",
     "module": "src/index.js",
@@ -9,14 +9,6 @@
         ".": {
             "import": "./src/index.js",
             "require": "./cjs/index.js"
-        },
-        "./*": {
-            "import": "./src/*.js",
-            "require": "./cjs/*.js"
-        },
-        "./**/*": {
-            "import": "./src/**/*.js",
-            "require": "./cjs/**/*.js"
         }
     },
     "publishConfig": {

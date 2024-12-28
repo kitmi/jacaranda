@@ -430,7 +430,7 @@ const removeExpiredJobs = () => {
                 batchId: { $neq: '*' },
                 dispatchedAt: { $lte: expired },
                 lockerId: { $exists: false },
-            },
+            },            
             $getDeleted: true,
         });
     }
@@ -456,7 +456,7 @@ const getDueJobs = () => {
                 $where: {
                     batchId: '*',
                     dueAt: { $lte: now },
-                },
+                },                
                 $getUpdated: true,
             }
         );

@@ -13,7 +13,7 @@ export default {
             if (featureItem.field in context.latest) {
                 const targetState = context.latest[featureItem.field];
 
-                if (isPlainObject(targetState) && targetState.$xr) {
+                if (isPlainObject(targetState) && (targetState.$xr || targetState.$case)) {
                     return;
                 }
 

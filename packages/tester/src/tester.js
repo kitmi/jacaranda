@@ -147,7 +147,7 @@ class JacaTester {
             return this.startedServers[name];
         }
 
-        const serverOptions = name ? this.config.servers?.[name] : null;
+        const serverOptions = name ? this.config.servers?.[name] : options;
 
         if (!serverOptions) {
             throw new Error(`Server options for "${name}" not found.`);
@@ -215,32 +215,19 @@ class JacaTester {
      * @async
      */
     async startWorker_(...args) {
-        let [name, testToRun, options] = fxargs(args, ['string?', 'function', 'object?']);
+        let [name, testToRun, options] = fxargs(args, ['string?', 'function?', 'object?']);
 
-        const workerOptions = name ? this.config.workers?.[name] : null;
+        const workerOptions = name ? this.config.workers?.[name] : options;
 
-        let err;
-
-        const result = await startWorker(
-            async (app) => {
-                try {
-                    return await testToRun(app);
-                } catch (e) {
-                    console.error(e);
-                    err = e;
-                }
-            },
-            {
-                ...workerOptions,
-                ...options,
-            }
-        );
-
-        if (err) {
-            throw err;
+        if (!workerOptions) {
+            throw new Error(`Worker options for "${name}" not found.`);
         }
 
-        return result;
+        if (typeof workerOptions === 'string') {
+            return esmCheck(require(path.resolve(workerOptions)));
+        }
+
+        return startWorker(testToRun, workerOptions);
     }
 
     // ------------------------------

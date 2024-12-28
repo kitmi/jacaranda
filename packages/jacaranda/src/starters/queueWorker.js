@@ -2,49 +2,24 @@ import startWorker from './worker';
 
 /**
  * Start a message queue worker.
- * @param {Function} worker
  * @param {*} queueService
- * @param {*} queueName
+ * @param {*} queueName 
+ * @param {Function} worker 
  * @param {object} options
  */
-async function startQueueWorker(worker, queueService, queueName, options) {
-    const workerOptions = { workerName: queueName + 'Worker', ...options, dontStop: true };
+async function startQueueWorker(queueService, queueName, worker, options) {
+    return startWorker(
+        async (app) => {
+            let messageQueue = app.getService(queueService);
 
-    return startWorker(async (app) => {
-        let messageQueue = app.getService(queueService);
+            app.log('info', `A queue worker is started and waiting for message on queue "${queueName}" ...`);
 
-        app.log('info', `A queue worker is started and waiting for message on queue "${queueName}" ...`);
+            await messageQueue.waitForJob_(queueName, (msg) => worker(app, msg));
 
-        await messageQueue.workerConsume_(queueName, (channel, msg) => {
-            let info = msg && msg.content;
-
-            try {
-                info = info && JSON.parse(info.toString());
-            } catch (error) {
-                app.log('error', 'The incoming message is not a valid JSON string.');
-                channel.ack(msg);
-                return;
-            }
-
-            worker(app, info)
-                .then((shouldAck) => {
-                    if (shouldAck) {
-                        channel.ack(msg);
-                    } else {
-                        channel.nack(msg);
-                    }
-                })
-                .catch((error) => {
-                    app.logError(error);
-
-                    if (error.needRetry) {
-                        channel.nack(msg);
-                    } else {
-                        channel.ack(msg);
-                    }
-                });
-        });
-    }, workerOptions);
+            return app;
+        },
+        { workerName: queueName + 'Worker', ...options, dontStop: true }
+    );
 }
 
 export default startQueueWorker;

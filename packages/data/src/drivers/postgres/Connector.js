@@ -4,9 +4,9 @@ import { runtime, NS_MODULE } from '@kitmi/jacaranda';
 import { tryRequire } from '@kitmi/sys';
 
 import { connectionStringToObject } from '../../Connector';
-import RelationalConnector from '../relational/Connector';
+import RelationalConnector, { buildDataSetQuery } from '../relational/Connector';
 
-import { isRawSql, extractRawSql, concateParams } from '../../helpers';
+import { isRawSql, extractRawSql, xrCol } from '../../helpers';
 
 const pg = runtime.get(NS_MODULE, 'pg') ?? tryRequire('pg');
 
@@ -18,6 +18,12 @@ const connSym = Symbol.for('conn');
 const tranSym = Symbol.for('tran');
 
 const RESERVED_ALIAS = new Set(['EXCLUDED']);
+
+const TYPES_MAPPING = {
+    'object': 'jsonb',
+    'text': 'text',
+    'array': 'jsonb',
+};
 
 /**
  * SQL execution sequence
@@ -115,6 +121,23 @@ class PostgresConnector extends RelationalConnector {
 
     get specNotInClause() {
         return ` <> ALL (${this.specParamToken})`; // mysql ' NOT IN (?)'
+    }
+
+    specGetTypeCast(opOptions, fieldName) {
+        const fieldMeta = opOptions.$entity.meta.fields[fieldName];
+        if (!fieldMeta) {
+            return undefined;
+        }
+
+        if (fieldMeta.domain) {
+            return fieldMeta.domain;
+        }
+
+        return TYPES_MAPPING[fieldMeta.type];
+    }
+
+    specApplyTypeCast(type, value) {        
+        return type ? `${value}::${type}` : value;
     }
 
     get reservedAlias() {
@@ -446,7 +469,7 @@ class PostgresConnector extends RelationalConnector {
 
             sql +=
                 ` ON CONFLICT (${conflicts.slice(0, -1)}) DO UPDATE SET ` +
-                this._splitColumnsAsInput(options.$upsert, sqlInfo.params, model, {
+                this._splitColumnsAsInput(options, options.$upsert, sqlInfo.params, model, {
                     [model]: model,
                     [`${model}.EXCLUDED`]: 'EXCLUDED',
                 }).join(', ');
@@ -507,7 +530,7 @@ class PostgresConnector extends RelationalConnector {
         const dataWithoutUK = _.omit(data, uniqueKeys);
 
         if (isEmpty(dataWithoutUK)) {
-            // if dupliate, dont need to update
+            // if duplicate, dont need to update
             return this.create_(model, insertData, { ...options, $ignore: true }, connection);
         }
 
@@ -528,7 +551,7 @@ class PostgresConnector extends RelationalConnector {
         let sql = `INSERT INTO ${this.escapeId(model)} (${columns.slice(0, -1)}) VALUES (${values.slice(0, -1)})`;
         sql +=
             ` ON CONFLICT (${conflicts.slice(0, -1)}) DO UPDATE SET ` +
-            this._splitColumnsAsInput(dataWithoutUK, params).join(', ');
+            this._splitColumnsAsInput(options, dataWithoutUK, params).join(', ');
 
         if (options.$getCreated) {
             sql += ` RETURNING ${options.$getCreated
@@ -567,40 +590,67 @@ class PostgresConnector extends RelationalConnector {
             });
         }
 
+        let sql = '';
         const aliasMap = { [model]: 'A' };
+        const params = [];
+        let assoc, where, fromTable;
         let mainEntityForJoin;
 
-        let sql = '';
-        let params = [];
+        if (options.$limit) {
+            const sqlInfo = buildDataSetQuery(
+                options,
+                {
+                    model,
+                    query: {
+                        $select: [options.$entity.meta.keyField],
+                        ..._.pick(options, ['$where', '$offset', '$limit', '$assoc', '$groupBy', '$orderBy']),
+                    },
+                },
+                {}
+            );
+            sqlInfo.params && params.push(...sqlInfo.params);
+
+            const {
+                fromTable: _fromTable,
+                withTables,
+                model: alias,
+            } = this._buildCTEHeader({ sql: sqlInfo.sql, alias: 'B' });
+            sql += withTables;
+            fromTable = _fromTable;
+            aliasMap[`${model}.${alias}`] = 'B';
+            where = { [options.$entity.meta.keyField]: xrCol(`${alias}.${options.$entity.meta.keyField}`) };
+            mainEntityForJoin = model;
+        } else {
+            where = options.$where;
+            assoc = options.$assoc;
+        }
 
         let joinings;
         let directJoinings;
 
-        if (options.$assoc) {
+        if (assoc) {
             mainEntityForJoin = model;
-            [joinings, directJoinings] = this._joinAssociations(
-                options,
-                options.$assoc,
-                mainEntityForJoin,
-                aliasMap,
-                1,
-                params
-            );
+            [joinings, directJoinings] = this._joinAssociations(options, assoc, mainEntityForJoin, aliasMap, 1, params);
         }
 
         sql += 'UPDATE ' + this.escapeId(model);
+        const escapedMainAlias = this.escapeId('A');
 
         if (mainEntityForJoin) {
-            sql += ' A ';
+            sql += ` ${escapedMainAlias} `;
 
-            if (options.$assoc) {
+            if (assoc) {
                 sql = this._concatJoinClauses(sql, directJoinings, joinings);
             }
         }
 
-        sql += ' SET ' + this._splitColumnsAsInput(data, params, mainEntityForJoin, aliasMap).join(', ');
+        sql += ' SET ' + this._splitColumnsAsInput(options, data, params, mainEntityForJoin, aliasMap).join(', ');
 
-        const whereClause = this._joinCondition(options, options.$where, params, null, mainEntityForJoin, aliasMap);
+        if (fromTable) {
+            sql += ` FROM ${fromTable}`;
+        }
+
+        const whereClause = this._joinCondition(options, where, params, null, mainEntityForJoin, aliasMap);
         if (whereClause) {
             sql += ' WHERE ' + whereClause;
         }
@@ -612,7 +662,13 @@ class PostgresConnector extends RelationalConnector {
                 returningFields = ['*'];
             }
 
-            sql += ` RETURNING ${returningFields.map((col) => (col === '*' ? '*' : this.escapeId(col))).join(', ')}`;
+            sql += ` RETURNING ${
+                mainEntityForJoin
+                    ? returningFields
+                          .map((col) => escapedMainAlias + '.' + (col === '*' ? '*' : this.escapeId(col)))
+                          .join(', ')
+                    : returningFields.map((col) => (col === '*' ? '*' : this.escapeId(col))).join(', ')
+            }`;
         }
 
         return this.execute_(sql, params, options, connection);
@@ -881,7 +937,9 @@ class PostgresConnector extends RelationalConnector {
             }
 
             if (!queryOptions.$skipOrmWarn) {
-                this.app.log('warn', `${this.driver}: skip ORM for joining query may cause unexpected result.`, { query });
+                this.app.log('warn', `${this.driver}: skip ORM for joining query may cause unexpected result.`, {
+                    query,
+                });
             }
         }
 

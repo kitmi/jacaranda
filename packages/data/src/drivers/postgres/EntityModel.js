@@ -11,6 +11,10 @@ const defaultNestedKeyGetter = (anchor) => ':' + anchor;
  * PostgresEntityModel entity model class.
  */
 class PostgresEntityModel extends EntityModel {
+    get errCodeDuplicate() {
+        return '23505';
+    }
+
     /**
      * [override] Serialize value into database acceptable format.
      * @param {object} name - Name of the symbol token

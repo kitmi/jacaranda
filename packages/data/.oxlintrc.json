@@ -21,7 +21,8 @@
     "encodeURIComponent": "readonly",
     "isNaN": "readonly",
     "Number": "readonly",
-    "parseInt": "readonly"
+    "parseInt": "readonly",
+    "clearTimeout": "readonly"
   },
   "rules": {
     "no-undef": "warn"

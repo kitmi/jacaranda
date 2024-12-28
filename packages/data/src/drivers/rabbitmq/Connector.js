@@ -1,5 +1,5 @@
 import { _, batchAsync_ } from '@kitmi/utils';
-import { runtime, NS_MODULE } from '@kitmi/jacaranda';
+import { runtime, NS_MODULE, AsyncEmitter } from '@kitmi/jacaranda';
 import { tryRequire } from '@kitmi/sys';
 import { InvalidArgument } from '@kitmi/types';
 
@@ -24,37 +24,36 @@ class RabbitmqConnector extends Connector {
      * @param {App} app
      * @param {string} connectionString
      * @param {object} options
-     * @property {boolean} [options.logMessage] - Flag to log queued message
-     * @property {integer} [options.exchanges] - Milliseconds to wait before reconnecting
+     * @property {boolean} [options.logStatement] - Flag to log queued message
+     * @property {Array} [options.exchanges] - List of exchanges to be created
      */
     constructor(app, connectionString, options) {
         super(app, 'rabbitmq', connectionString, options);
 
         this.channels = {};
+        this.events = new AsyncEmitter();
         this.connect();
     }
 
-    getChannelName(opts, direction) {
-        return opts.exchange ? `[X]${opts.exchange}|${direction}` : `[Q]${opts.queue}|${direction}`;
+    getChannelName(opts) {
+        return opts.exchange
+            ? opts.queue
+                ? `[X]${opts.exchange}|${opts.queue}`
+                : `[X]${opts.exchange}`
+            : `[Q]${opts.queue}`;
     }
 
     async logEnqueue(queue, obj) {
-        const logMsg = `${this.driver}: new message enqueued to [${queue}].`;
-
         if (this.options.logStatement) {
+            const logMsg = `${this.driver}: new message enqueued to [${queue}].`;
             this.app.log('info', logMsg, { msg: obj });
-        } else {
-            this.app.log('verbose', logMsg);
         }
     }
 
     async logDequeue(queue, obj) {
-        const logMsg = `${this.driver}: new message dequeued from [${queue}].`;
-
         if (this.options.logStatement) {
+            const logMsg = `${this.driver}: new message dequeued from [${queue}].`;
             this.app.log('info', logMsg, { msg: obj });
-        } else {
-            this.app.log('verbose', logMsg);
         }
     }
 
@@ -72,9 +71,13 @@ class RabbitmqConnector extends Connector {
             delete this.channels;
         }
 
+        await this.events.emit_('closing');
+
         try {
             this.conn?.close();
         } catch (err) {}
+
+        this.events.allOff();
     }
 
     /**
@@ -85,58 +88,117 @@ class RabbitmqConnector extends Connector {
             this.conn = new Connection(this.connectionString);
 
             this.conn.on('error', (err) => {
-                this.app.log('error', `${this.driver}: connection error: ${err.message}}`);
+                this.app.log('error', `${this.driver}: connection error: ${err.message}}`, _.omit(err, ['message', 'stack']));
             });
 
-            this.conn.on('connection', () => {
-                this.app.log('info', `${this.driver}: connection successfully (re)established.`);
+            this.conn.on('connection.blocked', (reason) => {
+                this.app.log('warn', `${this.driver}: connection blocked: ${reason}}`);
             });
+
+            this.conn.on('connection.unblocked', () => {
+                this.app.log('info', `${this.driver}: connection unblocked.`);
+            });
+
+            if (this.options.logConnection) {
+                this.conn.on('connection', () => {
+                    this.app.log('info', `${this.driver}: connection successfully (re)established.`);
+                });
+            }
 
             const { publishers, connectorName } = this.options;
 
-            _.each(publishers, (opts, index) => {
-                if (!opts.exchange && !opts.queue) {
-                    throw new InvalidArgument(
-                        `${this.driver}[${connectorName}]: missing exchange or queue for publisher "#${index}".`
-                    );
-                }
+            _.each(
+                publishers,
+                ({ confirm = true, maxAttempts = 2, routingKey = '', durable = true, ...opts }, index) => {
+                    if (!opts.exchange && !opts.queue) {
+                        throw new InvalidArgument(
+                            `${this.driver}[${connectorName}]: missing exchange or queue for publisher "#${index}".`
+                        );
+                    }
 
-                const chKey = this.getChannelName(opts, 'out');
-                const chOpts = { confirm: true, maxAttempts: 2 };
-                if (opts.exchange) {
-                    chOpts.exchanges = [{ durable: true, type: 'topic', ...opts }];
-                } else {
-                    chOpts.queues = [{ durable: true, ...opts }];
-                }
+                    opts.durable = durable;
 
-                this.channels[chKey] = this.conn.createPublisher(chOpts);
-            });
+                    const chKey = this.getChannelName(opts);
+                    const chOpts = { confirm, maxAttempts };
+                    const arrayOpts = [opts];
+
+                    if (opts.exchange) {
+                        if (!opts.type) {
+                            opts.type = 'fanout';
+                        }
+                        chOpts.exchanges = arrayOpts;
+                    } else {
+                        chOpts.queues = arrayOpts;
+                    }
+
+                    this.channels[chKey] = this.conn.createPublisher(chOpts);
+                }
+            );
         }
 
         return this.conn;
     }
 
-    ensureChannel(opts, direction, handler) {
-        const chKey = this.getChannelName(opts, direction);
+    ensurePubChannel(opts) {
+        const chKey = this.getChannelName(opts);
         const ch = this.channels[chKey];
 
         if (ch == null) {
-            if (direction === 'out') {
-                throw new InvalidArgument(`${this.driver}: missing pre-configured channel for publisher "${chKey}".`);
-            }
-
-            // Consume messages from a queue:
-            // See API docs for all options
-            const sub = this.conn.createConsumer(opts, handler);
-
-            sub.on('error', (err) => {
-                this.app.log('error', `${this.driver}: consumer [${chKey}] error: ${err.message}}`);
-            });
-
-            return (this.channels[chKey] = sub);
+            throw new InvalidArgument(`${this.driver}: missing pre-configured channel for publisher "${chKey}".`);
         }
 
-        return ch;
+        return [chKey, ch];
+    }
+
+    async createConsumer_(opts, handler) {
+        return new Promise((resolve, reject) => {
+            const chKey = this.getChannelName(opts);
+
+            let _deleteOnStop = false;
+            let _timeout = 5000;
+
+            if (opts.exchange) {
+                let { exchange, type = 'fanout', durable = true, deleteOnStop, timeout, ..._opts } = opts;
+                if (deleteOnStop) {
+                    _deleteOnStop = deleteOnStop;
+                }
+                if (timeout) {
+                    _timeout = timeout;
+                }
+                opts = { ..._opts, exchanges: [{ exchange, type, durable }] };
+            }
+
+            const timerHandle = setTimeout(() => {
+                reject(new Error(`${this.driver}: consumer [${chKey}] timeout.`));
+            }, _timeout);
+
+            const sub = this.conn.createConsumer(opts, (msg) => {
+                this.logDequeue(chKey, msg);
+                return handler(msg);
+            });
+
+            sub.on('error', (err) => {
+                this.app.log('error', `${this.driver}: consumer [${chKey}] error: ${err.message}}`, _.omit(err, ['message', 'stack']));
+            });
+
+            sub.on('ready', () => {
+                clearTimeout(timerHandle);
+                if (this.options.logConnection) {
+                    this.app.log('info', `${this.driver}: consumer [${chKey}] ready.`);
+                }
+                resolve(chKey);
+            });
+
+            if (_deleteOnStop) {
+                this.events.on('closing', async () => {
+                    await this.conn.queueDelete({ queue: sub.queue });
+                });
+            }
+
+            this.app.on('stopping', async () => {
+                await sub.close();
+            });
+        });
     }
 
     async ping_() {
@@ -154,11 +216,29 @@ class RabbitmqConnector extends Connector {
             throw new InvalidArgument('Missing queue name.');
         }
 
-        const pub = this.ensureChannel({ queue }, 'out');
+        const [key, pub] = this.ensurePubChannel({ queue });
 
         await pub.send(queue, obj);
 
-        this.logEnqueue(queue, obj);
+        this.logEnqueue(key, obj);
+    }
+
+    /**
+     * Publish a message to an exchange.
+     * @param {String} exchange
+     * @param {Object} obj
+     * @param {Object} [opts]
+     */
+    async publish_(exchange, obj, opts) {
+        if (!exchange) {
+            throw new InvalidArgument('Missing exchange name.');
+        }
+
+        const [key, pub] = this.ensurePubChannel({ exchange });
+
+        await pub.send({ exchange, routingKey: '', ...opts }, obj);
+
+        this.logEnqueue(key, obj);
     }
 
     /**
@@ -168,12 +248,12 @@ class RabbitmqConnector extends Connector {
      * @param {workerFunction} consumerMethod
      * @param {boolean} [nonCritical=false] - Flag to indicate if the message is non-critical
      */
-    waitForJob(queue, consumerMethod, nonCritical) {
+    async waitForJob_(queue, consumerMethod, nonCritical) {
         if (!queue) {
             throw new InvalidArgument('Missing queue name.');
         }
 
-        this.ensureChannel(
+        return this.createConsumer_(
             {
                 queue,
                 queueOptions: { durable: true },
@@ -181,11 +261,29 @@ class RabbitmqConnector extends Connector {
                 concurrency: 1,
                 qos: { prefetchCount: 2 },
             },
-            'in',
-            async (msg) => {
-                this.logDequeue(queue, msg);
-                return consumerMethod(msg);
-            }
+            consumerMethod
+        );
+    }
+
+    /**
+     * Subscribe to a message from an exchange.
+     * @param {String} exchange
+     * @param {workerFunction} consumerMethod
+     */
+    async subscribe_(exchange, consumerMethod, { routingKey = '', ...options } = {}) {
+        if (!exchange) {
+            throw new InvalidArgument('Missing exchange name.');
+        }
+
+        return this.createConsumer_(
+            {
+                exchange,
+                queueBindings: [{ exchange, routingKey }],
+                exclusive: true,
+                noAck: true,
+                ...options,
+            },
+            consumerMethod
         );
     }
 }

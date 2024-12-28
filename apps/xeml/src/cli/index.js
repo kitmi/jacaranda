@@ -70,7 +70,7 @@ function main() {
                 commandLine: {
                     banner: () => {
                         return (
-                            figlet.textSync('XGent . ai', {
+                            figlet.textSync('XGENT . ai', {
                                 horizontalLayout: 'fitted',
                             }) +
                             '\n' +

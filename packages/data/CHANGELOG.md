@@ -1,5 +1,15 @@
 # @kitmi/data
 
+## 0.10.0
+
+### Minor Changes
+
+-   Refined rabbitmq driver
+-   Added $case setValue operator
+-   Added $limit support for updating many records
+-   Added retry_ for DbModel class
+-   Added spinCreate_ for EntityModel class
+
 ## 0.9.0
 
 ### Minor Changes

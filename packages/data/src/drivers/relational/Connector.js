@@ -5,7 +5,7 @@ import { ApplicationError, InvalidArgument } from '@kitmi/types';
 import Connector from '../../Connector';
 import { isRawSql, extractRawSql, isSelectAll, xrCol } from '../../helpers';
 
-const buildDataSetQuery = (opOptions, dataSet, aliasMap) => {
+export const buildDataSetQuery = (opOptions, dataSet, aliasMap) => {
     let Entity = opOptions.$entity;
     if (Entity == null) {
         throw new ApplicationError('Entity instance should be prepared in the operation options for delayed DataSet.', {
@@ -278,9 +278,9 @@ class RelationalConnector extends Connector {
      * @param {string} model
      * @returns {object} { fromTable, withTables, model }
      */
-    _buildCTEHeader(model) {
-        let fromTable = this.escapeId(model);
+    _buildCTEHeader(model) {        
         let withTables = '';
+        let fromTable;
 
         // CTE, used by aggregation
         if (typeof model === 'object') {
@@ -288,8 +288,10 @@ class RelationalConnector extends Connector {
 
             model = alias;
             fromTable = alias;
-            withTables = `WITH ${alias} AS (${subSql}) `;
+            withTables = `WITH ${this.escapeId(alias)} AS (${subSql}) `;
         }
+
+        fromTable = this.escapeId(model);
 
         return { fromTable, withTables, model };
     }
@@ -733,11 +735,11 @@ class RelationalConnector extends Connector {
         );
     }
 
-    _splitColumnsAsInput(data, params, mainEntity, aliasMap) {
+    _splitColumnsAsInput(opOptions, data, params, mainEntity, aliasMap) {
         return _.reduce(
             data,
             (result, v, fieldName) => {
-                const _packed = this._packSetValue(fieldName, v, params, mainEntity, aliasMap);
+                const _packed = this._packSetValue(opOptions, fieldName, v, params, mainEntity, aliasMap);
                 if (typeof _packed === 'string') {
                     result.push(_packed);
                 } else {
@@ -1097,7 +1099,7 @@ class RelationalConnector extends Connector {
         return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' = ' + this.specParamToken;
     }
 
-    _packSetValue(fieldName, value, params, mainEntity, aliasMap) {
+    _packSetValue(opOptions, fieldName, value, params, mainEntity, aliasMap) {
         if (value == null) {
             return this._escapeIdWithAlias(fieldName) + ' = NULL';
         }
@@ -1210,6 +1212,34 @@ class RelationalConnector extends Connector {
                                     this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
                                     `[${begin}${end}] = ` +
                                     this.specParamToken
+                                );
+
+                            case '$case':
+                                if (typeof v !== 'object') {
+                                    throw new InvalidArgument(
+                                        'The value should be an object when using "$case" operator.',
+                                        {
+                                            value: v,
+                                        }
+                                    );
+                                }
+                                const { $when, $then, $else } = v;
+                                const whenClause = this._joinCondition(
+                                    opOptions,
+                                    $when,
+                                    params,
+                                    'AND',
+                                    mainEntity,
+                                    aliasMap
+                                );  
+                                
+                                // case result requires type cast
+                                const typeCastId = this.specGetTypeCast(opOptions, fieldName);
+                                const thenClause = this.specApplyTypeCast(typeCastId, this._packValue($then, params, mainEntity, aliasMap));
+                                const elseClause = this.specApplyTypeCast(typeCastId, this._packValue($else, params, mainEntity, aliasMap));
+                                return (
+                                    this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                    ` = CASE WHEN ${whenClause} THEN ${thenClause} ELSE ${elseClause} END`
                                 );
 
                             default:

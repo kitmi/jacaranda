@@ -1,5 +1,12 @@
 # @kitmi/jacaranda
 
+## 3.5.0
+
+### Minor Changes
+
+-   Add MQ worker starter
+-   Refine cron worker starter
+
 ## 3.4.6
 
 ### Patch Changes
