@@ -1,4 +1,4 @@
-import { naming, sleep_ } from '@kitmi/utils';
+import { _, naming, sleep_ } from '@kitmi/utils';
 import { ApplicationError, UnexpectedState } from '@kitmi/types';
 
 class DbModel {
@@ -7,6 +7,7 @@ class DbModel {
         this.connector = connector;
         this.transaction = transaction;
 
+        // cached entities
         this._entities = {};
     }
 
@@ -51,7 +52,31 @@ class DbModel {
      * @returns {DbModel}
      */
     fork(transaction) {
-        return new this.constructor(this.app, this.connector, transaction);
+        const db = new this.constructor(this.app, this.connector, transaction);
+        if (this.ctx) {
+            db.ctx = this.ctx;
+        }
+        return db;
+    }
+
+    /**
+     * Fork the model with context.
+     * @param {Context} ctx - The context object.
+     * @returns {DbModel}
+     */ 
+    forkWithCtx(ctx) {
+        const db = new this.constructor(this.app, this.connector, this.transaction);
+        db.ctx = this.extractFromCtx(ctx);
+        return db;
+    }
+
+    /**
+     * Extract from context.
+     * @param {Object} ctx - The http context object.
+     * @returns {Object}
+     */
+    extractFromCtx(ctx) {
+        return _.pick(ctx, ['request', 'header', 'session', 'state']);
     }
 
     /**
@@ -91,12 +116,12 @@ class DbModel {
         let db;
 
         try {
-            db = this.fork(await this.connector.beginTransaction_());
+            db = this.fork(await this.connector.beginTransaction_(this.ctx));
             let result = await transactionFunc(db);
-            await db.connector.commit_(db.transaction);
+            await db.connector.commit_(db.transaction, db.ctx);
             return result;
         } catch (error) {
-            db && (await db.connector.rollback_(db.transaction, error));
+            db && (await db.connector.rollback_(db.transaction, error, db.ctx));
             throw error;
         } finally {
             db.end();
@@ -132,7 +157,8 @@ class DbModel {
                     error,
                     `Unable to complete "${transactionName}" transaction and will try ${
                         maxRetry - i + 1
-                    } more times after ${interval || 0} ms.`
+                    } more times after ${interval || 0} ms.`,
+                    this.ctx ? { reqId: this.ctx.state.reqId } : null
                 );
             }
 
@@ -157,9 +183,10 @@ class DbModel {
      */
     end() {
         delete this.transaction;
+        delete this.ctx;
         delete this._entities;
         delete this.connector;
-        delete this.app;
+        delete this.app;        
     }
 }
 

@@ -34,21 +34,26 @@ const jsonError = (opt, app) => {
             ctx.status = typeof err.status === 'number' && err.status >= 100 ? err.status : 500;
             ctx.type = 'application/json';
 
+            let errReport = err;
+
             // accepted types
             if (handler) {
                 try {
+                    // avoid error in error handling
                     ctx.body = handler(ctx, err);
                     ctx.app.emit('error', err, ctx);
                     ctx.errorHandled = true;
                     return;
                 } catch (error) {
                     error.innerError = err;
-                    err = error;
+                    errReport = error;
                 }
             }
 
-            ctx.body = { error: err.expose && err.message ? err.message : http.STATUS_CODES[ctx.status] };
-            ctx.app.emit('error', err, ctx);
+            ctx.body = {
+                error: errReport.expose && errReport.message ? errReport.message : http.STATUS_CODES[ctx.status],
+            };
+            ctx.app.emit('error', errReport, ctx);
         }
     };
 };

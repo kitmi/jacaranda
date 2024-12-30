@@ -18,7 +18,10 @@
     "__dirname": "readonly",
     "Math": "readonly",
     "Buffer": "readonly",
-    "encodeURIComponent": "readonly"
+    "encodeURIComponent": "readonly",
+    "parseInt": "readonly",
+    "require": "readonly",
+    "arguments": "readonly"
   },
   "settings": {},
   "rules": {

@@ -1,5 +1,8 @@
 apiWrapper:
 
+logger:
+    level: info
+
 engine:
     type: koa
     port: 3001
@@ -18,5 +21,9 @@ routing:
             'get:/': 
                 - mc
                 - simple.mc_
+            'get:/request-id': 
+                - requestId
+                - accessLog 
+                - simple.req_
 
    

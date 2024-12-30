@@ -29,3 +29,4 @@ export { default as grepLines } from './grepLines';
 export { default as trimLines } from './trimLines';
 export * from './trim';
 export * from './padding';
+export * from './n2b64';

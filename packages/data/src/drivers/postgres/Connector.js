@@ -20,9 +20,9 @@ const tranSym = Symbol.for('tran');
 const RESERVED_ALIAS = new Set(['EXCLUDED']);
 
 const TYPES_MAPPING = {
-    'object': 'jsonb',
-    'text': 'text',
-    'array': 'jsonb',
+    object: 'jsonb',
+    text: 'text',
+    array: 'jsonb',
 };
 
 /**
@@ -136,7 +136,7 @@ class PostgresConnector extends RelationalConnector {
         return TYPES_MAPPING[fieldMeta.type];
     }
 
-    specApplyTypeCast(type, value) {        
+    specApplyTypeCast(type, value) {
         return type ? `${value}::${type}` : value;
     }
 
@@ -266,11 +266,14 @@ class PostgresConnector extends RelationalConnector {
      * Start a transaction. Must catch error and rollback if failed!
      * @returns {Promise.<Client>}
      */
-    async beginTransaction_() {
+    async beginTransaction_(ctx) {
         const client = await this.connect_();
         const tid = (client[tranSym] = ++this.transactionId);
         if (this.options.logTransaction) {
-            this.app.log('info', `${this.driver}: begins a new transaction [id: ${tid}].`);
+            this.app.log('info', `${this.driver}: begins a new transaction.`, {
+                reqId: ctx?.state.reqId,
+                transactionId: tid,
+            });
         }
         await client.query('BEGIN');
         return client;
@@ -280,12 +283,15 @@ class PostgresConnector extends RelationalConnector {
      * Commit a transaction. [exception safe]
      * @param {Client} client - Postgres client connection.
      */
-    async commit_(client) {
+    async commit_(client, ctx) {
         try {
             await client.query('COMMIT');
             if (this.options.logTransaction) {
                 const tid = client[tranSym];
-                this.app.log('info', `${this.driver}: committed a transaction [id: ${tid}].`);
+                this.app.log('info', `${this.driver}: committed a transaction.`, {
+                    reqId: ctx?.state.reqId,
+                    transactionId: tid,
+                });
             }
         } finally {
             this.disconnect_(client);
@@ -296,11 +302,13 @@ class PostgresConnector extends RelationalConnector {
      * Rollback a transaction. [exception safe]
      * @param {Client} client - Postgres client connection.
      */
-    async rollback_(client, error) {
+    async rollback_(client, error, ctx) {
         try {
             await client.query('ROLLBACK;');
             const tid = client[tranSym];
-            this.app.log('error', `${this.driver}: rollbacked a transaction [id: ${tid}].`, {
+            this.app.log('error', `${this.driver}: rollbacked a transaction.`, {
+                reqId: ctx?.state.reqId,
+                transactionId: tid,
                 type: error?.name,
                 error: error.message,
                 info: error.info,
@@ -345,6 +353,9 @@ class PostgresConnector extends RelationalConnector {
                 const meta = { ..._.omit(options, ['$assoc', '$data']), params };
                 if (connection) {
                     meta.transactionId = connection[tranSym];
+                }
+                if (connOptions.$ctx) {
+                    meta.reqId = connOptions.$ctx.state.reqId;
                 }
 
                 (async () => {

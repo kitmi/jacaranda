@@ -106,13 +106,12 @@ export default {
                     _logger.verbose = _logger.debug.bind(_logger);
                     return makeLogger(_logger);
                 },
-                flush: () => {
-                    logger.flush();
+                flush: (cb) => {
+                    logger.flush(cb);
                 },
             });
 
             app.logger = makeLogger(logger);
-            app.log = app._loggerLog;
         }
 
         app.registerService(name, logger);

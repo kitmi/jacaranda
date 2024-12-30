@@ -22,6 +22,9 @@ class WebModule extends ModuleBase(Routable(ServiceContainer)) {
         this.server = this.host;
         this.router = this.server.engine.createModuleRouter(this);
 
+        // after mounting, server will assign a new alias if duplicated
+        this.alias = this.name;
+
         /**
          * Mounting route.
          * @member {string}

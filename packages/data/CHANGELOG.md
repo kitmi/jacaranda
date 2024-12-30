@@ -1,5 +1,12 @@
 # @kitmi/data
 
+## 0.10.1
+
+### Patch Changes
+
+-   Added http reqId in logs if exist
+-   Bound transactionId with reqId for better tracking transaction execution
+
 ## 0.10.0
 
 ### Minor Changes

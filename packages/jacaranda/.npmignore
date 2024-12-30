@@ -5,12 +5,12 @@
 .mocharc.js 
 .gitignore
 .gitattributes
+.jsdoc.json
 .prettierignore
 .travis.yml
 .editorconfig
 .swcrc
 jsconfig.json
-jsdoc.json
 babel.config.js
 rollup.config.js
 *.log

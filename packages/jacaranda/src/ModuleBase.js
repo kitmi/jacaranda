@@ -28,11 +28,11 @@ const ModuleBase = (Base) =>
              * @member {boolean}
              **/
             this.isServer = false;
+            this.isModule = true;
 
             this.featuresPath = path.resolve(this.sourcePath, this.options.featuresPath);
 
             this.logger = this.host.logger.child({ module: this.name }, { level: this.options.logLevel });
-            this.log = this._loggerLog;
         }
 
         get i18n() {

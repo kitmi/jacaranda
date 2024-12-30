@@ -1,5 +1,11 @@
 # @kitmi/utils
 
+## 1.3.0
+
+### Minor Changes
+
+-   Add ntob64 and b64ton
+
 ## 1.2.3
 
 ### Patch Changes

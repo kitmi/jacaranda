@@ -58,17 +58,12 @@ const configOverrider = (defConf, envConf) => {
  * @class
  */
 class ServiceContainer extends AsyncEmitter {
-    _loggerLog = (...args) => {
-        this.logger.log(...args);
-        return this;
+    logError = (error, message, payload) => {
+        return this.logException('error', error, message, payload);
     };
 
-    logError = (error, message) => {
-        return this.logException('error', error, message);
-    };
-
-    logErrorAsWarning = (error, message) => {
-        return this.logException('warn', error, message);
+    logErrorAsWarning = (error, message, payload) => {
+        return this.logException('warn', error, message, payload);
     };
 
     /**
@@ -80,6 +75,7 @@ class ServiceContainer extends AsyncEmitter {
      * @property {string} [options.configType="json"] - App's config type, default to "json"
      * @property {string} [options.disableEnvAwareConfig=false] - Don't use environment-aware config
      * @property {array} [options.allowedFeatures] - A list of enabled feature names
+     * @property {array} [options.logWithAppName=false] - Log with app name
      * @property {boolean} [options.loadConfigFromOptions=false] - Whether to load config from passed-in options
      * @property {object} [options.config] - Config in options, used only when loadConfigFromOptions
      * @property {object} [options.registry] - Preloaded modules
@@ -132,8 +128,15 @@ class ServiceContainer extends AsyncEmitter {
         this._logCache = [];
 
         // dummy
-        this.log = (...args) => {
-            this._logCache.push(args);
+        this.logger = {
+            log: (...args) => this._logCache.push(args)
+        };
+        
+        this.log = (level, message, payload) => {
+            if (this.logName) {
+                message = `[${this.logName}] ${message}`;
+            }
+            this.logger.log(level, message, payload);
             return this;
         };
     }
@@ -145,6 +148,18 @@ class ServiceContainer extends AsyncEmitter {
      * @returns {Promise.<ServiceContainer>}
      */
     async start_() {
+        if (this.options.logWithAppName || this.host?.options.logWithAppName) {
+            this.logName = this.server
+                ? this.isServer
+                    ? `srv:${this.name}`
+                    : this.routable
+                    ? `mod:${this.server.name}>${this.name}`
+                    : `lib:${this.server.name}>${this.name}`
+                : this.runnable
+                ? `cli:${this.name}`
+                : `lib:${this.host.name}>${this.name}`;
+        }
+
         this.log('verbose', `Starting app [${this.name}] ...`);
 
         await this.emit_('starting', this);
@@ -402,11 +417,11 @@ class ServiceContainer extends AsyncEmitter {
      * @param {*} summary
      * @returns {ServiceContainer}
      */
-    logException(level, error, summary) {
+    logException(level, error, summary, payload) {
         this.log(
             level,
             (summary ? summary + '\n' : '') + error.message,
-            _.pick(error, ['name', 'status', 'code', 'info', 'stack', 'request'])
+            { ..._.pick(error, ['name', 'status', 'code', 'info', 'stack', 'request']), ...payload }
         );
         return this;
     }
@@ -529,14 +544,14 @@ class ServiceContainer extends AsyncEmitter {
             const _makeLogger = (logLevel, channel) => ({
                 log: makeLogger(consoleLogger, logLevel, channel),
                 child: (arg1, arg2) => _makeLogger(arg2?.level || logLevel, arg1?.module),
-                flush: () => {
-                    this._logCache.forEach((log) => this.logger.log(...log));
-                    this._logCache.length = 0;
+                flush: (cb) => {                    
+                    if (cb) cb();
                 },
             });
             this.logger = _makeLogger(this.options.logLevel);
-            this.log = this._loggerLog;
-            this.logger.flush();
+
+            this._logCache.forEach((log) => this.logger.log(...log));
+            this._logCache.length = 0;
         }
     }
 

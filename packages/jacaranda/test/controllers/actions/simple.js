@@ -10,4 +10,8 @@ export default {
     mc_: async (ctx) => {
         ctx.body = `Hello, Jacaranda! ${ctx.mc}`;
     },
+
+    req_: async (ctx) => {
+        ctx.body = ctx.state.reqId;
+    },
 };

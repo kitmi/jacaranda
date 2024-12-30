@@ -143,6 +143,7 @@ class CommandLine {
 
         const doInquire_ = (item, argIndex) =>
             inquirer.prompt([item]).then((answers) => {
+                // eslint-disable-next-line no-undef
                 console.log();
 
                 _.forOwn(answers, (ans, name) => {
@@ -224,8 +225,10 @@ class CommandLine {
 
             if ((await this.valueOrFunctionCall_(this.usage.showArguments)) && this.argExist(name, argIndex)) {
                 if (typeof argIndex === 'undefined') {
+                    // eslint-disable-next-line no-undef
                     console.log('option', name, `(${opts.desc})`, ':', this.argv[name]);
                 } else {
+                    // eslint-disable-next-line no-undef
                     console.log(`<${name}>`, ':', this.argv._[argIndex]);
                 }
             }
@@ -464,12 +467,14 @@ class CommandLine {
     showBannar() {
         let banner = this.getBanner();
         if (banner) {
+            // eslint-disable-next-line no-undef
             console.log(banner);
             this.bannerShown = true;
         }
     }
 
     showUsage(injects) {
+        // eslint-disable-next-line no-undef
         console.log(this.getUsage(injects));
     }
 }

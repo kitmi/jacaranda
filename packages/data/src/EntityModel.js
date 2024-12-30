@@ -168,8 +168,12 @@ class EntityModel {
         if (options && options.$ctx && options.$ctx.module) {
             return {
                 ...options,
-                $ctx: _.pick(options.$ctx, ['request', 'header', 'session', 'state']),
+                $ctx: this.extractFromCtx(options.$ctx),
             };
+        }
+
+        if (this.db.ctx) {
+            return { ...options, $ctx: this.db.ctx };
         }
 
         return options ?? {};
@@ -322,6 +326,7 @@ class EntityModel {
                 this.db.app.log('warn', `"findOne_" returns more than one record.`, {
                     entity: this.meta.name,
                     options: _.omit(opOptions, ['$assoc']),
+                    reqId: findOptions?.$ctx?.state.reqId,
                 });
             }
 
@@ -498,7 +503,7 @@ class EntityModel {
      * @property {bool} [createOptions.$ignore=false] - If already exist, just ignore the insert.
      * @property {bool} [createOptions.$upsert=false] - If already exist, just update the record.
      * @property {bool} [createOptions.$dryRun=false] - Do not actually insert the record.
-     * @returns {EntityModel}
+     * @returns {Promise.<EntityModel>}
      */
     async create_(data, createOptions) {
         createOptions = this._wrapCtx(createOptions);
@@ -683,11 +688,10 @@ class EntityModel {
             const data = await dataGenerator_();
 
             try {
-                const result = await this.create_(data, createOptions);
-                return result;
+                return await this.create_(data, createOptions);
             } catch (err) {
                 if (err.code === this.errCodeDuplicate) {
-                    this.db.app.warn(`Duplicate "${this.meta.name}", will retry.`);                    
+                    this.db.app.warn(`Duplicate "${this.meta.name}", will retry.`, { reqId: createOptions?.$ctx?.state.reqId });                    
                 } else {
                     throw err;
                 }

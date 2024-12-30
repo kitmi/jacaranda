@@ -84,6 +84,7 @@ export function createWebServer(Base) {
             process.once('SIGINT', () => {
                 this.stop_()
                     .then(() => {})
+                    // eslint-disable-next-line no-undef
                     .catch((error) => console.error(error.message || error));
             });
         }
@@ -143,17 +144,21 @@ export function createWebServer(Base) {
             this.appModules[app.route] = app;
 
             if (app.name in this.appModulesByAlias) {
-                let existingApp = this.appModulesByAlias[app.name];
+                const existingApp = this.appModulesByAlias[app.name];
+                existingApp.alias = `${existingApp.name}@${existingApp.route}]`;
+
                 //move bucket
-                this.appModulesByAlias[`${existingApp.name}[@${existingApp.route}]`] = existingApp;
+                this.appModulesByAlias[existingApp.alias] = existingApp;
                 delete this.appModulesByAlias[app.name];
 
-                this.appModulesByAlias[`${app.name}[@${app.route}]`] = app;
-            } else {
-                this.appModulesByAlias[app.name] = app;
+                app.alias = `${app.name}@${app.route}]`;
+            } else {                
+                app.alias = app.name;
             }
 
-            this.log('verbose', `All routes from app [${app.name}] are mounted under "${app.route}".`);
+            this.appModulesByAlias[app.alias] = app;
+
+            this.log('verbose', `All routes from app [${app.alias}] are mounted under "${app.route}".`);
         }
 
         /**

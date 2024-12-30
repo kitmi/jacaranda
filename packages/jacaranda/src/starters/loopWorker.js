@@ -14,6 +14,7 @@ async function startLoopWorker(worker, options) {
         process.once('SIGINT', () => {
             app.stop_()
                 .then(() => {})
+                // eslint-disable-next-line no-undef
                 .catch((error) => console.error(error.message || error));
         });
 

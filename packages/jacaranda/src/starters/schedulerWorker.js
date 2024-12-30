@@ -115,6 +115,7 @@ async function startScheduler(schedules, jobs, options) {
         const nodeSchedule = await app.tryRequire_('node-schedule', true);
 
         app.on('stopping', async () => {
+            // eslint-disable-next-line no-undef
             nodeSchedule.gracefulShutdown().catch((error) => console.error(error.message || error));
         });
 

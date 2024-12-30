@@ -129,6 +129,17 @@ const Runnable = (T) =>
         }
 
         /**
+         * Flush pending async logs
+         */
+        async flushLogs() {
+            if (this.logger.flush) {
+                return new Promise((resolve) => {
+                    this.logger.flush(resolve);
+                });
+            }
+        }
+
+        /**
          * Visit child modules
          * @param {function} vistor
          */

@@ -1,5 +1,12 @@
 # @kitmi/jacaranda
 
+## 3.6.0
+
+### Patch Changes
+
+-   Added logWithAppName option.
+-   Added requestId middleware.
+
 ## 3.5.0
 
 ### Minor Changes
