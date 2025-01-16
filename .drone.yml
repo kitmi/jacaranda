@@ -1,0 +1,23 @@
+kind: pipeline
+type: docker
+name: publish-packages
+
+steps:
+  # 2. 发布所有包
+  - name: publish-packages
+    image: node:latest
+    environment:
+      NPM_AUTH_TOKEN:
+        from_secret: npm_token # 使用 NPM 的授权 token
+    commands:
+      - corepack enable
+      - corepack prepare pnpm --activate
+      - pnpm build
+      - pnpm config set "//registry.npmjs.com:_authToken=${NPM_AUTH_TOKEN}"
+      - pnpm release-all      
+
+trigger:
+  branch:
+    - publish
+  event:
+    - push
