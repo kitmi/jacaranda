@@ -1,8 +1,14 @@
 # @kitmi/xeml
 
+## 0.10.2
+
+### Patch Changes
+
+-   Refined validation schema generation
+
 ## 0.10.1
 
-### Minor Changes
+### Patch Changes
 
 -   Removed version info requirement while generating api
 

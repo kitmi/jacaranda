@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.10.2
+
+### Patch Changes
+
+-   Fixed cli app usage bug
+
 ## 0.10.1
 
 ### Patch Changes

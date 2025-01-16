@@ -129,14 +129,19 @@ class ServiceContainer extends AsyncEmitter {
 
         // dummy
         this.logger = {
-            log: (...args) => this._logCache.push(args)
+            log: (...args) => this._logCache.push(args),
         };
         
         this.log = (level, message, payload) => {
             if (this.logName) {
                 message = `[${this.logName}] ${message}`;
             }
-            this.logger.log(level, message, payload);
+            if (payload) {
+                this.logger.log(level, message, payload);
+            } else {
+                this.logger.log(level, message);
+            }
+
             return this;
         };
     }

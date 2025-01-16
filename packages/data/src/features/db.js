@@ -86,7 +86,7 @@ export default {
                         );
                     }
 
-                    sourceApp = (app.server ? app.server : app).getLib(dbConfig.fromLib);
+                    sourceApp = (app.host ? app.host : app).getLib(dbConfig.fromLib);
                     let dataSource = dbConfig.dataSource;
                     if (!dataSource) {
                         if (!dbConfig.dbName) {
@@ -98,7 +98,7 @@ export default {
                         }
                         dataSource = sourceApp.config.db[dbConfig.dbName].dataSource;
                     }
-                    connector = sourceApp.getService(dataSource, true);
+                    connector = sourceApp.getService(dataSource);
                 } else {
                     if (!dbConfig.dataSource) {
                         throw new InvalidConfiguration(

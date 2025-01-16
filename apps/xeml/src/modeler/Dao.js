@@ -8,8 +8,8 @@ const {
     isEmpty,
     pushIntoBucket,
     splitFirst,
+    splitLast,
     replaceAll,
-    
 } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
 const swig = require('swig-templates');
@@ -21,7 +21,7 @@ const JsLang = require('./util/ast');
 const XemlToAst = require('./util/xemlToAst');
 const Snippets = require('./dao/snippets');
 const Methods = require('./dao/methods');
-const { extractReferenceBaseName } = require('../lang/XemlUtils');
+const { extractReferenceBaseName, isDotSeparateName } = require('../lang/XemlUtils');
 const { globSync } = require('glob');
 const yaml = require('yaml');
 
@@ -643,7 +643,7 @@ class DaoModeler {
         return result;
     }
 
-    _processTypeInfo(typeInfo, entity, name) {
+    _processTypeInfo(typeInfo, entity, name, options) {
         if (entity && typeInfo.type && name) {
             let [mixed] = this.linker.trackBackType(entity.xemlModule, typeInfo);
             const field = new Field(name, mixed);
@@ -660,11 +660,30 @@ class DaoModeler {
         return JsLang.astValue({
             ..._.pick(typeInfo, DATASET_FIELD_KEYS),
             ...extra,
+            ...options,
         });
     }
 
     _generateEntityDatasetSchema(schema, versionInfo) {
         const _datasetEntries = {};
+
+        function getReferencedFieldInfo(entity, fieldRef) {
+            const [refEntity, name] = splitLast(fieldRef, '.');
+
+            let _entity = entity;
+
+            if (refEntity) {
+                _entity = entity.getReferencedEntity(refEntity);
+            }
+
+            const field = _entity.fields[name];
+
+            if (!field) {
+                throw new Error(`Field ref "${fieldRef}" not found in entity [${entity.name}].`);
+            }
+
+            return field.toJSON();
+        }
 
         //generate validator config
         _.forOwn(schema.entities, (entity, entityInstanceName) => {
@@ -688,13 +707,24 @@ class DaoModeler {
 
                 for (let key in datasetSchema) {
                     let name = key;
+                    let _fieldOptions = {};
                     const input = datasetSchema[key];
+
+                    if (name.endsWith('?')) {
+                        name = name.slice(0, -1);
+                        _fieldOptions.optional = true;
+                    }
 
                     //:address
                     if (name.startsWith('+')) {
                         // extra field that not in the entity
-                        name = name.substring(1);                        
-                        _validationSchema[name] = this._processTypeInfo(input, entity, name);
+                        name = name.substring(1);
+                        _validationSchema[name] = this._processTypeInfo(
+                            typeof input === 'string' ? getReferencedFieldInfo(entity, input) : input,
+                            entity,
+                            name,
+                            _fieldOptions
+                        );
                     } else if (name.startsWith(':')) {
                         const assoc = name.substring(1);
                         const assocMeta = entity.associations[assoc];
@@ -721,12 +751,14 @@ class DaoModeler {
                                     schema: JsLang.astCall(_.camelCase(dep), []),
                                 },
                                 ..._.pick(input, DATASET_FIELD_KEYS),
+                                ..._fieldOptions,
                             });
                         } else {
                             _validationSchema[name] = JsLang.astValue({
                                 type: 'object',
                                 schema: JsLang.astCall(_.camelCase(dep), []),
                                 ..._.pick(input, DATASET_FIELD_KEYS),
+                                ..._fieldOptions,
                             });
                         }
                     } else {
@@ -747,6 +779,7 @@ class DaoModeler {
                             ..._.pick(field, INPUT_SCHEMA_DERIVED_KEYS),
                             ..._.pick(input, DATASET_FIELD_KEYS),
                             ...extra,
+                            ..._fieldOptions,
                         });
                     }
                 }
@@ -906,7 +939,7 @@ class DaoModeler {
             if (groupInfo.moduleSource === 'project') {
                 const groupPath = path.join(this.modelService.config.sourcePath, groupInfo.controllerPath);
 
-                const apiFiles = globSync('**/*.js', { nodir: true, cwd: groupPath });                
+                const apiFiles = globSync('**/*.js', { nodir: true, cwd: groupPath });
 
                 // filter out index.js and sort the rest and make an export list
                 const exportList = apiFiles
@@ -1035,7 +1068,7 @@ class DaoModeler {
                 ...JsLang.astValue(others).properties
             );
         }
-        
+
         return this._processTypeInfo(typeInfo);
     }
 
@@ -1087,9 +1120,7 @@ class DaoModeler {
                     throw new Error(`Variable "${localName}" conflicts with local context.`);
                 }
 
-                codeBucket.push(
-                    `const ${localName} = _.get(${source}, '${key}');`
-                );
+                codeBucket.push(`const ${localName} = _.get(${source}, '${key}');`);
             });
         }
     }

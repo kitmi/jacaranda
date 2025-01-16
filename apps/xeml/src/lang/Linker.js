@@ -412,13 +412,26 @@ class Linker {
             variables[arg.name] = args[index];
         });
 
+        function getRefName(refValue) {
+            return typeof refValue === 'string' ? refValue : refValue.name;
+        }
+
         const instanceInfo = _.mapValues(templateInfo, (value, key) => {
             if (key === 'fields') {
                 return _.mapValues(value, (fieldInfo) => {
                     if (fieldInfo.type in variables) {
-                        return { ...fieldInfo, type: variables[fieldInfo.type] };
+                        return { ...fieldInfo, type: getRefName(variables[fieldInfo.type]) };
                     }
                     return fieldInfo;
+                });
+            }
+
+            if (key === 'associations') {
+                return _.map(value, (assocInfo) => {
+                    if (assocInfo.destEntity in variables) {
+                        return { ...assocInfo, destEntity: getRefName(variables[assocInfo.destEntity]) };
+                    }
+                    return assocInfo;
                 });
             }
 

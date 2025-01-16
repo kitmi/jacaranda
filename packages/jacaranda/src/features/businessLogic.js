@@ -23,9 +23,17 @@ export default {
             name
         );
 
-        let businessClasses;
+        let businessClasses = _get(app.registry, _path);
+        if (!businessClasses) {
+            businessClasses = require(path.join(app.sourcePath, _path));
+        }
 
-        app.bus = (businessName, schemaName, fromApp) => {
+        app.bus = (businessName, schemaName, fromApp, ctx) => {
+            if (ctx == null && fromApp?.request) {
+                ctx = fromApp;
+                fromApp = null;
+            }
+
             if (fromApp) {
                 let _app;
 
@@ -35,11 +43,7 @@ export default {
                     _app = app.server.getAppByAlias(fromApp);
                 }
 
-                return _app.bus(businessName, schemaName);
-            }
-
-            if (!businessClasses) {
-                businessClasses = _get(app.registry, _path, require(path.join(app.sourcePath, _path)));
+                return _app.bus(businessName, schemaName, null, ctx);
             }
 
             const businessClass = businessClasses[businessName];
@@ -47,7 +51,12 @@ export default {
                 throw new InvalidArgument(`Business class "${businessName}" not found.`);
             }
 
-            return new businessClass(app, schemaName || defaultSchema);
+            return new businessClass(app, schemaName || defaultSchema, ctx);
         };
+
+        app.useMiddleware(app.router, (ctx, next) => {
+            ctx.bus = (businessName, schemaName, fromApp) => app.bus(businessName, schemaName, fromApp, ctx);
+            return next();
+        });
     },
 };

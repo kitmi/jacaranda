@@ -8,7 +8,7 @@ import { ApplicationError } from '@kitmi/types';
  * @returns {Function}
  */
 function httpMethod(method, middlewares) {
-    if (arguments.length === 3) {
+    if (arguments.length >= 3) {
         return httpMethod('get')(...Array.prototype.slice.call(arguments));
     }
 
@@ -63,13 +63,37 @@ function httpMethod(method, middlewares) {
     };
 }
 
-const makeShortcut = (method) => (route, middlewares) =>
-    httpMethod(route ? `${method}:${ensureStartsWith(route, '/')}` : method, middlewares);
+const makeShortcut = (method) => function (route, middlewares) {
+    if (typeof middlewares === 'undefined') {
+        if (typeof route === 'function') {
+            return httpMethod(method, middlewares)(route);
+        }
+
+        if (Array.isArray(route)) {
+            return httpMethod(method, route);
+        }
+
+        throw new ApplicationError(`Invalid usage of http method "${method}" shortcut decorator.`);
+    }
+
+    if (typeof route === 'object') {
+        return httpMethod(method)(...arguments);
+    }
+
+    return httpMethod(route ? `${method}:${ensureStartsWith(route, '/')}` : method, middlewares);
+};
 
 // nestjs like decorators
 export const Get = makeShortcut('get');
 export const Post = makeShortcut('post');
 export const Put = makeShortcut('put');
+export const Patch = makeShortcut('patch');
 export const Delete = makeShortcut('del');
+
+httpMethod.Get = Get;
+httpMethod.Post = Post;
+httpMethod.Put = Put;
+httpMethod.Patch = Patch;
+httpMethod.Delete = Delete;
 
 export default httpMethod;

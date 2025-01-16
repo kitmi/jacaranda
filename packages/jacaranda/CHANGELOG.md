@@ -1,8 +1,17 @@
 # @kitmi/jacaranda
 
+## 3.7.0
+
+### Minor Changes
+
+-   Added fastServe helper function.
+-   Refined businessLogic feature for request tracking.
+-   Added BusinessLogic base class.
+-   Fixed logging bug.
+
 ## 3.6.0
 
-### Patch Changes
+### Minor Changes
 
 -   Added logWithAppName option.
 -   Added requestId middleware.

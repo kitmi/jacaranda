@@ -241,6 +241,15 @@ class RelationalEntityModel extends EntityModel {
                 if (v == null) {
                     raw[anchor] = null;
                 } else {
+                    if (typeof v !== 'object') {
+                        throw new ValidationError(
+                            `Association reference "@${anchor}" of entity "${this.meta.name}" expects an object as query condition.`,
+                            {
+                                entity: this.meta.name,
+                                anchor,
+                            }
+                        );
+                    }
                     refs[anchor] = v;
                 }
 

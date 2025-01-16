@@ -17,8 +17,6 @@ const middlewareCreator = () => {
         const timestamp = ntob64(Date.now() - BASE_LINE);
         const reqId = `${timestamp}:${instanceId}:${seqId}`;
 
-        console.log('reqId', 'in middleware', reqId);
-
         ctx.state.reqId = ctx.req.id = reqId;
         if (!ctx.header['x-request-id']) {
             ctx.set('x-request-id', reqId);

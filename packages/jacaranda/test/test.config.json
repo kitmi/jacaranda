@@ -7,6 +7,8 @@
     "enableAllure": true,
     "servers": {
         "server1": "test/testServer.js",
-        "server2": "test/testServer2.js"
+        "server2": "test/testServer2.js",
+        "server3": "test/fastServer.js",
+        "server4": "test/fastServer2.js"
     }
 }

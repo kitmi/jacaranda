@@ -2,6 +2,7 @@ export { default as AsyncEmitter } from './AsyncEmitter';
 export { default as RuntimeRegistry } from './RuntimeRegistry';
 export { default as HttpClient } from './HttpClient';
 export { default as Controller } from './Controller';
+export { default as Business } from './Business';
 export { default as DeferredService } from './DeferredService';
 export { default as httpMethod } from './httpMethod';
 export { default as http } from './httpMethod'; // alias
@@ -11,4 +12,5 @@ export { default as middleware } from './middleware';
 export * from './logger';
 export { default as supportedMethods } from './supportedMethods';
 export { default as serve } from './serve';
+export { default as fastServe } from './fastServe';
 export { default as connect } from './connect';

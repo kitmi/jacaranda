@@ -132,11 +132,21 @@ const Runnable = (T) =>
          * Flush pending async logs
          */
         async flushLogs() {
+            this.visitChildModules((childModule) => {
+                if (childModule.logger.flush) {
+                    childModule.logger.flush();
+                }
+            });
+
             if (this.logger.flush) {
-                return new Promise((resolve) => {
+                await new Promise((resolve) => {
                     this.logger.flush(resolve);
                 });
+
+                return sleep_(100);
             }
+
+            return Promise.resolve();
         }
 
         /**
