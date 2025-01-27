@@ -69,6 +69,10 @@ const makeShortcut = (method) => function (route, middlewares) {
             return httpMethod(method, middlewares)(route);
         }
 
+        if (typeof route === 'string') {
+            return httpMethod(route ? `${method}:${ensureStartsWith(route, '/')}` : method);
+        }
+
         if (Array.isArray(route)) {
             return httpMethod(method, route);
         }

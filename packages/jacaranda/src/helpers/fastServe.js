@@ -2,7 +2,7 @@ import serve from './serve';
 import { _, replaceAll } from '@kitmi/utils';
 
 export default function fastServe(modules, { logger, engine, middlewares, ...features } = {}) {
-    const { routes, registry } = _.reduce(
+    const { routes, registry: moduleRegistry } = _.reduce(
         modules,
         (result, module, route) => {
             const moduleName = replaceAll(route, '/', '_') + 'Module';
@@ -13,8 +13,28 @@ export default function fastServe(modules, { logger, engine, middlewares, ...fea
         { routes: {}, registry: {} }
     );
 
+    const { config: middlewareConfig, registry: middlewareRegistry } = middlewares.reduce(
+        (result, middleware) => {
+            if (typeof middleware === 'string') {
+                result.config.push(middleware);
+                return result;
+            }
+
+            const [name, fn, config] = middleware;
+
+            result.config.push(config ? [name, config] : name);
+            result.registry[name] = fn;
+            return result;
+        },
+        {
+            config: [],
+            registry: {},
+        }
+    );
+
     return serve({
         loadConfigFromOptions: true,
+        logLevel: logger?.level ?? 'verbose',
         config: {
             logger: {
                 level: 'verbose',
@@ -25,23 +45,11 @@ export default function fastServe(modules, { logger, engine, middlewares, ...fea
                 port: 3388,
                 ...engine,
             },
-            middlewareFactory: {
-                moduleMiddlewares: {
-                    ...middlewares,
-                    body: {
-                        multipart: true,
-                        jsonLimit: '15mb',
-                        formidable: {
-                            hashAlgorithm: 'md5',
-                        },
-                    },
-                },
-            },
             routing: {
                 '/': {
                     module: {
                         $source: 'registry',
-                        $middleware: ['moduleMiddlewares', 'jsonError'],
+                        $middlewares: ['jsonError', ...middlewareConfig],
                         ...routes,
                     },
                 },
@@ -50,8 +58,9 @@ export default function fastServe(modules, { logger, engine, middlewares, ...fea
         },
         registry: {
             controllers: {
-                modules: registry,
+                modules: moduleRegistry,
             },
+            middlewares: middlewareRegistry,
         },
     });
 }
