@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.7.1
+
+### Patch Changes
+
+-   Fixed fastServe and http Get decorator bug.
+
 ## 3.7.0
 
 ### Minor Changes
