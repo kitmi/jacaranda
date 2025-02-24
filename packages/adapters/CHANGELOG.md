@@ -1,5 +1,11 @@
 # @kitmi/adapters
 
+## 1.1.3
+
+### Patch Changes
+
+-  Removed unnecessary peer dependency
+
 ## 1.1.2
 
 ### Patch Changes
