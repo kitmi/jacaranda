@@ -3,7 +3,7 @@ const Linker = require('../src/lang/Linker');
 
 describe('test-parser', function () {
     it('test case 1', async function () {
-        await jacat.startWorker_(async (app) => {
+        await jacat.startWorker_('tester', async (app) => {
             const linker = new Linker(app, {
                 schemaPath: path.resolve(__dirname, './schema'),
                 useJsonSource: false,

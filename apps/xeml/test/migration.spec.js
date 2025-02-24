@@ -2,7 +2,7 @@ const path = require('node:path');
 const Linker = require('../src/lang/Linker');
 const { cmd, fs } = require('@kitmi/sys');
 
-describe.only('test-migration', function () {
+describe('test-migration', function () {
     after(() => {
         // copy ./test/xeml/test.xeml.ver1 to ./test/xeml/test.xeml
         fs.copyFileSync('./test/xeml/test.xeml.ver1', './test/xeml/test.xeml');
@@ -10,7 +10,7 @@ describe.only('test-migration', function () {
     });
 
     it('test case 1', async function () {
-        await jacat.startWorker_(async (app) => {
+        await jacat.startWorker_('tester', async (app) => {
             let exitCode = await cmd.runLive_('node', './bin/xeml.js build -w ./test -c ./conf/xeml.default.yaml');
             exitCode.should.equal(0);
             await cmd.runLive_('node', './bin/xeml.js migrate -w ./test -c ./conf/xeml.default.yaml --reset');
@@ -21,15 +21,18 @@ describe.only('test-migration', function () {
             await fs.copyFile('./test/xeml/test.xeml.ver2', './test/xeml/test.xeml');
 
             exitCode = await cmd.runLive_('node', './bin/xeml.js migrate -w ./test -c ./conf/xeml.default.yaml');
+            console.log('exitCode:', exitCode);
             exitCode.should.not.equal(0);
 
             exitCode = await cmd.runLive_('node', './bin/xeml.js build -w ./test -c ./conf/xeml.default.yaml');
+            console.log('exitCode:', exitCode);
             exitCode.should.equal(0);
 
             exitCode = await cmd.runLive_(
                 'node',
                 './bin/xeml.js migrate -w ./test -c ./conf/xeml.default.yaml --verbose'
             );
+            console.log('exitCode:', exitCode);
             exitCode.should.equal(0);
         });
     });
