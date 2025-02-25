@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.7.3
+
+### Patch Changes
+
+-   Fixed app module depends bug
+
 ## 3.7.2
 
 ### Patch Changes

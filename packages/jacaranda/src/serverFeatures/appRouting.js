@@ -20,7 +20,7 @@
 
 import path from 'node:path';
 import { _, batchAsync_, eachAsync_, pushIntoBucket } from '@kitmi/utils';
-import { InvalidConfiguration } from '@kitmi/types';
+import { InvalidConfiguration, ServerError } from '@kitmi/types';
 import { TopoSort } from '@kitmi/algo';
 import Feature from '../Feature';
 
@@ -94,7 +94,9 @@ export default {
 
             pushIntoBucket(modules, config.name, { appPath, app });
 
-            if (moduleMeta.depends) {
+            if (config.depends) {
+                topoSort.depends(config.name, config.depends);
+            } else if (moduleMeta.depends) {
                 topoSort.depends(config.name, moduleMeta.depends);
             } else {
                 topoSort.add(config.name);
@@ -106,6 +108,10 @@ export default {
         server.once('after:' + Feature.PLUGIN, async () => {
             await eachAsync_(sorted, async (name) => {
                 const bucket = modules[name];
+                if (bucket == null) {
+                    throw new ServerError(`App [${name}] not exist.`);
+                }
+
                 return batchAsync_(bucket, async ({ appPath, app }) => {
                     let relativePath = path.relative(server.workingPath, appPath);
                     server.log('verbose', `Loading app [${app.name}] from "${relativePath}" ...`);

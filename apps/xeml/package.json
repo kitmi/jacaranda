@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/xeml",
-    "version": "0.10.2",
+    "version": "0.10.3",
     "description": "Jacaranda data entity modeling tool",
     "main": "src/index.js",
     "bin": {
@@ -58,6 +58,7 @@
         "@kitmi/utils": "workspace:*",
         "@kitmi/validators": "workspace:*",
         "@swc-node/register": "^1.9.0",
+        "@swc/types": "^0.1.17",
         "chalk": "^4.1.2",
         "del": "^6.1.1",
         "escodegen": "2.1.0",
