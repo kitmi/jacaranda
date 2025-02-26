@@ -37,7 +37,9 @@ export default {
             if (fromApp) {
                 let _app;
 
-                if (fromApp.startsWith('/')) {
+                if (typeof fromApp === 'object') {
+                    _app = fromApp;
+                } else if (fromApp.startsWith('/')) {
                     _app = app.server.getAppByRoute(fromApp);
                 } else {
                     _app = app.server.getAppByAlias(fromApp);

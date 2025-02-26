@@ -91,3 +91,9 @@ const { affectedRows } = await UuidSequence.updateOne_(
 );
 // UPDATE "uuidSequence" SET "status" = CASE WHEN (EXISTS (SELECT 1 FROM "address" WHERE "ref" = $1 AND "isDeleted" <> $2)) THEN $3::uuidSequenceStatus ELSE $4::uuidSequenceStatus END WHERE "uuid" = $5 AND "status" = $6
 ```
+
+## Query by view
+
+```js
+const { data, totalCount } = await Project.findManyByPage_({ $view: 'listItem', $where: where }, page, records);
+```

@@ -3,7 +3,7 @@ import { InvalidArgument, ApplicationError } from '@kitmi/types';
 import { runtime, NS_MODULE } from '@kitmi/jacaranda';
 import { tryRequire } from '@kitmi/sys';
 
-import { connectionStringToObject } from '../../Connector';
+import { connectionStringToObject,FIELDS_OMIT_FROM_LOG } from '../../Connector';
 import RelationalConnector, { buildDataSetQuery } from '../relational/Connector';
 
 import { isRawSql, extractRawSql, xrCol } from '../../helpers';
@@ -350,7 +350,7 @@ class PostgresConnector extends RelationalConnector {
             };
 
             if (this.options.logStatement) {
-                const meta = { ..._.omit(options, ['$assoc', '$data']), params };
+                const meta = { ..._.omit(options, FIELDS_OMIT_FROM_LOG), params };
                 if (connection) {
                     meta.transactionId = connection[tranSym];
                 }
@@ -390,7 +390,7 @@ class PostgresConnector extends RelationalConnector {
             return adapted;
         } catch (err) {
             err.info || (err.info = {});
-            Object.assign(err.info, _.omit(options, ['$assoc', '$data']));
+            Object.assign(err.info, _.omit(options, FIELDS_OMIT_FROM_LOG));
 
             throw err;
         } finally {
@@ -590,14 +590,14 @@ class PostgresConnector extends RelationalConnector {
         if (isEmpty(data)) {
             throw new InvalidArgument('Data record is empty.', {
                 model,
-                options: _.omit(options, ['$assoc']),
+                options: _.omit(options, FIELDS_OMIT_FROM_LOG),
             });
         }
 
         if (!options.$where) {
             throw new InvalidArgument('"$where" is required for updating.', {
                 model,
-                options: _.omit(options, ['$assoc']),
+                options: _.omit(options, FIELDS_OMIT_FROM_LOG),
             });
         }
 
@@ -614,7 +614,7 @@ class PostgresConnector extends RelationalConnector {
                     model,
                     query: {
                         $select: [options.$entity.meta.keyField],
-                        ..._.pick(options, ['$where', '$offset', '$limit', '$assoc', '$groupBy', '$orderBy']),
+                        ..._.pick(options, ['$where', '$offset', '$limit', '$assoc', '$groupBy', '$orderBy', '$ctx']),
                     },
                 },
                 {}

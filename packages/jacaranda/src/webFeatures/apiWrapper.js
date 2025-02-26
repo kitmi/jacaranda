@@ -1,5 +1,6 @@
 import Feature from '../Feature';
 import http from 'node:http';
+import { _ } from '@kitmi/utils';
 
 const statusToError = {
     400: 'invalid_request',
@@ -9,6 +10,18 @@ const statusToError = {
 };
 
 const unknownError = 'unknown_error';
+
+function removeReservedMeta(info) {
+    return _.reduce(
+        info,
+        (result, value, key) => {
+            if (key[0] === '$') return result;
+            result[key] = value;
+            return result;
+        },
+        {}
+    );
+}
 
 export default {
     /**
@@ -22,6 +35,7 @@ export default {
      * @param {App} app - The cli app module object
      * @param {object} settings - Settings of soal client
      * @property {boolean} [settings.debug] - Debug mode
+     * @property {string} [settings.dataField="data"] - Data field name
      * @returns {Promise.<*>}
      */
     load_: async function (app, settings, name) {
@@ -31,7 +45,7 @@ export default {
                     status: 'ok',
                     ...ctx.resPayload,
                     ...others,
-                    data,
+                    [settings.dataField || 'data']: data,
                 };
             },
 
@@ -45,7 +59,7 @@ export default {
                     error: {
                         code,
                         message: settings.debug || error.expose ? error.message : http.STATUS_CODES[ctx.status],
-                        ...(error.info ? { info: error.info } : null),
+                        ...(error.info ? { info: removeReservedMeta(error.info) } : null),
                     },
                 };
             },

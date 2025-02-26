@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.10.3
+
+### Patch Changes
+
+-   Fixed query log meta 
+
 ## 0.10.2
 
 ### Patch Changes

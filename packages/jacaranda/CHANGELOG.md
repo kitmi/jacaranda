@@ -1,5 +1,12 @@
 # @kitmi/jacaranda
 
+## 3.7.4
+
+### Patch Changes
+
+-   Fixed businessLogic feature cross-app reference
+-   Fixed apiWrapper error handling to hide db error in the API result
+
 ## 3.7.3
 
 ### Patch Changes
