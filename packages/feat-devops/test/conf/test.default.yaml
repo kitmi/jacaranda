@@ -1,0 +1,10 @@
+logger: {}
+
+gitea:
+   url: 'http://localhost:3001'
+   token: '0b97de37841586c796669c7218117c6637c4c1c5'
+
+devops:
+   provider: 'gitea'
+   url: 'http://localhost:3001'
+   token: '0b97de37841586c796669c7218117c6637c4c1c5'

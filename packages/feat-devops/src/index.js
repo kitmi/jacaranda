@@ -1,1 +1,5 @@
-export { default as gitea } from './gitea';
+import gitea from './gitea';
+import gitlab from './gitlab';
+import devops from './devops';
+
+export { gitea, gitlab, devops };

@@ -3,5 +3,12 @@
         "suites": {}
     },
     "enableAsyncDump": false,
-    "enableAllure": true
+    "enableAllure": true,
+    "servers": {
+        "server1": {
+            "configType": "yaml",            
+            "logLevel": "info",
+            "appModulesPath": "src/apps"
+        }
+    }
 }

@@ -1,6 +1,5 @@
 import { dataSource, dataModel, db } from '@kitmi/data';
-import TestDb from '../src/models/Test';
-
+import { gitea, devops } from '../../src';
 const start_ = async (test) => {
     return jacat.startWorker_(test, {
         configPath: './test/conf',
@@ -13,7 +12,22 @@ const start_ = async (test) => {
                 db,
             },
             db: {
-                test: TestDb,
+            },
+        },
+    });
+};
+
+const start2_ = async (test) => {
+    return jacat.startWorker_(test, {
+        configPath: './test/conf',
+        configType: 'yaml',
+        configName: 'test',
+        registry: {
+            features: {
+                gitea,
+                devops
+            },
+            db: {
             },
         },
     });
@@ -21,4 +35,5 @@ const start_ = async (test) => {
 
 global.tester = {
     start_,
+    start2_
 };

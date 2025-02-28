@@ -1,5 +1,7 @@
 import { Feature, DeferredService } from '@kitmi/jacaranda';
 import { giteaApi } from 'gitea-js';
+import GiteaClient from './drivers/GiteaClient';
+import { createGitService } from './baseGitService';
 
 export default {
     /**
@@ -17,7 +19,7 @@ export default {
     /**
      * Load the feature
      * @param {App} app - The cli app module object
-     * @param {object} settings - Settings of soal client
+     * @param {object} settings - Settings of gitea client
      * @returns {Promise.<*>}
      */
     load_: async function (app, opts, name) {
@@ -33,12 +35,16 @@ export default {
                 name
             );
 
-            const giteaApi = giteaApi(url, { token });
+            const client = new GiteaClient();
+            client.initialize({ host: url, token });
+
+            const api = client.api;
+
+            const gitService = createGitService(client, {}, app.logger);
 
             return {
-                api: giteaApi,
-                createRepo: () => giteaApi, // todo: 
-                pullRequest: () => giteaApi, // todo: 
+                ...gitService,
+                api,  // 保留原有的 api 属性以兼容旧版本
             };
         });
 

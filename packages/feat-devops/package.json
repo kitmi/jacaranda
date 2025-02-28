@@ -35,8 +35,8 @@
         "report": "allure generate allure-results --clean -o allure-report && serve ./allure-report",
         "doc": "echo skipped",
         "prettier": "prettier --write .",
-        "lint": "eslint \"**/*.js\"",
-        "lint-fix": "eslint \"**/*.js\" --fix",
+        "lint": "oxlint -c .oxlintrc.json --disable-react-plugin --disable-typescript-plugin  ./src",
+        "lint-fix": "pnpm lint --fix",
         "clean": "shx rm -rf cjs coverage .nyc_output",
         "build": "pnpm clean && swc ./src -d ./cjs  --strip-leading-paths"
     },
@@ -55,6 +55,7 @@
         ]
     },
     "dependencies": {
+        "@gitbeaker/rest": "^42.1.0",
         "@kitmi/jacaranda": "workspace:*",
         "@kitmi/sys": "workspace:*",
         "@kitmi/utils": "workspace:*",
