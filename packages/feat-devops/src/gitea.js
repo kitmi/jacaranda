@@ -33,7 +33,13 @@ export default {
                 name
             );
 
-            return giteaApi(url, { token });
+            const giteaApi = giteaApi(url, { token });
+
+            return {
+                api: giteaApi,
+                createRepo: () => giteaApi, // todo: 
+                pullRequest: () => giteaApi, // todo: 
+            };
         });
 
         app.registerService(name, service);
