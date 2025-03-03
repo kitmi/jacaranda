@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "description": "Devops related utilities",
     "publishConfig": {
-        "access": "public"
+        "registry": "https://registry.npmjs.org/"
     },
     "main": "cjs/index.js",
     "module": "src/index.js",
