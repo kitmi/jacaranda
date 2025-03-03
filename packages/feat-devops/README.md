@@ -12,5 +12,4 @@
 
 ## License
 
--   MIT
--   Copyright (c) 2023 KITMI PTY LTD
+MIT
