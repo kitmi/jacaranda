@@ -1,5 +1,12 @@
 # @kitmi/validators
 
+## 1.4.2
+
+### Patch Changes
+
+-   Refined package export rules
+-   Rolled back 1.4.1 patch
+
 ## 1.4.1
 
 ### Patch Changes

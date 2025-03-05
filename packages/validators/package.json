@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/validators",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "description": "Dynamic validators to be used with @kitmi/types based on @kitmi/jsonv and @kitmi/jsonx",
     "main": "cjs/index",
     "module": "src/index.js",
@@ -10,13 +10,13 @@
             "import": "./src/index.js",
             "require": "./cjs/index.js"
         },
-        "./*": {
-            "import": "./src/*.js",
-            "require": "./cjs/*.js"
+        "./allSync": {
+            "import": "./src/allSync.js",
+            "require": "./cjs/allSync.js"
         },
-        "./**/*": {
-            "import": "./src/**/*.js",
-            "require": "./cjs/**/*.js"
+        "./allAsync": {
+            "import": "./src/allAsync.js",
+            "require": "./cjs/allAsync.js"
         }
     },
     "publishConfig": {

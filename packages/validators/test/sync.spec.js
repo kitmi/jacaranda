@@ -15,6 +15,26 @@ describe('all sync', function () {
         );
     });
 
+    it('bvt - nested', async function () {
+        SYS.jsvConfig.setLocale('en');
+
+        await shouldThrow_(
+            () =>
+                Types.OBJECT.sanitize(
+                    { a: { b: 1 } },
+                    {
+                        schema: {
+                            a: { type: 'object', schema: { 
+                                b: { type: 'number', post: [['~jsv', { $gt: 2 }]] } 
+                            } },
+                        },
+                    }
+                ),
+            'Post-process validation failed.',
+            { info: { "a.b": '"a.b" must be greater than 2.' } }
+        );
+    });
+
     it('bvt - zh-CN', async function () {
         SYS.jsvConfig.setLocale('zh-CN');
 
