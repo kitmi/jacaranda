@@ -20,7 +20,8 @@
         }
     },
     "publishConfig": {
-        "access": "public"
+        "access": "public",
+        "registry": "https://registry.npmjs.org/"
     },
     "author": "Rockie Guo <rockie@kitmi.com.au>",
     "repository": {

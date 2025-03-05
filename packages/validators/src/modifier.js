@@ -76,7 +76,7 @@ function validatorWrapper(validator) {
         let [validated, reason] = validator(value, options, meta, context);
 
         if (!validated) {
-            let details = handleErrors(reason);            
+            let details = handleErrors(reason);
             throw new ValidationError('Post-process validation failed.', details);
         }
 
