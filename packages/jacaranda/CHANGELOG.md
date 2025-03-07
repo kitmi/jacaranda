@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.7.5
+
+### Patch Changes
+
+-   Made system env over config values
+  
 ## 3.7.4
 
 ### Patch Changes

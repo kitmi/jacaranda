@@ -47,7 +47,7 @@ export default {
 
         const asDefaultOnly = true; // for running worker app within a server, usually test only
         const exposed = _.pick(process.env, Array.from(expose));
-        runtime.register(K_ENV, { ...exposed, ...add }, asDefaultOnly);
+        runtime.register(K_ENV, { ...add, ...exposed }, asDefaultOnly);
 
         app.once('stopped', () => {
             runtime.deregister(K_ENV);
