@@ -129,7 +129,7 @@ class DaoModeler {
         this._generateEnumTypes(schema, versionInfo);
         //this._generateEntityInputSchema(schema, versionInfo);
         this._generateEntityViews(schema);
-        this.generateApi(schema, versionInfo);
+        //this.generateApi(schema, versionInfo);
         //
         //this._generateViewModel();
     }
@@ -872,21 +872,13 @@ class DaoModeler {
         });
     }
 
-    generateApi(schema) {
-        const schemaPath = path.join(path.dirname(schema.linker.getModulePathById(schema.xemlModule.id)), 'api');
-
-        // check if api folder exists and read all yaml files under api folder
+    prepareApiCommonContext(schemaPath, context) {        
         const apiDefFiles = globSync('*.yaml', { nodir: true, cwd: schemaPath });
         const apiDefFilesSet = new Set(apiDefFiles);
 
         if (apiDefFilesSet.size === 0) {
-            return;
+            return apiDefFilesSet;
         }
-
-        const context = {
-            schema,
-            sharedTypes: {},
-        };
 
         // todo: typeSpecialize
         const typeSpecialize = (typeInfo, argsMap) => {};
@@ -894,6 +886,8 @@ class DaoModeler {
         // process __types.yaml for type definitions
         if (apiDefFilesSet.has('__types.yaml')) {
             const types = yaml.parse(fs.readFileSync(path.join(schemaPath, '__types.yaml'), 'utf8'));
+            const sharedTypes = {};
+
             // check if any type has $args property, change the type to a function
 
             _.each(types, (type, typeName) => {
@@ -910,16 +904,35 @@ class DaoModeler {
                     };
                 }
 
-                context.sharedTypes[typeName] = typeInfo;
+                sharedTypes[typeName] = typeInfo;
             });
+
+            context.sharedTypes = { ...context.sharedTypes,...sharedTypes };
             apiDefFilesSet.delete('__types.yaml');
         }
 
         // process __groups.yaml for group definitions
         if (apiDefFilesSet.has('__groups.yaml')) {
-            context.groups = yaml.parse(fs.readFileSync(path.join(schemaPath, '__groups.yaml'), 'utf8'));
+            const groups = yaml.parse(fs.readFileSync(path.join(schemaPath, '__groups.yaml'), 'utf8'));
+            context.groups = {...context.groups, ...groups};
             apiDefFilesSet.delete('__groups.yaml');
         }
+
+        // process __responses.yaml for response definitions
+        if (apiDefFilesSet.has('__responses.yaml')) {
+            const responses = yaml.parse(fs.readFileSync(path.join(schemaPath, '__responses.yaml'), 'utf8'));
+            context.responses = {...context.responses,...responses};
+            apiDefFilesSet.delete('__responses.yaml');
+        }
+
+        return apiDefFilesSet;
+    }
+
+    generateApi(schema, context) {        
+        const schemaPath = path.join(path.dirname(schema.linker.getModulePathById(schema.xemlModule.id)), 'api');
+        const apiDefFilesSet = this.prepareApiCommonContext(schemaPath, context);  
+
+        context.schema = schema;
 
         for (const datasetFile of apiDefFilesSet) {
             if (datasetFile.startsWith('_')) {
@@ -934,26 +947,28 @@ class DaoModeler {
         }
 
         // generate index file for all groups
-        for (let key in context.groups) {
-            const groupInfo = context.groups[key];
-            if (groupInfo.moduleSource === 'project') {
-                const groupPath = path.join(this.modelService.config.sourcePath, groupInfo.controllerPath);
+        if (context.groups) {
+            for (let key in context.groups) {
+                const groupInfo = context.groups[key];
+                if (groupInfo.moduleSource === 'project') {
+                    const groupPath = path.join(this.modelService.config.sourcePath, groupInfo.controllerPath);
 
-                const apiFiles = globSync('**/*.js', { nodir: true, cwd: groupPath });
+                    const apiFiles = globSync('**/*.js', { nodir: true, cwd: groupPath });
 
-                // filter out index.js and sort the rest and make an export list
-                const exportList = apiFiles
-                    .filter((f) => f !== 'index.js')
-                    .sort()
-                    .map((f) => {
-                        const name = baseName(f, true);
-                        const localName = replaceAll(name, '/', '__');
-                        return `export { default as ${localName} } from './${name}';`;
-                    });
+                    // filter out index.js and sort the rest and make an export list
+                    const exportList = apiFiles
+                        .filter((f) => f !== 'index.js')
+                        .sort()
+                        .map((f) => {
+                            const name = baseName(f, true);
+                            const localName = replaceAll(name, '/', '__');
+                            return `export { default as ${localName} } from './${name}';`;
+                        });
 
-                // override index.js
-                const indexFilePath = path.join(groupPath, 'index.js');
-                fs.writeFileSync(indexFilePath, exportList.join('\n'));
+                    // override index.js
+                    const indexFilePath = path.join(groupPath, 'index.js');
+                    fs.writeFileSync(indexFilePath, exportList.join('\n'));
+                }
             }
         }
     }
@@ -966,10 +981,10 @@ class DaoModeler {
         const resourceClassName = naming.pascalCase(resourceName);
         const { description, group, endpoints } = resourceInfo;
 
-        const groupInfo = context.groups[group];
+        const groupInfo = context.groups?.[group];
 
         if (groupInfo == null) {
-            throw new Error(`Group "${group}" not found in "api/__groups.yaml".`);
+            throw new Error(`Group "${group}" not found in "xeml/api/__groups.yaml" or extended packages' groups defintion.`);
         }
 
         const locals = {

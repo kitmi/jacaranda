@@ -607,6 +607,15 @@ class Linker {
         return element;
     }
 
+    getDepPackagePath(pkgPath) {
+        if (pkgPath.startsWith('.') || pkgPath.startsWith('..')) {
+            return pkgPath;
+        } 
+
+        const schemaPath = esmCheck(requireFrom(pkgPath, process.cwd())).schemaPath;
+        return schemaPath;
+    }
+
     _compile(xemlFile, packageName) {
         let jsFile;
 
@@ -691,13 +700,8 @@ class Linker {
                     }
 
                     const files = ns.substring(packageSep + 1);
-
-                    if (pkgPath.startsWith('.') || pkgPath.startsWith('..')) {
-                        ns = path.join(pkgPath, files);
-                    } else {
-                        const schemaPath = esmCheck(requireFrom(pkgPath, process.cwd())).schemaPath;
-                        ns = path.join(schemaPath, files);
-                    }
+                    const _pkgPath = this.getDepPackagePath(pkgPath);
+                    ns = path.join(_pkgPath, files);
                 }
 
                 if (ns.endsWith('/*')) {

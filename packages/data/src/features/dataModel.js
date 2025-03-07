@@ -31,6 +31,7 @@ export default {
                             },
                         },
                     },
+                    apiExtends: { type: 'array', optional: true, element: { type: 'text' } },
                     dependencies: {
                         type: 'object',
                         optional: true,

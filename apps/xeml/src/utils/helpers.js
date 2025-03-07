@@ -3,6 +3,19 @@ const { createRequire } = require('node:module');
 const { _, eachAsync_ } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
 const { hash } = require('@kitmi/feat-cipher');
+const resolve = require('resolve');
+const { readPackageUpSync } = require('read-package-up');
+
+
+exports.getPackageRoot = (packageImport) => {
+    if (packageImport.startsWith('.') || packageImport.startsWith('..')) {
+        return path.resolve(packageImport);
+    }
+
+    const mainFile = resolve.sync(packageImport, { basedir: process.cwd() });
+    const { path: pkgJsonPath } = readPackageUpSync({ cwd: path.dirname(mainFile) });
+    return path.dirname(pkgJsonPath);
+};
 
 exports.throwIfFileNotExist = (name, filePath) => {
     if (!fs.existsSync(filePath)) {

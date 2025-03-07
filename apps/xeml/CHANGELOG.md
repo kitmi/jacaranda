@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.10.4
+
+### Patch Changes
+
+-   Added support for apiExtends
+
 ## 0.10.3
 
 ### Patch Changes

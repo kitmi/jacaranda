@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.10.4
+
+### Patch Changes
+
+-   Added apiExtends config for inheriting from other API types definition packages
+
 ## 0.10.3
 
 ### Patch Changes

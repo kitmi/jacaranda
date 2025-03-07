@@ -3,6 +3,8 @@ const { cmd } = require('@kitmi/sys');
 const { _, eachAsync_, isEmpty, sleep_ } = require('@kitmi/utils');
 const { InvalidArgument } = require('@kitmi/types');
 const Linker = require('../lang/Linker');
+const { getPackageRoot } = require('../utils/helpers');
+
 
 /**
  * Build database scripts and entity models from oolong files.
@@ -42,7 +44,17 @@ module.exports = async (app) => {
         const DaoModeler = require('../modeler/Dao');
         let daoModeler = new DaoModeler(modelService, schema.linker, connector);
 
-        return daoModeler.generateApi(refinedSchema);
+        const context = {};
+
+        if (modelService.config.apiExtends) {
+            modelService.config.apiExtends.forEach((pkg) => {
+                const pkgPath = getPackageRoot(pkg);
+                const schemaPath = path.resolve(pkgPath, 'xeml', 'api');
+                daoModeler.prepareApiCommonContext(schemaPath, context);
+            });
+        }
+
+        return daoModeler.generateApi(refinedSchema, context);
     });
 
     app.logger.flush();
