@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.10.5
+
+### Patch Changes
+
+-   Added missing dependencies
+
 ## 0.10.4
 
 ### Patch Changes
