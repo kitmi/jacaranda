@@ -142,7 +142,7 @@ Each resource file (e.g., `users.yaml`) defines one or more resources with their
       implementation:
         - $business.users.createUser_($local.body)
 
-  /:id:
+  /{id}:
     get:
       description: Get user by ID
       request:
@@ -255,10 +255,10 @@ The system generates:
 
 ## Sub-Routes with Parameters
 
-Routes with parameters are defined using the `/:paramName:` syntax:
+Routes with parameters are defined using the `/{paramName}` syntax:
 
 ```yaml
-/:id:
+/{id}:
   get:
     # Get by ID endpoint
   put:
