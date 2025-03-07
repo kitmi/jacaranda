@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>drivers/rabbitmq/Connector.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Connector.html">Connector</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Connector.html#getConnectionStringWithoutCredential">getConnectionStringWithoutCredential</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Connector.html#makeNewConnectionString">makeNewConnectionString</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="EntityModel.html">EntityModel</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_containsUniqueKey">_containsUniqueKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_delete_">_delete_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_ensureContainsUniqueKey">_ensureContainsUniqueKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_ensureReturningAutoId">_ensureReturningAutoId</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_normalizeQuery">_normalizeQuery</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_normalizeReturning">_normalizeReturning</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_prepareEntityData_">_prepareEntityData_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_safeExecute_">_safeExecute_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_translateValue">_translateValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#_wrapCtx">_wrapCtx</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#afterCreate_">afterCreate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#afterDeleteMany_">afterDeleteMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#afterDelete_">afterDelete_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#afterUpdateMany_">afterUpdateMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#afterUpdate_">afterUpdate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#beforeCreate_">beforeCreate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#beforeDeleteMany_">beforeDeleteMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#beforeDelete_">beforeDelete_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#beforeUpdateMany_">beforeUpdateMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#beforeUpdate_">beforeUpdate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#createFrom_">createFrom_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#create_">create_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#datasetSchema">datasetSchema</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#deleteMany_">deleteMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#deleteOne_">deleteOne_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#ensureRetrieveCreated">ensureRetrieveCreated</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#ensureRetrieveDeleted">ensureRetrieveDeleted</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#ensureRetrieveUpdated">ensureRetrieveUpdated</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#findManyByPage_">findManyByPage_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#findMany_">findMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#findOne_">findOne_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#getChainedRelatedEntity">getChainedRelatedEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#getRelatedEntity">getRelatedEntity</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#getUniqueKeyFieldsFrom">getUniqueKeyFieldsFrom</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#getUniqueKeyValuePairsFrom">getUniqueKeyValuePairsFrom</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#getValueFromContext">getValueFromContext</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#omitReadOnly">omitReadOnly</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#spinCreate_">spinCreate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#updateMany_">updateMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#updateOne_">updateOne_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="EntityModel.html#valueOfKey">valueOfKey</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="PostgresConnector.html">PostgresConnector</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#_executeQuery_">_executeQuery_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#beginTransaction_">beginTransaction_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#commit_">commit_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#connect_">connect_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#createFrom_">createFrom_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#createMany_">createMany_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#create_">create_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#delete_">delete_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#disconnect_">disconnect_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#end_">end_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#execute_">execute_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#find_">find_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#getConnectionStringWithoutCredential">getConnectionStringWithoutCredential</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#makeNewConnectionString">makeNewConnectionString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#ping_">ping_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#rollback_">rollback_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#update_">update_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresConnector.html#upsert_">upsert_</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="PostgresEntityModel.html">PostgresEntityModel</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresEntityModel.html#_mapRecordsToObjects">_mapRecordsToObjects</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresEntityModel.html#_serializeByTypeInfo">_serializeByTypeInfo</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="PostgresEntityModel.html#_translateSymbolToken">_translateSymbolToken</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="RabbitmqConnector.html">RabbitmqConnector</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RabbitmqConnector.html#connect">connect</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RabbitmqConnector.html#end_">end_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RabbitmqConnector.html#getConnectionStringWithoutCredential">getConnectionStringWithoutCredential</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RabbitmqConnector.html#makeNewConnectionString">makeNewConnectionString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RabbitmqConnector.html#postJob_">postJob_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RabbitmqConnector.html#publish_">publish_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RabbitmqConnector.html#subscribe_">subscribe_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RabbitmqConnector.html#waitForJob_">waitForJob_</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="RelationalConnector.html">RelationalConnector</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildCTEHeader">_buildCTEHeader</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildColumn">_buildColumn</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildColumns">_buildColumns</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildGroupBy">_buildGroupBy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildGroupByColumn">_buildGroupByColumn</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildGroupByList">_buildGroupByList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildLimitOffset">_buildLimitOffset</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildOrderBy">_buildOrderBy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_buildPartitionBy">_buildPartitionBy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_escapeIdWithAlias">_escapeIdWithAlias</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_generateAlias">_generateAlias</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_joinAssociations">_joinAssociations</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_joinCondition">_joinCondition</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_packArray">_packArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_packCondition">_packCondition</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#_packValue">_packValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#aggregate_">aggregate_</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalConnector.html#buildQuery">buildQuery</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="RelationalEntityModel.html">RelationalEntityModel</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalEntityModel.html#_extractAssociations">_extractAssociations</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalEntityModel.html#_loadAssocIntoTable">_loadAssocIntoTable</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="RelationalEntityModel.html#_prepareAssociations">_prepareAssociations</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeatureRuntime_AtLeastOneNotNull.html">EntityFeatureRuntime_AtLeastOneNotNull</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeatureRuntime_AutoCreate.html">EntityFeatureRuntime_AutoCreate</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeatureRuntime_ChangeLog.html">EntityFeatureRuntime_ChangeLog</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeatureRuntime_LogicalDeletion.html">EntityFeatureRuntime_LogicalDeletion</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-EntityFeatureRuntime_StateTracking.html">EntityFeatureRuntime_StateTracking</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_DataModel.html">Feature_DataModel</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_DataSource.html">Feature_DataSource</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Feature_DataSource.html#.load_">load_</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Feature_Db.html">Feature_Db</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#getValueFromAny">getValueFromAny</a></span></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#hasValueInAny">hasValueInAny</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#mergeWhere">mergeWhere</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">drivers/rabbitmq/Connector.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { _, batchAsync_ } from '@kitmi/utils';
+import { runtime, NS_MODULE, AsyncEmitter } from '@kitmi/jacaranda';
+import { tryRequire } from '@kitmi/sys';
+import { InvalidArgument } from '@kitmi/types';
+
+import Connector from '../../Connector';
+
+const rabbitmq = runtime.get(NS_MODULE, 'rabbitmq-client') ?? tryRequire('rabbitmq-client');
+const { Connection } = rabbitmq;
+
+/**
+ * A callback function to be called to handle a dequeued message.
+ * @callback workerFunction
+ * @param {Message} msg - Message object
+ */
+
+/**
+ * Rabbitmq data storage connector.
+ * @class
+ * @extends Connector
+ */
+class RabbitmqConnector extends Connector {
+    /**
+     * @param {App} app
+     * @param {string} connectionString
+     * @param {object} options
+     * @property {boolean} [options.logStatement] - Flag to log queued message
+     * @property {Array} [options.exchanges] - List of exchanges to be created
+     */
+    constructor(app, connectionString, options) {
+        super(app, 'rabbitmq', connectionString, options);
+
+        this.channels = {};
+        this.events = new AsyncEmitter();
+        this.connect();
+    }
+
+    getChannelName(opts) {
+        return opts.exchange
+            ? opts.queue
+                ? `[X]${opts.exchange}|${opts.queue}`
+                : `[X]${opts.exchange}`
+            : `[Q]${opts.queue}`;
+    }
+
+    async logEnqueue(queue, obj) {
+        if (this.options.logStatement) {
+            const logMsg = `${this.driver}: new message enqueued to [${queue}].`;
+            this.app.log('info', logMsg, { msg: obj });
+        }
+    }
+
+    async logDequeue(queue, obj) {
+        if (this.options.logStatement) {
+            const logMsg = `${this.driver}: new message dequeued from [${queue}].`;
+            this.app.log('info', logMsg, { msg: obj });
+        }
+    }
+
+    /**
+     * Close all connection initiated by this connector.
+     */
+    async end_() {
+        if (this.channels) {
+            await batchAsync_(this.channels, async (ch) => {
+                try {
+                    await ch.close();
+                } catch (err) {}
+            });
+
+            delete this.channels;
+        }
+
+        await this.events.emit_('closing');
+
+        try {
+            this.conn?.close();
+        } catch (err) {}
+
+        this.events.allOff();
+    }
+
+    /**
+     * Create a database connection based on the default connection string of the connector and given options.
+     */
+    connect() {
+        if (!this.conn) {
+            this.conn = new Connection(this.connectionString);
+
+            this.conn.on('error', (err) => {
+                this.app.log('error', `${this.driver}: connection error: ${err.message}}`, _.omit(err, ['message', 'stack']));
+            });
+
+            this.conn.on('connection.blocked', (reason) => {
+                this.app.log('warn', `${this.driver}: connection blocked: ${reason}}`);
+            });
+
+            this.conn.on('connection.unblocked', () => {
+                this.app.log('info', `${this.driver}: connection unblocked.`);
+            });
+
+            if (this.options.logConnection) {
+                this.conn.on('connection', () => {
+                    this.app.log('info', `${this.driver}: connection successfully (re)established.`);
+                });
+            }
+
+            const { publishers, connectorName } = this.options;
+
+            _.each(
+                publishers,
+                ({ confirm = true, maxAttempts = 2, routingKey = '', durable = true, ...opts }, index) => {
+                    if (!opts.exchange &amp;&amp; !opts.queue) {
+                        throw new InvalidArgument(
+                            `${this.driver}[${connectorName}]: missing exchange or queue for publisher "#${index}".`
+                        );
+                    }
+
+                    opts.durable = durable;
+
+                    const chKey = this.getChannelName(opts);
+                    const chOpts = { confirm, maxAttempts };
+                    const arrayOpts = [opts];
+
+                    if (opts.exchange) {
+                        if (!opts.type) {
+                            opts.type = 'fanout';
+                        }
+                        chOpts.exchanges = arrayOpts;
+                    } else {
+                        chOpts.queues = arrayOpts;
+                    }
+
+                    this.channels[chKey] = this.conn.createPublisher(chOpts);
+                }
+            );
+        }
+
+        return this.conn;
+    }
+
+    ensurePubChannel(opts) {
+        const chKey = this.getChannelName(opts);
+        const ch = this.channels[chKey];
+
+        if (ch == null) {
+            throw new InvalidArgument(`${this.driver}: missing pre-configured channel for publisher "${chKey}".`);
+        }
+
+        return [chKey, ch];
+    }
+
+    async createConsumer_(opts, handler) {
+        return new Promise((resolve, reject) => {
+            const chKey = this.getChannelName(opts);
+
+            let _deleteOnStop = false;
+            let _timeout = 5000;
+
+            if (opts.exchange) {
+                let { exchange, type = 'fanout', durable = true, deleteOnStop, timeout, ..._opts } = opts;
+                if (deleteOnStop) {
+                    _deleteOnStop = deleteOnStop;
+                }
+                if (timeout) {
+                    _timeout = timeout;
+                }
+                opts = { ..._opts, exchanges: [{ exchange, type, durable }] };
+            }
+
+            const timerHandle = setTimeout(() => {
+                reject(new Error(`${this.driver}: consumer [${chKey}] timeout.`));
+            }, _timeout);
+
+            const sub = this.conn.createConsumer(opts, (msg) => {
+                this.logDequeue(chKey, msg);
+                return handler(msg);
+            });
+
+            sub.on('error', (err) => {
+                this.app.log('error', `${this.driver}: consumer [${chKey}] error: ${err.message}}`, _.omit(err, ['message', 'stack']));
+            });
+
+            sub.on('ready', () => {
+                clearTimeout(timerHandle);
+                if (this.options.logConnection) {
+                    this.app.log('info', `${this.driver}: consumer [${chKey}] ready.`);
+                }
+                resolve(chKey);
+            });
+
+            if (_deleteOnStop) {
+                this.events.on('closing', async () => {
+                    await this.conn.queueDelete({ queue: sub.queue });
+                });
+            }
+
+            this.app.on('stopping', async () => {
+                await sub.close();
+            });
+        });
+    }
+
+    async ping_() {
+        return true;
+    }
+
+    /**
+     * Send a job to worker queue.
+     * @see https://github.com/cody-greene/node-rabbitmq-client
+     * @param {*} queue
+     * @param {*} obj
+     */
+    async postJob_(queue, obj) {
+        if (!queue) {
+            throw new InvalidArgument('Missing queue name.');
+        }
+
+        const [key, pub] = this.ensurePubChannel({ queue });
+
+        await pub.send(queue, obj);
+
+        this.logEnqueue(key, obj);
+    }
+
+    /**
+     * Publish a message to an exchange.
+     * @param {String} exchange
+     * @param {Object} obj
+     * @param {Object} [opts]
+     */
+    async publish_(exchange, obj, opts) {
+        if (!exchange) {
+            throw new InvalidArgument('Missing exchange name.');
+        }
+
+        const [key, pub] = this.ensurePubChannel({ exchange });
+
+        await pub.send({ exchange, routingKey: '', ...opts }, obj);
+
+        this.logEnqueue(key, obj);
+    }
+
+    /**
+     * Waiting for message from a queue by a worker.
+     * @see https://github.com/cody-greene/node-rabbitmq-client
+     * @param {*} queue
+     * @param {workerFunction} consumerMethod
+     * @param {boolean} [nonCritical=false] - Flag to indicate if the message is non-critical
+     */
+    async waitForJob_(queue, consumerMethod, nonCritical) {
+        if (!queue) {
+            throw new InvalidArgument('Missing queue name.');
+        }
+
+        return this.createConsumer_(
+            {
+                queue,
+                queueOptions: { durable: true },
+                noAck: nonCritical,
+                concurrency: 1,
+                qos: { prefetchCount: 2 },
+            },
+            consumerMethod
+        );
+    }
+
+    /**
+     * Subscribe to a message from an exchange.
+     * @param {String} exchange
+     * @param {workerFunction} consumerMethod
+     */
+    async subscribe_(exchange, consumerMethod, { routingKey = '', ...options } = {}) {
+        if (!exchange) {
+            throw new InvalidArgument('Missing exchange name.');
+        }
+
+        return this.createConsumer_(
+            {
+                exchange,
+                queueBindings: [{ exchange, routingKey }],
+                exclusive: true,
+                noAck: true,
+                ...options,
+            },
+            consumerMethod
+        );
+    }
+}
+
+RabbitmqConnector.driverLib = rabbitmq;
+
+export default RabbitmqConnector;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Fri Mar 07 2025 14:27:32 GMT+0800 (China Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

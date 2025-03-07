@@ -49,17 +49,20 @@ const {
     isEmpty,
     pushIntoBucket,
     splitFirst,
+    splitLast,
+    replaceAll,
 } = require('@kitmi/utils');
 const { fs } = require('@kitmi/sys');
 const swig = require('swig-templates');
 const esprima = require('esprima');
 
 const XemlTypes = require('../lang/XemlTypes');
+const Field = require('../lang/Field');
 const JsLang = require('./util/ast');
 const XemlToAst = require('./util/xemlToAst');
 const Snippets = require('./dao/snippets');
 const Methods = require('./dao/methods');
-const { extractReferenceBaseName } = require('../lang/XemlUtils');
+const { extractReferenceBaseName, isDotSeparateName } = require('../lang/XemlUtils');
 const { globSync } = require('glob');
 const yaml = require('yaml');
 
@@ -167,7 +170,7 @@ class DaoModeler {
         this._generateEnumTypes(schema, versionInfo);
         //this._generateEntityInputSchema(schema, versionInfo);
         this._generateEntityViews(schema);
-        this._generateApi(schema, versionInfo);
+        //this.generateApi(schema, versionInfo);
         //
         //this._generateViewModel();
     }
@@ -681,8 +684,47 @@ class DaoModeler {
         return result;
     }
 
+    _processTypeInfo(typeInfo, entity, name, options) {
+        if (entity &amp;&amp; typeInfo.type &amp;&amp; name) {
+            let [mixed] = this.linker.trackBackType(entity.xemlModule, typeInfo);
+            const field = new Field(name, mixed);
+            field.link();
+            typeInfo = field;
+        }
+
+        const postProcessors = this._fieldMetaToModifiers(typeInfo);
+        const extra =
+            postProcessors.length > 0
+                ? { post: typeInfo?.post ? postProcessors.concat(typeInfo.post) : postProcessors }
+                : {};
+
+        return JsLang.astValue({
+            ..._.pick(typeInfo, DATASET_FIELD_KEYS),
+            ...extra,
+            ...options,
+        });
+    }
+
     _generateEntityDatasetSchema(schema, versionInfo) {
         const _datasetEntries = {};
+
+        function getReferencedFieldInfo(entity, fieldRef) {
+            const [refEntity, name] = splitLast(fieldRef, '.');
+
+            let _entity = entity;
+
+            if (refEntity) {
+                _entity = entity.getReferencedEntity(refEntity);
+            }
+
+            const field = _entity.fields[name];
+
+            if (!field) {
+                throw new Error(`Field ref "${fieldRef}" not found in entity [${entity.name}].`);
+            }
+
+            return field.toJSON();
+        }
 
         //generate validator config
         _.forOwn(schema.entities, (entity, entityInstanceName) => {
@@ -705,11 +747,26 @@ class DaoModeler {
                 const ast = JsLang.astProgram(true);
 
                 for (let key in datasetSchema) {
-                    const name = key;
+                    let name = key;
+                    let _fieldOptions = {};
                     const input = datasetSchema[key];
 
+                    if (name.endsWith('?')) {
+                        name = name.slice(0, -1);
+                        _fieldOptions.optional = true;
+                    }
+
                     //:address
-                    if (name.startsWith(':')) {
+                    if (name.startsWith('+')) {
+                        // extra field that not in the entity
+                        name = name.substring(1);
+                        _validationSchema[name] = this._processTypeInfo(
+                            typeof input === 'string' ? getReferencedFieldInfo(entity, input) : input,
+                            entity,
+                            name,
+                            _fieldOptions
+                        );
+                    } else if (name.startsWith(':')) {
                         const assoc = name.substring(1);
                         const assocMeta = entity.associations[assoc];
 
@@ -735,12 +792,14 @@ class DaoModeler {
                                     schema: JsLang.astCall(_.camelCase(dep), []),
                                 },
                                 ..._.pick(input, DATASET_FIELD_KEYS),
+                                ..._fieldOptions,
                             });
                         } else {
                             _validationSchema[name] = JsLang.astValue({
                                 type: 'object',
                                 schema: JsLang.astCall(_.camelCase(dep), []),
                                 ..._.pick(input, DATASET_FIELD_KEYS),
+                                ..._fieldOptions,
                             });
                         }
                     } else {
@@ -761,6 +820,7 @@ class DaoModeler {
                             ..._.pick(field, INPUT_SCHEMA_DERIVED_KEYS),
                             ..._.pick(input, DATASET_FIELD_KEYS),
                             ...extra,
+                            ..._fieldOptions,
                         });
                     }
                 }
@@ -853,29 +913,22 @@ class DaoModeler {
         });
     }
 
-    _generateApi(schema, versionInfo) {
-        const schemaPath = path.join(path.dirname(schema.linker.getModulePathById(schema.xemlModule.id)), 'api');
+    prepareApiCommonContext(schemaPath, context) {        
+        const apiDefFiles = globSync('*.yaml', { nodir: true, cwd: schemaPath });
+        const apiDefFilesSet = new Set(apiDefFiles);
 
-        // check if api folder exists and read all yaml files under api folder
-        const datasetFiles = globSync('*.yaml', { nodir: true, cwd: schemaPath });
-        const datasetFilesSet = new Set(datasetFiles);
-
-        if (datasetFilesSet.size === 0) {
-            return;
+        if (apiDefFilesSet.size === 0) {
+            return apiDefFilesSet;
         }
-
-        const context = {
-            schema,
-            versionInfo,
-            sharedTypes: {},
-        };
 
         // todo: typeSpecialize
         const typeSpecialize = (typeInfo, argsMap) => {};
 
         // process __types.yaml for type definitions
-        if (datasetFilesSet.has('__types.yaml')) {
+        if (apiDefFilesSet.has('__types.yaml')) {
             const types = yaml.parse(fs.readFileSync(path.join(schemaPath, '__types.yaml'), 'utf8'));
+            const sharedTypes = {};
+
             // check if any type has $args property, change the type to a function
 
             _.each(types, (type, typeName) => {
@@ -892,18 +945,37 @@ class DaoModeler {
                     };
                 }
 
-                context.sharedTypes[typeName] = typeInfo;
+                sharedTypes[typeName] = typeInfo;
             });
-            datasetFilesSet.delete('__types.yaml');
+
+            context.sharedTypes = { ...context.sharedTypes,...sharedTypes };
+            apiDefFilesSet.delete('__types.yaml');
         }
 
         // process __groups.yaml for group definitions
-        if (datasetFilesSet.has('__groups.yaml')) {
-            context.groups = yaml.parse(fs.readFileSync(path.join(schemaPath, '__groups.yaml'), 'utf8'));
-            datasetFilesSet.delete('__groups.yaml');
+        if (apiDefFilesSet.has('__groups.yaml')) {
+            const groups = yaml.parse(fs.readFileSync(path.join(schemaPath, '__groups.yaml'), 'utf8'));
+            context.groups = {...context.groups, ...groups};
+            apiDefFilesSet.delete('__groups.yaml');
         }
 
-        for (const datasetFile of datasetFilesSet) {
+        // process __responses.yaml for response definitions
+        if (apiDefFilesSet.has('__responses.yaml')) {
+            const responses = yaml.parse(fs.readFileSync(path.join(schemaPath, '__responses.yaml'), 'utf8'));
+            context.responses = {...context.responses,...responses};
+            apiDefFilesSet.delete('__responses.yaml');
+        }
+
+        return apiDefFilesSet;
+    }
+
+    generateApi(schema, context) {        
+        const schemaPath = path.join(path.dirname(schema.linker.getModulePathById(schema.xemlModule.id)), 'api');
+        const apiDefFilesSet = this.prepareApiCommonContext(schemaPath, context);  
+
+        context.schema = schema;
+
+        for (const datasetFile of apiDefFilesSet) {
             if (datasetFile.startsWith('_')) {
                 continue;
             }
@@ -914,20 +986,49 @@ class DaoModeler {
                 this._generateResourceApi(context, resourceName, baseEndpoint, resourceInfo);
             });
         }
+
+        // generate index file for all groups
+        if (context.groups) {
+            for (let key in context.groups) {
+                const groupInfo = context.groups[key];
+                if (groupInfo.moduleSource === 'project') {
+                    const groupPath = path.join(this.modelService.config.sourcePath, groupInfo.controllerPath);
+
+                    const apiFiles = globSync('**/*.js', { nodir: true, cwd: groupPath });
+
+                    // filter out index.js and sort the rest and make an export list
+                    const exportList = apiFiles
+                        .filter((f) => f !== 'index.js')
+                        .sort()
+                        .map((f) => {
+                            const name = baseName(f, true);
+                            const localName = replaceAll(name, '/', '__');
+                            return `export { default as ${localName} } from './${name}';`;
+                        });
+
+                    // override index.js
+                    const indexFilePath = path.join(groupPath, 'index.js');
+                    fs.writeFileSync(indexFilePath, exportList.join('\n'));
+                }
+            }
+        }
     }
 
     _generateResourceApi(context, resourceName, baseEndpoint, resourceInfo) {
+        if (!baseEndpoint.startsWith('/')) {
+            throw new Error("Base endpoint should start with '/'.");
+        }
+
         const resourceClassName = naming.pascalCase(resourceName);
         const { description, group, endpoints } = resourceInfo;
 
-        const groupInfo = context.groups[group];
+        const groupInfo = context.groups?.[group];
 
         if (groupInfo == null) {
-            throw new Error(`Group "${group}" not found in "api/__groups.yaml".`);
+            throw new Error(`Group "${group}" not found in "xeml/api/__groups.yaml" or extended packages' groups defintion.`);
         }
 
         const locals = {
-            schemaVersion: context.versionInfo.version,
             baseEndpoint,
             className: resourceClassName,
             resourceName,
@@ -958,7 +1059,11 @@ class DaoModeler {
         const resourceFilePath = path.join(
             this.modelService.config.sourcePath,
             groupInfo.controllerPath,
-            resourceName + '.js'
+            baseEndpoint
+                .split('/')
+                .filter((p) => p)
+                .map((p) => naming.camelCase(p))
+                .join('/') + '.js'
         );
         fs.ensureFileSync(resourceFilePath);
         fs.writeFileSync(resourceFilePath, classCode);
@@ -1020,7 +1125,7 @@ class DaoModeler {
             );
         }
 
-        return JsLang.astValue(typeInfo);
+        return this._processTypeInfo(typeInfo);
     }
 
     _extractRequestData(context, localContext, localName, collection, source, codeBucket) {
@@ -1050,11 +1155,30 @@ class DaoModeler {
                     metadata
                 )} });`
             );
+            return;
         }
 
         const dataCode = this._getReferencedMetadata(context, localContext, collection, codeBucket);
         const typeInfo = JsLang.astToCode(dataCode);
         codeBucket.push(`const ${localName} = Types.OBJECT.sanitize(${source}, ${typeInfo});`);
+    }
+
+    _extractTrustVariables(context, localContext, collection, source, codeBucket) {
+        if (collection) {
+            if (!Array.isArray(collection)) {
+                throw new Error(`Variable source "${source}" should be an array of keys.`);
+            }
+
+            collection.forEach((key) => {
+                const localName = naming.camelCase(replaceAll(key, '.', '-'));
+
+                if (localContext.variables.has(localName)) {
+                    throw new Error(`Variable "${localName}" conflicts with local context.`);
+                }
+
+                codeBucket.push(`const ${localName} = _.get(${source}, '${key}');`);
+            });
+        }
     }
 
     _extractRequestVariables(context, localContext, collection, source, codeBucket) {
@@ -1129,7 +1253,7 @@ class DaoModeler {
         let codeSanitize = [];
 
         if (request) {
-            const { headers, query, params, body, ctx } = request;
+            const { headers, query, params, body, state, ctx } = request;
 
             if (body) {
                 this._extractRequestData(context, localContext, 'body', body, 'ctx.request.body', codeSanitize);
@@ -1141,6 +1265,7 @@ class DaoModeler {
 
             this._extractRequestVariables(context, localContext, headers, 'ctx.headers', codeSanitize);
             this._extractRequestVariables(context, localContext, params, 'ctx.params', codeSanitize);
+            this._extractTrustVariables(context, localContext, state, 'ctx.state', codeSanitize);
         }
 
         let codeImplement = [];
@@ -1345,6 +1470,7 @@ class DaoModeler {
         compileContext.variables['i18n'] = { source: 'context', finalized: true };
         compileContext.variables['connector'] = { source: 'context', finalized: true };
         compileContext.variables['latest'] = { source: 'context' };
+        compileContext.variables['app'] = { source: 'context', finalized: true, shortFor: 'this.db.app' };
 
         const allFinished = XemlToAst.createTopoId(compileContext, 'done.');
 
@@ -1569,7 +1695,7 @@ module.exports = DaoModeler;
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Mon Nov 04 2024 16:08:52 GMT+0800 (China Standard Time) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Fri Mar 07 2025 14:27:32 GMT+0800 (China Standard Time) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>
