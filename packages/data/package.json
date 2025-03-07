@@ -3,7 +3,8 @@
     "version": "0.10.4",
     "description": "Jacaranda Framework Data Access Model",
     "publishConfig": {
-        "access": "public"
+        "access": "public",
+        "registry": "https://registry.npmjs.org/"
     },
     "main": "cjs/index.js",
     "module": "src/index.js",
