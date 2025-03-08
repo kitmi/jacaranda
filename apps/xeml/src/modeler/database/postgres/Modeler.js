@@ -204,6 +204,7 @@ $$ LANGUAGE plpgsql;\n\n`;
                 codeVersion: codeVersionInfo.version,
                 codeHash: codeVersionInfo.digest,
                 schema: JSON.stringify(codeVersionInfo.schema),
+                $noLog: true,
             };
 
             if (codeVersionInfo.update) {

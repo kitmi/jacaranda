@@ -349,7 +349,7 @@ class PostgresConnector extends RelationalConnector {
                 values: params,
             };
 
-            if (this.options.logStatement) {
+            if (!connOptions.$noLog && this.options.logStatement) {
                 const meta = { ..._.omit(options, FIELDS_OMIT_FROM_LOG), params };
                 if (connection) {
                     meta.transactionId = connection[tranSym];

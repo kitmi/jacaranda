@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.10.5
+
+### Patch Changes
+
+-   Added $noLog option for skipping logging credential content
+
 ## 0.10.4
 
 ### Patch Changes

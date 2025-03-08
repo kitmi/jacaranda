@@ -730,6 +730,7 @@ class ServiceContainer extends AsyncEmitter {
                         feature,
                         searchingPath: searchingPath.join('\n'),
                         passedInRegistry: Object.keys(this.registry?.features ?? {}).join(', '),
+                        config: this.config,
                     });
                 }
 

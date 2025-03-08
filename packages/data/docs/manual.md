@@ -153,6 +153,10 @@ To skip unique check for $where object when performing `xxxOne_` operation.
 
 The key field of the entity.
 
+#### $noLog
+
+Skip logging SQL statement for certain operation.
+
 ### findOptions
 
 #### $select
