@@ -24,12 +24,13 @@ export default {
      * @returns {void}
      */
     load_: function (app, envSettings, name) {
-        let { expose, add } = app.featureConfig(
+        let { expose, add, debug } = app.featureConfig(
             envSettings,
             {
                 schema: {
                     expose: { type: 'array', optional: true },
                     add: { type: 'object', optional: true },
+                    debug: { type: 'boolean', optional: true }
                 },
             },
             name
@@ -49,9 +50,15 @@ export default {
         const exposed = _.pick(process.env, Array.from(expose));
         runtime.register(K_ENV, { ...add, ...exposed }, asDefaultOnly);
 
+        if (debug) {
+            app.log('info', 'Environment variables', runtime.get(K_ENV));
+        }
+
         app.once('stopped', () => {
             runtime.deregister(K_ENV);
         });
+
+        app.log('info', 'Environment variables are refreshed and configuration will be reloaded.');
 
         return app.loadConfig_();
     },

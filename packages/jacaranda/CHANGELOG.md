@@ -1,5 +1,12 @@
 # @kitmi/jacaranda
 
+## 3.7.6
+
+### Patch Changes
+
+-   Added log while failing to load config
+-   Added log when env feature is triggering config reload
+
 ## 3.7.5
 
 ### Patch Changes

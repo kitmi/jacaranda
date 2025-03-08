@@ -1,5 +1,11 @@
 # @kitmi/config
 
+## 1.3.0
+
+### Minor Changes
+
+-   Added support for key interpolation
+
 ## 1.2.2
 
 ### Patch Changes

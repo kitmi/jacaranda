@@ -22,12 +22,13 @@ describe('bvt:yaml', function () {
         it('interpolated config', function (done) {
             let config = new ConfigLoader(new EnvAwareYamlConfigProvider(cfgDir, 'test-itpl'));
 
-            const obj = { name: 'Bob', place: 'Sydney', value1: 10, value2: 20 };
+            const obj = { name: 'Bob', place: 'Sydney', value1: 10, value2: 20, newKey: 'newKey' };
 
             config
                 .load_(obj)
                 .then((cfg) => {
-                    cfg.should.have.keys('key', 'key2');
+                    cfg.should.have.keys('key', 'key2', 'newKey');
+                    cfg.should.not.have.keys('[${newKey}]');
                     cfg['key'].should.be.exactly('Hello Bob, welcome to Sydney!');
                     cfg['key2'].should.have.keys('array', 'object');
                     cfg['key2']['array'][0].should.equal('value1: 10');
@@ -40,6 +41,7 @@ describe('bvt:yaml', function () {
                     cfg['key2']['jsv3'].should.equal('Bob - Sydney');
                     (typeof cfg['key2']['fn']).should.equal('function');
                     cfg['key2']['fn'](obj).should.equal('Bob Sydney!');
+                    cfg['newKey'].should.equal('ok');
 
                     done();
                 })

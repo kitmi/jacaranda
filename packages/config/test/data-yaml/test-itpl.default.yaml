@@ -11,3 +11,4 @@
     'jsv2': "#!jsv:[name, place].join(' ')"
     'jsv3': '#!swig: {{ name }} - {{ place }} '
     'fn': "#!fn: const a = [name, place].join(' '); return a + '!'; "
+'[${newKey}]': 'ok'

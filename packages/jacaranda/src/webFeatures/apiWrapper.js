@@ -45,7 +45,7 @@ export default {
                     status: 'ok',
                     ...ctx.resPayload,
                     ...others,
-                    [settings.dataField || 'data']: data,
+                    [settings?.dataField || 'data']: data,
                 };
             },
 
@@ -58,7 +58,7 @@ export default {
                     ...others,
                     error: {
                         code,
-                        message: settings.debug || error.expose ? error.message : http.STATUS_CODES[ctx.status],
+                        message: settings?.debug || error.expose ? error.message : http.STATUS_CODES[ctx.status],
                         ...(error.info ? { info: removeReservedMeta(error.info) } : null),
                     },
                 };

@@ -1,0 +1,7 @@
+env:
+    add:
+        VAR: something
+    debug: true
+
+settings:
+    test: "${env.VAR}"

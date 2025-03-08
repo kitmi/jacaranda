@@ -10,5 +10,13 @@
         "server2": "test/testServer2.js",
         "server3": "test/fastServer.js",
         "server4": "test/fastServer2.js"
+    },
+    "workers": {
+        "test-env": { 
+            "configName": "env-test",
+            "configType": "yaml",
+            "configPath": "test/conf",
+            "featuresPath": "test/features"
+        }
     }
 }

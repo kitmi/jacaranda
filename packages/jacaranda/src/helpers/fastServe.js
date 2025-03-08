@@ -13,7 +13,7 @@ export default function fastServe(modules, { logger, engine, middlewares, ...fea
         { routes: {}, registry: {} }
     );
 
-    const { config: middlewareConfig, registry: middlewareRegistry } = middlewares.reduce(
+    const { config: middlewareConfig, registry: middlewareRegistry } = (middlewares ?? []).reduce(
         (result, middleware) => {
             if (typeof middleware === 'string') {
                 result.config.push(middleware);

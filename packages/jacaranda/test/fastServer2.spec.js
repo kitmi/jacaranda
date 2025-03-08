@@ -1,4 +1,4 @@
-describe('fast server', function () {
+describe('fast server 2', function () {
     it('action from registry', async function () {
         await jacat.withClient_('server4', async (client, server) => {
             // from simple of ./test/controllers/actions/index.js

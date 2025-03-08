@@ -143,10 +143,23 @@ class ConfigLoader {
         variables = { ...variables, $this: this.data };
 
         const interpolateElement = (coll, key, val) => {
+            // Process the value
             if (typeof val === 'string') {
                 coll[key] = this._tryProcessStringValue(val, variables);
             } else if (_.isPlainObject(val) || _.isArray(val)) {
                 queue.push(val);
+            }
+            
+            // Process the key if it's wrapped in brackets
+            if (typeof key === 'string' && key.startsWith('[') && key.endsWith(']')) {
+                const keyContent = key.substring(1, key.length - 1);
+                const processedKey = this._tryProcessStringValue(keyContent, variables);
+                
+                if (key !== `[${processedKey}]`) {
+                    // Create new entry with processed key and delete the old one
+                    coll[processedKey] = coll[key];
+                    delete coll[key];
+                }
             }
         };
 
