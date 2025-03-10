@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.10.6
+
+### Patch Changes
+
+-   Fixed $startsWith and $endsWith placeholder
+
 ## 0.10.5
 
 ### Patch Changes

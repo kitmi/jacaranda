@@ -278,7 +278,7 @@ class RelationalConnector extends Connector {
      * @param {string} model
      * @returns {object} { fromTable, withTables, model }
      */
-    _buildCTEHeader(model) {        
+    _buildCTEHeader(model) {
         let withTables = '';
         let fromTable;
 
@@ -1027,7 +1027,11 @@ class RelationalConnector extends Connector {
                                 }
 
                                 params.push(`${v}%`);
-                                return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' LIKE ?';
+                                return (
+                                    this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                    ' LIKE ' +
+                                    this.specParamToken
+                                );
 
                             case '$endWith':
                             case '$endsWith':
@@ -1041,7 +1045,11 @@ class RelationalConnector extends Connector {
                                 }
 
                                 params.push(`%${v}`);
-                                return this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) + ' LIKE ?';
+                                return (
+                                    this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
+                                    ' LIKE ' +
+                                    this.specParamToken
+                                );
 
                             case '$like':
                             case '$likes':
@@ -1231,12 +1239,18 @@ class RelationalConnector extends Connector {
                                     'AND',
                                     mainEntity,
                                     aliasMap
-                                );  
-                                
+                                );
+
                                 // case result requires type cast
                                 const typeCastId = this.specGetTypeCast(opOptions, fieldName);
-                                const thenClause = this.specApplyTypeCast(typeCastId, this._packValue($then, params, mainEntity, aliasMap));
-                                const elseClause = this.specApplyTypeCast(typeCastId, this._packValue($else, params, mainEntity, aliasMap));
+                                const thenClause = this.specApplyTypeCast(
+                                    typeCastId,
+                                    this._packValue($then, params, mainEntity, aliasMap)
+                                );
+                                const elseClause = this.specApplyTypeCast(
+                                    typeCastId,
+                                    this._packValue($else, params, mainEntity, aliasMap)
+                                );
                                 return (
                                     this._escapeIdWithAlias(fieldName, mainEntity, aliasMap) +
                                     ` = CASE WHEN ${whenClause} THEN ${thenClause} ELSE ${elseClause} END`
