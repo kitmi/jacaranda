@@ -46,10 +46,11 @@ serialize: (value, meta) => string
 
 ### Common Type Meta
 
--   {boolean} plain - Keep raw value, don't try to type cast before post processing
+-   {boolean} plain - Keep raw value, don't try to preProcess and type cast before post processing
 -   {boolean} optional - No error throw if value is null and default is null
 -   {any} default - Default value if value is null
 -   {array} enum - An array of values which the value of a enumerable type should be one of it
+-   {any} const - The constant value of this field
 
 ### Enumerable Types
 

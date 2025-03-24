@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.7.7
+
+### Patch Changes
+
+-   Added business class default behavior
+
 ## 3.7.6
 
 ### Patch Changes

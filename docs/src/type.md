@@ -14,7 +14,18 @@ Building on the capabilities of `@kitmi/types`, the `@kitmi/validators` library 
 
 ### Conventions and Types
 
-The `@kitmi/types` library defines a variety of types, including `any`, `array`, `bigint`, `binary`, `boolean`, `datetime`, `integer`, `number`, `object`, and `text`. Each type follows a specific interface that includes a name, aliases, defaultValue, sanitize, and serialize method.
+The `@kitmi/types` library defines a variety of types, including 
+- `any`
+- `array`
+- `bigint` 
+- `binary` 
+- `boolean` 
+- `datetime` 
+- `integer` 
+- `number` 
+- `object` 
+- `text` 
+Each type follows a specific interface that includes a name, aliases, defaultValue, sanitize, and serialize method.
 
 ### Type Metadata
 
@@ -72,7 +83,7 @@ An optional config object for koa is described with JTMS as below:
         "trustProxy": { "type": "boolean", "optional": true },
         "subdomainOffset": { "type": "integer", "optional": true, "post": [["~min", 2]] },
         "port": { "type": "integer", "optional": true, "default": 2331 },
-        "keys": [
+        "keys": [ // match any one of
             {
                 "type": "text"
             },
@@ -88,7 +99,7 @@ An optional config object for koa is described with JTMS as below:
 }
 ```
 
-Note: the keys property above can be one of a text value or an array of text with at least one element.
+Note: the `keys` property above can be one of a text value or an array of text with at least one element.
 
 ## Why Not Use Code-Based Validation Libraries?
 

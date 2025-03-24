@@ -87,18 +87,20 @@ module.exports = {
     "enableAsyncDump": false,
     "enableAllure": true,
     "servers": {
-        "server1": {
+        "server1": { // server options
             "configPath": "test/conf",
             "controllersPath": "test/actions",
             "sourcePath": "./",
             "logLevel": "info"
-        }
+        },
+        "server2": "src/server.js" // server entry file
     },
     "workers": {
-        "tester": {
+        "tester": { // worker options
             "configName": "test",
             "configPath": "test/conf"
-        }
+        },
+        "test2": "src/test2.js" // worker entry file
     },
     "authentications": {
         "client1": {
@@ -196,9 +198,3 @@ it('/test/protected ok', async function () {
     });
 });
 ```
-
-## License
-
-This project is licensed under the MIT License.
-
-Copyright (c) 2023 KITMI PTY LTD

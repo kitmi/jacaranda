@@ -147,6 +147,15 @@ export class TypeSystem {
             });
         }
 
+        if (meta.const) {
+            if (meta.const !== value) {
+                throw new ValidationError('Invalid constant value.', {
+                    value: opts.rawValue,
+                    path: opts.path,
+                });
+            }
+        }
+
         if (meta.plain) return [true, value];
 
         // more prerequisites here ...

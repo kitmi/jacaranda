@@ -53,7 +53,20 @@ export default {
                 throw new InvalidArgument(`Business class "${businessName}" not found.`);
             }
 
-            return new businessClass(app, schemaName || defaultSchema, ctx);
+            const _schemaName = schemaName || defaultSchema;
+
+            if (businessClass.length > 0) {
+                return new businessClass(app, _schemaName, ctx);
+            }
+
+            // compatibility with those who don't extend from Business class
+            const business = new businessClass();
+            business.app = app;
+            business.db = app.db(_schemaName);
+            if (ctx) {
+                business.db = business.db.forkWithCtx(ctx);
+            }
+            return business;
         };
 
         app.useMiddleware(app.router, (ctx, next) => {
