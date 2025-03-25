@@ -69,9 +69,10 @@ export default {
             return business;
         };
 
-        app.useMiddleware(app.router, (ctx, next) => {
+        app.useMiddleware(app.router, async (ctx, next) => {
             ctx.bus = (businessName, schemaName, fromApp) => app.bus(businessName, schemaName, fromApp, ctx);
-            return next();
+            await next();
+            delete ctx.bus;
         });
     },
 };

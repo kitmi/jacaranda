@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.10.7
+
+### Patch Changes
+
+-   Removed old code
+
 ## 0.10.6
 
 ### Patch Changes

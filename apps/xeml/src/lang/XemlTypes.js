@@ -20,8 +20,6 @@ const XemlTypes = {
         ENTITY: 'entity',
         ENTITY_TEMPLATE: 'entityTemplate',
         SCHEMA: 'schema',
-        DATASET: 'dataset',
-        VIEW: 'view',
         ENTITY_OVERRIDE: 'entityOverride',
     }),
     Relationship: Object.freeze({

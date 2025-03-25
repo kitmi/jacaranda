@@ -20,18 +20,6 @@ class Schema extends Clonable {
     entities = {};
 
     /**
-     * Datasets, dataset = entity + relations + projection
-     * @member {object}
-     */
-    datasets = {};
-
-    /**
-     * Views, view = dataset + filters
-     * @member {object}
-     */
-    views = {};
-
-    /**
      * @param {Linker} linker
      * @param {string} name
      * @param {object} info
@@ -108,17 +96,6 @@ class Schema extends Clonable {
             this.addEntity(entity);
         }
 
-        if (!_.isEmpty(this.info.views)) {
-            this.info.views.forEach((viewName) => {
-                let view = this.linker.loadView(this.xemlModule, viewName);
-                if (!view.linked) {
-                    throw new Error(`View [${entity.name}] not linked after loading.`);
-                }
-
-                this.addView(view);
-            });
-        }
-
         this.linked = true;
 
         return this;
@@ -168,43 +145,6 @@ class Schema extends Clonable {
         _.each(entity.types, (info, type) => this.addType(type, info));
 
         return this;
-    }
-
-    /**
-     * Check whether a view with given name is in the schema
-     * @param {string} viewName
-     * @returns {boolean}
-     */
-    hasView(viewName) {
-        return viewName in this.views;
-    }
-
-    /**
-     * Add a view into the schema
-     * @param {View} view
-     * @returns {Schema}
-     */
-    addView(view) {
-        pre: !this.hasView(view.name), `View name [${view.name}] conflicts in schema [${this.name}].`;
-
-        this.views[view.name] = view;
-
-        return this;
-    }
-
-    /**
-     * Get a document hierarchy
-     * @param {object} fromModule
-     * @param {string} datasetName
-     * @returns {object}
-     */
-    getDocumentHierachy(fromModule, datasetName) {
-        if (datasetName in this.datasets) {
-            return this.datasets[datasetName];
-        }
-
-        let dataset = this.linker.loadDataset(fromModule, datasetName);
-        return (this.datasets[datasetName] = dataset.buildHierarchy(this));
     }
 
     /**
@@ -258,8 +198,6 @@ class Schema extends Clonable {
         deepCloneField(this, schema, 'comment');
         deepCloneField(this, schema, 'entities');
         deepCloneField(this, schema, 'types');
-        deepCloneField(this, schema, 'datasets');
-        deepCloneField(this, schema, 'views');
 
         schema.linked = true;
 
@@ -277,7 +215,6 @@ class Schema extends Clonable {
             comment: this.comment,
             entities: _.mapValues(this.entities, (entity) => entity.toJSON()),
             types: this.types,
-            datasets: _.mapValues(this.datasets, (dataset) => dataset.toJSON()),
             views: _.mapValues(this.views, (view) => view.toJSON()),
         };
 

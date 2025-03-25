@@ -9,8 +9,6 @@ const XemlParser = Xeml.parser;
 const XemlTypes = require('./XemlTypes');
 const Entity = require('./Entity');
 const Schema = require('./Schema');
-const View = require('./View');
-const Dataset = require('./Dataset');
 
 const {
     isIdWithNamespace,
@@ -22,8 +20,6 @@ const {
 
 const ELEMENT_CLASS_MAP = {
     [XemlTypes.Element.ENTITY]: Entity,
-    [XemlTypes.Element.VIEW]: View,
-    [XemlTypes.Element.DATASET]: Dataset,
 };
 
 const ELEMENT_WITH_MODULE = new Set([
@@ -450,14 +446,6 @@ class Linker {
 
     loadType(refererModule, elementName, throwOnMissing = true) {
         return this.loadElement(refererModule, XemlTypes.Element.TYPE, elementName, throwOnMissing);
-    }
-
-    loadDataset(refererModule, elementName, throwOnMissing = true) {
-        return this.loadElement(refererModule, XemlTypes.Element.DATASET, elementName, throwOnMissing);
-    }
-
-    loadView(refererModule, elementName, throwOnMissing = true) {
-        return this.loadElement(refererModule, XemlTypes.Element.VIEW, elementName, throwOnMissing);
     }
 
     /**

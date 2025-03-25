@@ -1307,7 +1307,7 @@ entity_sub_item
     | associations_statement
     | key_statement
     | index_statement
-    | input_statement
+    /*| input_statement */
     | views_statement
     | data_statement
     | code_statement    
@@ -1498,7 +1498,7 @@ index_item_body
     : identifier_or_string -> { fields: $1 }
     | array_of_identifier_or_string -> { fields: $1 }
     ;
-
+/*
 input_statement
     : "input" NEWLINE INDENT input_statement_block DEDENT NEWLINE? -> { inputs: $4 }     
     ;
@@ -1533,6 +1533,7 @@ input_block_item_with_spec
     : input_block_item_base 'with' id_or_string_or_call -> { ...$1, spec: $3 }
     | input_block_item_base 'with' id_or_string_or_call 'optional' -> { ...$1, spec: $3, optional: true }
     ;    
+*/
 
 // ----- views related -----
 

@@ -76,6 +76,7 @@ The `DbModel` class manages the lifecycle of a connection created from the conne
 ```javascript
 class DbModel {
   static meta;
+  get driver();
   entity(name) {
     if (!this._cache[name]) {
       this._cache[name] = new meta.Entities[name](this);
@@ -83,8 +84,20 @@ class DbModel {
     return this._cache[name];
   }
   async transaction_(async function(anotherDbInstance));
+  async retry_(transactionName, action_, onRetry_, payload, maxRetry, interval);
 }
 ```
+
+### Usage
+
+- Get an entity and call entity interface
+
+```javascript
+const User = db.entity('User');
+const user = await User.findOne_({ id: 1837 });
+```
+
+Note: for more information, please refer to [Data Library Manual](./data-manual.md)
 
 ## BusinessLogic
 
@@ -93,41 +106,58 @@ The `BusinessLogic` class encapsulates the business logic of the system. It inte
 ### Interface
 
 ```javascript
-class BusinessLogic {
-  async validateUserPassword() {
-    // Example business operation logic
-    await this.db.transaction_(async (db) => {
-      const user = await db.entity('User').findOne_({ id: 1039 });
-      await db.entity('UserProfile').updateOne_({ ref: user.ref }, { avatar: 'xxx' });
-    });
-  }
+// ./business/auth.js
+class AuthBusiness extends Business {
+    async validate_(username, password) {
+        const query = {};
+        let loginBy = 'username';
 
-  // Other business logic methods
+        const [isEmail] = Validators.email(username);
+        //...
+    }
+
+    //...
 }
+export default AuthBusiness;
 ```
 
-## Usage
+### Usage
 
-- A default `DbModel` instance `db` can be retrieved from the Jacarana App instance.
+- Business logic can be accessed throught `businessLogic` feature.
 
-```javascript
-const db = app.db('db name');
-const businessLogic = new BusinessLogic(db);
+Enable `businessLogic` in the config.
+
+```yaml
+businessLogic:
+    path: 'business'
 ```
 
-- For a normal query
+- Use `bus()` function from `ctx` for request life-cycle tracking
 
 ```javascript
-const User = db.entity('User');
-const user = await User.findOne_({ id: 1837 });
+const auth = ctx.bus('auth' /*, schemaName, fromApp */);
+await auth.validate_(...);
 ```
 
-- Transaction Management
+- Or use `bus` function from `app` instance for non-request business
 
 ```javascript
-async function performTransaction() {
-  await businessLogic.performOperation();
-}
+const auth = app.bus('auth' /*, schemaName, fromApp */);
+await auth.validate_(...);
+```
+
+- Use business logic from other app
+
+by app name
+```js
+const auth = ctx.bus('auth', null /* use default schema */, '@xxxx/yyy-auth-package');
+await auth.validate_(...);
+```
+
+by app route
+```js
+const auth = ctx.bus('auth', null /* use default schema */, '/api/admin/v1'); // starting from '/'
+await auth.validate_(...);
 ```
 
 # Summary
