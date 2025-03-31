@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.7.8
+
+### Patch Changes
+
+-   Fixed businessLogic creation bug.
+
 ## 3.7.7
 
 ### Patch Changes

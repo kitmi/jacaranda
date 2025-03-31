@@ -7,6 +7,7 @@ import path from 'node:path';
 import Feature from '../Feature';
 import { _, get as _get } from '@kitmi/utils';
 import { InvalidArgument } from '@kitmi/types';
+import Business from '../helpers/Business';
 
 export default {
     stage: Feature.SERVICE,
@@ -55,7 +56,7 @@ export default {
 
             const _schemaName = schemaName || defaultSchema;
 
-            if (businessClass.length > 0) {
+            if (businessClass.length > 0 || businessClass.prototype instanceof Business) {
                 return new businessClass(app, _schemaName, ctx);
             }
 
