@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.10.8
+
+### Patch Changes
+
+-   Changed this.app.bus to ctx.bus
+
 ## 0.10.7
 
 ### Patch Changes

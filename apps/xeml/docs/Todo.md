@@ -28,7 +28,7 @@
 - inherit hasMany (abstract & reverse replacement of base into subClass)
 - aggregation with window functions
 - select for update
-
+- alias of entity for enabling plug&play of xeml module (e.g. @adminUser mapping to admin entity or adminAccount entity in different xeml modules)
 ## Features backlog
 
 - Semantic condition translation

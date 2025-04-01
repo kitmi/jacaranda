@@ -1176,7 +1176,7 @@ class DaoModeler {
         if (line.startsWith('$business.')) {
             const [business, calling] = splitFirst(line.substring(10), '.');
             if (!localContext.businesses.has(business)) {
-                codeBucket.push(`const ${business}Bus = this.app.bus('${business}');`);
+                codeBucket.push(`const ${business}Bus = ctx.bus('${business}');`);
             }
 
             let [method, argsString] = splitFirst(calling, '(');

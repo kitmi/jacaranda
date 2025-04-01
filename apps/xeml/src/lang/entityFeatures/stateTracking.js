@@ -47,7 +47,7 @@ function feature(entity, args = []) {
 
     entity.once('afterAddingFields', () => {
         if (!entity.hasField(options.field)) {
-            throw new Error('Field "' + options.field + '" does not exist!');
+            throw new Error('Field "' + options.field + '" does not exist! Entity: ' + entity.name + ', feature: ' + FEATURE_NAME);
         }
 
         let fieldInfo = entity.fields[options.field];
