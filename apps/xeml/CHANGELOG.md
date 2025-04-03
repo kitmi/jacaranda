@@ -1,5 +1,12 @@
 # @kitmi/xeml
 
+## 0.11.0
+
+### Minor Changes
+
+-   Added API default schema generation for CRUD
+-   Fixed postgres default array value
+
 ## 0.10.8
 
 ### Patch Changes

@@ -26,8 +26,30 @@ export default {
             app.createServerModuleRouter();
         }
 
-        app.once('after:' + Feature.PLUGIN, () =>
-            eachAsync_(routes, async (routersConfig, route) => {
+        app.once('after:' + Feature.PLUGIN, () => {
+            app.useMiddleware(
+                app.router,
+                async (ctx, next) => {
+                    ctx.bus = (businessName, schemaName, fromApp) => {
+                        if (fromApp) {
+                            let _app = app.getOtherApp(fromApp);
+                            return _app.bus(businessName, schemaName, null, ctx);
+                        }
+                        return app.bus(businessName, schemaName, fromApp, ctx);
+                    };
+                    await next();
+                    delete ctx.bus;
+                    if (ctx.dbClasses) {
+                        _.each(ctx.dbClasses, (db) => {
+                            delete db.ctx;
+                        });
+                        delete ctx.dbClasses;
+                    }
+                },
+                'ctxClean'
+            );
+
+            return eachAsync_(routes, async (routersConfig, route) => {
                 if (isPlainObject(routersConfig)) {
                     return eachAsync_(routersConfig, async (options, type) => {
                         app.log('verbose', `A "${type}" router is created at "${route}" in app [${app.name}].`);
@@ -55,7 +77,7 @@ export default {
 
                     return routers['rule'](app, baseRoute, { rules: rules });
                 }
-            })
-        );
+            });
+        });
     },
 };

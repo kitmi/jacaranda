@@ -1,4 +1,4 @@
-import { ApplicationError } from '@kitmi/types';
+import { ApplicationError, InvalidArgument } from '@kitmi/types';
 import { _ } from '@kitmi/utils';
 
 class BasicController {
@@ -35,12 +35,32 @@ class BasicController {
      * @param {*} [schema]
      * @returns {EntityModel}
      */
-    $m(name, schema) {
+    $m(name, schema, ctx) {
         if (this.app.db == null) {
             throw new ApplicationError('Database service (i.e. db feature) is not enabled.');
         }
 
-        const db = this.app.db(schema);
+        let db;
+
+        if (ctx) {
+            ctx.dbClasses = ctx.dbClasses || {};
+            if (!schema) {
+                schema = this.app.settings.defaultDb;
+                if (!schema) {
+                    throw new InvalidArgument(
+                        '"schema" is required or "app.settings.defaultDb" should be set as a default value.'
+                    );
+                }
+            }
+            db = ctx.dbClasses[schema];
+            if (!db) {
+                db = this.app.db(schema).forkWithCtx(ctx);
+                ctx.dbClasses[schema] = db;
+            }
+        } else {
+            db = this.app.db(schema);
+        }
+
         return db.entity(name);
     }
 
@@ -87,7 +107,8 @@ class BasicController {
      * @param {*} ttlCacheInfo
      */
     send(ctx, result, payload, ttlCacheInfo) {
-        ctx.body = this.apiWrapper.wrapResult(ctx, result, payload);
+        ctx.body = this.apiWrapper.wrapResult(ctx, result, payload);        
+
         if (ttlCacheInfo) {
             const ttlCache = this.app.getService('ttlMemCache');
             const value = [result];

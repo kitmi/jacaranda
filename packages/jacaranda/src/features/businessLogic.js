@@ -36,16 +36,7 @@ export default {
             }
 
             if (fromApp) {
-                let _app;
-
-                if (typeof fromApp === 'object') {
-                    _app = fromApp;
-                } else if (fromApp.startsWith('/')) {
-                    _app = app.server.getAppByRoute(fromApp);
-                } else {
-                    _app = app.server.getAppByAlias(fromApp);
-                }
-
+                let _app = this.getOtherApp(fromApp);
                 return _app.bus(businessName, schemaName, null, ctx);
             }
 
@@ -69,11 +60,5 @@ export default {
             }
             return business;
         };
-
-        app.useMiddleware(app.router, async (ctx, next) => {
-            ctx.bus = (businessName, schemaName, fromApp) => app.bus(businessName, schemaName, fromApp, ctx);
-            await next();
-            delete ctx.bus;
-        });
     },
 };

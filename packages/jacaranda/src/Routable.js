@@ -54,6 +54,31 @@ const Routable = (T) =>
         }
 
         /**
+         * Get the app module by route or alias.
+         * @param {String|WebModule} fromApp
+         * @returns {WebModule}
+         */
+        getOtherApp(fromApp) {
+            let _app;
+
+            if (typeof fromApp === 'object' && fromApp.isModule) {
+                return fromApp;
+            }
+
+            if (typeof fromApp !== 'string') {
+                throw new InvalidArgument('"fromApp" must be a string or WebModule');
+            }
+
+            if (fromApp.startsWith('/')) {
+                _app = this.server.getAppByRoute(fromApp);
+            } else {
+                _app = this.server.getAppByAlias(fromApp);
+            }
+
+            return _app;
+        }
+
+        /**
          * Register the factory method of a named middleware.
          * @param {string} name - The name of the middleware
          * @param {function} factoryMethod - The factory method of a middleware
@@ -267,9 +292,12 @@ const Routable = (T) =>
 
             router[method](route, ...handlers);
 
-            let endpoint = text.dropIfEndsWith(router.opts.prefix
-                ? urlUtil.join(this.route, router.opts.prefix, route)
-                : urlUtil.join(this.route, route), '/');
+            let endpoint = text.dropIfEndsWith(
+                router.opts.prefix
+                    ? urlUtil.join(this.route, router.opts.prefix, route)
+                    : urlUtil.join(this.route, route),
+                '/'
+            );
 
             this.log('verbose', `Route "${method}:${endpoint}" is added from app [${this.name}].`);
 

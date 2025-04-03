@@ -480,6 +480,10 @@ If you want to order by an alias which is not a column of any table, the above r
 
 Returns total record count
 
+#### $view
+
+Use a pre-defined view as findOptions
+
 #### $includeDeleted - {boolean}
 
 To include logically deleted records

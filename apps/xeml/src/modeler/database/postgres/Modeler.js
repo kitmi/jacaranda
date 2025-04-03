@@ -2496,6 +2496,8 @@ $$ LANGUAGE plpgsql;\n`);
                 } else if (info.enum) {
                     sql += ' DEFAULT ' + this.quoteString(info.enum[0]);
                     info.autoByDb = true;
+                } else if (info.type === 'array' || info.type === 'object') {
+                    sql += " DEFAULT '{}'";
                 } else {
                     sql += " DEFAULT ''";
                 }

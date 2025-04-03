@@ -21,3 +21,19 @@
 
 - $xt: Acticator | Processor | Valiator 
 - functorId: local function name
+
+## api
+
+### context
+
+- sharedTypes
+- group
+- responses
+- schema
+
+### localContext
+
+- entities: new Set(),
+- businesses: new Set(),
+- variables: new Set(),
+- subRouteParam

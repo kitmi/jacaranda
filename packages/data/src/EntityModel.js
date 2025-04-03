@@ -255,6 +255,7 @@ class EntityModel {
      * @property {string} [findOptions.$countBy] - Return totalCount
      * @property {bool} [findOptions.$includeDeleted=false] - Include those marked as logical deleted.
      * @property {bool} [findOptions.$skipOrm=false] - Skip ORM mapping
+     * @property {object} [findOptions.$view] - Use a view
      * @returns {array}
      */
     async findMany_(findOptions) {

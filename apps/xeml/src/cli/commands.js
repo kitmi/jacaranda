@@ -3,7 +3,6 @@ exports.Commands = {
     'list-modifiers': 'List built-in modifiers.',
     'build': 'Generate database scripts and entity models.',
     'build-api': 'Generate API source code.',
-    'build-api-client': 'Generate API client-side code.',
     'migrate': 'Create database structure.',
     'import': 'Import data set.',
 };
@@ -26,7 +25,6 @@ exports.getCommandOptions = (cli, command) => {
 
         case 'build':
         case 'build-api':
-        case 'build-api-client':
             break;
 
         case 'migrate':

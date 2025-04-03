@@ -134,70 +134,6 @@ class DaoModeler {
         //this._generateViewModel();
     }
 
-    buildApiClient(schema, versionInfo) {
-        this.linker.log('info', 'Generating API client for schema "' + schema.name + '"...');
-
-        const schemaPath = path.join(path.dirname(schema.linker.getModulePathById(schema.xemlModule.id)), 'api');
-
-        // check if api folder exists and read all yaml files under api folder
-        const datasetFiles = globSync('*.yaml', { nodir: true, cwd: schemaPath });
-        const datasetFilesSet = new Set(datasetFiles);
-
-        if (datasetFilesSet.size === 0) {
-            return;
-        }
-
-        const context = {
-            schema,
-            versionInfo,
-            sharedTypes: {},
-        };
-
-        const typeSpecialize = (typeInfo, argsMap) => {};
-
-        // process __types.yaml for type definitions
-        if (datasetFilesSet.has('__types.yaml')) {
-            const types = yaml.parse(fs.readFileSync(path.join(schemaPath, '__types.yaml'), 'utf8'));
-            // check if any type has $args property, change the type to a function
-
-            _.each(types, (type, typeName) => {
-                let typeInfo = type;
-
-                if (type.$args) {
-                    typeInfo = (variables) => {
-                        if (type.$args.find((arg) => !(arg in variables))) {
-                            throw new Error(
-                                `Specialization argument "${arg}" is required for type constructor "${typeName}".`
-                            );
-                        }
-                        return typeSpecialize(type, variables);
-                    };
-                }
-
-                context.sharedTypes[typeName] = typeInfo;
-            });
-            datasetFilesSet.delete('__types.yaml');
-        }
-
-        // process __groups.yaml for group definitions
-        if (datasetFilesSet.has('__groups.yaml')) {
-            context.groups = yaml.parse(fs.readFileSync(path.join(schemaPath, '__groups.yaml'), 'utf8'));
-            datasetFilesSet.delete('__groups.yaml');
-        }
-
-        for (const datasetFile of datasetFilesSet) {
-            if (datasetFile.startsWith('_')) {
-                continue;
-            }
-
-            const resourceName = path.basename(datasetFile, '.yaml');
-            const resources = yaml.parse(fs.readFileSync(path.join(schemaPath, datasetFile), 'utf8'));
-            _.each(resources, (resourceInfo, baseEndpoint) => {
-                this._generateResourceApi(context, resourceName, baseEndpoint, resourceInfo);
-            });
-        }
-    }
-
     _featureReducer(schema, entity, featureName, feature) {
         let field;
 
@@ -872,7 +808,7 @@ class DaoModeler {
         });
     }
 
-    prepareApiCommonContext(schemaPath, context) {        
+    prepareApiCommonContext(schemaPath, context) {
         const apiDefFiles = globSync('*.yaml', { nodir: true, cwd: schemaPath });
         const apiDefFilesSet = new Set(apiDefFiles);
 
@@ -907,39 +843,140 @@ class DaoModeler {
                 sharedTypes[typeName] = typeInfo;
             });
 
-            context.sharedTypes = { ...context.sharedTypes,...sharedTypes };
+            context.sharedTypes = { ...context.sharedTypes, ...sharedTypes };
             apiDefFilesSet.delete('__types.yaml');
         }
 
         // process __groups.yaml for group definitions
         if (apiDefFilesSet.has('__groups.yaml')) {
             const groups = yaml.parse(fs.readFileSync(path.join(schemaPath, '__groups.yaml'), 'utf8'));
-            context.groups = {...context.groups, ...groups};
+            context.groups = { ...context.groups, ...groups };
             apiDefFilesSet.delete('__groups.yaml');
         }
 
         // process __responses.yaml for response definitions
         if (apiDefFilesSet.has('__responses.yaml')) {
             const responses = yaml.parse(fs.readFileSync(path.join(schemaPath, '__responses.yaml'), 'utf8'));
-            context.responses = {...context.responses,...responses};
+            for (let key in responses) {
+                if (!(key in context.groups)) {
+                    throw new Error(
+                        `Unknown group "${key}" apprears in response definition. schema path: ` + schemaPath
+                    );
+                }
+            }
+            context.responses = { ...context.responses, ...responses };
             apiDefFilesSet.delete('__responses.yaml');
         }
 
         return apiDefFilesSet;
     }
 
-    generateApi(schema, context) {        
+    _parseEntityDatasetSchema(schema) {
+        const _datasetEntries = new Set();
+
+        //generate validator config
+        _.forOwn(schema.entities, (entity, entityInstanceName) => {
+            const entityPath = path.dirname(entity.linker.getModulePathById(entity.xemlModule.id));
+
+            // read <entity>-schema-<inputSetName>.yaml
+            const prefix = `${entityInstanceName}-schema-`;
+            const pattern = `${prefix}*.yaml`;
+            const datasetFiles = globSync(pattern, { nodir: true, cwd: entityPath });
+
+            datasetFiles.forEach((datasetFile) => {
+                const inputSetName = path.basename(datasetFile, '.yaml').substring(prefix.length);
+
+                _datasetEntries.add(`${entityInstanceName}.${inputSetName}`);
+            });
+        });
+
+        return _datasetEntries;
+    }
+
+    _generateDefaultApiSchema(context, schemaPath, apiDefFilesSet) {
+        const apiSchemaTemplate = path.resolve(__dirname, 'dao', 'api-config.yaml.swig');
+        const datasets = this._parseEntityDatasetSchema(context.schema);
+
+        _.each(context.schema.entities, (entity, entityName) => {
+            const locals = {
+                resourceName: entityName,
+                resourcePascalName: naming.pascalCase(entityName),
+                keyField: entity.key,
+            };
+
+            // check whether entity has a list view
+            if (entity.views?.list) {
+                locals.listViewOrDefault = `$view.${entityName}.list`;
+            } else {
+                locals.listViewOrDefault = `$default.listView`;
+            }
+
+            if (entity.views?.created) {
+                locals.newViewOrDefault = `$view.${entityName}.created`;
+            } else {
+                locals.newViewOrDefault = `$default.detailView`;
+            }
+
+            if (entity.views?.detail) {
+                locals.detailViewOrDefault = `$view.${entityName}.detail`;
+            } else {
+                locals.detailViewOrDefault = `$default.detailView`;
+            }
+
+            if (entity.views?.deleted) {
+                locals.deleteViewOrDefault = `$view.${entityName}.deleted`;
+            } else {
+                locals.deleteViewOrDefault = `$default.deletedView`;
+            }            
+
+            // check whether entity has a new dataset
+            if (datasets.has(`${entityName}.new`)) {
+                locals.newDatasetOrDefault = `$data.${entityName}.new`;
+            } else {
+                locals.newDatasetOrDefault = `$any`;
+            }
+
+            if (datasets.has(`${entityName}.update`)) {
+                locals.updateDatasetOrDefault = `$data.${entityName}.update`;
+            } else {
+                locals.updateDatasetOrDefault = `$any`;
+            }            
+
+            const apiSchema = swig.renderFile(apiSchemaTemplate, locals);
+
+            const schemaFile = entityName + '.default.yaml';
+            const schemaFilePath = path.join(schemaPath, schemaFile);
+            fs.ensureFileSync(schemaFilePath);
+            fs.writeFileSync(schemaFilePath, apiSchema);
+            apiDefFilesSet.add(schemaFile);
+        });
+    }
+
+    generateApi(schema, context) {
         const schemaPath = path.join(path.dirname(schema.linker.getModulePathById(schema.xemlModule.id)), 'api');
-        const apiDefFilesSet = this.prepareApiCommonContext(schemaPath, context);  
+        const apiDefFilesSet = this.prepareApiCommonContext(schemaPath, context);
 
         context.schema = schema;
+
+        this._generateDefaultApiSchema(context, schemaPath, apiDefFilesSet);
 
         for (const datasetFile of apiDefFilesSet) {
             if (datasetFile.startsWith('_')) {
                 continue;
             }
 
-            const resourceName = path.basename(datasetFile, '.yaml');
+            let resourceName;
+
+            if (datasetFile.endsWith('.default.yaml')) {
+                resourceName = path.basename(datasetFile, '.default.yaml');
+                if (apiDefFilesSet.has(resourceName + '.yaml')) {
+                    this.linker.log('warn', `"${datasetFile}" is ignored because "${resourceName}.yaml" exists.`);
+                    continue;
+                }
+            } else {
+                resourceName = path.basename(datasetFile, '.yaml');
+            }
+
             const resources = yaml.parse(fs.readFileSync(path.join(schemaPath, datasetFile), 'utf8'));
             _.each(resources, (resourceInfo, baseEndpoint) => {
                 this._generateResourceApi(context, resourceName, baseEndpoint, resourceInfo);
@@ -953,21 +990,23 @@ class DaoModeler {
                 if (groupInfo.moduleSource === 'project') {
                     const groupPath = path.join(this.modelService.config.sourcePath, groupInfo.controllerPath);
 
-                    const apiFiles = globSync('**/*.js', { nodir: true, cwd: groupPath });
+                    const apiFiles = globSync('**/*.js', { nodir: true, cwd: groupPath }).filter(
+                        (f) => f !== 'index.js'
+                    );
 
-                    // filter out index.js and sort the rest and make an export list
-                    const exportList = apiFiles
-                        .filter((f) => f !== 'index.js')
-                        .sort()
-                        .map((f) => {
+                    if (apiFiles.length > 0) {
+                        // filter out index.js and sort the rest and make an export list
+                        const exportList = apiFiles.sort().map((f) => {
                             const name = baseName(f, true);
                             const localName = replaceAll(name, '/', '__');
                             return `export { default as ${localName} } from './${name}';`;
                         });
 
-                    // override index.js
-                    const indexFilePath = path.join(groupPath, 'index.js');
-                    fs.writeFileSync(indexFilePath, exportList.join('\n'));
+                        // override index.js
+                        const indexFilePath = path.join(groupPath, 'index.js');
+                        fs.ensureFileSync(indexFilePath);
+                        fs.writeFileSync(indexFilePath, exportList.join('\n'));
+                    }
                 }
             }
         }
@@ -984,7 +1023,9 @@ class DaoModeler {
         const groupInfo = context.groups?.[group];
 
         if (groupInfo == null) {
-            throw new Error(`Group "${group}" not found in "xeml/api/__groups.yaml" or extended packages' groups defintion.`);
+            throw new Error(
+                `Group "${group}" not found in "xeml/api/__groups.yaml" or extended packages' groups defintion.`
+            );
         }
 
         const locals = {
@@ -1012,7 +1053,7 @@ class DaoModeler {
 
         locals.methods = locals.methods.join('\n\n');
 
-        const classTemplate = path.resolve(__dirname, 'dao', 'Api.js.swig');
+        const classTemplate = path.resolve(__dirname, 'dao', 'api-controller.js.swig');
         const classCode = swig.renderFile(classTemplate, locals);
 
         const resourceFilePath = path.join(
@@ -1032,8 +1073,15 @@ class DaoModeler {
 
     _ensureEntity(localContext, entityName, codeBucket) {
         if (!localContext.entities.has(entityName)) {
-            codeBucket.push(`const ${naming.pascalCase(entityName)} = this.$m('${entityName}');`);
+            codeBucket.push(`const ${naming.pascalCase(entityName)} = this.$m('${entityName}', null, ctx);`);
             localContext.entities.add(entityName);
+        }
+    }
+
+    _ensureVar(localContext, varName, codeBucket) {
+        if (!localContext.variables.has(varName)) {
+            codeBucket.push(`let ${varName};`);
+            localContext.variables.add(varName);
         }
     }
 
@@ -1169,29 +1217,99 @@ class DaoModeler {
     _translateArg(context, localContext, arg) {
         if (arg.startsWith('$local.')) {
             return arg.substring(7);
+        } else if (arg.startsWith('$view.')) {
+            const [entityName, calling] = splitFirst(arg.substring(6), '.');
+            let [viewName, argsString] = splitFirst(calling, '(');
+
+            if (!context.schema.entities[entityName].views?.[viewName]) {
+                throw new Error(`View "${viewName}" not found in entity "${entityName}", arg: ${arg}`);
+            }
+
+            if (argsString) {
+                const endOfArg = argsString.lastIndexOf(')');
+                if (endOfArg === -1) {
+                    throw new Error('Invalid args invoking syntax: ' + arg);
+                }
+
+                argsString = argsString.substring(0, endOfArg);
+                const args = argsString.split(',').map((a) => this._translateArg(context, localContext, a.trim()));
+                if (args.length > 1) {
+                    throw new Error('$view can only support one argument as $where: ' + arg);
+                }
+
+                if (args.length > 0) {
+                    return `{ $where: ${args[0]}, $view: '${viewName}' }`;
+                }
+            }
+
+            return `{ $view: '${viewName}' }`;
         }
     }
 
-    _generateCodeLine(context, localContext, line, codeBucket) {
+    _parseMethodArgs(context, localContext, calling) {
+        let [method, argsString] = splitFirst(calling, '(');
+        const endOfArg = argsString.lastIndexOf(')');
+
+        if (endOfArg === -1) {
+            throw new Error('Invalid business invoking syntax: ' + line);
+        }
+
+        argsString = argsString.substring(0, endOfArg);
+        const args = argsString.split(',').map((a) => this._translateArg(context, localContext, a.trim()));
+        return [method, args];
+    }
+
+    _generateCodeLine(context, localContext, line, codeBucket, index) {
         if (line.startsWith('$business.')) {
             const [business, calling] = splitFirst(line.substring(10), '.');
             if (!localContext.businesses.has(business)) {
                 codeBucket.push(`const ${business}Bus = ctx.bus('${business}');`);
             }
 
-            let [method, argsString] = splitFirst(calling, '(');
-            const endOfArg = argsString.lastIndexOf(')');
+            const [method, args] = this._parseMethodArgs(context, localContext, calling);
+            const isAsync = method.endsWith('_');
 
-            if (endOfArg === -1) {
-                throw new Error('Invalid business invoking syntax: ' + line);
+            if (index > 0) {
+                this._ensureVar(localContext, '_busResult', codeBucket);
+            }
+            let leftPart = index === 0 ? 'let { result, payload }' : '_busResult';
+            codeBucket.push(`${leftPart} = ${isAsync ? 'await ' : ''}${business}Bus.${method}(${args.join(', ')});`);
+            if (index > 0) {
+                codeBucket.push(
+                    `result = _busResult.result;
+                    if (_busResult.payload) {
+                        payload = { ...payload, ..._busResult.payload };
+                    }`
+                );
+            } else {
+                localContext.variables.add('result');
+                localContext.variables.add('payload');
+            }
+        } else if (line.startsWith('$entity.')) {
+            const [entityName, calling] = splitFirst(line.substring(8), '.');
+            this._ensureEntity(localContext, entityName, codeBucket);
+
+            const [method, args] = this._parseMethodArgs(context, localContext, calling);
+            const isAsync = method.endsWith('_');
+
+            this._ensureVar(localContext, 'result', codeBucket);
+            this._ensureVar(localContext, 'payload', codeBucket);
+            this._ensureVar(localContext, '_entityResult', codeBucket);
+            codeBucket.push(
+                `_entityResult = ${isAsync ? 'await ' : ''}${naming.pascalCase(entityName)}.${method}(${args.join(
+                    ', '
+                )});`
+            );
+
+            if (method === 'findOne_') {
+                codeBucket.push(`result = _entityResult;`);
+            } else {
+                codeBucket.push(`result = _entityResult.data;`);
             }
 
-            argsString = argsString.substring(0, endOfArg);
-            const args = argsString.split(',').map((a) => this._translateArg(context, localContext, a.trim()));
-            const isAsync = method.endsWith('_');
-            codeBucket.push(
-                `let { result, payload } = ${isAsync ? 'await ' : ''}${business}Bus.${method}(${args.join(', ')});`
-            );
+            if (method === 'findManyByPage_') {
+                codeBucket.push(`payload = { ...payload, totalCount: _entityResult.totalCount };`);
+            }
         }
     }
 
@@ -1230,8 +1348,8 @@ class DaoModeler {
         let codeImplement = [];
 
         if (implementation) {
-            implementation.forEach((line) => {
-                this._generateCodeLine(context, localContext, line, codeImplement);
+            implementation.forEach((line, index) => {
+                this._generateCodeLine(context, localContext, line, codeImplement, index);
             });
         }
 

@@ -1,5 +1,12 @@
 # @kitmi/jacaranda
 
+## 3.8.0
+
+### Minor Changes
+
+-   Refined business logic calling.
+-   Fixed bugs.
+
 ## 3.7.8
 
 ### Patch Changes
