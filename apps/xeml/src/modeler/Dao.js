@@ -21,8 +21,9 @@ const JsLang = require('./util/ast');
 const XemlToAst = require('./util/xemlToAst');
 const Snippets = require('./dao/snippets');
 const Methods = require('./dao/methods');
-const { extractReferenceBaseName, isDotSeparateName } = require('../lang/XemlUtils');
+const { extractReferenceBaseName } = require('../lang/XemlUtils');
 const { globSync } = require('glob');
+const { sync: deleteSync } = require('del');
 const yaml = require('yaml');
 
 const INPUT_SCHEMA_DERIVED_KEYS = [
@@ -895,13 +896,17 @@ class DaoModeler {
 
     _generateDefaultApiSchema(context, schemaPath, apiDefFilesSet) {
         const apiSchemaTemplate = path.resolve(__dirname, 'dao', 'api-config.yaml.swig');
-        const datasets = this._parseEntityDatasetSchema(context.schema);
+        const datasets = this._parseEntityDatasetSchema(context.schema);        
 
-        _.each(context.schema.entities, (entity, entityName) => {
+        _.each(context.schema.entities, (entity, entityName) => {            
+            if (entity.xemlModule.id.startsWith('./..')) {
+                return;
+            }
             const locals = {
                 resourceName: entityName,
                 resourcePascalName: naming.pascalCase(entityName),
                 keyField: entity.key,
+                keyFieldPlaceholder: `{${entity.key}}`
             };
 
             // check whether entity has a list view
@@ -944,31 +949,49 @@ class DaoModeler {
 
             const apiSchema = swig.renderFile(apiSchemaTemplate, locals);
 
-            const schemaFile = entityName + '.default.yaml';
+            const schemaFile = '_' + entityName + '.default.yaml';
             const schemaFilePath = path.join(schemaPath, schemaFile);
             fs.ensureFileSync(schemaFilePath);
             fs.writeFileSync(schemaFilePath, apiSchema);
+            this.linker.log('info', 'Generated default API schema: ' + schemaFile);
             apiDefFilesSet.add(schemaFile);
         });
     }
 
+    _cleanUpGeneratedApiFiles(context) {
+        if (context.groups) {
+            for (let key in context.groups) {
+                const groupInfo = context.groups[key];
+                if (groupInfo.moduleSource === 'project') {
+                    const groupPath = path.join(this.modelService.config.sourcePath, groupInfo.controllerPath);
+
+                    deleteSync(path.join(groupPath, '*.js'));
+                }
+                this.linker.log('info', 'Cleaned up API controllers under: ' + groupInfo.controllerPath);
+            }
+        }
+    }
+
     generateApi(schema, context) {
         const schemaPath = path.join(path.dirname(schema.linker.getModulePathById(schema.xemlModule.id)), 'api');
+        deleteSync(path.join(schemaPath, '*.default.yaml'));
+
         const apiDefFilesSet = this.prepareApiCommonContext(schemaPath, context);
 
         context.schema = schema;
 
+        this._cleanUpGeneratedApiFiles(context);
         this._generateDefaultApiSchema(context, schemaPath, apiDefFilesSet);
 
         for (const datasetFile of apiDefFilesSet) {
-            if (datasetFile.startsWith('_')) {
+            if (datasetFile.startsWith('__')) {
                 continue;
             }
 
             let resourceName;
 
             if (datasetFile.endsWith('.default.yaml')) {
-                resourceName = path.basename(datasetFile, '.default.yaml');
+                resourceName = path.basename(datasetFile, '.default.yaml').substring(1);
                 if (apiDefFilesSet.has(resourceName + '.yaml')) {
                     this.linker.log('warn', `"${datasetFile}" is ignored because "${resourceName}.yaml" exists.`);
                     continue;
@@ -1068,7 +1091,7 @@ class DaoModeler {
         fs.ensureFileSync(resourceFilePath);
         fs.writeFileSync(resourceFilePath, classCode);
 
-        this.linker.log('info', 'Generated api controller: ' + resourceFilePath);
+        this.linker.log('info', 'Generated API controller: ' + resourceFilePath);
     }
 
     _ensureEntity(localContext, entityName, codeBucket) {
@@ -1107,6 +1130,10 @@ class DaoModeler {
         if (type.startsWith('$type.')) {
             const typeName = type.substring(6);
             return JsLang.astValue(context.sharedTypes[typeName]);
+        }
+
+        if (type === '$any') {
+            return JsLang.astValue({ type: 'any' });
         }
 
         throw new Error(`Unsupported reference: ${type}`);
@@ -1214,7 +1241,25 @@ class DaoModeler {
         }
     }
 
-    _translateArg(context, localContext, arg) {
+    _translateViewArg(callingEntity, method, viewPart) {
+        if (callingEntity) {
+            if (method === 'create_') {
+                return `$getCreated: { ${viewPart} }`;
+            }
+
+            if (method === 'updateOne_') {
+                return `$getUpdated: { ${viewPart} }`;
+            }
+
+            if (method === 'deleteOne_') {
+                return `$getDeleted: { ${viewPart} }`;
+            }
+        }
+
+        return viewPart;
+    }
+
+    _translateArg(context, localContext, arg, callingEntity, method) {
         if (arg.startsWith('$local.')) {
             return arg.substring(7);
         } else if (arg.startsWith('$view.')) {
@@ -1225,6 +1270,8 @@ class DaoModeler {
                 throw new Error(`View "${viewName}" not found in entity "${entityName}", arg: ${arg}`);
             }
 
+            let where = '';
+
             if (argsString) {
                 const endOfArg = argsString.lastIndexOf(')');
                 if (endOfArg === -1) {
@@ -1232,21 +1279,74 @@ class DaoModeler {
                 }
 
                 argsString = argsString.substring(0, endOfArg);
-                const args = argsString.split(',').map((a) => this._translateArg(context, localContext, a.trim()));
+                const args = argsString.split(',').map((a) => this._translateArg(context, localContext, a.trim(), callingEntity));
                 if (args.length > 1) {
                     throw new Error('$view can only support one argument as $where: ' + arg);
                 }
 
                 if (args.length > 0) {
-                    return `{ $where: ${args[0]}, $view: '${viewName}' }`;
+                    where = `$where: ${args[0]}, `;                    
                 }
             }
 
-            return `{ $view: '${viewName}' }`;
+            if (callingEntity) {
+                let viewPart = `$view: '${viewName}'`;
+                return `{ ${where}${this._translateViewArg(callingEntity, method, viewPart)} }`;
+            }
+
+            return `{ ${where}$view: '${viewName}' }`;
+        } else if (arg.startsWith('$default.')) {
+            let [defaultKeywords, argsString] = splitFirst(arg.substring(9), '(');
+            if (!callingEntity) {
+                throw new Error(`The calling entity name is required for: ` + arg);
+            }
+
+            const entity = context.schema.entities[callingEntity];
+            if (entity == null) {
+                throw new Error(`Entity "${callingEntity}" not found in schema when parsing arg: ` + arg);
+            }
+
+            let viewReplacement;            
+
+            if (defaultKeywords === 'listView') {
+                viewReplacement = "$select: ['*']";
+            } else if (defaultKeywords === 'detailView') {
+                viewReplacement = "$select: ['*']";
+            } else if (defaultKeywords === 'deletedView') {                
+                viewReplacement = `$select: ['${entity.key}']`;
+            } else {
+                throw new Error(`Unsupported default keyword: ${defaultKeywords}, arg: ` + arg);
+            }
+
+            viewReplacement = this._translateViewArg(callingEntity, method, viewReplacement);
+
+            if (argsString) {
+                const endOfArg = argsString.lastIndexOf(')');
+                if (endOfArg === -1) {
+                    throw new Error('Invalid args invoking syntax: ' + arg);
+                }
+
+                argsString = argsString.substring(0, endOfArg);
+                const args = argsString.split(',').map((a) => this._translateArg(context, localContext, a.trim(), callingEntity));
+                if (args.length > 1) {
+                    throw new Error(`$default.${defaultKeywords} can only support one argument as $where: ` + arg);
+                }
+
+                if (args.length > 0) {
+                    if (args[0] === entity.key) {
+                        return `{ $where: { ${entity.key} }, ${viewReplacement} }`;
+                    }
+                    return `{ $where: ${args[0]}, ${viewReplacement} }`;
+                }
+            }
+            
+            return `{ ${viewReplacement} }`;
         }
+
+        throw new Error(`Unsupported argument: ${arg}`);
     }
 
-    _parseMethodArgs(context, localContext, calling) {
+    _parseMethodArgs(context, localContext, calling, callingEntity) {
         let [method, argsString] = splitFirst(calling, '(');
         const endOfArg = argsString.lastIndexOf(')');
 
@@ -1255,7 +1355,7 @@ class DaoModeler {
         }
 
         argsString = argsString.substring(0, endOfArg);
-        const args = argsString.split(',').map((a) => this._translateArg(context, localContext, a.trim()));
+        const args = argsString.split(',').map((a) => this._translateArg(context, localContext, a.trim(), callingEntity, method));
         return [method, args];
     }
 
@@ -1289,7 +1389,7 @@ class DaoModeler {
             const [entityName, calling] = splitFirst(line.substring(8), '.');
             this._ensureEntity(localContext, entityName, codeBucket);
 
-            const [method, args] = this._parseMethodArgs(context, localContext, calling);
+            const [method, args] = this._parseMethodArgs(context, localContext, calling, entityName);
             const isAsync = method.endsWith('_');
 
             this._ensureVar(localContext, 'result', codeBucket);

@@ -32,7 +32,7 @@
             implementation:
                 - $entity.{{resourceName}}.create_($local.body, {{newViewOrDefault}})        
 
-        /{{{keyField}}}:
+        /{{keyFieldPlaceholder}}:
             get:
                 description: Get detail of {{resourceName}}
                 request:
