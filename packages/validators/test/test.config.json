@@ -1,0 +1,8 @@
+{
+    "skip": {
+        "suites": {            
+        }
+    },
+    "enableAsyncDump": false,
+    "enableAllure": true
+}

@@ -1,5 +1,13 @@
 # @kitmi/xeml
 
+## 0.12.0
+
+### Minor Changes
+
+-   Splitted api exporting from DAO into separate class
+-   Added api importing command
+-   Refined api schema
+
 ## 0.11.1
 
 ### Patch Changes

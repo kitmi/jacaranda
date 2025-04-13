@@ -4,8 +4,9 @@ import { DEFAULT_UPLOAD_EXPIRY, DEFAULT_DOWNLOAD_EXPIRY } from '../common';
 class S3Service {
     static packages = ['aws-sdk'];
 
-    constructor(app, options) {
+    constructor(app, provider, options) {
         const { endpoint, accessKeyId, secretAccessKey, bucket } = options;
+        this.provider = provider;
 
         const AWS = app.tryRequire('aws-sdk');
 

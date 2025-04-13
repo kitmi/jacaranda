@@ -1,5 +1,11 @@
 # @kitmi/utils
 
+## 1.3.1
+
+### Patch Changes
+
+-   Changed Promise.reject to throwing error for better call stack tracing
+
 ## 1.3.0
 
 ### Minor Changes

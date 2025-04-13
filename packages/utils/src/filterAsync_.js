@@ -33,9 +33,9 @@ async function filterAsync_(obj, asyncPredicate) {
         }
 
         return r;
-    } else {
-        return Promise.reject('Invalid argument!');
-    }
+    } 
+
+    throw new Error('Invalid argument!');
 }
 
 export default filterAsync_;

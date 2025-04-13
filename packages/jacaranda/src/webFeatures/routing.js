@@ -30,12 +30,12 @@ export default {
             app.useMiddleware(
                 app.router,
                 async (ctx, next) => {
-                    ctx.bus = (businessName, schemaName, fromApp) => {
+                    ctx.bus = (businessName, fromApp) => {
                         if (fromApp) {
                             let _app = app.getOtherApp(fromApp);
-                            return _app.bus(businessName, schemaName, null, ctx);
+                            return _app.bus(businessName, null, ctx);
                         }
-                        return app.bus(businessName, schemaName, fromApp, ctx);
+                        return app.bus(businessName, fromApp, ctx);
                     };
                     await next();
                     delete ctx.bus;

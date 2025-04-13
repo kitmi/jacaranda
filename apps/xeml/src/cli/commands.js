@@ -3,6 +3,8 @@ exports.Commands = {
     'list-modifiers': 'List built-in modifiers.',
     'build': 'Generate database scripts and entity models.',
     'build-api': 'Generate API source code.',
+    'export-api': 'Export API metadata.',
+    'import-api': 'Import API metadata into database.',
     'migrate': 'Create database structure.',
     'import': 'Import data set.',
 };
@@ -25,6 +27,27 @@ exports.getCommandOptions = (cli, command) => {
 
         case 'build':
         case 'build-api':
+            break;
+
+        case 'import-api':
+            cmdOptions['from'] = {
+                desc: 'The api exported files path',
+                alias: ['from-path'],
+                default: './migrations/api',
+            };
+            break;
+
+        case 'export-api':
+            cmdOptions['o'] = {
+                desc: 'The output path',
+                alias: ['output', 'output-path'],
+                default: './migrations/api',
+            };
+            cmdOptions['proj'] = {
+                desc: 'The project id',
+                alias: ['project', 'project-id'],
+                required: true,
+            };
             break;
 
         case 'migrate':

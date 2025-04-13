@@ -131,7 +131,7 @@ class ServiceContainer extends AsyncEmitter {
         this.logger = {
             log: (...args) => this._logCache.push(args),
         };
-        
+
         this.log = (level, message, payload) => {
             if (this.logName) {
                 message = `[${this.logName}] ${message}`;
@@ -158,11 +158,11 @@ class ServiceContainer extends AsyncEmitter {
                 ? this.isServer
                     ? `srv:${this.name}`
                     : this.routable
-                    ? `mod:${this.server.name}>${this.name}`
-                    : `lib:${this.server.name}>${this.name}`
+                      ? `mod:${this.server.name}>${this.name}`
+                      : `lib:${this.server.name}>${this.name}`
                 : this.runnable
-                ? `cli:${this.name}`
-                : `lib:${this.host.name}>${this.name}`;
+                  ? `cli:${this.name}`
+                  : `lib:${this.host.name}>${this.name}`;
         }
 
         this.log('verbose', `Starting app [${this.name}] ...`);
@@ -423,11 +423,12 @@ class ServiceContainer extends AsyncEmitter {
      * @returns {ServiceContainer}
      */
     logException(level, error, summary, payload) {
-        this.log(
-            level,
-            (summary ? summary + '\n' : '') + error.message,
-            { ..._.pick(error, ['name', 'status', 'code', 'info', 'stack', 'request']), ...payload }
-        );
+        this.log(level, (summary ? summary + '\n' : '') + (error.message || error), {
+            ...(typeof error === 'object'
+                ? _.pick(error, ['name', 'status', 'code', 'info', 'stack', 'request'])
+                : null),
+            ...payload,
+        });
         return this;
     }
 
@@ -549,7 +550,7 @@ class ServiceContainer extends AsyncEmitter {
             const _makeLogger = (logLevel, channel) => ({
                 log: makeLogger(consoleLogger, logLevel, channel),
                 child: (arg1, arg2) => _makeLogger(arg2?.level || logLevel, arg1?.module),
-                flush: (cb) => {                    
+                flush: (cb) => {
                     if (cb) cb();
                 },
             });

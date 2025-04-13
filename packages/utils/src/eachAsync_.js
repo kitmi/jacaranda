@@ -32,7 +32,7 @@ async function eachAsync_(obj, iterator) {
         return r;
     }
 
-    return Promise.reject('Invalid argument!');
+    throw new Error('Invalid argument!');
 }
 
 export default eachAsync_;

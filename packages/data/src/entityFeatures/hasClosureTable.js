@@ -23,7 +23,7 @@ export default {
     },
     [Rules.RULE_BEFORE_DELETE]: async (feature, entity, context) => {
         if (!context.options.$dryRun) {
-            await entity.ensureTransaction_();
+            await entity.ensureTransaction_(context.options.$ctx, `${entity.meta.name}.closureTableOwner.beforeDelete`);
         }
 
         const key = entity.meta.keyField;

@@ -17,7 +17,7 @@ async function run(cli, command) {
 
     try {
         await startWorker(cmdMethod_, {
-            workerName: cli.app.name,
+            workerName: `${cli.app.name}:${command}`,
             configPath,
             configType,
             configName,
@@ -39,7 +39,7 @@ async function run(cli, command) {
         if (verboseMode) {
             cli.app.logError(error);
         } else {
-            cli.app.log('error', error.message);
+            cli.app.log('error', error.message || error);
         }
         process.exit(1);
     }

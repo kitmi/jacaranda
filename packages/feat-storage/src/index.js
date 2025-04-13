@@ -4,6 +4,7 @@ import * as Drivers from './drivers';
 const mapOfProviderToDriver = {
     digitalocean: 'S3v2',
     aws: 'S3v3',
+    minio: 'S3v3',
     azure: 'Azure',
 };
 
@@ -50,7 +51,7 @@ export default {
         );
 
         const Driver = Drivers[mapOfProviderToDriver[provider]];
-        const service = new Driver(app, providerOptions);
+        const service = new Driver(app, provider, providerOptions);
 
         app.registerService(name, service);
     },

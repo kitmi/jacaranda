@@ -38,7 +38,7 @@ async function batchAsync_(obj, iterator) {
         }, {});
     }
 
-    return Promise.reject('Invalid argument!');
+    throw new Error('Invalid argument!');
 }
 
 export default batchAsync_;

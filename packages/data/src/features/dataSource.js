@@ -66,7 +66,7 @@ export default {
                 const connectorService = new Connector(app, connectionString, other);
                 app.registerService(serviceName, connectorService);
 
-                app.on('stopping', async () => {
+                app.on('stopping', async () => {         
                     await connectorService.end_();
                 });
             });

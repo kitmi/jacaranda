@@ -22,7 +22,10 @@
     "isNaN": "readonly",
     "Number": "readonly",
     "parseInt": "readonly",
-    "clearTimeout": "readonly"
+    "clearTimeout": "readonly",
+    "WeekMap": "readonly",
+    "WeakSet": "readonly",
+    "console": "readonly"    
   },
   "rules": {
     "no-undef": "warn"

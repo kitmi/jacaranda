@@ -1,5 +1,13 @@
 # @kitmi/data
 
+## 0.11.0
+
+### Minor Changes
+
+-   Added more tracking logs for transactions
+-   Refined postgres connector code 
+-   Removed entity object cache to avoid deadlock of transactions
+
 ## 0.10.6
 
 ### Patch Changes

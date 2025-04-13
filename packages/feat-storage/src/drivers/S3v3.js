@@ -1,4 +1,4 @@
-import { fxargs, esTemplate } from '@kitmi/utils';
+import { fxargs } from '@kitmi/utils';
 import { fs } from '@kitmi/sys';
 import { Types } from '@kitmi/validators/allSync';
 import { DEFAULT_UPLOAD_EXPIRY, DEFAULT_DOWNLOAD_EXPIRY } from '../common';
@@ -6,22 +6,19 @@ import { DEFAULT_UPLOAD_EXPIRY, DEFAULT_DOWNLOAD_EXPIRY } from '../common';
 class S3Service {
     static packages = ['@aws-sdk/client-s3', '@aws-sdk/s3-request-presigner'];
 
-    constructor(app, options) {
-        let { region, accessKeyId, secretAccessKey, bucket } = Types.OBJECT.sanitize(options, {
+    constructor(app, provider, options) {
+        let { region, accessKeyId, secretAccessKey, bucket, ...others } = Types.OBJECT.sanitize(options, {
             schema: {
                 region: { type: 'text' },
                 accessKeyId: { type: 'text' },
                 secretAccessKey: { type: 'text' },
                 bucket: { type: 'text' },
+                endpoint: { type: 'text', optional: true }, // 兼容minio
+                forcePathStyle: { type: 'boolean', optional: true }, // 兼容minio, 强制使用路径式访问
             },
         });
 
-        const vars = app.getRuntimeVariables();
-
-        region = esTemplate(region, vars);
-        accessKeyId = esTemplate(accessKeyId, vars);
-        secretAccessKey = esTemplate(secretAccessKey, vars);
-        bucket = esTemplate(bucket, vars);
+        this.provider = provider;
 
         this.SDK = app.tryRequire('@aws-sdk/client-s3');
         const S3Client = this.SDK.S3Client;
@@ -30,6 +27,7 @@ class S3Service {
 
         this.client = new S3Client({
             region,
+            ...others,
             credentials: {
                 accessKeyId,
                 secretAccessKey,
@@ -63,7 +61,11 @@ class S3Service {
         const command = new PutObjectCommand(putObjectInput);
 
         const result = await this.client.send(command);
-        result.url = `https://s3.${this.region}.amazonaws.com/${this.bucket}/${objectKey}`;
+        if (this.provider === 'aws') {
+            result.url = `https://s3.${this.region}.amazonaws.com/${this.bucket}/${objectKey}`;
+        } else if (this.provider === 'minio') {
+            result.url = `https://${this.client.config.endpoint}/${this.bucket}/${objectKey}`;
+        }
 
         return result;
     }

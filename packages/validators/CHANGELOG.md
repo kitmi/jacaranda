@@ -1,5 +1,11 @@
 # @kitmi/validators
 
+## 1.4.3
+
+### Patch Changes
+
+-   Fixed i18n bug when directly using text validator
+
 ## 1.4.2
 
 ### Patch Changes

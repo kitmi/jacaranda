@@ -4,3 +4,4 @@ export { default as Processors, _Processors, skipProcessor } from './modifiers/P
 export { default as Validators, _Validators, skipValidator } from './modifiers/Validators';
 export * from './features';
 export * from './helpers';
+export * from './errors';

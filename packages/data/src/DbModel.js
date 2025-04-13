@@ -6,9 +6,6 @@ class DbModel {
         this.app = app;
         this.connector = connector;
         this.transaction = transaction;
-
-        // cached entities
-        this._entities = {};
     }
 
     get paramToken() {
@@ -65,8 +62,8 @@ class DbModel {
      * @returns {DbModel}
      */ 
     forkWithCtx(ctx) {
-        const db = new this.constructor(this.app, this.connector, this.transaction);
-        db.ctx = this.extractFromCtx(ctx);
+        const db = new this.constructor(this.app, this.connector);
+        db.ctx = ctx.response ? this.extractFromCtx(ctx) : ctx;
         return db;
     }
 
@@ -85,10 +82,7 @@ class DbModel {
      * @returns {EntityModel}
      */
     entity(entityName) {
-        if (this._entities[entityName]) return this._entities[entityName];
-
         const modelClassName = naming.pascalCase(entityName);
-        if (this._entities[modelClassName]) return this._entities[modelClassName];
 
         const EntityModel = this.meta.entities[modelClassName];
 
@@ -96,18 +90,16 @@ class DbModel {
             throw new Error(`Entity "${entityName}" not found in the db model.`);
         }
 
-        return (this._entities[modelClassName] = new EntityModel(this));
+        return new EntityModel(this);
     }
 
     /**
      * Run a transaction.
-     * @param {*} action_
-     * @param {*} connOptions
-     * @param {*} maxRetry
-     * @param {*} interval
-     * @param {*} onRetry_
+     * @param {AsyncFunction} action_
+     * @param {String} [purpose]
+     * @returns {Promise}
      */
-    async transaction_(transactionFunc) {
+    async transaction_(transactionFunc, purpose) {
         if (this.transaction != null) {
             // already in transaction
             return transactionFunc(this);
@@ -116,12 +108,16 @@ class DbModel {
         let db;
 
         try {
-            db = this.fork(await this.connector.beginTransaction_(this.ctx));
+            db = this.fork(await this.connector.beginTransaction_(this.ctx, purpose));
             let result = await transactionFunc(db);
-            await db.connector.commit_(db.transaction, db.ctx);
+            await db.connector.commit_(db.transaction, db.ctx, purpose);
+            delete db.transaction;
             return result;
         } catch (error) {
-            db && (await db.connector.rollback_(db.transaction, error, db.ctx));
+            if (db) {
+                await db.connector.rollback_(db.transaction, error, db.ctx, purpose);
+                delete db.transaction;
+            }
             throw error;
         } finally {
             db.end();
@@ -184,7 +180,6 @@ class DbModel {
     end() {
         delete this.transaction;
         delete this.ctx;
-        delete this._entities;
         delete this.connector;
         delete this.app;        
     }

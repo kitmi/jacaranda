@@ -1,6 +1,6 @@
 {
     "name": "@kitmi/validators",
-    "version": "1.4.2",
+    "version": "1.4.3",
     "description": "Dynamic validators to be used with @kitmi/types based on @kitmi/jsonv and @kitmi/jsonx",
     "main": "cjs/index",
     "module": "src/index.js",
@@ -37,7 +37,7 @@
         ]
     },
     "scripts": {
-        "test": "mocha --recursive ./test/*.spec.js",
+        "test": "NODE_OPTIONS=--enable-source-maps SWCRC=true mocha --recursive ./test/*.spec.js",
         "doc": "jsdoc --configure .jsdoc.json --verbose && node ../../scripts/prepack.js",
         "cover": "nyc --reporter=html --reporter=text mocha --recursive ./test/*.spec.js && open ./coverage/index.html",
         "prettier": "prettier --write .",
@@ -70,6 +70,9 @@
         "useTabs": false
     },
     "devDependencies": {
-        "oxlint": "^0.10.3"
+        "oxlint": "^0.10.3",
+        "mocha": "^10.0.0",
+        "mocha-multi": "^1.1.7",
+        "nyc": "^15.1.0"
     }
 }

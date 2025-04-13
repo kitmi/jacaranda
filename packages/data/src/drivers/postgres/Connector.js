@@ -1,9 +1,9 @@
-import { _, isEmpty } from '@kitmi/utils';
+import { _, isEmpty, waitUntil_ } from '@kitmi/utils';
 import { InvalidArgument, ApplicationError } from '@kitmi/types';
 import { runtime, NS_MODULE } from '@kitmi/jacaranda';
 import { tryRequire } from '@kitmi/sys';
 
-import { connectionStringToObject,FIELDS_OMIT_FROM_LOG } from '../../Connector';
+import { connectionStringToObject, FIELDS_OMIT_FROM_LOG } from '../../Connector';
 import RelationalConnector, { buildDataSetQuery } from '../relational/Connector';
 
 import { isRawSql, extractRawSql, xrCol } from '../../helpers';
@@ -15,7 +15,6 @@ pg.types.setTypeParser(pg.types.builtins.TIMESTAMP, (stringValue) => stringValue
 const { Pool, Client, escapeLiteral, escapeIdentifier } = pg;
 
 const connSym = Symbol.for('conn');
-const tranSym = Symbol.for('tran');
 
 const RESERVED_ALIAS = new Set(['EXCLUDED']);
 
@@ -87,9 +86,11 @@ class PostgresConnector extends RelationalConnector {
     constructor(app, connectionString, options) {
         super(app, 'postgres', connectionString, options);
 
-        this.acitveClients = new WeakSet();
+        this.poolClients = new Map();
+        this.otherClients = new Map();
         this.executedCount = 0;
         this.transactionId = 0;
+        this.connectionId = 0;
     }
 
     /**
@@ -148,11 +149,29 @@ class PostgresConnector extends RelationalConnector {
      * Close all connection initiated by this connector.
      */
     async end_() {
-        if (this.acitveClients.size > 0) {
-            for (const client of this.acitveClients) {
-                await this.disconnect_(client);
-            }
+        if (this.poolClients.size > 0 || this.otherClients.size > 0) {
+            this.app.log('info', `${this.driver}: database query in progress...`, {
+                pooled: this.poolClients.size,
+                other: this.otherClients.size,
+            });
+            await waitUntil_(
+                () => {
+                    return this.poolClients.size === 0 && this.otherClients.size === 0;
+                },
+                1000,
+                30
+            );
         }
+
+        for (const client of this.poolClients.keys()) {
+            await this.disconnect_(client, 'connector.end_');
+        }
+        this.poolClients.clear();
+
+        for (const client of this.otherClients.keys()) {
+            await this.disconnect_(client, 'connector.end_');
+        }
+        this.otherClients.clear();
 
         if (this.pool) {
             await this.pool.end();
@@ -170,7 +189,7 @@ class PostgresConnector extends RelationalConnector {
      * @property {bool} [options.createDatabase=false] - Flag to used when creating a database.
      * @returns {Promise.<Client>}
      */
-    async connect_(options) {
+    async connect_(options, transactionId, purpose) {
         if (options) {
             let connProps;
 
@@ -192,16 +211,29 @@ class PostgresConnector extends RelationalConnector {
             const csKey = connProps ? this.makeNewConnectionString(connProps) : null;
 
             if (csKey && csKey !== this.connectionString) {
+                if (transactionId) {
+                    throw new InvalidArgument(
+                        'Cannot create a connection with different connection string in transaction.'
+                    );
+                }
+
                 // create standalone connection
                 const client = new Client(connectionStringToObject(csKey, this.driver));
                 await client.connect();
 
+                const meta = { purpose, connectionId: ++this.connectionId };
+
                 if (this.options.logConnection) {
                     const connStrForDisplay = this.getConnectionStringWithoutCredential(csKey);
-                    client[connSym] = connStrForDisplay;
+                    meta.connection = connStrForDisplay;
 
-                    this.app.log('info', `${this.driver}: create non-pool connection to "${connStrForDisplay}".`);
+                    this.app.log('info', `${this.driver}: create non-pool connection to "${connStrForDisplay}".`, {
+                        purpose,
+                        connectionId: this.connectionId,
+                    });
                 }
+
+                this.otherClients.set(client, meta);
 
                 return client;
             }
@@ -227,10 +259,18 @@ class PostgresConnector extends RelationalConnector {
         }
 
         const client = await this.pool.connect();
-        this.acitveClients.add(client);
+        const poolClientMeta = { connection: this.pool[connSym], transactionId, purpose };
+        if (transactionId == null) {
+            poolClientMeta.connectionId = ++this.connectionId;
+        }
+        this.poolClients.set(client, poolClientMeta);
 
         if (this.options.logConnection) {
-            this.app.log('info', `${this.driver}: get connection from pool "${this.pool[connSym]}".`);
+            this.app.log('info', `${this.driver}: get connection from pool "${this.pool[connSym]}".`, {
+                transactionId,
+                connectionId: poolClientMeta.connectionId,
+                purpose,
+            });
         }
 
         return client;
@@ -240,39 +280,53 @@ class PostgresConnector extends RelationalConnector {
      * Close a database connection.
      * @param {Client} client - Postgres client connection.
      */
-    async disconnect_(client) {
-        delete client[tranSym];
-
-        if (this.acitveClients.has(client)) {
+    async disconnect_(client, purpose) {
+        if (this.poolClients.has(client)) {
+            const meta = this.poolClients.get(client);
+            this.poolClients.delete(client);
             if (this.options.logConnection) {
-                this.app.log('info', `${this.driver}: release connection to pool "${this.pool[connSym]}".`);
+                this.app.log('info', `${this.driver}: release connection to pool "${this.pool[connSym]}".`, {
+                    purpose: meta.purpose,
+                    disconnectCause: purpose,
+                    transactionId: meta.transactionId,
+                    connectionId: meta.connectionId,
+                });
             }
-            this.acitveClients.delete(client);
 
+            // return to pool
             return client.release();
-        } else {
+        } else if (this.otherClients.has(client)) {
+            const meta = this.otherClients.get(client);
+            this.otherClients.delete(client);
             if (this.options.logConnection) {
-                this.app.log('info', `${this.driver}: disconnect non-pool connection to "${client[connSym]}".`);
+                this.app.log('info', `${this.driver}: disconnect non-pool connection to "${meta.connection}".`, {
+                    purpose: meta.purpose,
+                    disconnectCause: purpose,
+                    connectionId: meta.connectionId,
+                });
             }
-
-            delete client[connSym];
 
             // not created by pool
             return client.end();
         }
+
+        this.app.log('warn', `${this.driver}: unknown client connection to disconnect.`, {
+            disconnectCause: purpose
+        });
     }
 
     /**
      * Start a transaction. Must catch error and rollback if failed!
      * @returns {Promise.<Client>}
      */
-    async beginTransaction_(ctx) {
-        const client = await this.connect_();
-        const tid = (client[tranSym] = ++this.transactionId);
+    async beginTransaction_(ctx, purpose) {
+        const transactionId = ++this.transactionId;
+        const client = await this.connect_(null, transactionId, purpose);
         if (this.options.logTransaction) {
             this.app.log('info', `${this.driver}: begins a new transaction.`, {
                 reqId: ctx?.state.reqId,
-                transactionId: tid,
+                transactionId,
+                purpose,
             });
         }
         await client.query('BEGIN');
@@ -283,18 +337,19 @@ class PostgresConnector extends RelationalConnector {
      * Commit a transaction. [exception safe]
      * @param {Client} client - Postgres client connection.
      */
-    async commit_(client, ctx) {
+    async commit_(client, ctx, purpose) {
         try {
             await client.query('COMMIT');
             if (this.options.logTransaction) {
-                const tid = client[tranSym];
                 this.app.log('info', `${this.driver}: committed a transaction.`, {
                     reqId: ctx?.state.reqId,
-                    transactionId: tid,
+                    transactionId: this.poolClients.get(client).transactionId,
+                    maxTransactionId: this.transactionId,
+                    purpose,
                 });
             }
         } finally {
-            this.disconnect_(client);
+            await this.disconnect_(client, purpose);
         }
     }
 
@@ -302,19 +357,20 @@ class PostgresConnector extends RelationalConnector {
      * Rollback a transaction. [exception safe]
      * @param {Client} client - Postgres client connection.
      */
-    async rollback_(client, error, ctx) {
+    async rollback_(client, error, ctx, purpose) {
         try {
             await client.query('ROLLBACK;');
-            const tid = client[tranSym];
             this.app.log('error', `${this.driver}: rollbacked a transaction.`, {
                 reqId: ctx?.state.reqId,
-                transactionId: tid,
+                transactionId: this.poolClients.get(client).transactionId,
+                maxTransactionId: this.transactionId,
+                purpose,
                 type: error?.name,
                 error: error.message,
                 info: error.info,
             });
         } finally {
-            this.disconnect_(client);
+            await this.disconnect_(client, purpose);
         }
     }
 
@@ -352,7 +408,20 @@ class PostgresConnector extends RelationalConnector {
             if (!connOptions.$noLog && this.options.logStatement) {
                 const meta = { ..._.omit(options, FIELDS_OMIT_FROM_LOG), params };
                 if (connection) {
-                    meta.transactionId = connection[tranSym];
+                    const _meta = this.poolClients.get(connection);
+                    meta.transactionId = _meta.transactionId;
+                } else {
+                    let _meta = this.poolClients.get(conn);
+                    if (_meta) {
+                        if (_meta.transactionId != null) {
+                            meta.transactionId = _meta.transactionId;
+                        } else {
+                            meta.connectionId = _meta.connectionId;
+                        }
+                    } else {
+                        _meta = this.otherClients.get(conn);
+                        meta.connectionId = _meta.connectionId;
+                    }
                 }
                 if (connOptions.$ctx) {
                     meta.reqId = connOptions.$ctx.state.reqId;
@@ -394,8 +463,8 @@ class PostgresConnector extends RelationalConnector {
 
             throw err;
         } finally {
-            if (conn && !connection) {
-                await this.disconnect_(conn);
+            if (conn && connection == null) {
+                await this.disconnect_(conn, 'connector.endExecute_');
             }
         }
     }

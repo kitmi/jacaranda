@@ -7,7 +7,7 @@ const { getPackageRoot } = require('../utils/helpers');
 
 
 /**
- * Build database scripts and entity models from oolong files.
+ * Build API from entity model and api schema.
  * @param {ServiceContainer} app
  * @returns {Promise}
  */
@@ -15,6 +15,8 @@ module.exports = async (app) => {
     app.log('verbose', `${app.name} build-api`);
 
     const modelService = app.getService('dataModel');
+    const packageJsonFile = path.resolve('package.json');
+    const packageJson = require(packageJsonFile);
 
     const schemaObjects = Linker.buildSchemaObjects(app, modelService.config);
 
@@ -41,20 +43,20 @@ module.exports = async (app) => {
             Object.values(dbModeler.warnings).forEach((warning) => app.log('warn', warning));
         }
 
-        const DaoModeler = require('../modeler/Dao');
-        let daoModeler = new DaoModeler(modelService, schema.linker, connector);
+        const ApiGenerator = require('../modeler/ApiGenerator');
+        const apiGenerator = new ApiGenerator(modelService, schema.linker);
 
-        const context = {};
+        const context = { groups: {} };
 
         if (modelService.config.apiExtends) {
             modelService.config.apiExtends.forEach((pkg) => {
                 const pkgPath = getPackageRoot(pkg);
                 const schemaPath = path.resolve(pkgPath, 'xeml', 'api');
-                daoModeler.prepareApiCommonContext(schemaPath, context);
+                apiGenerator.prepareApiCommonContext(schemaPath, context, pkg);
             });
         }
 
-        return daoModeler.generateApi(refinedSchema, context);
+        return apiGenerator.generateApi(refinedSchema, context, packageJson.name);
     });
 
     app.logger.flush();

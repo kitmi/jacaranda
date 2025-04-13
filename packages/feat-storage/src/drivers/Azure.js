@@ -5,7 +5,7 @@ import { DEFAULT_UPLOAD_EXPIRY, DEFAULT_DOWNLOAD_EXPIRY } from '../common';
 class AzureService {
     static packages = ['@azure/storage-blob'];
 
-    constructor(app, options) {
+    constructor(app, provider, options) {
         if (!app.enabled('i18n')) {
             throw new ApplicationError('"i18n" feature is required.');
         }
@@ -13,6 +13,7 @@ class AzureService {
         const { accountName, accountKey, bucket: containerName } = options;
         const StorageBlob = app.tryRequire('@azure/storage-blob');
 
+        this.provider = provider;
         this.app = app;
 
         const { BlobServiceClient, StorageSharedKeyCredential, BlobSASPermissions } = StorageBlob;

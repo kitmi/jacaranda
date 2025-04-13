@@ -1,5 +1,11 @@
 # @kitmi/jacaranda
 
+## 3.8.1
+
+### Patch Changes
+
+-   Fixed error logging bug when error is a plain text.
+
 ## 3.8.0
 
 ### Minor Changes

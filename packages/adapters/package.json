@@ -54,7 +54,11 @@
     },
     "devDependencies": {
         "@kitmi/jacaranda": "workspace:*",
-        "@kitmi/sys": "workspace:*"
+        "@kitmi/sys": "workspace:*",
+        "@swc/cli": "^0.6.0",
+        "mocha": "^11.1.0",
+        "prettier": "^3.5.2",
+        "shx": "0.3.4"
     },
     "dependencies": {
         "@kitmi/utils": "workspace:*"

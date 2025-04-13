@@ -7,7 +7,6 @@
         get:
             description: Get a list of {{resourceName}}                          
             responses:
-                $extends: protected
                 200:
                     description: List of {{resourceName}}
                     body:
@@ -22,7 +21,6 @@
             request:
                 body: {{newDatasetOrDefault}}
             responses:
-                $extends: protected
                 200:
                     description: Detail of newly created {{resourceName}}
                     body:
@@ -39,13 +37,12 @@
                     params:
                         {{keyField}}: $entity.{{resourceName}}.{{keyField}}
                 responses:
-                    $extends: protected
                     200:
                         description: {{resourcePascalName}} detail
                         body:
                             $specOf:
-                                $type.detailResult:
-                                    detailType: {{detailViewOrDefault}}
+                                $type.dataResult:
+                                    dataType: {{detailViewOrDefault}}
                 implementation:
                     - $entity.{{resourceName}}.findOne_({{detailViewOrDefault}}($local.{{keyField}}))            
 
@@ -56,7 +53,6 @@
                         {{keyField}}: $entity.{{resourceName}}.{{keyField}}
                     body: {{updateDatasetOrDefault}}
                 responses:
-                    $extends: protected
                     200:
                         description: Detail of updated {{resourceName}}
                         body:
@@ -72,9 +68,8 @@
                     params:
                         {{keyField}}: $entity.{{resourceName}}.{{keyField}}
                 responses:
-                    $extends: protected
                     200:
-                        description: 
+                        description: Deleted {{resourceName}} with {{keyField}}
                         body:
                             $specOf:
                                 $type.dataResult:

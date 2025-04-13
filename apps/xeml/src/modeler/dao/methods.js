@@ -102,7 +102,7 @@ const addChildNode = (descendantsAnchor, closureTable) => `
                 'anyNode.descendantId': 'descendantId',
                 '::depth': 'depth',
             });
-        });
+        }, \`\${closureTableInfo.entity}.addChildNode_\`);
     }
 `;
 
@@ -191,7 +191,7 @@ const cloneSubTree = (entity, feature) => {
                 await db.connector.createMany_('${closureTable}', ['ancestorId', 'descendantId', 'depth'], 
                     links.map(link => [idMap[link.ancestorId], idMap[link.descendantId], link.depth]), db.transaction);
             }
-        });        
+        }, '${entity.name}.cloneSubTree_');        
         
         return {
             data: insertedData,
@@ -262,7 +262,7 @@ const moveNode = (entity) => {
             const ${entityName} = db.entity('${entity.name}');
             await ${entityName}.removeSubTree_(childId);
             return ${entityName}.addChildNode_(parentId, childId);
-        });
+        }, '${entity.name}.moveNode_');
     }
 `;
 };
@@ -332,7 +332,7 @@ const popJob = (connector, entityName) => {
      * @returns {Promise<Object>} { data }.
      */
     async popJob_(jobName) {
-        return this.db.connector.execute_('SELECT * FROM get_task_from_${snakeName}(${connector.specParamToken})', [jobName]);
+        return this.db.connector.execute_('SELECT * FROM get_task_from_${snakeName}(${connector.specParamToken})', [jobName], null, this.db.transaction);
     }
 `;
 };

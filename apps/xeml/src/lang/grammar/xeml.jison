@@ -42,19 +42,25 @@ Keyword by state
         'entity.has': 'entity.has', 
         'entity.key': 'entity.key', 
         'entity.index': 'entity.index', 
-        'entity.input': 'entity.input', 
+        //'entity.input': 'entity.input', 
         'entity.views': 'entity.views', 
         'entity.data': 'entity.data', 
         'entity.code': 'entity.code', 
 
-        'entity.input.$INDENT': 'entity.input.inputSet',
-        'entity.input.inputSet.$INDENT': 'entity.input.inputSet.item',
+        //'entity.input.$INDENT': 'entity.input.inputSet',
+        //'entity.input.inputSet.$INDENT': 'entity.input.inputSet.item',
 
         'entity.views.$INDENT': 'entity.views.dataSet',
         'entity.views.dataSet.$INDENT': 'entity.views.dataSet.item',
 
         'entity.views.dataSet.item.select': 'entity.views.dataSet.item.select',
         'entity.views.dataSet.item.select.$INDENT': 'entity.views.dataSet.item.select.item',
+
+        'entity.views.dataSet.item.relation': 'entity.views.dataSet.item.relation',
+        'entity.views.dataSet.item.relation.$INDENT': 'entity.views.dataSet.item.relation.item',
+
+        'entity.views.dataSet.item.withRelations': 'entity.views.dataSet.item.relation',
+        'entity.views.dataSet.item.withRelations.$INDENT': 'entity.views.dataSet.item.relation.item',
 
         'entity.views.dataSet.item.countBy': 'entity.views.dataSet.item.countBy',
 
@@ -89,7 +95,7 @@ Keyword by state
         'customize': new Set(['entities']),
         'override': new Set(['entity']),
         'abstract': new Set(['entity']),    
-        'schema': new Set(['entities', 'views']),
+        'schema': new Set(['entities']),
         'entity': new Set([ 'is', 'extends', 'with', 'use', 'has', 'associations', 'key', 'index', 'data', 'input', 'views', /*'interface', 'code'*/, 'triggers' ]),
     
         // level 2
@@ -98,7 +104,7 @@ Keyword by state
         //'entity.interface': new Set(['accept', 'find', 'findOne', 'return']),
         'entity.triggers': new Set(['onCreate', 'onCreateOrUpdate', 'onUpdate', 'onDelete']),          
         'entity.data': new Set(['in']),
-        'entity.input': new Set(['extends']),    
+        //'entity.input': new Set(['extends']),    
         'entity.views': new Set(['extends']),     
 
         // level 3
@@ -108,9 +114,9 @@ Keyword by state
         // level 4
         'entity.associations.item.block': new Set(['when']),        
         
-        'entity.input.inputSet.item': new Set(['optional', 'default', 'with']),     
+        //'entity.input.inputSet.item': new Set(['optional', 'default', 'with']),     
 
-        'entity.views.dataSet.item': new Set(['select', 'orderBy', 'countBy', 'groupBy', 'options']),     
+        'entity.views.dataSet.item': new Set(['select', 'relation', 'withRelations', 'orderBy', 'countBy', 'groupBy', 'options']),     
 
         // level 5
         'entity.associations.item.block.when': new Set(['being', 'with' ]),     
@@ -127,8 +133,8 @@ Keyword by state
         [ 'entity.has', 1 ],               
         [ 'entity.data', 1 ], 
         [ 'entity.index', 1 ],           
-        [ 'entity.input.inputSet', 2 ],
-        [ 'entity.input.inputSet.item', 1 ],                  
+        //[ 'entity.input.inputSet', 2 ],
+        //[ 'entity.input.inputSet.item', 1 ],                  
         [ 'entity.views.dataSet', 2 ],
         [ 'entity.views.dataSet.item', 1 ],                  
         [ 'entity.associations', 1 ],
@@ -136,6 +142,8 @@ Keyword by state
         [ 'entity.associations.item.block.when', 2 ],  
         [ 'entity.views.dataSet.item.select', 1 ],
         [ 'entity.views.dataSet.item.select.item', 2 ],
+        [ 'entity.views.dataSet.item.relation', 1 ],
+        [ 'entity.views.dataSet.item.relation.item', 2 ],
         [ 'entity.views.dataSet.item.countBy', 1 ],
         [ 'entity.views.dataSet.item.groupBy', 1 ],
         [ 'entity.views.dataSet.item.groupBy.item', 2 ],
@@ -154,12 +162,14 @@ Keyword by state
         [ 'entity.code', 1 ],
         [ 'entity.key', 1 ],   
         [ 'entity.data', 1 ],                
-        [ 'entity.input.inputSet', 1 ],
-        [ 'entity.input.inputSet.item', 1 ],
+        //[ 'entity.input.inputSet', 1 ],
+        //[ 'entity.input.inputSet.item', 1 ],
         [ 'entity.views.dataSet', 1 ],
         [ 'entity.views.dataSet.item', 1 ],        
         [ 'entity.views.dataSet.item.select', 1 ],
         [ 'entity.views.dataSet.item.select.item', 1 ],
+        [ 'entity.views.dataSet.item.relation', 1 ],
+        [ 'entity.views.dataSet.item.relation.item', 1 ],
         [ 'entity.views.dataSet.item.countBy', 1 ],
         [ 'entity.views.dataSet.item.groupBy', 1 ],
         [ 'entity.views.dataSet.item.groupBy.item', 1 ],
@@ -1117,12 +1127,7 @@ schema_statement
     ;
 
 schema_statement_block
-    : comment_or_not schema_entities? schema_views_or_not -> Object.assign({}, $1, $2, $3)
-    ;
-
-schema_views_or_not
-    :
-    | schema_views
+    : comment_or_not schema_entities? -> Object.assign({}, $1, $2)
     ;
 
 schema_entities
@@ -1552,11 +1557,20 @@ views_statement_def
     ;
 
 entity_views_block
-    : views_statement_select views_statement_count_by? views_statement_group_by? views_statement_order_by* views_statement_options? -> { $select: $1,  ...($2 ? { $countBy: $2 } : null), ...($3 ? { $groupBy: $3 } : null), ...($4 && $4.length > 0 ? { $orderBySet: $4 } : null), ...$5 }
+    : views_statement_select views_statement_relation? views_statement_count_by? views_statement_group_by? views_statement_order_by* views_statement_options? -> { $select: $1, ...($2 ? { $relation: $2 } : null), ...($3 ? { $countBy: $3 } : null), ...($4 ? { $groupBy: $4 } : null), ...($5 && $5.length > 0 ? { $orderBy: $5 } : null), ...$6 }
     ;
 
 views_statement_select
     : "select" NEWLINE INDENT entity_views_block_select DEDENT NEWLINE? -> $4
+    ;
+
+views_statement_relation
+    : views_statement_relation_keys NEWLINE INDENT identifier_string_or_dotname_block DEDENT NEWLINE? -> $4
+    ;
+
+views_statement_relation_keys
+    : "relation"    
+    | "withRelations"
     ;
 
 countby_keywords

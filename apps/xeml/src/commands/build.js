@@ -6,7 +6,7 @@ const Linker = require('../lang/Linker');
 const { getVersionInfo, getSchemaDigest, writeVersionInfo } = require('../utils/helpers');
 
 /**
- * Build database scripts and entity models from oolong files.
+ * Build database scripts and entity models from xeml files.
  * @param {ServiceContainer} app
  * @returns {Promise}
  */

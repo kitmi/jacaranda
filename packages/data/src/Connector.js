@@ -2,7 +2,7 @@ import { URL } from 'node:url';
 import { _, isEmpty } from '@kitmi/utils';
 import { Types } from '@kitmi/validators/allSync';
 
-export const FIELDS_OMIT_FROM_LOG = ['$assoc', '$data', '$ctx'];
+export const FIELDS_OMIT_FROM_LOG = ['$assoc', '$data', '$ctx', '$where'];
 
 export function connectionObjectToString(obj, withoutCredential = false) {
     const { driver, user, password, host, database, ...options } = obj;

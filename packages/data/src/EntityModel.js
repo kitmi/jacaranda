@@ -340,31 +340,31 @@ class EntityModel {
         }, context);
     }
 
-    async ensureTransaction_() {
+    async ensureTransaction_(ctx, purpose) {
         if (!this.db.transaction) {
             if (!this._safeFlag) {
                 throw new ApplicationError('Transaction is not allowed outside of a safe execution block.');
             }
 
-            this.db = this.db.fork(await this.db.connector.beginTransaction_());
+            this.db = this.db.fork(await this.db.connector.beginTransaction_(ctx, purpose));
         }
     }
 
-    async _commitOwnedTransaction_() {
+    async _commitOwnedTransaction_(context) {
         if (this.db.transaction) {
             // exception safe
-            await this.db.connector.commit_(this.db.transaction);
             const newDbInstance = this.db.fork();
+            await this.db.connector.commit_(this.db.transaction, context.options.$ctx, `${this.meta.name}.${context.op}._commitOwnedTransaction_`);            
             this.db.end();
             // reset db with a new instance
             this.db = newDbInstance;
         }
     }
 
-    async _rollbackOwnedTransaction_(error) {
+    async _rollbackOwnedTransaction_(error, context) {
         if (this.db.transaction) {
             // exception safe
-            await this.db.connector.rollback_(this.db.transaction, error);
+            await this.db.connector.rollback_(this.db.transaction, error, context.options.$ctx, `${this.meta.name}.${context.op}_rollbackOwnedTransaction_`);
             const newDbInstance = this.db.fork();
             this.db.end();
             // reset db with a new instance
@@ -375,9 +375,10 @@ class EntityModel {
     /**
      * Safely execute a function with transaction support, returns false to cancel at anytime.
      * @param {*} executor
+     * @param {*} context
      * @returns {Promise<boolean> | boolean}
      */
-    async _safeExecute_(executor) {
+    async _safeExecute_(executor, context) {
         executor = executor.bind(this);
 
         let ownedTransaction = this.db.transaction == null;
@@ -388,20 +389,21 @@ class EntityModel {
 
             // if the executor have initiated a transaction
             if (ownedTransaction) {
-                await this._commitOwnedTransaction_();
+                ownedTransaction = false;
+                await this._commitOwnedTransaction_(context);
             }
 
             return result;
         } catch (error) {
             if (error instanceof OpCompleted) {
                 if (ownedTransaction) {
-                    await this._commitOwnedTransaction_();
+                    await this._commitOwnedTransaction_(context);
                 }
                 return error.payload;
             }
 
             if (ownedTransaction) {
-                await this._rollbackOwnedTransaction_(error);
+                await this._rollbackOwnedTransaction_(error, context);
             }
             throw error;
         } finally {
@@ -435,7 +437,6 @@ class EntityModel {
             const t = typeof returningFields;
 
             if (t === 'string') {
-                // todo: check '.'
                 if (returningFields.indexOf('.') !== -1) {
                     throw new InvalidArgument(`"${returningKey}" does not support retrieving with associations.`);
                 }
@@ -500,7 +501,7 @@ class EntityModel {
      * Create a new entity with given data.
      * @param {object} data - Entity data
      * @param {object} [createOptions] - Create options
-     * @property {bool|object} [createOptions.$getCreated=false] - Retrieve the newly created record from db, can also retrieve with a complex query.
+     * @property {bool|array|object} [createOptions.$getCreated=false] - Retrieve the newly created record from db, can also retrieve with a complex query.
      * @property {bool} [createOptions.$ignore=false] - If already exist, just ignore the insert.
      * @property {bool} [createOptions.$upsert=false] - If already exist, just update the record.
      * @property {bool} [createOptions.$dryRun=false] - Do not actually insert the record.
@@ -531,7 +532,7 @@ class EntityModel {
             // use foreign data as input
             if (!isEmpty(references)) {
                 if (!opOptions.$dryRun) {
-                    await this.ensureTransaction_();
+                    await this.ensureTransaction_(context.options.$ctx, `${this.meta.name}.create._populateReferences_`);
                 }
                 await this._populateReferences_(context, references);
             }
@@ -539,7 +540,7 @@ class EntityModel {
             let needCreateAssocs = !isEmpty(associations);
             if (needCreateAssocs) {
                 if (!opOptions.$dryRun) {
-                    await this.ensureTransaction_();
+                    await this.ensureTransaction_(context.options.$ctx, `${this.meta.name}.create._createAssocs_`);
                 }
 
                 associations = await this._createAssocs_(context, associations, true /* before create */);
@@ -615,7 +616,7 @@ class EntityModel {
             }
 
             await this.applyRules_(Rules.RULE_AFTER_CREATE, context);
-        });
+        }, context);
 
         if (!opOptions.$dryRun) {
             await this.afterCreate_(context);
@@ -752,7 +753,7 @@ class EntityModel {
         await this._safeExecute_(async () => {
             if (!isEmpty(references)) {
                 if (!opOptions.$dryRun) {
-                    await this.ensureTransaction_();
+                    await this.ensureTransaction_(context.options.$ctx, `${this.meta.name}.update._populateReferences_`);
                 }
                 await this._populateReferences_(context, references);
             }
@@ -762,7 +763,7 @@ class EntityModel {
 
             if (needUpdateAssocs) {
                 if (!opOptions.$dryRun) {
-                    await this.ensureTransaction_();
+                    await this.ensureTransaction_(context.options.$ctx, `${this.meta.name}.update._updateAssocs_`);
                 }
 
                 associations = await this._updateAssocs_(context, associations, true /* before update */, isOne);
@@ -1047,7 +1048,7 @@ class EntityModel {
         }
 
         if (isUpdating && isEmpty(existing) && this._dependsOnExistingData(raw)) {
-            await this.ensureTransaction_();
+            await this.ensureTransaction_(opOptions.$ctx, `${this.meta.name}.${context.op}._dependsOnExistingData`);
 
             if (isOne) {
                 existing = await this.findOne_({ $where: opOptions.$where, $ctx: opOptions.$ctx });

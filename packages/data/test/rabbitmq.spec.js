@@ -27,15 +27,23 @@ describe('rabbitmq', function () {
             const msg = { hello: 'world', t: Date.now() };
             let msgReceived, msgReceived2;
 
-            await mq.subscribe_('testlogs', async ({ body }) => {
-                //console.log('client1', body);
-                msgReceived = body;
-            }, { deleteOnStop: true, durable: false });
+            await mq.subscribe_(
+                'testlogs',
+                async ({ body }) => {
+                    //console.log('client1', body);
+                    msgReceived = body;
+                },
+                { deleteOnStop: true, durable: false }
+            );
 
-            await mq.subscribe_('testlogs', async ({ body }) => {
-                //console.log('client2', body);
-                msgReceived2 = body;
-            }, { deleteOnStop: true, durable: false });
+            await mq.subscribe_(
+                'testlogs',
+                async ({ body }) => {
+                    //console.log('client2', body);
+                    msgReceived2 = body;
+                },
+                { deleteOnStop: true, durable: false }
+            );
 
             await mq.publish_('testlogs', msg);
 

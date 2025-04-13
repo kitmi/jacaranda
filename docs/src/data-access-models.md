@@ -107,12 +107,26 @@ The `BusinessLogic` class encapsulates the business logic of the system. It inte
 
 ```javascript
 // ./business/auth.js
-class AuthBusiness extends Business {
+class AuthBusiness {
     async validate_(username, password) {
         const query = {};
         let loginBy = 'username';
 
         const [isEmail] = Validators.email(username);
+
+        if (isEmail) {
+            query.email = username.toLowerCase();
+            loginBy = 'email';
+        } else {
+            query.mobile = Processors.normalizePhone(username);
+            loginBy = 'mobile';
+        }
+
+        const AdminUser = this.db.entity('adminUser');
+        const adminUser = await AdminUser.findOne_({
+            $where: query,
+        });
+
         //...
     }
 

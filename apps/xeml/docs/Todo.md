@@ -25,6 +25,7 @@
 
 ## Planned features
 
+- detect closure table feature
 - inherit hasMany (abstract & reverse replacement of base into subClass)
 - aggregation with window functions
 - select for update

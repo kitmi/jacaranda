@@ -1,3 +1,3 @@
 # @kitmi/data todo list
 
-- [ ] Add unique request id for log tracking
+- [x] Add unique request id for log tracking

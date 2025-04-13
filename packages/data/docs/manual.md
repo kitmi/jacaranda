@@ -510,7 +510,7 @@ If already exist (unique key conclicts), just ignore the operation.
 
 If already exist (unique key conclicts), just update the record.     
 
-#### $getCreated - {boolean|array}
+#### $getCreated - {boolean|array|object}
 
 Return created records.
 

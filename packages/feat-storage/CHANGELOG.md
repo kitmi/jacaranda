@@ -1,5 +1,11 @@
 # @kitmi/feat-storage
 
+## 1.2.0
+
+### Minor Changes
+
+-   Added minio support
+
 ## 1.1.2
 
 ### Patch Changes

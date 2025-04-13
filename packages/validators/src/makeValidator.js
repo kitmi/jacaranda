@@ -13,7 +13,7 @@ const makeValidator = (validateFunc, message, checkNull) => {
         if (!validated) {
             return [
                 false,
-                context.i18n?.t ? context.i18n.t(message, { value, options }) : template(message, { value, options }),
+                context?.i18n?.t ? context.i18n.t(message, { value, options }) : template(message, { value, options }),
             ];
         }
 
