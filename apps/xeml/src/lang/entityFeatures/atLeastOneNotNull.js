@@ -22,7 +22,7 @@ function feature(entity, [fields]) {
             let field = entity.fields[fieldName];
 
             if (!field) {
-                throw new Error('Required field "' + fieldName + '" not exist.');
+                throw new Error('Required field "' + fieldName + '" does not exist. Entity: ' + entity.name);
             }
 
             field.optional = true;
