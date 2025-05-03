@@ -352,9 +352,9 @@ class EntityModel {
 
     async _commitOwnedTransaction_(context) {
         if (this.db.transaction) {
-            // exception safe
-            const newDbInstance = this.db.fork();
+            // exception safe            
             await this.db.connector.commit_(this.db.transaction, context.options.$ctx, `${this.meta.name}.${context.op}._commitOwnedTransaction_`);            
+            const newDbInstance = this.db.fork();
             this.db.end();
             // reset db with a new instance
             this.db = newDbInstance;

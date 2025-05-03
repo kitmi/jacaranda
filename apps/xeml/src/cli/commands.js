@@ -7,6 +7,7 @@ exports.Commands = {
     'import-api': 'Import API metadata into database.',
     'migrate': 'Create database structure.',
     'import': 'Import data set.',
+    'xeml-prompt': 'Merge selected xeml files into a LLM prompt context',
 };
 
 /**
@@ -88,6 +89,14 @@ exports.getCommandOptions = (cli, command) => {
                 desc: 'Override same day output',
                 alias: ['O'],
                 bool: true,
+            };
+            break;
+        
+        case 'xeml-prompt':            
+            cmdOptions['o'] = {
+                desc: 'Output file',
+                alias: ['output', 'output-file'],
+                default: './xeml-prompt.xml',
             };
             break;
 

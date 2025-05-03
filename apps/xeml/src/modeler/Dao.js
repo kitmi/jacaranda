@@ -159,8 +159,8 @@ class DaoModeler {
                     Methods.cloneSubTree(entity, feature),
                     Methods.getTopNodes(entity, feature.closureTable),
                     Methods.moveNode(entity),
-                    Methods.getChildren(feature.reverse),
-                    Methods.getParents(feature.relation),
+                    Methods.getChildren(entity, feature.reverse),
+                    Methods.getParents(entity, feature.relation),
                 ];
 
             case 'isCacheTable':

@@ -153,7 +153,7 @@ const cloneSubTree = (entity, feature) => {
      */
     async cloneSubTree_(nodeId, depth) {
         const { data: subTreeNodes } = await this.getAllDescendants_(nodeId, ['*'], depth);
-        const subTreeNodesIds = subTreeNodes.map((i) => i.id);
+        const subTreeNodesIds = subTreeNodes.map((i) => i.${entity.key});
 
         const ClosureTable = this.getRelatedEntity('${descendantsAnchor}');
         const { data: links } = await ClosureTable.findMany_({
@@ -184,7 +184,7 @@ const cloneSubTree = (entity, feature) => {
                     }
                 );
                 insertedData.push(data);
-                idMap[item.id] = insertId;                
+                idMap[item.${entity.key}] = insertId;                
             });
 
             if (links.length > 0) {
@@ -267,7 +267,7 @@ const moveNode = (entity) => {
 `;
 };
 
-const getChildren = (ancestorsAnchor) => `
+const getChildren = (entity, ancestorsAnchor) => `
     /**
      * Get all child nodes of the given parent node.
      * @param {*} currentId - The current node id.
@@ -290,8 +290,8 @@ const getChildren = (ancestorsAnchor) => `
      * @returns {Promise<array>} 
      */ 
     async getChildrenId_(currentId) {
-        const { data: children } = await this.getChildren_(currentId, ['id']);
-        return children.map(item => item.id);
+        const { data: children } = await this.getChildren_(currentId, ['${entity.key}']);
+        return children.map(item => item.${entity.key});
     }
 `;
 
@@ -318,8 +318,8 @@ const getParents = (descendantsAnchor) => `
      * @returns {Promise<array>} 
      */ 
     async getParentsId_(currentId) {
-        const { data: parents } = await this.getParents_(currentId, ['id']);
-        return parents.map(item => item.id);
+        const { data: parents } = await this.getParents_(currentId, ['${entity.key}']);
+        return parents.map(item => item.${entity.key});
     }
 `;
 
