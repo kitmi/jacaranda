@@ -295,7 +295,7 @@ const getChildren = (entity, ancestorsAnchor) => `
     }
 `;
 
-const getParents = (descendantsAnchor) => `
+const getParents = (entity, descendantsAnchor) => `
     /**
      * Get the parent node of the given child node.
      * @param {*} currentId - The current node id.
