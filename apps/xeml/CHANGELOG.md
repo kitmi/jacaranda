@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.12.2
+
+### Patch Changes
+
+-   Fixed error of generated closure table methods
+
 ## 0.12.0
 
 ### Minor Changes
