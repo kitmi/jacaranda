@@ -3,6 +3,7 @@ const defaultValueByType = (options, meta, context) => context.system.types[meta
 export default {
     default: defaultValueByType,
     defaultAs: (options) => options,
+    toBe: (value) => value,
     random: (_0, meta, context) => {
         switch (meta.type) {
             case 'int':
