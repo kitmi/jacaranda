@@ -1,5 +1,11 @@
 # @kitmi/xeml
 
+## 0.12.3
+
+### Patch Changes
+
+-   Fixed order by compilation in view
+  
 ## 0.12.2
 
 ### Patch Changes

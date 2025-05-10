@@ -352,8 +352,12 @@ class EntityModel {
 
     async _commitOwnedTransaction_(context) {
         if (this.db.transaction) {
-            // exception safe            
-            await this.db.connector.commit_(this.db.transaction, context.options.$ctx, `${this.meta.name}.${context.op}._commitOwnedTransaction_`);            
+            // exception safe
+            await this.db.connector.commit_(
+                this.db.transaction,
+                context.options.$ctx,
+                `${this.meta.name}.${context.op}._commitOwnedTransaction_`
+            );
             const newDbInstance = this.db.fork();
             this.db.end();
             // reset db with a new instance
@@ -364,7 +368,12 @@ class EntityModel {
     async _rollbackOwnedTransaction_(error, context) {
         if (this.db.transaction) {
             // exception safe
-            await this.db.connector.rollback_(this.db.transaction, error, context.options.$ctx, `${this.meta.name}.${context.op}_rollbackOwnedTransaction_`);
+            await this.db.connector.rollback_(
+                this.db.transaction,
+                error,
+                context.options.$ctx,
+                `${this.meta.name}.${context.op}_rollbackOwnedTransaction_`
+            );
             const newDbInstance = this.db.fork();
             this.db.end();
             // reset db with a new instance
@@ -418,6 +427,15 @@ class EntityModel {
                 throw new InvalidArgument(
                     `View "${findOptions.$view}" not found, available: ${Object.keys(this.meta.views)}`
                 );
+            }
+
+            const { $orderBy } = baseView;
+
+            if ($orderBy) {
+                const orderBy = findOptions.$orderByGroup ? $orderBy[findOptions.$orderByGroup] : $orderBy.$default;
+                if (orderBy) {
+                    return { ...baseView, ...findOptions, $orderBy: orderBy };
+                }
             }
 
             return { ...baseView, ...findOptions };
@@ -532,7 +550,10 @@ class EntityModel {
             // use foreign data as input
             if (!isEmpty(references)) {
                 if (!opOptions.$dryRun) {
-                    await this.ensureTransaction_(context.options.$ctx, `${this.meta.name}.create._populateReferences_`);
+                    await this.ensureTransaction_(
+                        context.options.$ctx,
+                        `${this.meta.name}.create._populateReferences_`
+                    );
                 }
                 await this._populateReferences_(context, references);
             }
@@ -681,8 +702,8 @@ class EntityModel {
 
     /**
      * Spin up a new entity with data generator.
-     * @param {Function} dataGenerator_ 
-     * @param {Object} createOptions 
+     * @param {Function} dataGenerator_
+     * @param {Object} createOptions
      * @returns {Promise<Object>}
      */
     async spinCreate_(dataGenerator_, createOptions) {
@@ -693,7 +714,9 @@ class EntityModel {
                 return await this.create_(data, createOptions);
             } catch (err) {
                 if (err.code === this.errCodeDuplicate) {
-                    this.db.app.warn(`Duplicate "${this.meta.name}", will retry.`, { reqId: createOptions?.$ctx?.state.reqId });                    
+                    this.db.app.warn(`Duplicate "${this.meta.name}", will retry.`, {
+                        reqId: createOptions?.$ctx?.state.reqId,
+                    });
                 } else {
                     throw err;
                 }
@@ -753,7 +776,10 @@ class EntityModel {
         await this._safeExecute_(async () => {
             if (!isEmpty(references)) {
                 if (!opOptions.$dryRun) {
-                    await this.ensureTransaction_(context.options.$ctx, `${this.meta.name}.update._populateReferences_`);
+                    await this.ensureTransaction_(
+                        context.options.$ctx,
+                        `${this.meta.name}.update._populateReferences_`
+                    );
                 }
                 await this._populateReferences_(context, references);
             }
@@ -1132,7 +1158,10 @@ class EntityModel {
                         latest[fieldName] = null;
                     }
                 } else {
-                    if (typeof value === 'object' && (value.$xr || value.$set || value.$setAt || value.$setSlice || value.$case)) {
+                    if (
+                        typeof value === 'object' &&
+                        (value.$xr || value.$set || value.$setAt || value.$setSlice || value.$case)
+                    ) {
                         latest[fieldName] = value;
 
                         return;

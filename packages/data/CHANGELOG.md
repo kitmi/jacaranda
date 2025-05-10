@@ -1,5 +1,11 @@
 # @kitmi/data
 
+## 0.11.1
+
+### Patch Changes
+
+-   Fixed $orderBy in view
+
 ## 0.11.0
 
 ### Minor Changes

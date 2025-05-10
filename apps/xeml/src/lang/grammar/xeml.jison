@@ -539,6 +539,19 @@ Keyword by state
                 [value.name]: value.args.length === 1 ? value.args[0] : value.args
             };
         }
+
+        processOrderByInView(orderBys) {
+            return orderBys.reduce((result, item) => {
+                Object.assign(result, item);
+                return result;
+            }, {});
+        }
+
+        processOrderByItemInView(orderByItem) {
+            return orderByItem.reduce((result, item) => {
+                return { ...result, [item.field]: item.ascend };
+            }, {});
+        }
     }
 
     // merge two objects
@@ -1557,7 +1570,7 @@ views_statement_def
     ;
 
 entity_views_block
-    : views_statement_select views_statement_relation? views_statement_count_by? views_statement_group_by? views_statement_order_by* views_statement_options? -> { $select: $1, ...($2 ? { $relation: $2 } : null), ...($3 ? { $countBy: $3 } : null), ...($4 ? { $groupBy: $4 } : null), ...($5 && $5.length > 0 ? { $orderBy: $5 } : null), ...$6 }
+    : views_statement_select views_statement_relation? views_statement_count_by? views_statement_group_by? views_statement_order_by* views_statement_options? -> { $select: $1, ...($2 ? { $relation: $2 } : null), ...($3 ? { $countBy: $3 } : null), ...($4 ? { $groupBy: $4 } : null), ...($5 && $5.length > 0 ? { $orderBy: state.processOrderByInView($5) } : null), ...$6 }
     ;
 
 views_statement_select
@@ -1594,8 +1607,8 @@ orderby_keywords
     ;
 
 views_statement_order_by
-    : orderby_keywords NEWLINE INDENT order_by_block DEDENT NEWLINE? -> { "$default": $4 }
-    | orderby_keywords identifier_or_string NEWLINE INDENT order_by_block DEDENT NEWLINE? -> { [$2]: $5 }
+    : orderby_keywords NEWLINE INDENT order_by_block DEDENT NEWLINE? -> { "$default": state.processOrderByItemInView($4) }
+    | orderby_keywords identifier_or_string NEWLINE INDENT order_by_block DEDENT NEWLINE? -> { [$2]: state.processOrderByItemInView($5) }
     ;
 
 order_by_block

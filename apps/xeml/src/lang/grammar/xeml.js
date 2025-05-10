@@ -399,7 +399,7 @@ case 198:
 this.$ = { name: $$[$0-2], extends: $$[$0] };
 break;
 case 199:
-this.$ = { $select: $$[$0-5], ...($$[$0-4] ? { $relation: $$[$0-4] } : null), ...($$[$0-3] ? { $countBy: $$[$0-3] } : null), ...($$[$0-2] ? { $groupBy: $$[$0-2] } : null), ...($$[$0-1] && $$[$0-1].length > 0 ? { $orderBy: $$[$0-1] } : null), ...$$[$0] };
+this.$ = { $select: $$[$0-5], ...($$[$0-4] ? { $relation: $$[$0-4] } : null), ...($$[$0-3] ? { $countBy: $$[$0-3] } : null), ...($$[$0-2] ? { $groupBy: $$[$0-2] } : null), ...($$[$0-1] && $$[$0-1].length > 0 ? { $orderBy: state.processOrderByInView($$[$0-1]) } : null), ...$$[$0] };
 break;
 case 200: case 201: case 207: case 226:
 this.$ = $$[$0-2];
@@ -408,10 +408,10 @@ case 205: case 310: case 321: case 322: case 334:
 this.$ = $$[$0-1];
 break;
 case 209:
-this.$ = { "$default": $$[$0-2] };
+this.$ = { "$default": state.processOrderByItemInView($$[$0-2]) };
 break;
 case 210:
-this.$ = { [$$[$0-5]]: $$[$0-2] };
+this.$ = { [$$[$0-5]]: state.processOrderByItemInView($$[$0-2]) };
 break;
 case 213:
 this.$ = { field: $$[$0], ascend: true };
@@ -1272,6 +1272,19 @@ parse: function parse(input) {
             return {
                 [value.name]: value.args.length === 1 ? value.args[0] : value.args
             };
+        }
+
+        processOrderByInView(orderBys) {
+            return orderBys.reduce((result, item) => {
+                Object.assign(result, item);
+                return result;
+            }, {});
+        }
+
+        processOrderByItemInView(orderByItem) {
+            return orderByItem.reduce((result, item) => {
+                return { ...result, [item.field]: item.ascend };
+            }, {});
         }
     }
 
